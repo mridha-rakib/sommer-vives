@@ -168,6 +168,9 @@ export default function AdminProperties() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={`/admin/properties/${property.id}/edit`}>Rediger</a>
+                  </Button>
                   {property.status === 'pending' && (
                     <>
                       <Button variant="gold" size="sm" onClick={() => updateStatus(property.id, 'published')}>
