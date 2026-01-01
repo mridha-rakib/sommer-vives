@@ -82,12 +82,12 @@ export default function Auth() {
           </Link>
 
           <h2 className="font-display text-3xl font-bold text-primary mb-2">
-            {mode === 'signup' ? 'Opret din konto' : 'Log ind'}
+            {mode === 'signup' ? 'Opret ejer-konto' : 'Ejer Login'}
           </h2>
           <p className="text-muted-foreground mb-8">
             {mode === 'signup'
               ? 'Kom i gang med at udleje dit sommerhus i dag.'
-              : 'Velkommen tilbage! Log ind for at fortsætte.'}
+              : 'Velkommen tilbage! Log ind til din ejerportal.'}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
