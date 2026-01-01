@@ -14,6 +14,8 @@ import Contact from "./pages/Contact";
 import Rentals from "./pages/Rentals";
 import PropertyDetail from "./pages/PropertyDetail";
 import PriceCalculator from "./pages/PriceCalculator";
+import Team from "./pages/Team";
+import ReferAHost from "./pages/ReferAHost";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
@@ -79,7 +81,8 @@ const App = () => (
             <Route path="/rentals" element={<Rentals />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
             <Route path="/beregn-lejeindtaegt" element={<PriceCalculator />} />
-
+            <Route path="/team" element={<Team />} />
+            <Route path="/refer-a-host" element={<ReferAHost />} />
             {/* Owner routes */}
             <Route path="/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
             <Route path="/owner/properties" element={<ProtectedRoute><OwnerProperties /></ProtectedRoute>} />
