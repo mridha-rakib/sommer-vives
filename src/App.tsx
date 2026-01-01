@@ -30,13 +30,17 @@ import OwnerPackages from "./pages/owner/OwnerPackages";
 
 // Admin pages
 import AdminAuth from "./pages/admin/AdminAuth";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboardNew";
 import AdminOwners from "./pages/admin/AdminOwners";
 import AdminProperties from "./pages/admin/AdminProperties";
 import AdminPropertyEdit from "./pages/admin/AdminPropertyEdit";
 import AdminListings from "./pages/admin/AdminListings";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminInquiries from "./pages/admin/AdminInquiries";
+import AdminBookings from "./pages/admin/AdminBookings";
+import AdminGuests from "./pages/admin/AdminGuests";
+import AdminPayouts from "./pages/admin/AdminPayouts";
+import AdminAuditLog from "./pages/admin/AdminAuditLog";
 
 import NotFound from "./pages/NotFound";
 
@@ -105,6 +109,10 @@ const App = () => (
             <Route path="/admin/properties/:id/edit" element={<ProtectedRoute requireAdmin><AdminPropertyEdit /></ProtectedRoute>} />
             <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListings /></ProtectedRoute>} />
             <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
+            <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />
+            <Route path="/admin/guests" element={<ProtectedRoute requireAdmin><AdminGuests /></ProtectedRoute>} />
+            <Route path="/admin/payouts" element={<ProtectedRoute requireAdmin><AdminPayouts /></ProtectedRoute>} />
+            <Route path="/admin/audit-log" element={<ProtectedRoute requireAdmin><AdminAuditLog /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
 
             {/* Catch-all */}
