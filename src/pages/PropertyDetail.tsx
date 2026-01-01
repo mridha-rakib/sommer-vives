@@ -275,12 +275,12 @@ export default function PropertyDetail() {
                   <div className="grid grid-cols-2 gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
-                        <div className="border rounded-lg p-3 cursor-pointer hover:border-accent transition-colors">
-                          <div className="text-xs font-medium text-muted-foreground mb-1">CHECK-IN</div>
-                          <div className="font-medium">
+                        <Button variant="outline" className="h-auto flex-col items-start p-3 border rounded-lg hover:border-accent transition-colors">
+                          <span className="text-xs font-medium text-muted-foreground mb-1">CHECK-IN</span>
+                          <span className="font-medium">
                             {dateRange.from ? format(dateRange.from, 'd. MMM', { locale: da }) : 'Tilføj dato'}
-                          </div>
-                        </div>
+                          </span>
+                        </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
@@ -293,12 +293,12 @@ export default function PropertyDetail() {
                     </Popover>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <div className="border rounded-lg p-3 cursor-pointer hover:border-accent transition-colors">
-                          <div className="text-xs font-medium text-muted-foreground mb-1">CHECK-UD</div>
-                          <div className="font-medium">
+                        <Button variant="outline" className="h-auto flex-col items-start p-3 border rounded-lg hover:border-accent transition-colors">
+                          <span className="text-xs font-medium text-muted-foreground mb-1">CHECK-UD</span>
+                          <span className="font-medium">
                             {dateRange.to ? format(dateRange.to, 'd. MMM', { locale: da }) : 'Tilføj dato'}
-                          </div>
-                        </div>
+                          </span>
+                        </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
