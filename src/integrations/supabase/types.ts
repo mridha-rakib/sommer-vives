@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_user_id: string | null
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string | null
+          entity_case_number: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string | null
+          entity_case_number?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_user_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string | null
+          entity_case_number?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+        }
+        Relationships: []
+      }
       availability_blocks: {
         Row: {
           block_type: string | null
@@ -51,6 +93,277 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bookings: {
+        Row: {
+          base_price: number
+          case_number: string | null
+          check_in: string
+          check_out: string
+          cleaning_fee: number | null
+          created_at: string | null
+          currency: string | null
+          guest_email: string | null
+          guest_id: string | null
+          guest_name: string | null
+          guest_phone: string | null
+          guests_count: number | null
+          id: string
+          internal_notes: string | null
+          nights: number | null
+          notes: string | null
+          owner_id: string
+          owner_payout: number | null
+          platform_earnings: number | null
+          platform_fee_percent: number | null
+          property_id: string
+          service_fee: number | null
+          source_channel: Database["public"]["Enums"]["source_channel"] | null
+          status: Database["public"]["Enums"]["booking_status"] | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          base_price: number
+          case_number?: string | null
+          check_in: string
+          check_out: string
+          cleaning_fee?: number | null
+          created_at?: string | null
+          currency?: string | null
+          guest_email?: string | null
+          guest_id?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
+          guests_count?: number | null
+          id?: string
+          internal_notes?: string | null
+          nights?: number | null
+          notes?: string | null
+          owner_id: string
+          owner_payout?: number | null
+          platform_earnings?: number | null
+          platform_fee_percent?: number | null
+          property_id: string
+          service_fee?: number | null
+          source_channel?: Database["public"]["Enums"]["source_channel"] | null
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number
+          case_number?: string | null
+          check_in?: string
+          check_out?: string
+          cleaning_fee?: number | null
+          created_at?: string | null
+          currency?: string | null
+          guest_email?: string | null
+          guest_id?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
+          guests_count?: number | null
+          id?: string
+          internal_notes?: string | null
+          nights?: number | null
+          notes?: string | null
+          owner_id?: string
+          owner_payout?: number | null
+          platform_earnings?: number | null
+          platform_fee_percent?: number | null
+          property_id?: string
+          service_fee?: number | null
+          source_channel?: Database["public"]["Enums"]["source_channel"] | null
+          status?: Database["public"]["Enums"]["booking_status"] | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          sender_id: string | null
+          sender_name: string | null
+          sender_type: string
+          thread_type: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          sender_id?: string | null
+          sender_name?: string | null
+          sender_type: string
+          thread_type: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          sender_id?: string | null
+          sender_name?: string | null
+          sender_type?: string
+          thread_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_splits: {
+        Row: {
+          commission_type: Database["public"]["Enums"]["commission_type"]
+          created_at: string | null
+          ek_percentage: number
+          erik_percentage: number
+          id: string
+          notes: string | null
+          property_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          commission_type: Database["public"]["Enums"]["commission_type"]
+          created_at?: string | null
+          ek_percentage: number
+          erik_percentage: number
+          id?: string
+          notes?: string | null
+          property_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          commission_type?: Database["public"]["Enums"]["commission_type"]
+          created_at?: string | null
+          ek_percentage?: number
+          erik_percentage?: number
+          id?: string
+          notes?: string | null
+          property_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_splits_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: true
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      damage_pool: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          percentage: number | null
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          percentage?: number | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damage_pool_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guests: {
+        Row: {
+          case_number: string | null
+          created_at: string | null
+          email: string
+          gdpr_consent: boolean | null
+          gdpr_consent_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          password_hash: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          case_number?: string | null
+          created_at?: string | null
+          email: string
+          gdpr_consent?: boolean | null
+          gdpr_consent_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          password_hash?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          case_number?: string | null
+          created_at?: string | null
+          email?: string
+          gdpr_consent?: boolean | null
+          gdpr_consent_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          password_hash?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       inquiries: {
         Row: {
@@ -267,6 +580,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          case_number: string | null
           company_name: string | null
           created_at: string
           email: string
@@ -276,6 +590,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          case_number?: string | null
           company_name?: string | null
           created_at?: string
           email: string
@@ -285,6 +600,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          case_number?: string | null
           company_name?: string | null
           created_at?: string
           email?: string
@@ -302,6 +618,7 @@ export type Database = {
           bathrooms: number | null
           bedrooms: number | null
           capacity: number
+          case_number: string | null
           cleaning_fee: number | null
           created_at: string
           description: string | null
@@ -322,6 +639,7 @@ export type Database = {
           bathrooms?: number | null
           bedrooms?: number | null
           capacity?: number
+          case_number?: string | null
           cleaning_fee?: number | null
           created_at?: string
           description?: string | null
@@ -342,6 +660,7 @@ export type Database = {
           bathrooms?: number | null
           bedrooms?: number | null
           capacity?: number
+          case_number?: string | null
           cleaning_fee?: number | null
           created_at?: string
           description?: string | null
@@ -502,6 +821,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_case_number: { Args: { prefix: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
@@ -511,6 +831,14 @@ export type Database = {
       }
     }
     Enums: {
+      booking_status:
+        | "pending"
+        | "confirmed"
+        | "checked_in"
+        | "completed"
+        | "cancelled"
+      commission_type: "platform" | "sales_meeting"
+      source_channel: "direct" | "airbnb" | "booking_com" | "vrbo" | "other"
       user_role: "owner" | "admin"
     }
     CompositeTypes: {
@@ -639,6 +967,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      booking_status: [
+        "pending",
+        "confirmed",
+        "checked_in",
+        "completed",
+        "cancelled",
+      ],
+      commission_type: ["platform", "sales_meeting"],
+      source_channel: ["direct", "airbnb", "booking_com", "vrbo", "other"],
       user_role: ["owner", "admin"],
     },
   },
