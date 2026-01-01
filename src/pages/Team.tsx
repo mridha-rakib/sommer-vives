@@ -1,5 +1,5 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
-import { Play } from 'lucide-react';
+import { Play, Phone, Mail, Users } from 'lucide-react';
 import { useState } from 'react';
 import teamEmil from '@/assets/team-emil.jpg';
 import teamErik from '@/assets/team-erik.webp';
@@ -10,7 +10,6 @@ interface TeamMember {
   image: string;
   email: string;
   phone: string;
-  description: string;
   videoUrl?: string;
 }
 
@@ -21,7 +20,6 @@ const teamMembers: TeamMember[] = [
     image: teamEmil,
     email: 'emil@sommerdrom.dk',
     phone: '+45 12 34 56 78',
-    description: 'Emil har mange års erfaring inden for sommerhusudlejning og sørger for, at alle vores ejere får den bedste service og support. Han står klar til at hjælpe dig med alt fra oprettelse til optimering af din udlejning.',
     videoUrl: undefined,
   },
   {
@@ -30,7 +28,6 @@ const teamMembers: TeamMember[] = [
     image: teamErik,
     email: 'erik@sommerdrom.dk',
     phone: '+45 12 34 56 79',
-    description: 'Erik er ekspert i at synliggøre sommerhuse og sikre, at de når ud til de rette gæster. Med hans marketingstrategier får dit sommerhus maksimal eksponering på tværs af alle kanaler.',
     videoUrl: undefined,
   },
 ];
@@ -39,47 +36,50 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
   const [showVideo, setShowVideo] = useState(false);
 
   return (
-    <div className="group">
-      <div className="relative aspect-[3/4] overflow-hidden rounded-2xl mb-6">
-        <img
-          src={member.image}
-          alt={member.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        
-        {/* Video play button overlay */}
-        {member.videoUrl && (
+    <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+      {/* Image with video play button */}
+      <div className="relative flex-shrink-0">
+        <div className="relative w-full md:w-64 h-80 overflow-hidden rounded-xl bg-[#1a1a2e]">
+          <img
+            src={member.image}
+            alt={member.name}
+            className="w-full h-full object-cover object-top"
+          />
+          
+          {/* Video play button - always visible in top left */}
           <button
-            onClick={() => setShowVideo(true)}
-            className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            onClick={() => member.videoUrl && setShowVideo(true)}
+            className={`absolute top-4 left-4 w-12 h-12 rounded-lg bg-primary/90 flex items-center justify-center shadow-lg transition-all ${
+              member.videoUrl ? 'hover:bg-primary cursor-pointer' : 'opacity-50 cursor-not-allowed'
+            }`}
+            disabled={!member.videoUrl}
           >
-            <div className="w-16 h-16 rounded-full bg-accent/90 flex items-center justify-center shadow-xl">
-              <Play className="h-8 w-8 text-primary fill-primary ml-1" />
-            </div>
+            <Play className="h-5 w-5 text-primary-foreground fill-primary-foreground ml-0.5" />
           </button>
-        )}
-        
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </div>
       </div>
 
-      <div className="space-y-2">
-        <h3 className="font-display text-2xl font-semibold text-primary">{member.name}</h3>
-        <p className="text-accent font-medium">{member.role}</p>
-        <p className="text-muted-foreground leading-relaxed mt-4">{member.description}</p>
+      {/* Info */}
+      <div className="flex flex-col justify-center py-2">
+        <h3 className="font-display text-2xl font-semibold text-primary mb-1">
+          {member.name}
+        </h3>
+        <p className="text-muted-foreground mb-6">{member.role}</p>
         
-        <div className="pt-4 space-y-1">
-          <a 
-            href={`mailto:${member.email}`} 
-            className="block text-sm text-muted-foreground hover:text-accent transition-colors"
-          >
-            {member.email}
-          </a>
+        <div className="space-y-3">
           <a 
             href={`tel:${member.phone.replace(/\s/g, '')}`}
-            className="block text-sm text-muted-foreground hover:text-accent transition-colors"
+            className="flex items-center gap-3 text-accent hover:text-accent/80 transition-colors"
           >
-            {member.phone}
+            <Phone className="h-5 w-5" />
+            <span className="font-medium">{member.phone}</span>
+          </a>
+          <a 
+            href={`mailto:${member.email}`} 
+            className="flex items-center gap-3 text-accent hover:text-accent/80 transition-colors"
+          >
+            <Mail className="h-5 w-5" />
+            <span className="font-medium">{member.email}</span>
           </a>
         </div>
       </div>
@@ -108,24 +108,22 @@ export default function Team() {
   return (
     <PublicLayout>
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-background">
+      <section className="pt-32 pb-16 bg-muted/30">
         <div className="container mx-auto px-4 md:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold text-primary mb-6">
-              Mød <span className="text-accent">teamet</span>
+          <div className="flex flex-col items-center text-center mb-16">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+            <h1 className="font-display text-4xl md:text-5xl font-semibold text-primary mb-4">
+              Mød holdet
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed">
-              Hos Sommerdrøm står vi klar til at hjælpe dig med alt inden for sommerhusudlejning. 
-              Vi brænder for at skabe de bedste oplevelser for både ejere og gæster.
+            <p className="text-xl text-muted-foreground max-w-2xl">
+              Vi er klar til at hjælpe dig med alt inden for sommerhusudlejning
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* Team Grid */}
-      <section className="py-16 md:py-24 bg-muted/30">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 max-w-4xl mx-auto">
+          {/* Team Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 max-w-5xl mx-auto">
             {teamMembers.map((member) => (
               <TeamMemberCard key={member.name} member={member} />
             ))}
@@ -133,22 +131,24 @@ export default function Team() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 md:px-8 text-center">
-          <h2 className="font-display text-3xl md:text-4xl font-semibold mb-6">
-            Har du spørgsmål?
-          </h2>
-          <p className="text-primary-foreground/70 text-lg mb-8 max-w-2xl mx-auto">
-            Vi er altid klar til at hjælpe. Kontakt os i dag, og lad os tage en snak om, 
-            hvordan vi kan hjælpe dig med din sommerhusudlejning.
-          </p>
-          <a
-            href="/contact"
-            className="inline-flex items-center justify-center px-8 py-4 bg-accent text-primary font-semibold rounded-lg hover:bg-accent/90 transition-colors"
-          >
-            Kontakt os
-          </a>
+      {/* Contact CTA Section */}
+      <section className="py-16 md:py-24 bg-background">
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary mb-6">
+              Har du spørgsmål?
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8">
+              Vi er altid klar til at hjælpe. Kontakt os i dag, og lad os tage en snak om, 
+              hvordan vi kan hjælpe dig med din sommerhusudlejning.
+            </p>
+            <a
+              href="/contact"
+              className="inline-flex items-center justify-center px-8 py-4 bg-accent text-primary font-semibold rounded-lg hover:bg-accent/90 transition-colors"
+            >
+              Kontakt os
+            </a>
+          </div>
         </div>
       </section>
     </PublicLayout>
