@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Building, MessageSquare, Wallet, LogOut, Menu, X } from 'lucide-react';
+import { Home, Building, MessageSquare, Wallet, LogOut, Menu, X, Calendar } from 'lucide-react';
 import { useState } from 'react';
 
 interface OwnerLayoutProps {
@@ -12,6 +12,7 @@ interface OwnerLayoutProps {
 const navItems = [
   { name: 'Overblik', href: '/owner', icon: Home },
   { name: 'Mine sommerhuse', href: '/owner/properties', icon: Building },
+  { name: 'Kalender', href: '/owner/calendar', icon: Calendar },
   { name: 'Forespørgsler', href: '/owner/inquiries', icon: MessageSquare },
   { name: 'Udbetalinger', href: '/owner/payouts', icon: Wallet },
 ];
