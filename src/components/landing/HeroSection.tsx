@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, Star, Shield, Heart, MessageCircle } from 'lucide-react';
 import heroImage from '@/assets/hero-house.jpg';
 import { SearchBar } from '@/components/search/SearchBar';
-import { TrustBadges } from '@/components/ui/TrustBadges';
 
 const benefits = [
   'Kun 15% i kommission',
@@ -11,22 +10,31 @@ const benefits = [
   'Ingen binding og besvær',
 ];
 
+const trustBadges = [
+  { icon: Star, label: 'Fremragende', sublabel: '4.8 på Trustpilot' },
+  { icon: Shield, label: 'Dansk virksomhed' },
+  { icon: Check, label: 'Gratis afbestilling' },
+  { icon: Heart, label: 'Ingen depositum' },
+  { icon: MessageCircle, label: 'Dansk support' },
+];
+
 export function HeroSection() {
   return (
     <section className="relative">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src={heroImage}
-          alt="Dansk sommerhus ved kysten"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/90" />
-      </div>
+      {/* Hero with Search */}
+      <div className="relative min-h-[80vh] flex flex-col justify-center">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={heroImage}
+            alt="Dansk sommerhus ved kysten"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/50 to-primary/80" />
+        </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 min-h-[85vh] flex flex-col justify-center">
-        <div className="container mx-auto px-4 md:px-8 py-20">
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-4 md:px-8 py-20 flex-1 flex flex-col justify-center">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-primary-foreground mb-6 animate-fade-in-up">
               Håndplukkede sommerhuse
@@ -36,19 +44,40 @@ export function HeroSection() {
               Oplev charmen ved Danmarks mest unikke feriesteder
             </p>
 
-            {/* Search Bar - Landfolk style */}
-            <div className="mb-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            {/* Search Bar */}
+            <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               <SearchBar variant="hero" />
             </div>
           </div>
         </div>
 
-        {/* Trust Badges - Landfolk style */}
-        <TrustBadges variant="dark" className="bg-primary/80 backdrop-blur-sm" />
+        {/* Trust Badges - Integrated at bottom of hero */}
+        <div className="relative z-10 bg-primary/90 backdrop-blur-sm py-4 border-t border-primary-foreground/10">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-center gap-4 md:gap-8 overflow-x-auto">
+              {trustBadges.map((badge, index) => (
+                <div
+                  key={index}
+                  className={`flex items-center gap-2 whitespace-nowrap ${
+                    index > 0 ? 'border-l border-primary-foreground/20 pl-4 md:pl-8' : ''
+                  }`}
+                >
+                  <badge.icon className="w-4 h-4 text-primary-foreground" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-primary-foreground">{badge.label}</span>
+                    {badge.sublabel && (
+                      <span className="text-xs text-primary-foreground/70">{badge.sublabel}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Owner CTA Section */}
-      <div className="relative z-10 bg-card py-16">
+      <div className="bg-card py-16">
         <div className="container mx-auto px-4 md:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-2xl md:text-3xl font-bold text-primary mb-4">
