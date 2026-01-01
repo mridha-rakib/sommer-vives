@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,50 +13,56 @@ export default function AdminAuth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [checkingRoles, setCheckingRoles] = useState(false);
-  const hasCheckedRef = useRef(false);
+  const [checkingAccess, setCheckingAccess] = useState(false);
+  const lastCheckedUserId = useRef<string | null>(null);
 
-  const { user, isAdmin, signInWithPassword, signOut, loading: authLoading, roles } = useAuth();
+  const { user, signInWithPassword, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Don't do anything while auth is loading
-    if (authLoading) return;
-    
-    // No user = nothing to check
-    if (!user) {
-      hasCheckedRef.current = false;
-      return;
-    }
+    const verifyAccess = async () => {
+      if (!user) {
+        lastCheckedUserId.current = null;
+        return;
+      }
+      // Prevent duplicate checks
+      if (lastCheckedUserId.current === user.id) return;
+      lastCheckedUserId.current = user.id;
 
-    // Wait for roles to be fetched (give it time after login)
-    if (roles.length === 0 && !hasCheckedRef.current) {
-      setCheckingRoles(true);
-      // Wait a moment for roles to be fetched
-      const timeout = setTimeout(() => {
-        setCheckingRoles(false);
-        hasCheckedRef.current = true;
-      }, 1500);
-      return () => clearTimeout(timeout);
-    }
+      setCheckingAccess(true);
+      try {
+        const { data, error } = await supabase.rpc("has_role", {
+          _user_id: user.id,
+          _role: "admin",
+        });
 
-    // Now we have roles - check if admin
-    if (isAdmin) {
-      navigate("/admin", { replace: true });
-      return;
-    }
+        if (error) throw error;
 
-    // User is logged in but not admin - only show error if we've waited for roles
-    if (hasCheckedRef.current && roles.length > 0 && !isAdmin) {
-      toast({
-        title: "Ingen admin-adgang",
-        description: "Du er logget ind som ejer. Admin kræver særskilt adgang.",
-        variant: "destructive",
-      });
-      signOut();
-    }
-  }, [user, isAdmin, navigate, toast, signOut, authLoading, roles]);
+        if (data === true) {
+          navigate("/admin", { replace: true });
+          return;
+        }
+
+        toast({
+          title: "Ingen admin-adgang",
+          description: "Du er logget ind, men har ikke admin-adgang til portalen.",
+          variant: "destructive",
+        });
+        await signOut();
+      } catch {
+        toast({
+          title: "Kunne ikke verificere adgang",
+          description: "Prøv igen om et øjeblik.",
+          variant: "destructive",
+        });
+      } finally {
+        setCheckingAccess(false);
+      }
+    };
+
+    verifyAccess();
+  }, [user, navigate, signOut, toast]);
 
   const subtitle = useMemo(
     () => "Kun for staff. Log ind for at administrere platformen.",
@@ -137,8 +144,8 @@ export default function AdminAuth() {
                   </div>
                 </div>
 
-                <Button type="submit" variant="gold" className="w-full" disabled={loading || checkingRoles}>
-                  {loading || checkingRoles ? "Vent venligst..." : "Log ind"}
+                <Button type="submit" variant="gold" className="w-full" disabled={loading || checkingAccess}>
+                  {loading || checkingAccess ? "Vent venligst..." : "Log ind"}
                 </Button>
               </form>
             </div>
