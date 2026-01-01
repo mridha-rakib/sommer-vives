@@ -16,6 +16,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigation = [
+    { name: 'Udlejning', href: '/rentals' },
     { name: 'Sådan virker det', href: '/how-it-works' },
     { name: 'Priser', href: '/pricing' },
     { name: 'Kontakt', href: '/contact' },
