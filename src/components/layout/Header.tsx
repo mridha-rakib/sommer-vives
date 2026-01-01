@@ -85,7 +85,7 @@ export function Header() {
                     Se din indtjening
                   </Button>
                 </Link>
-                <Link to="/auth?mode=signup">
+                <Link to="/kom-i-gang">
                   <Button variant="gold" size="sm">Kom i gang</Button>
                 </Link>
               </>
@@ -144,7 +144,7 @@ export function Header() {
                     <Link to="/beregn-lejeindtaegt" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="outline" className="w-full border-accent text-accent">Se din indtjening</Button>
                     </Link>
-                    <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
+                    <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="gold" className="w-full">Kom i gang</Button>
                     </Link>
                   </>

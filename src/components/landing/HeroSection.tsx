@@ -99,7 +99,7 @@ export function HeroSection() {
             </ul>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/auth?mode=signup">
+              <Link to="/kom-i-gang">
                 <Button variant="gold" size="lg" className="px-8">
                   Kom i gang nu
                   <ArrowRight className="w-4 h-4 ml-2" />
