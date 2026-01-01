@@ -80,7 +80,7 @@ export function Header() {
             ) : (
               <>
                 <Link to="/auth">
-                  <Button variant="ghost" size="sm">Log ind</Button>
+                  <Button variant="ghost" size="sm">Ejer Login</Button>
                 </Link>
                 <Link to="/beregn-lejeindtaegt">
                   <Button variant="outline" size="sm" className="border-accent text-accent hover:bg-accent/10">
@@ -141,7 +141,7 @@ export function Header() {
                 ) : (
                   <>
                     <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full">Log ind</Button>
+                      <Button variant="outline" className="w-full">Ejer Login</Button>
                     </Link>
                     <Link to="/beregn-lejeindtaegt" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="outline" className="w-full border-accent text-accent">Se din indtjening</Button>
