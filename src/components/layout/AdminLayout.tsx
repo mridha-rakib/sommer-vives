@@ -1,9 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Settings, Users, Building, MessageSquare, Wallet, LogOut, Menu, X, Globe, Shield, Calendar, UserCheck, Activity } from 'lucide-react';
-import { useState } from 'react';
+import { Home, Settings, Users, Building, Wallet, LogOut, Menu, X, Shield, Calendar, UserCheck, Activity } from 'lucide-react';
+import { GlobalSearch } from '@/components/admin/GlobalSearch';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -127,7 +127,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <Menu className="w-5 h-5 text-slate-600" />
               </button>
               <div className="hidden md:block">
-                <h1 className="text-sm font-medium text-slate-600">Velkommen tilbage</h1>
+                <GlobalSearch />
               </div>
             </div>
             <div className="flex items-center gap-3">
