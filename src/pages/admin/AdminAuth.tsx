@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Header } from "@/components/layout/Header";
@@ -12,29 +12,50 @@ export default function AdminAuth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingRoles, setCheckingRoles] = useState(false);
+  const hasCheckedRef = useRef(false);
 
-  const { user, isAdmin, signInWithPassword, signOut } = useAuth();
+  const { user, isAdmin, signInWithPassword, signOut, loading: authLoading, roles } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!user) return;
+    // Don't do anything while auth is loading
+    if (authLoading) return;
+    
+    // No user = nothing to check
+    if (!user) {
+      hasCheckedRef.current = false;
+      return;
+    }
 
+    // Wait for roles to be fetched (give it time after login)
+    if (roles.length === 0 && !hasCheckedRef.current) {
+      setCheckingRoles(true);
+      // Wait a moment for roles to be fetched
+      const timeout = setTimeout(() => {
+        setCheckingRoles(false);
+        hasCheckedRef.current = true;
+      }, 1500);
+      return () => clearTimeout(timeout);
+    }
+
+    // Now we have roles - check if admin
     if (isAdmin) {
       navigate("/admin", { replace: true });
       return;
     }
 
-    toast({
-      title: "Ingen admin-adgang",
-      description: "Du er logget ind som ejer. Admin kræver særskilt adgang.",
-      variant: "destructive",
-    });
-
-    // Ensure we don't leave a non-admin signed in when they try staff login.
-    // (Keeps staff portal clean.)
-    signOut();
-  }, [user, isAdmin, navigate, toast, signOut]);
+    // User is logged in but not admin - only show error if we've waited for roles
+    if (hasCheckedRef.current && roles.length > 0 && !isAdmin) {
+      toast({
+        title: "Ingen admin-adgang",
+        description: "Du er logget ind som ejer. Admin kræver særskilt adgang.",
+        variant: "destructive",
+      });
+      signOut();
+    }
+  }, [user, isAdmin, navigate, toast, signOut, authLoading, roles]);
 
   const subtitle = useMemo(
     () => "Kun for staff. Log ind for at administrere platformen.",
@@ -116,8 +137,8 @@ export default function AdminAuth() {
                   </div>
                 </div>
 
-                <Button type="submit" variant="gold" className="w-full" disabled={loading}>
-                  {loading ? "Vent venligst..." : "Log ind"}
+                <Button type="submit" variant="gold" className="w-full" disabled={loading || checkingRoles}>
+                  {loading || checkingRoles ? "Vent venligst..." : "Log ind"}
                 </Button>
               </form>
             </div>
