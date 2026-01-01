@@ -9,131 +9,35 @@ import { Calendar } from '@/components/ui/calendar';
 import { 
   MapPin, Users, Bed, Bath, Heart, ChevronLeft, ChevronRight, 
   Search, SlidersHorizontal, CalendarDays, TreePine, Waves, 
-  Flame, PawPrint, Star, ThumbsUp, Map
+  Flame, PawPrint, Star, ThumbsUp, Map, Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { PropertyMap } from '@/components/rentals/PropertyMap';
-
-// Extended sample properties
-const allProperties = [
-  {
-    id: '1',
-    title: 'Historisk fiskerhus med nyt twist i Klitmøller',
-    location: 'Thisted, Danmark',
-    description: 'Oplev den unikke kombination af gamle og nye møbler. Bygget i 1979 og fuld af charme med egen lille skov.',
-    images: [
-      'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-      'https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=800',
-    ],
-    price: 2098,
-    originalPrice: 2304,
-    capacity: 11,
-    bedrooms: 3,
-    bathrooms: 1,
-    tags: ['Kæledyr er tilladt', '472 m til strand'],
-    category: 'beach',
-    coordinates: { lat: 57.04, lng: 8.49 },
-    discount: 9,
-  },
-  {
-    id: '2',
-    title: 'Lys ferielejlighed i et stråtækt hus på diget',
-    location: 'Schleswig-Holstein, Tyskland',
-    description: 'Med sin egen private naturgrund får du en unik oplevelse, hvor ro og natur går hånd i hånd.',
-    images: [
-      'https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=800',
-      'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-    ],
-    price: 1996,
-    originalPrice: 2257,
-    capacity: 6,
-    bedrooms: 3,
-    bathrooms: 1,
-    tags: ['Kæledyr er tilladt', 'Lejlighed · 150 m²'],
-    category: 'nature',
-    coordinates: { lat: 54.85, lng: 8.75 },
-    discount: 12,
-  },
-  {
-    id: '3',
-    title: 'Gult strandhus med udsigt over Løkken',
-    location: 'Løkken, Danmark',
-    description: 'Nyd den fantastiske udsigt over havet fra dette charmerende strandhus.',
-    images: [
-      'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-    ],
-    price: 1281,
-    originalPrice: 1450,
-    capacity: 8,
-    bedrooms: 4,
-    bathrooms: 1,
-    tags: ['Kæledyr er tilladt', '125 m til strand'],
-    category: 'beach',
-    coordinates: { lat: 57.37, lng: 9.71 },
-    discount: 12,
-  },
-  {
-    id: '4',
-    title: 'ForestCabin | Søvej 28',
-    location: 'Ansager, Syddanmark',
-    description: 'Her kan du nyde livet, naturen og tage en tur til det populære Pandekage Huset ved søen.',
-    images: [
-      'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-      'https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=800',
-    ],
-    price: 1400,
-    capacity: 6,
-    bedrooms: 3,
-    bathrooms: 1,
-    tags: ['Skov', 'Brændeovn', 'Terrasse'],
-    category: 'forest',
-    coordinates: { lat: 55.7333, lng: 8.3833 },
-  },
-  {
-    id: '5',
-    title: 'NatureCabin | Søvej 58',
-    location: 'Ansager, Syddanmark',
-    description: 'Velkommen til NatureCabin ved Kvie Sø. Med sin egen private naturgrund får du en unik oplevelse.',
-    images: [
-      'https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=800',
-    ],
-    price: 550,
-    capacity: 6,
-    bedrooms: 3,
-    bathrooms: 1,
-    tags: ['Natur', 'Legeplads', 'Fredelig'],
-    category: 'nature',
-    coordinates: { lat: 55.7350, lng: 8.3900 },
-  },
-  {
-    id: '6',
-    title: 'Bæredygtigt loft i Lübeck-bugten',
-    location: 'Schleswig-Holstein, Tyskland',
-    description: 'Moderne og bæredygtigt sommerhus med fokus på natur og komfort.',
-    images: [
-      'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-    ],
-    price: 1261,
-    originalPrice: 1540,
-    capacity: 2,
-    bedrooms: 1,
-    bathrooms: 1,
-    tags: ['1,9 km til strand', 'Hus · 36 m²'],
-    category: 'beach',
-    coordinates: { lat: 54.08, lng: 10.88 },
-    discount: 18,
-  },
-];
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const filterOptions = [
-  { id: 'pets', label: 'Kæledyr tilladt', icon: PawPrint },
-  { id: 'fireplace', label: 'Brændeovn', icon: Flame },
-  { id: 'pool', label: 'Pool', icon: Waves },
-  { id: 'forest', label: 'Skov', icon: TreePine },
+  { id: 'pets', label: 'Kæledyr tilladt', icon: PawPrint, amenity: 'Husdyr tilladt' },
+  { id: 'fireplace', label: 'Brændeovn', icon: Flame, amenity: 'Brændeovn' },
+  { id: 'pool', label: 'Pool', icon: Waves, amenity: 'Pool' },
+  { id: 'forest', label: 'Skov', icon: TreePine, amenity: 'Skovudsigt' },
 ];
 
-type Property = typeof allProperties[0];
+interface Property {
+  id: string;
+  title: string;
+  address: string;
+  region: string;
+  description: string | null;
+  images: string[] | null;
+  price_per_night: number | null;
+  price_per_week: number | null;
+  capacity: number;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  amenities: string[] | null;
+}
 
 function PropertyCard({ 
   property, 
@@ -149,6 +53,11 @@ function PropertyCard({
   onHover: (id: string | null) => void;
 }) {
   const [currentImage, setCurrentImage] = useState(0);
+  const images = property.images && property.images.length > 0 
+    ? property.images 
+    : ['https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800'];
+
+  const price = property.price_per_night || Math.round((property.price_per_week || 7000) / 7);
 
   return (
     <Link 
@@ -163,19 +72,19 @@ function PropertyCard({
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
-            src={property.images[currentImage]}
+            src={images[currentImage]}
             alt={property.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           
           {/* Image navigation */}
-          {property.images.length > 1 && (
+          {images.length > 1 && (
             <>
               <button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setCurrentImage(prev => (prev - 1 + property.images.length) % property.images.length);
+                  setCurrentImage(prev => (prev - 1 + images.length) % images.length);
                 }}
                 className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               >
@@ -185,14 +94,14 @@ function PropertyCard({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setCurrentImage(prev => (prev + 1) % property.images.length);
+                  setCurrentImage(prev => (prev + 1) % images.length);
                 }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {property.images.map((_, idx) => (
+                {images.map((_, idx) => (
                   <div
                     key={idx}
                     className={`w-1.5 h-1.5 rounded-full transition-colors ${
@@ -202,13 +111,6 @@ function PropertyCard({
                 ))}
               </div>
             </>
-          )}
-
-          {/* Discount badge */}
-          {property.discount && (
-            <Badge className="absolute top-3 left-3 bg-accent text-primary font-semibold">
-              -{property.discount}%
-            </Badge>
           )}
 
           {/* Like button */}
@@ -234,7 +136,7 @@ function PropertyCard({
           
           <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
             <MapPin className="w-3.5 h-3.5" />
-            {property.location}
+            {property.region}, Danmark
           </p>
 
           {/* Details */}
@@ -245,38 +147,35 @@ function PropertyCard({
             </span>
             <span className="flex items-center gap-1">
               <Bed className="w-4 h-4" />
-              {property.bedrooms}
+              {property.bedrooms || 2}
             </span>
             <span className="flex items-center gap-1">
               <Bath className="w-4 h-4" />
-              {property.bathrooms}
+              {property.bathrooms || 1}
             </span>
           </div>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {property.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground flex items-center gap-1"
-              >
-                {tag.includes('Kæledyr') && <PawPrint className="w-3 h-3" />}
-                {tag.includes('strand') && <Waves className="w-3 h-3" />}
-                {tag}
-              </span>
-            ))}
-          </div>
+          {property.amenities && property.amenities.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {property.amenities.slice(0, 2).map((tag) => (
+                <span
+                  key={tag}
+                  className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground flex items-center gap-1"
+                >
+                  {tag.toLowerCase().includes('husdyr') && <PawPrint className="w-3 h-3" />}
+                  {tag.toLowerCase().includes('pool') && <Waves className="w-3 h-3" />}
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Price */}
           <div className="pt-3 border-t border-border">
             <div className="flex items-baseline gap-2">
-              {property.discount && property.originalPrice && (
-                <span className="text-sm text-muted-foreground line-through">
-                  {property.originalPrice.toLocaleString('da-DK')} kr.
-                </span>
-              )}
               <span className="text-lg font-bold text-primary">
-                {property.price.toLocaleString('da-DK')} kr.
+                {price.toLocaleString('da-DK')} kr.
               </span>
               <span className="text-sm text-muted-foreground">/ nat</span>
             </div>
@@ -301,7 +200,44 @@ export default function Rentals() {
   const [showMap, setShowMap] = useState(true);
   const [likedProperties, setLikedProperties] = useState<string[]>([]);
 
-  const filteredProperties = allProperties;
+  // Fetch published properties from database
+  const { data: properties = [], isLoading } = useQuery({
+    queryKey: ['published-properties'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as Property[];
+    },
+  });
+
+  // Filter properties based on active filters
+  const filteredProperties = properties.filter(property => {
+    if (activeFilters.length === 0) return true;
+    
+    return activeFilters.every(filterId => {
+      const filter = filterOptions.find(f => f.id === filterId);
+      if (!filter || !property.amenities) return false;
+      return property.amenities.some(a => 
+        a.toLowerCase().includes(filter.amenity.toLowerCase())
+      );
+    });
+  });
+
+  // Filter by location
+  const locationFiltered = location 
+    ? filteredProperties.filter(p => 
+        p.region.toLowerCase().includes(location.toLowerCase()) ||
+        p.address.toLowerCase().includes(location.toLowerCase()) ||
+        p.title.toLowerCase().includes(location.toLowerCase())
+      )
+    : filteredProperties;
+
+  // Filter by guests
+  const guestsFiltered = locationFiltered.filter(p => p.capacity >= guests);
 
   const toggleLike = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -310,6 +246,14 @@ export default function Rentals() {
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
     );
   };
+
+  // Create coordinates for map
+  const propertiesWithCoords = guestsFiltered.map(p => ({
+    ...p,
+    coordinates: { lat: 55.5 + Math.random() * 2, lng: 8.5 + Math.random() * 2 },
+    price: p.price_per_night || Math.round((p.price_per_week || 7000) / 7),
+    location: `${p.region}, Danmark`,
+  }));
 
   return (
     <PublicLayout>
@@ -435,7 +379,7 @@ export default function Rentals() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <h1 className="font-display text-2xl md:text-3xl font-bold text-primary">
-              {filteredProperties.length}+ håndplukkede sommerhuse
+              {isLoading ? 'Indlæser...' : `${guestsFiltered.length} håndplukkede sommerhuse`}
             </h1>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
@@ -458,55 +402,55 @@ export default function Rentals() {
       {/* Main Content */}
       <section className="pb-12 bg-background">
         <div className="container mx-auto px-4">
-          <div className={`grid gap-6 ${showMap ? 'lg:grid-cols-[1fr_400px]' : ''}`}>
-            {/* Property Grid */}
-            <div className={`grid gap-6 ${showMap ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
-              {filteredProperties.map(property => (
-                <PropertyCard 
-                  key={property.id} 
-                  property={property}
-                  isLiked={likedProperties.includes(property.id)}
-                  onToggleLike={toggleLike}
-                  isHovered={hoveredProperty === property.id}
-                  onHover={setHoveredProperty}
-                />
-              ))}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-24">
+              <Loader2 className="w-8 h-8 animate-spin text-accent" />
             </div>
-
-            {/* Map */}
-            {showMap && (
-              <div className="hidden lg:block sticky top-40 h-[calc(100vh-200px)] rounded-xl overflow-hidden border border-border">
-                <PropertyMap
-                  properties={filteredProperties}
-                  hoveredProperty={hoveredProperty}
-                  onPropertyHover={setHoveredProperty}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter CTA */}
-      <section className="py-16 bg-primary">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-            <div>
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
-                Ugentlig inspiration leveret direkte til din indbakke
+          ) : guestsFiltered.length === 0 ? (
+            <div className="text-center py-24">
+              <div className="text-6xl mb-4">🏠</div>
+              <h2 className="font-display text-2xl font-semibold text-primary mb-2">
+                Ingen sommerhuse fundet
               </h2>
-              <p className="text-primary-foreground/70">
-                inklusive tidlig adgang til nye, unikke sommerhuse
+              <p className="text-muted-foreground mb-6">
+                Prøv at justere dine filtre eller søgekriterier
               </p>
+              <Button variant="outline" onClick={() => {
+                setActiveFilters([]);
+                setLocation('');
+                setGuests(2);
+              }}>
+                Nulstil filtre
+              </Button>
             </div>
-            <div className="flex gap-2 w-full md:w-auto">
-              <Input
-                placeholder="Din e-mail"
-                className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
-              />
-              <Button variant="gold">Tilmeld</Button>
+          ) : (
+            <div className={`grid gap-6 ${showMap ? 'lg:grid-cols-[1fr_400px]' : ''}`}>
+              {/* Property Grid */}
+              <div className={`grid gap-6 ${showMap ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+                {guestsFiltered.map(property => (
+                  <PropertyCard
+                    key={property.id}
+                    property={property}
+                    isLiked={likedProperties.includes(property.id)}
+                    onToggleLike={toggleLike}
+                    isHovered={hoveredProperty === property.id}
+                    onHover={setHoveredProperty}
+                  />
+                ))}
+              </div>
+
+              {/* Map */}
+              {showMap && propertiesWithCoords.length > 0 && (
+                <div className="hidden lg:block sticky top-36 h-[calc(100vh-10rem)] rounded-xl overflow-hidden">
+                  <PropertyMap
+                    properties={propertiesWithCoords}
+                    hoveredProperty={hoveredProperty}
+                    onPropertyHover={setHoveredProperty}
+                  />
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </section>
     </PublicLayout>
