@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Home, Mail, Lock, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Header } from '@/components/layout/Header';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -59,7 +60,9 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <>
+      <Header />
+      <div className="min-h-screen bg-background flex pt-16">
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12">
         <div className="max-w-md text-center">
           <Home className="w-16 h-16 text-accent mx-auto mb-6" />
@@ -171,6 +174,7 @@ export default function Auth() {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
