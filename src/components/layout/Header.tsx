@@ -31,7 +31,7 @@ export function Header() {
           <Link to="/" className="flex items-center gap-2">
             <Home className="h-6 w-6 text-accent" />
             <span className="font-display text-xl font-semibold text-primary">
-              Sommerhus<span className="text-accent">Bureau</span>
+              Sommer<span className="text-accent">drøm</span>
             </span>
           </Link>
 

@@ -11,9 +11,12 @@ export function Footer() {
             <Link to="/" className="flex items-center gap-2 mb-4">
               <Home className="h-6 w-6 text-accent" />
               <span className="font-display text-xl font-semibold">
-                Sommerhus<span className="text-accent">Bureau</span>
+                Sommer<span className="text-accent">drøm</span>
               </span>
             </Link>
+            <p className="text-primary-foreground/70 text-sm leading-relaxed mb-2">
+              Slap af og nyd livet
+            </p>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               Din partner i professionel sommerhusudlejning. Vi gør det nemt at udleje dit sommerhus.
             </p>
@@ -38,13 +41,23 @@ export function Footer() {
                   Opret sommerhus
                 </Link>
               </li>
+              <li>
+                <Link to="/refer-a-host" className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
+                  Henvis en ejer
+                </Link>
+              </li>
             </ul>
           </div>
 
           {/* Support */}
           <div>
-            <h4 className="font-display text-lg font-semibold mb-4">Support</h4>
+            <h4 className="font-display text-lg font-semibold mb-4">Om os</h4>
             <ul className="space-y-2">
+              <li>
+                <Link to="/team" className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
+                  Mød teamet
+                </Link>
+              </li>
               <li>
                 <Link to="/contact" className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
                   Kontakt os
@@ -53,11 +66,6 @@ export function Footer() {
               <li>
                 <Link to="/#faq" className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
                   FAQ
-                </Link>
-              </li>
-              <li>
-                <Link to="/admin" className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
-                  Admin
                 </Link>
               </li>
             </ul>
@@ -69,7 +77,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-primary-foreground/70">
                 <Mail className="h-4 w-4 text-accent" />
-                kontakt@sommerhusbureau.dk
+                kontakt@sommerdrom.dk
               </li>
               <li className="flex items-center gap-2 text-sm text-primary-foreground/70">
                 <Phone className="h-4 w-4 text-accent" />
@@ -85,7 +93,7 @@ export function Footer() {
 
         <div className="border-t border-primary-foreground/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-primary-foreground/50">
-            © {new Date().getFullYear()} SommerhusBureau. Alle rettigheder forbeholdes.
+            © {new Date().getFullYear()} Sommerdrøm. Alle rettigheder forbeholdes.
           </p>
           <div className="flex gap-6">
             <Link to="/privacy" className="text-sm text-primary-foreground/50 hover:text-accent transition-colors">
