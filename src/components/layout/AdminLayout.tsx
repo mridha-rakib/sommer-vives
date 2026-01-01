@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Settings, Users, Building, MessageSquare, Wallet, LogOut, Menu, X, Globe, Shield } from 'lucide-react';
+import { Home, Settings, Users, Building, MessageSquare, Wallet, LogOut, Menu, X, Globe, Shield, Calendar, UserCheck, Activity } from 'lucide-react';
 import { useState } from 'react';
 
 interface AdminLayoutProps {
@@ -11,11 +11,12 @@ interface AdminLayoutProps {
 
 const navItems = [
   { name: 'Dashboard', href: '/admin', icon: Home },
-  { name: 'Ejere', href: '/admin/owners', icon: Users },
-  { name: 'Ejendomme', href: '/admin/properties', icon: Building },
-  { name: 'Annoncer', href: '/admin/listings', icon: Globe },
-  { name: 'Forespørgsler', href: '/admin/inquiries', icon: MessageSquare },
-  { name: 'Udbetalinger', href: '/admin/payouts', icon: Wallet },
+  { name: 'Bookinger', href: '/admin/bookings', icon: Calendar },
+  { name: 'Boliger', href: '/admin/properties', icon: Building },
+  { name: 'Gæster', href: '/admin/guests', icon: Users },
+  { name: 'Ejere', href: '/admin/owners', icon: UserCheck },
+  { name: 'Afregning', href: '/admin/payouts', icon: Wallet },
+  { name: 'Aktivitetslog', href: '/admin/audit-log', icon: Activity },
   { name: 'Indstillinger', href: '/admin/settings', icon: Settings },
 ];
 
