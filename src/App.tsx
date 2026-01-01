@@ -31,7 +31,7 @@ import OwnerPackages from "./pages/owner/OwnerPackages";
 // Admin pages
 import AdminAuth from "./pages/admin/AdminAuth";
 import AdminDashboard from "./pages/admin/AdminDashboardNew";
-import AdminOwners from "./pages/admin/AdminOwners";
+import AdminOwners from "./pages/admin/AdminOwnersNew";
 import AdminProperties from "./pages/admin/AdminProperties";
 import AdminPropertyEdit from "./pages/admin/AdminPropertyEdit";
 import AdminListings from "./pages/admin/AdminListings";
