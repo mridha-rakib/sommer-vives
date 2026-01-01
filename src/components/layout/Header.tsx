@@ -20,6 +20,7 @@ export function Header() {
     { name: 'Sådan virker det', href: '/how-it-works' },
     { name: 'Priser', href: '/pricing' },
     { name: 'Kontakt', href: '/contact' },
+    { name: 'Beregn indtægt', href: '/beregn-lejeindtaegt' },
   ];
 
   return (

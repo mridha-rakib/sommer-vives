@@ -13,6 +13,7 @@ import Pricing from "./pages/Pricing";
 import Contact from "./pages/Contact";
 import Rentals from "./pages/Rentals";
 import PropertyDetail from "./pages/PropertyDetail";
+import PriceCalculator from "./pages/PriceCalculator";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/rentals" element={<Rentals />} />
             <Route path="/property/:id" element={<PropertyDetail />} />
+            <Route path="/beregn-lejeindtaegt" element={<PriceCalculator />} />
 
             {/* Owner routes */}
             <Route path="/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
