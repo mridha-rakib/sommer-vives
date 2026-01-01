@@ -6,11 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Checkbox } from '@/components/ui/checkbox';
 import { 
   MapPin, Users, Bed, Bath, Heart, ChevronLeft, ChevronRight, 
   Search, SlidersHorizontal, CalendarDays, TreePine, Waves, 
-  Flame, PawPrint, X, Star, ThumbsUp
+  Flame, PawPrint, Star, ThumbsUp, Map
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -134,8 +133,162 @@ const filterOptions = [
   { id: 'forest', label: 'Skov', icon: TreePine },
 ];
 
+type Property = typeof allProperties[0];
+
+function PropertyCard({ 
+  property, 
+  isLiked, 
+  onToggleLike, 
+  isHovered,
+  onHover 
+}: { 
+  property: Property;
+  isLiked: boolean;
+  onToggleLike: (id: string, e: React.MouseEvent) => void;
+  isHovered: boolean;
+  onHover: (id: string | null) => void;
+}) {
+  const [currentImage, setCurrentImage] = useState(0);
+
+  return (
+    <Link 
+      to={`/property/${property.id}`}
+      className="group block"
+      onMouseEnter={() => onHover(property.id)}
+      onMouseLeave={() => onHover(null)}
+    >
+      <div className={`bg-card rounded-xl overflow-hidden transition-all duration-300 ${
+        isHovered ? 'shadow-elevated ring-1 ring-accent/20' : 'shadow-soft'
+      }`}>
+        {/* Image */}
+        <div className="relative aspect-[4/3] overflow-hidden">
+          <img
+            src={property.images[currentImage]}
+            alt={property.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          
+          {/* Image navigation */}
+          {property.images.length > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCurrentImage(prev => (prev - 1 + property.images.length) % property.images.length);
+                }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCurrentImage(prev => (prev + 1) % property.images.length);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                {property.images.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                      idx === currentImage ? 'bg-white' : 'bg-white/50'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Discount badge */}
+          {property.discount && (
+            <Badge className="absolute top-3 left-3 bg-accent text-primary font-semibold">
+              -{property.discount}%
+            </Badge>
+          )}
+
+          {/* Like button */}
+          <button
+            onClick={(e) => onToggleLike(property.id, e)}
+            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-card/80 flex items-center justify-center hover:bg-card transition-colors"
+          >
+            <Heart
+              className={`w-5 h-5 transition-colors ${
+                isLiked 
+                  ? 'fill-destructive text-destructive' 
+                  : 'text-primary'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          <h3 className="font-display text-lg font-semibold text-primary mb-1 line-clamp-2 group-hover:text-accent transition-colors">
+            {property.title}
+          </h3>
+          
+          <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
+            <MapPin className="w-3.5 h-3.5" />
+            {property.location}
+          </p>
+
+          {/* Details */}
+          <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
+            <span className="flex items-center gap-1">
+              <Users className="w-4 h-4" />
+              {property.capacity}
+            </span>
+            <span className="flex items-center gap-1">
+              <Bed className="w-4 h-4" />
+              {property.bedrooms}
+            </span>
+            <span className="flex items-center gap-1">
+              <Bath className="w-4 h-4" />
+              {property.bathrooms}
+            </span>
+          </div>
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {property.tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground flex items-center gap-1"
+              >
+                {tag.includes('Kæledyr') && <PawPrint className="w-3 h-3" />}
+                {tag.includes('strand') && <Waves className="w-3 h-3" />}
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {/* Price */}
+          <div className="pt-3 border-t border-border">
+            <div className="flex items-baseline gap-2">
+              {property.discount && property.originalPrice && (
+                <span className="text-sm text-muted-foreground line-through">
+                  {property.originalPrice.toLocaleString('da-DK')} kr.
+                </span>
+              )}
+              <span className="text-lg font-bold text-primary">
+                {property.price.toLocaleString('da-DK')} kr.
+              </span>
+              <span className="text-sm text-muted-foreground">/ nat</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function Rentals() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [location, setLocation] = useState(searchParams.get('location') || '');
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
     from: searchParams.get('checkin') ? new Date(searchParams.get('checkin')!) : undefined,
@@ -158,152 +311,14 @@ export default function Rentals() {
     );
   };
 
-  const PropertyCard = ({ property }: { property: typeof allProperties[0] }) => {
-    const [currentImage, setCurrentImage] = useState(0);
-
-    return (
-      <Link 
-        to={`/property/${property.id}`}
-        className="group block"
-        onMouseEnter={() => setHoveredProperty(property.id)}
-        onMouseLeave={() => setHoveredProperty(null)}
-      >
-        <div className={`bg-card rounded-xl overflow-hidden transition-all duration-300 ${
-          hoveredProperty === property.id ? 'shadow-elevated ring-1 ring-accent/20' : 'shadow-soft'
-        }`}>
-          {/* Image */}
-          <div className="relative aspect-[4/3] overflow-hidden">
-            <img
-              src={property.images[currentImage]}
-              alt={property.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            
-            {/* Image navigation */}
-            {property.images.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setCurrentImage(prev => (prev - 1 + property.images.length) % property.images.length);
-                  }}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setCurrentImage(prev => (prev + 1) % property.images.length);
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                  {property.images.map((_, idx) => (
-                    <div
-                      key={idx}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                        idx === currentImage ? 'bg-white' : 'bg-white/50'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* Discount badge */}
-            {property.discount && (
-              <Badge className="absolute top-3 left-3 bg-accent text-primary font-semibold">
-                -{property.discount}%
-              </Badge>
-            )}
-
-            {/* Like button */}
-            <button
-              onClick={(e) => toggleLike(property.id, e)}
-              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-card/80 flex items-center justify-center hover:bg-card transition-colors"
-            >
-              <Heart
-                className={`w-5 h-5 transition-colors ${
-                  likedProperties.includes(property.id) 
-                    ? 'fill-destructive text-destructive' 
-                    : 'text-primary'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-4">
-            <h3 className="font-display text-lg font-semibold text-primary mb-1 line-clamp-2 group-hover:text-accent transition-colors">
-              {property.title}
-            </h3>
-            
-            <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
-              <MapPin className="w-3.5 h-3.5" />
-              {property.location}
-            </p>
-
-            {/* Details */}
-            <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
-              <span className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                {property.capacity} gæster
-              </span>
-              <span className="flex items-center gap-1">
-                <Bed className="w-4 h-4" />
-                {property.bedrooms} soveværelser
-              </span>
-            </div>
-
-            {/* Tags */}
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {property.tags.slice(0, 2).map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground flex items-center gap-1"
-                >
-                  {tag.includes('Kæledyr') && <PawPrint className="w-3 h-3" />}
-                  {tag.includes('strand') && <Waves className="w-3 h-3" />}
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            {/* Price */}
-            <div className="pt-3 border-t border-border">
-              <div className="flex items-baseline gap-2">
-                {property.discount && property.originalPrice && (
-                  <span className="text-sm text-muted-foreground line-through">
-                    {property.originalPrice.toLocaleString('da-DK')} DKK
-                  </span>
-                )}
-                <span className="text-lg font-bold text-primary">
-                  {property.price.toLocaleString('da-DK')} DKK/nat
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                inkl. forbrug, rengøring og forsikring
-              </p>
-            </div>
-          </div>
-        </div>
-      </Link>
-    );
-  };
-
   return (
     <PublicLayout>
       {/* Search Header */}
-      <section className="sticky top-16 z-40 bg-card border-b shadow-soft">
+      <section className="sticky top-16 z-40 bg-card border-b border-border shadow-soft">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {/* Location */}
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full border bg-background hover:border-accent transition-colors cursor-pointer">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background hover:border-accent transition-colors">
               <MapPin className="w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Hvor går turen hen?"
@@ -316,14 +331,14 @@ export default function Rentals() {
             {/* Dates */}
             <Popover>
               <PopoverTrigger asChild>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full border bg-background hover:border-accent transition-colors cursor-pointer">
+                <Button variant="outline" className="rounded-full gap-2">
                   <CalendarDays className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">
                     {dateRange.from && dateRange.to
                       ? `${format(dateRange.from, 'd. MMM', { locale: da })} - ${format(dateRange.to, 'd. MMM', { locale: da })}`
                       : 'Tilføj datoer'}
                   </span>
-                </div>
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
@@ -339,10 +354,10 @@ export default function Rentals() {
             {/* Guests */}
             <Popover>
               <PopoverTrigger asChild>
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full border bg-background hover:border-accent transition-colors cursor-pointer">
+                <Button variant="outline" className="rounded-full gap-2">
                   <Users className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">{guests} gæster</span>
-                </div>
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-48" align="start">
                 <div className="flex items-center justify-between">
@@ -359,18 +374,18 @@ export default function Rentals() {
             {/* Filters */}
             <Button
               variant={showFilters ? 'default' : 'outline'}
-              className="rounded-full"
+              className="rounded-full gap-2"
               onClick={() => setShowFilters(!showFilters)}
             >
-              <SlidersHorizontal className="w-4 h-4 mr-2" />
+              <SlidersHorizontal className="w-4 h-4" />
               Filtre
               {activeFilters.length > 0 && (
-                <Badge className="ml-2 bg-accent text-primary">{activeFilters.length}</Badge>
+                <Badge className="ml-1 bg-accent text-primary">{activeFilters.length}</Badge>
               )}
             </Button>
 
             {/* Search Button */}
-            <Button className="rounded-full bg-primary">
+            <Button className="rounded-full" size="icon">
               <Search className="w-4 h-4" />
             </Button>
 
@@ -379,16 +394,17 @@ export default function Rentals() {
             {/* Map Toggle */}
             <Button
               variant="outline"
-              className="rounded-full"
+              className="rounded-full gap-2"
               onClick={() => setShowMap(!showMap)}
             >
+              <Map className="w-4 h-4" />
               {showMap ? 'Skjul kort' : 'Vis kort'}
             </Button>
           </div>
 
           {/* Filter Options */}
           {showFilters && (
-            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
+            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-border">
               {filterOptions.map(filter => (
                 <button
                   key={filter.id}
@@ -402,7 +418,7 @@ export default function Rentals() {
                   className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${
                     activeFilters.includes(filter.id)
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-background hover:border-accent'
+                      : 'bg-background border-border hover:border-accent'
                   }`}
                 >
                   <filter.icon className="w-4 h-4" />
@@ -417,7 +433,7 @@ export default function Rentals() {
       {/* Results Header */}
       <section className="py-6 bg-background">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <h1 className="font-display text-2xl md:text-3xl font-bold text-primary">
               {filteredProperties.length}+ håndplukkede sommerhuse
             </h1>
@@ -442,17 +458,24 @@ export default function Rentals() {
       {/* Main Content */}
       <section className="pb-12 bg-background">
         <div className="container mx-auto px-4">
-          <div className={`grid gap-6 ${showMap ? 'lg:grid-cols-2' : ''}`}>
+          <div className={`grid gap-6 ${showMap ? 'lg:grid-cols-[1fr_400px]' : ''}`}>
             {/* Property Grid */}
             <div className={`grid gap-6 ${showMap ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
               {filteredProperties.map(property => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCard 
+                  key={property.id} 
+                  property={property}
+                  isLiked={likedProperties.includes(property.id)}
+                  onToggleLike={toggleLike}
+                  isHovered={hoveredProperty === property.id}
+                  onHover={setHoveredProperty}
+                />
               ))}
             </div>
 
             {/* Map */}
             {showMap && (
-              <div className="hidden lg:block sticky top-40 h-[calc(100vh-200px)] rounded-xl overflow-hidden border">
+              <div className="hidden lg:block sticky top-40 h-[calc(100vh-200px)] rounded-xl overflow-hidden border border-border">
                 <PropertyMap
                   properties={filteredProperties}
                   hoveredProperty={hoveredProperty}
@@ -464,7 +487,7 @@ export default function Rentals() {
         </div>
       </section>
 
-      {/* Newsletter CTA - Landfolk style */}
+      {/* Newsletter CTA */}
       <section className="py-16 bg-primary">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
