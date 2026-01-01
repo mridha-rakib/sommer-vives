@@ -55,6 +55,11 @@ export function Footer() {
                   FAQ
                 </Link>
               </li>
+              <li>
+                <Link to="/admin" className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
+                  Admin
+                </Link>
+              </li>
             </ul>
           </div>
 
