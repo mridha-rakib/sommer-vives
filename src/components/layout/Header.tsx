@@ -20,7 +20,7 @@ export function Header() {
     { name: 'Sommerhuse', href: '/rentals' },
     { name: 'Sådan virker det', href: '/how-it-works' },
     { name: 'Priser', href: '/pricing' },
-    { name: 'Kontakt', href: '/contact' },
+    { name: 'Teamet', href: '/team' },
     { name: 'Beregn indtægt', href: '/beregn-lejeindtaegt' },
   ];
 
