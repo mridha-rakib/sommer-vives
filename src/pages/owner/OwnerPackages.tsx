@@ -84,7 +84,7 @@ export default function OwnerPackages() {
       if (!selectedPackage || !user?.id) throw new Error('Manglende data');
       const { error } = await supabase.from('package_purchases').insert({
         owner_id: user.id,
-        property_id: selectedProperty || null,
+        property_id: selectedProperty && selectedProperty !== 'all' ? selectedProperty : null,
         package_id: selectedPackage.id,
         amount: selectedPackage.price,
         status: 'pending',
@@ -313,7 +313,7 @@ export default function OwnerPackages() {
                     <SelectValue placeholder="Alle ejendomme" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alle ejendomme</SelectItem>
+                    <SelectItem value="all">Alle ejendomme</SelectItem>
                     {properties.map(property => (
                       <SelectItem key={property.id} value={property.id}>
                         {property.title}
