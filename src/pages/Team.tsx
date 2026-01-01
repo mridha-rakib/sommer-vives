@@ -11,7 +11,9 @@ interface TeamMember {
   image: string;
   email: string;
   phone: string;
+  description: string;
   credentials?: string[];
+  advisorTagline?: string;
   videoUrl?: string;
 }
 
@@ -22,12 +24,14 @@ const teamMembers: TeamMember[] = [
     image: teamEmil,
     email: 'emil@sommerdrom.dk',
     phone: '+45 12 34 56 78',
+    description: 'Emil har mange års erfaring inden for sommerhusudlejning og sørger for, at alle vores ejere får den bedste service og support. Han står klar til at hjælpe dig med alt fra oprettelse til optimering af din udlejning.',
     credentials: [
       'Uddannet ejendomsmægler',
       'Tidl. køberrådgiver',
       'Vurderingskonsulent, Totalkredit',
       'Ejer selv 2 sommerhuse',
     ],
+    advisorTagline: 'Din personlige udlejningsrådgiver',
     videoUrl: undefined,
   },
   {
@@ -36,10 +40,12 @@ const teamMembers: TeamMember[] = [
     image: teamErik,
     email: 'erik@sommerdrom.dk',
     phone: '+45 12 34 56 79',
+    description: 'Erik er ekspert i at synliggøre sommerhuse og sikre, at de når ud til de rette gæster. Med hans marketingstrategier får dit sommerhus maksimal eksponering på tværs af alle kanaler.',
     credentials: [
       'Digital marketing ekspert',
       'Performance marketing specialist',
     ],
+    advisorTagline: 'Din personlige synlighedsrådgiver',
     videoUrl: undefined,
   },
 ];
@@ -78,6 +84,11 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
         </h3>
         <p className="text-muted-foreground mb-4">{member.role}</p>
         
+        {/* Description */}
+        <p className="text-muted-foreground text-sm leading-relaxed mb-5">
+          {member.description}
+        </p>
+        
         {/* Credentials */}
         {member.credentials && member.credentials.length > 0 && (
           <div className="mb-5 space-y-1.5">
@@ -106,6 +117,16 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
             <span className="font-medium">{member.email}</span>
           </a>
         </div>
+
+        {/* Advisor tagline */}
+        {member.advisorTagline && (
+          <div className="mt-5 pt-4 border-t border-border">
+            <div className="flex items-center gap-2 text-sm">
+              <Heart className="h-4 w-4 text-accent" />
+              <span className="font-medium text-primary">{member.advisorTagline}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Video Modal */}
