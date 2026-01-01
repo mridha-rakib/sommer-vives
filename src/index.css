@@ -7,54 +7,54 @@
 @layer base {
   :root {
     /* Danish Vacation Rental - Luxury Minimal Theme */
-    --background: 37 35% 95%; /* #F7F4EF cream */
+    --background: 28 35% 88%; /* Warm beige/sand */
     --foreground: 158 62% 11%; /* Dark green text */
 
-    --card: 37 35% 97%;
+    --card: 28 30% 92%;
     --card-foreground: 158 62% 11%;
 
-    --popover: 37 35% 97%;
+    --popover: 28 30% 92%;
     --popover-foreground: 158 62% 11%;
 
     --primary: 158 62% 11%; /* #0B2F24 dark green */
-    --primary-foreground: 37 35% 95%;
+    --primary-foreground: 28 35% 88%;
 
     --secondary: 158 40% 20%;
-    --secondary-foreground: 37 35% 95%;
+    --secondary-foreground: 28 35% 88%;
 
-    --muted: 37 20% 90%;
+    --muted: 28 20% 82%;
     --muted-foreground: 158 30% 35%;
 
-    --accent: 42 54% 54%; /* #C8A24A gold */
-    --accent-foreground: 158 62% 11%;
+    --accent: 38 45% 48%; /* True gold - less yellow, more bronze */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 158 20% 80%;
-    --input: 158 20% 85%;
-    --ring: 42 54% 54%;
+    --border: 28 20% 75%;
+    --input: 28 20% 80%;
+    --ring: 38 45% 48%;
 
     --radius: 0.5rem;
 
     /* Custom tokens */
-    --gold: 42 54% 54%;
-    --gold-light: 42 54% 70%;
-    --gold-dark: 42 54% 40%;
+    --gold: 38 45% 48%;
+    --gold-light: 38 50% 62%;
+    --gold-dark: 38 40% 38%;
     --forest: 158 62% 11%;
     --forest-light: 158 40% 25%;
-    --cream: 37 35% 95%;
-    --cream-dark: 37 30% 88%;
+    --cream: 28 35% 88%;
+    --cream-dark: 28 30% 80%;
 
     /* Gradients */
     --gradient-hero: linear-gradient(180deg, hsl(158 62% 11%) 0%, hsl(158 50% 18%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(42 54% 54%) 0%, hsl(42 60% 65%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(37 35% 95%) 0%, hsl(37 30% 90%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(38 45% 48%) 0%, hsl(38 50% 58%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(28 35% 88%) 0%, hsl(28 30% 82%) 100%);
 
     /* Shadows */
     --shadow-soft: 0 4px 20px -4px hsl(158 62% 11% / 0.1);
     --shadow-elevated: 0 12px 40px -8px hsl(158 62% 11% / 0.15);
-    --shadow-gold: 0 4px 20px -4px hsl(42 54% 54% / 0.3);
+    --shadow-gold: 0 4px 20px -4px hsl(38 45% 48% / 0.3);
 
     /* Typography */
     --font-display: 'Cormorant Garamond', Georgia, serif;
