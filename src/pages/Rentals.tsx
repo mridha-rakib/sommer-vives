@@ -9,7 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { 
   MapPin, Users, Bed, Bath, Heart, ChevronLeft, ChevronRight, 
   Search, SlidersHorizontal, CalendarDays, TreePine, Waves, 
-  Flame, PawPrint, Star, ThumbsUp, Map, Loader2
+  Flame, PawPrint, Star, ThumbsUp, Map, Loader2, Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -22,6 +22,13 @@ const filterOptions = [
   { id: 'fireplace', label: 'Brændeovn', icon: Flame, amenity: 'Brændeovn' },
   { id: 'pool', label: 'Pool', icon: Waves, amenity: 'Pool' },
   { id: 'forest', label: 'Skov', icon: TreePine, amenity: 'Skovudsigt' },
+];
+
+const categories = [
+  { id: 'pool', name: 'Pool huse', icon: Waves, amenity: 'Pool' },
+  { id: 'spa', name: 'Spa huse', icon: Sparkles, amenity: 'Spa' },
+  { id: 'sauna', name: 'Sauna huse', icon: Flame, amenity: 'Sauna' },
+  { id: 'nature', name: 'Skov & natur', icon: TreePine, amenity: 'Skovudsigt' },
 ];
 
 interface Property {
@@ -189,6 +196,7 @@ function PropertyCard({
 export default function Rentals() {
   const [searchParams] = useSearchParams();
   const [location, setLocation] = useState(searchParams.get('location') || '');
+  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || '');
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
     from: searchParams.get('checkin') ? new Date(searchParams.get('checkin')!) : undefined,
     to: searchParams.get('checkout') ? new Date(searchParams.get('checkout')!) : undefined,
@@ -214,8 +222,19 @@ export default function Rentals() {
     },
   });
 
+  // Filter properties based on category
+  const categoryFiltered = activeCategory
+    ? properties.filter(property => {
+        const category = categories.find(c => c.id === activeCategory);
+        if (!category || !property.amenities) return false;
+        return property.amenities.some(a => 
+          a.toLowerCase().includes(category.amenity.toLowerCase())
+        );
+      })
+    : properties;
+
   // Filter properties based on active filters
-  const filteredProperties = properties.filter(property => {
+  const filteredProperties = categoryFiltered.filter(property => {
     if (activeFilters.length === 0) return true;
     
     return activeFilters.every(filterId => {
@@ -371,6 +390,28 @@ export default function Rentals() {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Category Filters */}
+      <section className="py-4 bg-muted/30 border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setActiveCategory(activeCategory === category.id ? '' : category.id)}
+                className={`flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl border transition-all duration-300 snap-start ${
+                  activeCategory === category.id
+                    ? 'bg-primary text-primary-foreground border-primary shadow-soft'
+                    : 'bg-card border-border hover:border-accent hover:shadow-soft'
+                }`}
+              >
+                <category.icon className="w-5 h-5" />
+                <span className="font-medium whitespace-nowrap">{category.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
