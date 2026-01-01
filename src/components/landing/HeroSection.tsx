@@ -36,12 +36,12 @@ export function HeroSection() {
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4 md:px-8 py-20 flex-1 flex flex-col justify-center">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="font-display text-4xl md:text-5xl lg:text-7xl font-semibold italic text-primary-foreground mb-6 animate-fade-in-up">
-              Håndplukkede<br />sommerhuse
+            <h1 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-primary-foreground mb-6 animate-fade-in-up">
+              Dit sommerhus,<br />vores passion
             </h1>
             
-            <p className="text-lg md:text-xl text-primary-foreground/80 mb-10 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              Oplev charmen ved Danmarks mest unikke feriesteder
+            <p className="text-lg md:text-xl text-primary-foreground/90 mb-10 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              Fremtidens digitale sommerhusudlejning – uanset størrelse eller stil
             </p>
 
             {/* Search Bar */}
