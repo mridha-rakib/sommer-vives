@@ -19,7 +19,7 @@ export function CTASection() {
           </Button>
         </Link>
         <p className="mt-6 text-sm text-primary-foreground/60">
-          Ingen binding • Ingen oprettelsesgebyr • Kun 20% kommission
+          Ingen binding • Ingen oprettelsesgebyr • Kun 15% kommission
         </p>
       </div>
     </section>

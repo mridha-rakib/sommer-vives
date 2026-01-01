@@ -8,7 +8,7 @@ import {
 const faqs = [
   {
     question: 'Hvad koster det at komme i gang?',
-    answer: 'Det er gratis at oprette dit sommerhus hos os. Vi tager kun 20% i kommission af gennemførte lejeaftaler – ingen skjulte gebyrer.',
+    answer: 'Det er gratis at oprette dit sommerhus hos os. Vi tager kun 15% i kommission af gennemførte lejeaftaler, og gæster betaler 5% servicegebyr – ingen skjulte gebyrer.',
   },
   {
     question: 'Hvordan fungerer udlejningen?',

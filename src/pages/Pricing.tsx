@@ -21,7 +21,7 @@ export default function Pricing() {
             Enkel og gennemsigtig prissætning
           </h1>
           <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto">
-            Ingen skjulte gebyrer. Kun 20% kommission af gennemførte lejeaftaler.
+            Ingen skjulte gebyrer. Kun 15% ejerkommission + 5% gæsteservicegebyr.
           </p>
         </div>
       </section>
@@ -30,12 +30,18 @@ export default function Pricing() {
         <div className="container mx-auto max-w-lg">
           <div className="bg-card border-2 border-accent rounded-2xl p-8 md:p-12 text-center shadow-elevated">
             <div className="text-accent text-sm font-semibold uppercase tracking-wider mb-2">
-              Vores kommission
+              Ejerkommission
             </div>
             <div className="font-display text-6xl md:text-7xl font-bold text-primary mb-2">
-              20<span className="text-4xl">%</span>
+              15<span className="text-4xl">%</span>
             </div>
-            <p className="text-muted-foreground mb-8">af gennemførte lejeaftaler</p>
+            <p className="text-muted-foreground mb-4">af gennemførte lejeaftaler</p>
+            
+            <div className="bg-accent/10 rounded-lg p-4 mb-8">
+              <div className="text-sm text-muted-foreground mb-1">Gæsteservicegebyr</div>
+              <div className="font-display text-2xl font-bold text-primary">5%</div>
+              <p className="text-xs text-muted-foreground">betales af gæsten ved booking</p>
+            </div>
 
             <ul className="space-y-3 text-left mb-8">
               {features.map((feature, index) => (

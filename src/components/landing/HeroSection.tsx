@@ -4,7 +4,7 @@ import { Check, ArrowRight } from 'lucide-react';
 import heroImage from '@/assets/hero-house.jpg';
 
 const benefits = [
-  'Kun 20% i kommission',
+  'Kun 15% i kommission',
   'Udlej på de største portaler',
   'Ingen binding og besvær',
 ];

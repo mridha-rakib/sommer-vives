@@ -4,7 +4,7 @@ const valueProps = [
   {
     icon: Percent,
     title: 'Lav kommission',
-    description: 'Kun 20% i kommission – behold mere af din indtjening.',
+    description: 'Kun 15% i kommission – behold mere af din indtjening. Gæster betaler kun 5% servicegebyr.',
   },
   {
     icon: Globe,
