@@ -1,86 +1,148 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
+import { supabase } from '@/integrations/supabase/client';
+import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Home, Plus, MessageSquare, Wallet, LogOut, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { Home, Plus, MessageSquare, Wallet, Building, TrendingUp } from 'lucide-react';
 
 export default function OwnerDashboard() {
-  const { user, signOut } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useAuth();
+  const [stats, setStats] = useState({
+    properties: 0,
+    inquiries: 0,
+    totalPayouts: 0,
+    publishedProperties: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, [user]);
+
+  const loadStats = async () => {
+    if (!user) return;
+
+    // Get properties count
+    const { data: props } = await supabase
+      .from('properties')
+      .select('id, status')
+      .eq('owner_id', user.id);
+
+    const propertyCount = props?.length || 0;
+    const publishedCount = props?.filter(p => p.status === 'published').length || 0;
+    const propertyIds = props?.map(p => p.id) || [];
+
+    // Get inquiries count
+    let inquiryCount = 0;
+    if (propertyIds.length > 0) {
+      const { count } = await supabase
+        .from('inquiries')
+        .select('*', { count: 'exact', head: true })
+        .in('property_id', propertyIds);
+      inquiryCount = count || 0;
+    }
+
+    // Get payouts total
+    const { data: payouts } = await supabase
+      .from('payouts')
+      .select('amount')
+      .eq('owner_id', user.id)
+      .eq('status', 'completed');
+
+    const totalPayouts = payouts?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+
+    setStats({
+      properties: propertyCount,
+      inquiries: inquiryCount,
+      totalPayouts,
+      publishedProperties: publishedCount,
+    });
+    setLoading(false);
+  };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-64 bg-primary text-primary-foreground transition-transform`}>
-        <div className="p-6">
-          <Link to="/" className="flex items-center gap-2 mb-8">
-            <Home className="h-6 w-6 text-accent" />
-            <span className="font-display text-xl font-semibold">
-              Sommerhus<span className="text-accent">Bureau</span>
-            </span>
-          </Link>
+    <OwnerLayout>
+      <div className="mb-8">
+        <h1 className="font-display text-3xl font-bold text-primary">Velkommen tilbage!</h1>
+        <p className="text-muted-foreground">{user?.email}</p>
+      </div>
 
-          <nav className="space-y-2">
-            <Link to="/owner" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
-              <Home className="w-5 h-5" /> Overblik
-            </Link>
-            <Link to="/owner/properties" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-              <Plus className="w-5 h-5" /> Mine sommerhuse
-            </Link>
-            <Link to="/owner/inquiries" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-              <MessageSquare className="w-5 h-5" /> Forespørgsler
-            </Link>
-            <Link to="/owner/payouts" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-              <Wallet className="w-5 h-5" /> Udbetalinger
-            </Link>
-          </nav>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <Button variant="ghost" onClick={signOut} className="w-full justify-start text-primary-foreground/70 hover:text-primary-foreground hover:bg-sidebar-accent/50">
-            <LogOut className="w-5 h-5 mr-2" /> Log ud
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 p-6 md:p-8">
-        <div className="md:hidden mb-4">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <Menu className="w-6 h-6" />
-          </Button>
-        </div>
-
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-primary">Velkommen tilbage!</h1>
-          <p className="text-muted-foreground">{user?.email}</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-card rounded-xl border border-border p-6">
-            <div className="text-muted-foreground text-sm mb-1">Sommerhuse</div>
-            <div className="font-display text-3xl font-bold text-primary">0</div>
+      {/* Stats Grid */}
+      <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+              <Building className="w-5 h-5 text-accent" />
+            </div>
           </div>
-          <div className="bg-card rounded-xl border border-border p-6">
-            <div className="text-muted-foreground text-sm mb-1">Aktive forespørgsler</div>
-            <div className="font-display text-3xl font-bold text-primary">0</div>
-          </div>
-          <div className="bg-card rounded-xl border border-border p-6">
-            <div className="text-muted-foreground text-sm mb-1">Udbetalinger i alt</div>
-            <div className="font-display text-3xl font-bold text-accent">0 kr</div>
+          <div className="text-muted-foreground text-sm mb-1">Sommerhuse</div>
+          <div className="font-display text-3xl font-bold text-primary">
+            {loading ? '...' : stats.properties}
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-8 text-center">
-          <h2 className="font-display text-xl font-semibold text-primary mb-2">Kom i gang</h2>
-          <p className="text-muted-foreground mb-4">Opret dit første sommerhus for at begynde udlejningen.</p>
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-green-600" />
+            </div>
+          </div>
+          <div className="text-muted-foreground text-sm mb-1">Publiceret</div>
+          <div className="font-display text-3xl font-bold text-primary">
+            {loading ? '...' : stats.publishedProperties}
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-blue-600" />
+            </div>
+          </div>
+          <div className="text-muted-foreground text-sm mb-1">Forespørgsler</div>
+          <div className="font-display text-3xl font-bold text-primary">
+            {loading ? '...' : stats.inquiries}
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-accent" />
+            </div>
+          </div>
+          <div className="text-muted-foreground text-sm mb-1">Total indtjening</div>
+          <div className="font-display text-3xl font-bold text-accent">
+            {loading ? '...' : `${stats.totalPayouts.toLocaleString('da-DK')} kr`}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-card rounded-xl border border-border p-8">
+          <h2 className="font-display text-xl font-semibold text-primary mb-2">Tilføj sommerhus</h2>
+          <p className="text-muted-foreground mb-4">Opret et nyt sommerhus og begynd at udleje.</p>
           <Link to="/owner/properties/new">
             <Button variant="gold">
-              <Plus className="w-4 h-4 mr-2" /> Opret sommerhus
+              <Plus className="w-4 h-4 mr-2" />
+              Opret sommerhus
             </Button>
           </Link>
         </div>
-      </main>
-    </div>
+
+        <div className="bg-card rounded-xl border border-border p-8">
+          <h2 className="font-display text-xl font-semibold text-primary mb-2">Se forespørgsler</h2>
+          <p className="text-muted-foreground mb-4">Gennemgå og besvar henvendelser fra lejere.</p>
+          <Link to="/owner/inquiries">
+            <Button variant="outline">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Se forespørgsler
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </OwnerLayout>
   );
 }

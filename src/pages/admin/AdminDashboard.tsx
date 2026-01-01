@@ -1,89 +1,120 @@
-import { useAuth } from '@/lib/auth';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { Home, Users, Building, MessageSquare, Settings, LogOut, Menu } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import { Building, Users, MessageSquare, TrendingUp, Globe } from 'lucide-react';
 
 export default function AdminDashboard() {
-  const { user, signOut } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [stats, setStats] = useState({
+    owners: 0,
+    properties: 0,
+    publishedListings: 0,
+    inquiries: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    // Count owners
+    const { count: ownerCount } = await supabase
+      .from('user_roles')
+      .select('*', { count: 'exact', head: true })
+      .eq('role', 'owner');
+
+    // Count properties
+    const { count: propCount } = await supabase
+      .from('properties')
+      .select('*', { count: 'exact', head: true });
+
+    // Count published
+    const { count: publishedCount } = await supabase
+      .from('properties')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'published');
+
+    // Count inquiries
+    const { count: inquiryCount } = await supabase
+      .from('inquiries')
+      .select('*', { count: 'exact', head: true });
+
+    setStats({
+      owners: ownerCount || 0,
+      properties: propCount || 0,
+      publishedListings: publishedCount || 0,
+      inquiries: inquiryCount || 0,
+    });
+    setLoading(false);
+  };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-64 bg-primary text-primary-foreground transition-transform`}>
-        <div className="p-6">
-          <Link to="/" className="flex items-center gap-2 mb-2">
-            <Home className="h-6 w-6 text-accent" />
-            <span className="font-display text-xl font-semibold">
-              Sommerhus<span className="text-accent">Bureau</span>
-            </span>
-          </Link>
-          <div className="text-xs text-accent uppercase tracking-wider mb-8">Admin</div>
+    <AdminLayout>
+      <div className="mb-8">
+        <h1 className="font-display text-3xl font-bold text-primary">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Overblik over platformen</p>
+      </div>
 
-          <nav className="space-y-2">
-            <Link to="/admin" className="flex items-center gap-3 px-4 py-3 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
-              <Home className="w-5 h-5" /> Dashboard
-            </Link>
-            <Link to="/admin/owners" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-              <Users className="w-5 h-5" /> Ejere
-            </Link>
-            <Link to="/admin/properties" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-              <Building className="w-5 h-5" /> Ejendomme
-            </Link>
-            <Link to="/admin/inquiries" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-              <MessageSquare className="w-5 h-5" /> Forespørgsler
-            </Link>
-            <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-              <Settings className="w-5 h-5" /> Indstillinger
-            </Link>
-          </nav>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <Button variant="ghost" onClick={signOut} className="w-full justify-start text-primary-foreground/70 hover:text-primary-foreground hover:bg-sidebar-accent/50">
-            <LogOut className="w-5 h-5 mr-2" /> Log ud
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 p-6 md:p-8">
-        <div className="md:hidden mb-4">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <Menu className="w-6 h-6" />
-          </Button>
-        </div>
-
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold text-primary">Admin Dashboard</h1>
-          <p className="text-muted-foreground">{user?.email}</p>
-        </div>
-
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-card rounded-xl border border-border p-6">
-            <div className="text-muted-foreground text-sm mb-1">Ejere</div>
-            <div className="font-display text-3xl font-bold text-primary">0</div>
+      {/* Stats Grid */}
+      <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+              <Users className="w-5 h-5 text-accent" />
+            </div>
           </div>
-          <div className="bg-card rounded-xl border border-border p-6">
-            <div className="text-muted-foreground text-sm mb-1">Sommerhuse</div>
-            <div className="font-display text-3xl font-bold text-primary">0</div>
-          </div>
-          <div className="bg-card rounded-xl border border-border p-6">
-            <div className="text-muted-foreground text-sm mb-1">Aktive annoncer</div>
-            <div className="font-display text-3xl font-bold text-accent">0</div>
-          </div>
-          <div className="bg-card rounded-xl border border-border p-6">
-            <div className="text-muted-foreground text-sm mb-1">Forespørgsler</div>
-            <div className="font-display text-3xl font-bold text-primary">0</div>
+          <div className="text-muted-foreground text-sm mb-1">Ejere</div>
+          <div className="font-display text-3xl font-bold text-primary">
+            {loading ? '...' : stats.owners}
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-8">
-          <h2 className="font-display text-xl font-semibold text-primary mb-4">Seneste aktivitet</h2>
-          <p className="text-muted-foreground">Ingen aktivitet endnu.</p>
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+              <Building className="w-5 h-5 text-blue-600" />
+            </div>
+          </div>
+          <div className="text-muted-foreground text-sm mb-1">Sommerhuse</div>
+          <div className="font-display text-3xl font-bold text-primary">
+            {loading ? '...' : stats.properties}
+          </div>
         </div>
-      </main>
-    </div>
+
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+              <Globe className="w-5 h-5 text-green-600" />
+            </div>
+          </div>
+          <div className="text-muted-foreground text-sm mb-1">Aktive annoncer</div>
+          <div className="font-display text-3xl font-bold text-accent">
+            {loading ? '...' : stats.publishedListings}
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl border border-border p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-purple-600" />
+            </div>
+          </div>
+          <div className="text-muted-foreground text-sm mb-1">Forespørgsler</div>
+          <div className="font-display text-3xl font-bold text-primary">
+            {loading ? '...' : stats.inquiries}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity placeholder */}
+      <div className="bg-card rounded-xl border border-border">
+        <div className="p-6 border-b border-border">
+          <h2 className="font-display text-xl font-semibold text-primary">Seneste aktivitet</h2>
+        </div>
+        <div className="p-12 text-center text-muted-foreground">
+          Aktivitetslog kommer snart...
+        </div>
+      </div>
+    </AdminLayout>
   );
 }
