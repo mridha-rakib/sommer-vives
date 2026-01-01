@@ -1,5 +1,5 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
-import { Play, Phone, Mail, Users, Star, Shield, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Play, Phone, Mail, Users, Star, Shield, Sparkles, ArrowRight, CheckCircle2, Zap, Target, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -20,7 +20,7 @@ interface TeamMember {
 const teamMembers: TeamMember[] = [
   {
     name: 'Emil Weng Klockmann',
-    role: 'Udlejningschef',
+    role: 'Salgschef',
     image: teamEmil,
     email: 'emil@sommerdrom.dk',
     phone: '+45 12 34 56 78',
@@ -44,7 +44,7 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
   return (
     <div className="group text-center">
       {/* Image */}
-      <div className="relative w-48 h-48 mx-auto mb-6">
+      <div className="relative w-52 h-52 mx-auto mb-6">
         <div className="w-full h-full rounded-full overflow-hidden bg-muted border-4 border-background shadow-xl">
           <img
             src={member.image}
@@ -53,15 +53,15 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
           />
         </div>
         
-        {/* Video play button */}
+        {/* Video play button - larger and more visible */}
         <button
           onClick={() => member.videoUrl && setShowVideo(true)}
-          className={`absolute bottom-2 right-2 w-10 h-10 rounded-full bg-accent flex items-center justify-center shadow-lg transition-all ${
-            member.videoUrl ? 'hover:scale-110 cursor-pointer' : 'opacity-40 cursor-not-allowed'
+          className={`absolute -bottom-1 -right-1 w-14 h-14 rounded-full bg-accent flex items-center justify-center shadow-xl border-4 border-background transition-all ${
+            member.videoUrl ? 'hover:scale-110 cursor-pointer' : 'opacity-50 cursor-not-allowed'
           }`}
           disabled={!member.videoUrl}
         >
-          <Play className="h-4 w-4 text-primary fill-primary ml-0.5" />
+          <Play className="h-6 w-6 text-primary fill-primary ml-0.5" />
         </button>
       </div>
 
@@ -118,22 +118,23 @@ export default function Team() {
       {/* Hero Section */}
       <section className="pt-32 pb-20 bg-background">
         <div className="container mx-auto px-4 md:px-8">
-          <div className="max-w-3xl mx-auto text-center mb-16">
+          <div className="max-w-4xl mx-auto text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-full mb-6">
-              <Users className="h-4 w-4 text-accent" />
-              <span className="text-sm font-medium text-accent">To dedikerede eksperter</span>
+              <Zap className="h-4 w-4 text-accent" />
+              <span className="text-sm font-medium text-accent">Fremtidens digitale sommerhusbreau</span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold text-primary mb-6">
-              Mød holdet bag<br />
-              <span className="text-accent">Sommerdrøm</span>
+              Et stærkt partnerskab<br />
+              <span className="text-accent">bygget på passion</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              Vi kombinerer ejendomsekspertise med digital marketing for at give dig den bedste udlejningsoplevelse
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Vi kombinerer ejendomsekspertise med digital nytænkning. Kvalitet over kvantitet – 
+              det er vores filosofi, og det mærker du fra dag ét.
             </p>
           </div>
 
-          {/* Team Grid - Clean & Balanced */}
-          <div className="flex flex-col md:flex-row justify-center items-start gap-16 md:gap-24 max-w-3xl mx-auto">
+          {/* Team Grid */}
+          <div className="flex flex-col md:flex-row justify-center items-start gap-16 md:gap-28 max-w-3xl mx-auto">
             {teamMembers.map((member) => (
               <TeamMemberCard key={member.name} member={member} />
             ))}
@@ -141,42 +142,96 @@ export default function Team() {
         </div>
       </section>
 
-      {/* Story Section 1 - Why We Exist */}
-      <section className="py-20 bg-muted/30">
+      {/* Vision Section - Inspired by Elbæks */}
+      <section className="py-24 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 md:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center max-w-6xl mx-auto">
-            <div className="relative">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <span className="text-accent font-medium text-sm uppercase tracking-widest">Vores vision</span>
+              <h2 className="font-display text-3xl md:text-5xl font-semibold mt-4 mb-6">
+                Vi gør tingene på vores helt egen måde
+              </h2>
+              <p className="text-primary-foreground/70 text-lg max-w-2xl mx-auto">
+                De etablerede bureauer fokuserer på volumen. Vi fokuserer på dig. 
+                Hver ejer fortjener en partner der brænder for resultater – ikke bare processer.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: Target,
+                  title: 'Kvalitet over kvantitet',
+                  desc: 'Vi vælger vores samarbejder med omhu og giver 100% til hver enkelt ejer.',
+                },
+                {
+                  icon: Zap,
+                  title: 'Digital nytænkning',
+                  desc: 'Vi bruger de nyeste værktøjer og strategier til at maksimere din synlighed.',
+                },
+                {
+                  icon: Heart,
+                  title: 'Ægte passion',
+                  desc: 'Vi elsker sommerhuse og har selv oplevet glæden – og frustrationerne – ved at eje.',
+                },
+              ].map((item, i) => (
+                <div key={i} className="text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
+                    <item.icon className="w-8 h-8 text-accent" />
+                  </div>
+                  <h3 className="font-display text-lg font-semibold mb-2">{item.title}</h3>
+                  <p className="text-primary-foreground/60 text-sm">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Story Section - Our Origin */}
+      <section className="py-24 bg-muted/30">
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center max-w-6xl mx-auto">
+            <div className="relative order-2 lg:order-1">
               <div className="rounded-2xl overflow-hidden shadow-2xl">
                 <img 
                   src={heroHouse} 
                   alt="Sommerhus i naturskønne omgivelser" 
-                  className="w-full h-[350px] object-cover"
+                  className="w-full h-[400px] object-cover"
                 />
               </div>
-              <div className="absolute -bottom-4 -right-4 bg-accent text-primary px-6 py-3 rounded-lg shadow-lg">
-                <span className="font-display font-semibold">Grundlagt 2024</span>
+              <div className="absolute -bottom-6 -right-6 bg-accent text-primary px-8 py-4 rounded-xl shadow-lg">
+                <span className="font-display font-bold text-lg">4+ års passion</span>
+                <span className="block text-sm opacity-80">for boliger & sommerhuse</span>
               </div>
             </div>
 
-            <div>
+            <div className="order-1 lg:order-2">
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="h-4 w-4 text-accent" />
-                <span className="text-accent font-medium text-sm uppercase tracking-wide">Vores mission</span>
+                <span className="text-accent font-medium text-sm uppercase tracking-wide">Vores historie</span>
               </div>
               
               <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary mb-6">
-                Skabt af sommerhusejere,<br />
-                <span className="text-accent">for sommerhusejere</span>
+                Fra passion til<br />
+                <span className="text-accent">Sommerdrøm</span>
               </h2>
               
               <p className="text-muted-foreground leading-relaxed mb-6">
-                Vi startede Sommerdrøm fordi vi selv oplevede frustrationerne ved de store udlejningsbureauer. 
-                Høje gebyrer, manglende gennemsigtighed og upersonlig service.
+                Det startede med en passion for boliger og et ønske om at gøre tingene anderledes. 
+                Emil har arbejdet i ejendomsbranchen som uddannet mægler og rådgiver – og ejer selv sommerhuse. 
+                Han kender frustrationen ved de store bureauers upersonlige service.
+              </p>
+              
+              <p className="text-muted-foreground leading-relaxed mb-6">
+                <strong className="text-primary">Sommerdrøm er svaret på det, vi selv savnede:</strong> Et 
+                moderne, digitalt bureau der kombinerer personlig service med data-drevet marketing. 
+                Hvor du kender din rådgiver ved navn, og hvor gennemsigtighed er en selvfølge.
               </p>
               
               <p className="text-muted-foreground leading-relaxed mb-8">
-                Med baggrund i ejendomsbranchen og digital marketing besluttede vi at skabe det alternativ, 
-                vi selv havde ønsket os – en partner der virkelig forstår hvad det vil sige at eje et sommerhus.
+                Sammen med Erik, der bringer års erfaring inden for digital marketing, har vi skabt 
+                fremtidens sommerhusbreau. Vi er her for at bevise, at det kan gøres bedre.
               </p>
 
               <Link to="/how-it-works">
@@ -190,8 +245,8 @@ export default function Team() {
         </div>
       </section>
 
-      {/* Story Section 2 - Our Expertise */}
-      <section className="py-20 bg-background">
+      {/* Expertise Section */}
+      <section className="py-24 bg-background">
         <div className="container mx-auto px-4 md:px-8">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -200,10 +255,10 @@ export default function Team() {
                 <span className="text-accent font-medium text-sm uppercase tracking-wide">Vores ekspertise</span>
               </div>
               <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary mb-4">
-                Hvad vi bringer til bordet
+                To baggrunde, ét fælles mål
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto">
-                To forskellige baggrunde, ét fælles mål: At maksimere din udlejning
+                Vi kombinerer det bedste fra ejendomsbranchen og den digitale verden
               </p>
             </div>
 
@@ -211,20 +266,20 @@ export default function Team() {
               {/* Emil's expertise */}
               <div className="bg-muted/30 rounded-2xl p-8">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-full overflow-hidden">
+                  <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-accent">
                     <img src={teamEmil} alt="Emil" className="w-full h-full object-cover object-top" />
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-primary">Ejendomsekspertise</h3>
-                    <p className="text-sm text-muted-foreground">Emil Weng Klockmann</p>
+                    <h3 className="font-display text-lg font-semibold text-primary">Ejendomsekspertise</h3>
+                    <p className="text-sm text-accent">Emil Weng Klockmann, Salgschef</p>
                   </div>
                 </div>
                 <ul className="space-y-3">
                   {[
                     'Uddannet ejendomsmægler',
-                    'Erfaren køberrådgiver',
-                    'Vurderingskonsulent hos Totalkredit',
-                    'Ejer selv 2 sommerhuse',
+                    'Erfaren køber- og salgsrådgiver',
+                    'Dyb indsigt i boligmarkedet',
+                    'Selv ejer af sommerhuse',
                   ].map((item, i) => (
                     <li key={i} className="flex items-center gap-3 text-muted-foreground">
                       <CheckCircle2 className="h-4 w-4 text-accent flex-shrink-0" />
@@ -237,12 +292,12 @@ export default function Team() {
               {/* Erik's expertise */}
               <div className="bg-muted/30 rounded-2xl p-8">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 rounded-full overflow-hidden">
+                  <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-accent">
                     <img src={teamErik} alt="Erik" className="w-full h-full object-cover object-top" />
                   </div>
                   <div>
-                    <h3 className="font-display font-semibold text-primary">Digital synlighed</h3>
-                    <p className="text-sm text-muted-foreground">Erik Bendstrup</p>
+                    <h3 className="font-display text-lg font-semibold text-primary">Digital synlighed</h3>
+                    <p className="text-sm text-accent">Erik Bendstrup, Marketingchef</p>
                   </div>
                 </div>
                 <ul className="space-y-3">
@@ -273,8 +328,8 @@ export default function Team() {
         </div>
       </section>
 
-      {/* Story Section 3 - Our Promise */}
-      <section className="py-20 bg-primary text-primary-foreground">
+      {/* Promise Section */}
+      <section className="py-24 bg-muted/50">
         <div className="container mx-auto px-4 md:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex items-center justify-center gap-2 mb-6">
@@ -282,11 +337,11 @@ export default function Team() {
               <span className="text-accent font-medium text-sm uppercase tracking-wide">Vores løfte</span>
             </div>
             
-            <h2 className="font-display text-3xl md:text-4xl font-semibold mb-6">
+            <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary mb-6">
               Du får en fast personlig rådgiver
             </h2>
             
-            <p className="text-primary-foreground/70 text-lg mb-10 max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-lg mb-12 max-w-2xl mx-auto">
               Hos os er du ikke bare et nummer i rækken. Du får en dedikeret kontaktperson, 
               der kender dit hus og dine mål – og som altid er klar til at hjælpe.
             </p>
@@ -297,9 +352,9 @@ export default function Team() {
                 { title: 'Hurtig respons', desc: 'Svar inden for 24 timer' },
                 { title: 'Ingen skjulte gebyrer', desc: 'Fuld gennemsigtighed altid' },
               ].map((item, i) => (
-                <div key={i} className="bg-primary-foreground/5 rounded-xl p-6">
-                  <h3 className="font-display font-semibold mb-2">{item.title}</h3>
-                  <p className="text-primary-foreground/60 text-sm">{item.desc}</p>
+                <div key={i} className="bg-background rounded-xl p-6 shadow-soft">
+                  <h3 className="font-display font-semibold text-primary mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -312,8 +367,8 @@ export default function Team() {
                 </Button>
               </Link>
               <Link to="/auth?mode=signup">
-                <Button variant="outline" size="lg" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
-                  Opret dit sommerhus
+                <Button variant="outline" size="lg">
+                  Kom i gang
                 </Button>
               </Link>
             </div>
