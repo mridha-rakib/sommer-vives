@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   Home, Calendar, Users, TrendingUp, DollarSign, 
   AlertCircle, CheckCircle, Clock, XCircle, ArrowUpRight,
-  Building2, UserCheck
+  Building2, UserCheck, Plus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AdminLayout } from '@/components/layout/AdminLayout';
@@ -15,33 +15,44 @@ import { Booking } from '@/types/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CreateBookingDialog } from '@/components/admin/CreateBookingDialog';
+import { CreatePropertyDialog } from '@/components/admin/CreatePropertyDialog';
+import { CreateGuestDialog } from '@/components/admin/CreateGuestDialog';
 
 export default function AdminDashboard() {
-  const { stats, loading: statsLoading } = useAdminStats();
+  const { stats, loading: statsLoading, refresh: refreshStats } = useAdminStats();
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(true);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [propertyDialogOpen, setPropertyDialogOpen] = useState(false);
+  const [guestDialogOpen, setGuestDialogOpen] = useState(false);
+
+  const loadUpcomingBookings = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        property:properties(id, title, case_number),
+        guest:guests(id, name, case_number)
+      `)
+      .gte('check_in', today)
+      .neq('status', 'cancelled')
+      .order('check_in', { ascending: true })
+      .limit(10);
+    
+    setUpcomingBookings((data as unknown as Booking[]) || []);
+    setBookingsLoading(false);
+  };
 
   useEffect(() => {
-    const loadUpcomingBookings = async () => {
-      const today = new Date().toISOString().split('T')[0];
-      const { data } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          property:properties(id, title, case_number),
-          guest:guests(id, name, case_number)
-        `)
-        .gte('check_in', today)
-        .neq('status', 'cancelled')
-        .order('check_in', { ascending: true })
-        .limit(10);
-      
-      setUpcomingBookings((data as unknown as Booking[]) || []);
-      setBookingsLoading(false);
-    };
-
     loadUpcomingBookings();
   }, []);
+
+  const handleDialogSuccess = () => {
+    refreshStats();
+    loadUpcomingBookings();
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('da-DK', { 
@@ -61,20 +72,24 @@ export default function AdminDashboard() {
             <p className="text-muted-foreground">Overblik over dit sommerhusbureau</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link to="/admin/bookings/new">
-                <Calendar className="h-4 w-4 mr-2" />
-                Ny booking
-              </Link>
+            <Button variant="outline" onClick={() => setGuestDialogOpen(true)}>
+              <Users className="h-4 w-4 mr-2" />
+              Ny gæst
             </Button>
-            <Button asChild>
-              <Link to="/admin/properties/new">
-                <Home className="h-4 w-4 mr-2" />
-                Ny bolig
-              </Link>
+            <Button variant="outline" onClick={() => setBookingDialogOpen(true)}>
+              <Calendar className="h-4 w-4 mr-2" />
+              Ny booking
+            </Button>
+            <Button onClick={() => setPropertyDialogOpen(true)}>
+              <Home className="h-4 w-4 mr-2" />
+              Ny bolig
             </Button>
           </div>
         </div>
+
+        <CreateBookingDialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen} onSuccess={handleDialogSuccess} />
+        <CreatePropertyDialog open={propertyDialogOpen} onOpenChange={setPropertyDialogOpen} onSuccess={handleDialogSuccess} />
+        <CreateGuestDialog open={guestDialogOpen} onOpenChange={setGuestDialogOpen} onSuccess={handleDialogSuccess} />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">

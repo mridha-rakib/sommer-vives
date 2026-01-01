@@ -41,6 +41,7 @@ import AdminBookings from "./pages/admin/AdminBookings";
 import AdminGuests from "./pages/admin/AdminGuests";
 import AdminPayouts from "./pages/admin/AdminPayouts";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
+import AdminOptimizations from "./pages/admin/AdminOptimizations";
 
 import NotFound from "./pages/NotFound";
 

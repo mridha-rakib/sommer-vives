@@ -9,6 +9,8 @@ interface AdminLayoutProps {
   children: ReactNode;
 }
 
+import { Calculator } from 'lucide-react';
+
 const navItems = [
   { name: 'Dashboard', href: '/admin', icon: Home },
   { name: 'Bookinger', href: '/admin/bookings', icon: Calendar },
@@ -16,6 +18,7 @@ const navItems = [
   { name: 'Gæster', href: '/admin/guests', icon: Users },
   { name: 'Ejere', href: '/admin/owners', icon: UserCheck },
   { name: 'Afregning', href: '/admin/payouts', icon: Wallet },
+  { name: 'Optimeringer', href: '/admin/optimizations', icon: Calculator },
   { name: 'Aktivitetslog', href: '/admin/audit-log', icon: Activity },
   { name: 'Indstillinger', href: '/admin/settings', icon: Settings },
 ];
