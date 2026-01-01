@@ -80,19 +80,19 @@ const PACKAGES = [
 const ADDONS = [
   {
     id: 'proPhotos',
-    name: 'Professionelle billeder',
-    price: '4.995 kr.',
+    name: 'Professionelle billeder & video',
+    price: '9.995 kr.',
     priceNote: 'engangspris',
-    description: '15-20 professionelle billeder i høj kvalitet + drone-optagelser',
-    tag: null,
+    description: '15-20 professionelle billeder + drone-optagelser + 2-3 min. udlejningsvideo',
+    tag: 'ANBEFALET',
   },
   {
     id: 'proVideo',
-    name: 'Promoveringsvideo',
-    price: '7.995 kr.',
+    name: 'Kun udlejningsvideo',
+    price: '5.995 kr.',
     priceNote: 'engangspris',
-    description: '2-3 minutters professionel video der fremhæver dit sommerhus',
-    tag: 'POPULÆR',
+    description: '2-3 minutters professionel udlejningsvideo med drone-optagelser',
+    tag: null,
   },
   {
     id: 'premiumPlacement',

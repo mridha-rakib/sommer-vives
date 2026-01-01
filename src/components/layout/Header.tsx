@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
-import { Home, Menu, X, User, LogOut } from 'lucide-react';
+import { KeyRound, Menu, X, User, LogOut } from 'lucide-react';
 import { useState } from 'react';
 import {
   DropdownMenu,
@@ -28,7 +28,9 @@ export function Header() {
       <nav className="container mx-auto px-4 md:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <Home className="h-6 w-6 text-accent" />
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <KeyRound className="h-5 w-5 text-accent" />
+            </div>
             <span className="font-display text-xl font-semibold text-primary">
               Sommer<span className="text-accent">drøm</span>
             </span>
