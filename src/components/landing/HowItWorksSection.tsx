@@ -64,7 +64,7 @@ export function HowItWorksSection() {
         </div>
 
         <div className="text-center">
-          <Link to="/auth?mode=signup">
+          <Link to="/kom-i-gang">
             <Button variant="gold" size="lg" className="gap-2">
               Start din rejse
               <ArrowRight className="w-4 h-4" />
