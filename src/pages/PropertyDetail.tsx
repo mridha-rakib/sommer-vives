@@ -12,54 +12,27 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { 
   MapPin, Users, Bed, Bath, Heart, Share2, ChevronLeft, ChevronRight,
   Wifi, Flame, TreePine, Car, PawPrint, Waves, CalendarDays, Check,
-  Star, X
+  Star, X, Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-// Sample property data (would come from API)
-const sampleProperty = {
-  id: '1',
-  title: 'ForestCabin | Søvej 28',
-  location: 'Ansager, Syddanmark',
-  region: 'Kvie Sø',
-  description: `Her kan du nyde livet, naturen og tage en tur til det populære Pandekage Huset ved søen.
-
-Vi er også tæt på Billund, hvor Legoland og Lalandia venter – kun 25 minutter væk med bil!
-
-ForestCabin er noget helt særligt. Med sin egen lille skov får du en unik oplevelse, hvor ro og natur går hånd i hånd.
-
-Dette feriehus ved Kvie Sø er ideelt for dem, der søger afslapning, komfort og ro i smukke naturomgivelser.`,
-  images: [
-    'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=1200',
-    'https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=1200',
-  ],
-  price: 1400,
-  cleaningFee: 750,
-  capacity: 6,
-  bedrooms: 3,
-  bathrooms: 1,
-  amenities: ['WiFi', 'Brændeovn', 'Terrasse', 'Grill', 'P-plads', 'Husdyr tilladt'],
-  houseRules: 'Ikke-ryger hus. Check-in kl. 15:00, check-out kl. 10:00. Ingen fester.',
-  coordinates: { lat: 55.7333, lng: 8.3833 },
-  rating: 4.9,
-  reviewCount: 47,
-};
+import { useQuery } from '@tanstack/react-query';
 
 const amenityIcons: Record<string, any> = {
   'WiFi': Wifi,
   'Brændeovn': Flame,
   'Skov': TreePine,
+  'Skovudsigt': TreePine,
   'P-plads': Car,
+  'Parkering': Car,
   'Husdyr tilladt': PawPrint,
   'Pool': Waves,
 };
 
 export default function PropertyDetail() {
   const { id } = useParams();
-  const [property] = useState(sampleProperty);
   const [currentImage, setCurrentImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
@@ -73,10 +46,61 @@ export default function PropertyDetail() {
     message: '',
   });
 
+  // Fetch property from database
+  const { data: property, isLoading, error } = useQuery({
+    queryKey: ['property', id],
+    queryFn: async () => {
+      if (!id) throw new Error('No property ID');
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  if (isLoading) {
+    return (
+      <PublicLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+        </div>
+      </PublicLayout>
+    );
+  }
+
+  if (error || !property) {
+    return (
+      <PublicLayout>
+        <div className="container mx-auto px-4 py-24 text-center">
+          <h1 className="font-display text-2xl font-bold text-primary mb-4">
+            Sommerhus ikke fundet
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            Det sommerhus du leder efter findes ikke eller er ikke længere tilgængeligt.
+          </p>
+          <Link to="/rentals">
+            <Button>Se alle sommerhuse</Button>
+          </Link>
+        </div>
+      </PublicLayout>
+    );
+  }
+
+  const images = property.images && property.images.length > 0 
+    ? property.images 
+    : ['https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=1200'];
+
+  const pricePerNight = property.price_per_night || Math.round((property.price_per_week || 7000) / 7);
+  const cleaningFee = property.cleaning_fee || 750;
+
   const nights = dateRange.from && dateRange.to
     ? Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24))
     : 0;
-  const totalPrice = nights * property.price + property.cleaningFee;
+  const totalPrice = nights * pricePerNight + cleaningFee;
   const serviceFee = Math.round(totalPrice * 0.05);
 
   const handleInquiry = async () => {
@@ -92,7 +116,7 @@ export default function PropertyDetail() {
     setIsSubmitting(true);
     try {
       const { error } = await supabase.from('inquiries').insert({
-        property_id: id || property.id,
+        property_id: property.id,
         guest_name: inquiryForm.name,
         guest_email: inquiryForm.email,
         guest_phone: inquiryForm.phone,
@@ -116,39 +140,49 @@ export default function PropertyDetail() {
 
   return (
     <PublicLayout>
-      {/* Image Gallery Header */}
-      <section className="relative bg-primary">
+      {/* Navigation */}
+      <section className="bg-primary">
         <div className="container mx-auto px-4 py-4">
           <Link to="/rentals" className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors">
             <ChevronLeft className="w-4 h-4" />
-            Tilbage til søgning
+            Tilbage til sommerhuse
           </Link>
         </div>
       </section>
 
       {/* Image Gallery */}
       <section className="relative">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[50vh] md:h-[60vh]">
+        <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[50vh] md:h-[60vh]">
           {/* Main Image */}
-          <div className="md:col-span-2 md:row-span-2 relative group cursor-pointer" onClick={() => setShowGallery(true)}>
+          <div className="col-span-4 md:col-span-2 md:row-span-2 relative group cursor-pointer" onClick={() => setShowGallery(true)}>
             <img
-              src={property.images[0]}
+              src={images[0]}
               alt={property.title}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
           </div>
           
-          {/* Secondary Images */}
-          {property.images.slice(1, 5).map((img, idx) => (
-            <div key={idx} className="hidden md:block relative group cursor-pointer" onClick={() => setShowGallery(true)}>
+          {/* Secondary Images - Show up to 4 additional images */}
+          {images.slice(1, 5).map((img, idx) => (
+            <div key={idx} className="hidden md:block relative group cursor-pointer" onClick={() => { setCurrentImage(idx + 1); setShowGallery(true); }}>
               <img
                 src={img}
                 alt={`${property.title} ${idx + 2}`}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+              {idx === 3 && images.length > 5 && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <span className="text-white font-medium">+{images.length - 5} billeder</span>
+                </div>
+              )}
             </div>
+          ))}
+
+          {/* Fill empty slots if less than 4 secondary images */}
+          {images.length < 5 && Array.from({ length: Math.min(4, 5 - images.length) }).map((_, idx) => (
+            <div key={`empty-${idx}`} className="hidden md:block bg-muted" />
           ))}
 
           {/* View All Photos Button */}
@@ -156,7 +190,7 @@ export default function PropertyDetail() {
             onClick={() => setShowGallery(true)}
             className="absolute bottom-4 right-4 bg-card hover:bg-card/90 text-primary px-4 py-2 rounded-lg font-medium shadow-lg transition-colors"
           >
-            Se alle billeder
+            Se alle {images.length} billeder
           </button>
 
           {/* Actions */}
@@ -189,16 +223,14 @@ export default function PropertyDetail() {
                     </h1>
                     <p className="text-muted-foreground flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      {property.location}
+                      {property.region}, Danmark
                     </p>
                   </div>
-                  {property.rating && (
-                    <div className="flex items-center gap-1 bg-accent/10 px-3 py-1.5 rounded-lg">
-                      <Star className="w-4 h-4 text-accent fill-accent" />
-                      <span className="font-semibold text-primary">{property.rating}</span>
-                      <span className="text-muted-foreground text-sm">({property.reviewCount})</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 bg-accent/10 px-3 py-1.5 rounded-lg">
+                    <Star className="w-4 h-4 text-accent fill-accent" />
+                    <span className="font-semibold text-primary">4.9</span>
+                    <span className="text-muted-foreground text-sm">(47)</span>
+                  </div>
                 </div>
 
                 {/* Quick Info */}
@@ -209,11 +241,11 @@ export default function PropertyDetail() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Bed className="w-5 h-5 text-accent" />
-                    <span>{property.bedrooms} soveværelser</span>
+                    <span>{property.bedrooms || 2} soveværelser</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Bath className="w-5 h-5 text-accent" />
-                    <span>{property.bathrooms} badeværelse</span>
+                    <span>{property.bathrooms || 1} badeværelse</span>
                   </div>
                 </div>
               </div>
@@ -224,37 +256,41 @@ export default function PropertyDetail() {
                   Om dette sted
                 </h2>
                 <div className="prose prose-primary max-w-none">
-                  {property.description.split('\n\n').map((paragraph, idx) => (
+                  {(property.description || 'Et dejligt sommerhus med udsigt til naturen.').split('\n\n').map((paragraph, idx) => (
                     <p key={idx} className="text-muted-foreground mb-4">{paragraph}</p>
                   ))}
                 </div>
               </div>
 
               {/* Amenities */}
-              <div>
-                <h2 className="font-display text-2xl font-semibold text-primary mb-4">
-                  Faciliteter
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {property.amenities.map((amenity) => {
-                    const Icon = amenityIcons[amenity] || Check;
-                    return (
-                      <div key={amenity} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <Icon className="w-5 h-5 text-accent" />
-                        <span className="text-primary">{amenity}</span>
-                      </div>
-                    );
-                  })}
+              {property.amenities && property.amenities.length > 0 && (
+                <div>
+                  <h2 className="font-display text-2xl font-semibold text-primary mb-4">
+                    Faciliteter
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {property.amenities.map((amenity) => {
+                      const Icon = amenityIcons[amenity] || Check;
+                      return (
+                        <div key={amenity} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                          <Icon className="w-5 h-5 text-accent" />
+                          <span className="text-primary">{amenity}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* House Rules */}
-              <div>
-                <h2 className="font-display text-2xl font-semibold text-primary mb-4">
-                  Husregler
-                </h2>
-                <p className="text-muted-foreground">{property.houseRules}</p>
-              </div>
+              {property.house_rules && (
+                <div>
+                  <h2 className="font-display text-2xl font-semibold text-primary mb-4">
+                    Husregler
+                  </h2>
+                  <p className="text-muted-foreground">{property.house_rules}</p>
+                </div>
+              )}
             </div>
 
             {/* Booking Card */}
@@ -264,7 +300,7 @@ export default function PropertyDetail() {
                   <CardTitle className="flex items-baseline justify-between">
                     <div>
                       <span className="text-2xl font-bold text-primary">
-                        {property.price.toLocaleString('da-DK')} kr.
+                        {pricePerNight.toLocaleString('da-DK')} kr.
                       </span>
                       <span className="text-muted-foreground font-normal"> / nat</span>
                     </div>
@@ -341,12 +377,12 @@ export default function PropertyDetail() {
                   {nights > 0 && (
                     <div className="space-y-2 pt-4 border-t">
                       <div className="flex justify-between text-muted-foreground">
-                        <span>{property.price.toLocaleString('da-DK')} kr. × {nights} nætter</span>
-                        <span>{(property.price * nights).toLocaleString('da-DK')} kr.</span>
+                        <span>{pricePerNight.toLocaleString('da-DK')} kr. × {nights} nætter</span>
+                        <span>{(pricePerNight * nights).toLocaleString('da-DK')} kr.</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>Rengøringsgebyr</span>
-                        <span>{property.cleaningFee.toLocaleString('da-DK')} kr.</span>
+                        <span>{cleaningFee.toLocaleString('da-DK')} kr.</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>Servicegebyr (5%)</span>
@@ -432,24 +468,24 @@ export default function PropertyDetail() {
             <X className="w-6 h-6 text-white" />
           </button>
           <button
-            onClick={() => setCurrentImage((prev) => (prev - 1 + property.images.length) % property.images.length)}
+            onClick={() => setCurrentImage((prev) => (prev - 1 + images.length) % images.length)}
             className="absolute left-4 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
           >
             <ChevronLeft className="w-6 h-6 text-white" />
           </button>
           <img
-            src={property.images[currentImage]}
+            src={images[currentImage]}
             alt={property.title}
             className="max-w-full max-h-[90vh] object-contain"
           />
           <button
-            onClick={() => setCurrentImage((prev) => (prev + 1) % property.images.length)}
+            onClick={() => setCurrentImage((prev) => (prev + 1) % images.length)}
             className="absolute right-4 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
           >
             <ChevronRight className="w-6 h-6 text-white" />
           </button>
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white">
-            {currentImage + 1} / {property.images.length}
+            {currentImage + 1} / {images.length}
           </div>
         </div>
       )}

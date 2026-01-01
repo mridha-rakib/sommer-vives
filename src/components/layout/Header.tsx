@@ -10,13 +10,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 
 export function Header() {
   const { user, signOut, isAdmin, isOwner } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigation = [
-    { name: 'Udlejning', href: '/rentals' },
+    { name: 'Sommerhuse', href: '/rentals' },
     { name: 'Sådan virker det', href: '/how-it-works' },
     { name: 'Priser', href: '/pricing' },
     { name: 'Kontakt', href: '/contact' },
@@ -47,7 +48,8 @@ export function Header() {
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            <LanguageSelector />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
