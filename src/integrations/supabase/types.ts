@@ -105,6 +105,60 @@ export type Database = {
           },
         ]
       }
+      package_purchases: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          owner_id: string
+          package_id: string
+          payment_status: string | null
+          property_id: string | null
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          owner_id: string
+          package_id: string
+          payment_status?: string | null
+          property_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          package_id?: string
+          payment_status?: string | null
+          property_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_purchases_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "service_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_purchases_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payouts: {
         Row: {
           amount: number
@@ -151,6 +205,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          value?: Json
+        }
+        Relationships: []
       }
       portal_listings: {
         Row: {
@@ -277,6 +355,83 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      property_pricing: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          id: string
+          min_nights: number | null
+          notes: string | null
+          price_per_night: number
+          property_id: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          id?: string
+          min_nights?: number | null
+          notes?: string | null
+          price_per_night: number
+          property_id: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          min_nights?: number | null
+          notes?: string | null
+          price_per_night?: number
+          property_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_pricing_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_packages: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number
+          sort_order: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price: number
+          sort_order?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          sort_order?: number | null
         }
         Relationships: []
       }

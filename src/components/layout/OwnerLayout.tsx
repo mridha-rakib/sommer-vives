@@ -9,12 +9,15 @@ interface OwnerLayoutProps {
   children: ReactNode;
 }
 
+import { ShoppingBag } from 'lucide-react';
+
 const navItems = [
   { name: 'Overblik', href: '/owner', icon: Home },
   { name: 'Mine sommerhuse', href: '/owner/properties', icon: Building },
   { name: 'Kalender', href: '/owner/calendar', icon: Calendar },
   { name: 'Forespørgsler', href: '/owner/inquiries', icon: MessageSquare },
   { name: 'Udbetalinger', href: '/owner/payouts', icon: Wallet },
+  { name: 'Tilkøb', href: '/owner/packages', icon: ShoppingBag },
 ];
 
 export function OwnerLayout({ children }: OwnerLayoutProps) {

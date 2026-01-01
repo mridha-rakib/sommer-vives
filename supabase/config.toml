@@ -1,1 +1,4 @@
 project_id = "jasgxsziqjfrewaautcl"
+
+[functions.property-ai-recommendations]
+verify_jwt = true
