@@ -98,12 +98,19 @@ export function HeroSection() {
               ))}
             </ul>
 
-            <Link to="/auth?mode=signup">
-              <Button variant="gold" size="lg" className="px-8">
-                Opret dit sommerhus
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/auth?mode=signup">
+                <Button variant="gold" size="lg" className="px-8">
+                  Kom i gang nu
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+              <Link to="/beregn-lejeindtaegt">
+                <Button variant="outline" size="lg" className="border-accent text-accent hover:bg-accent/10">
+                  Se din potentielle indtjening
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

@@ -21,7 +21,6 @@ export function Header() {
     { name: 'Sådan virker det', href: '/how-it-works' },
     { name: 'Priser', href: '/pricing' },
     { name: 'Teamet', href: '/team' },
-    { name: 'Beregn indtægt', href: '/beregn-lejeindtaegt' },
   ];
 
   return (
@@ -81,8 +80,13 @@ export function Header() {
                 <Link to="/auth">
                   <Button variant="ghost" size="sm">Log ind</Button>
                 </Link>
+                <Link to="/beregn-lejeindtaegt">
+                  <Button variant="outline" size="sm" className="border-accent text-accent hover:bg-accent/10">
+                    Se din indtjening
+                  </Button>
+                </Link>
                 <Link to="/auth?mode=signup">
-                  <Button variant="gold" size="sm">Opret sommerhus</Button>
+                  <Button variant="gold" size="sm">Kom i gang</Button>
                 </Link>
               </>
             )}
@@ -137,8 +141,11 @@ export function Header() {
                     <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="outline" className="w-full">Log ind</Button>
                     </Link>
+                    <Link to="/beregn-lejeindtaegt" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full border-accent text-accent">Se din indtjening</Button>
+                    </Link>
                     <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="gold" className="w-full">Opret sommerhus</Button>
+                      <Button variant="gold" className="w-full">Kom i gang</Button>
                     </Link>
                   </>
                 )}
