@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Home, Mail, Phone, MapPin } from 'lucide-react';
+import { Home, Mail, Phone, MapPin, Settings } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -69,8 +69,9 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/admin" className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
-                  Admin
+                <Link to="/admin" className="inline-flex items-center gap-1.5 text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full hover:bg-red-500/30 transition-colors">
+                  <Settings className="h-3 w-3" />
+                  Staff Only
                 </Link>
               </li>
             </ul>
