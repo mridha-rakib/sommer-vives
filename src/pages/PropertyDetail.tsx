@@ -1,17 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   MapPin, Users, Bed, Bath, Heart, Share2, ChevronLeft, ChevronRight,
-  Wifi, Flame, TreePine, Car, PawPrint, Waves, CalendarDays, Check,
+  Wifi, Flame, TreePine, Car, PawPrint, Waves, Check,
   Star, X, Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -19,6 +16,7 @@ import { da } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { BookingWizard } from '@/components/booking/BookingWizard';
 
 const amenityIcons: Record<string, any> = {
   'WiFi': Wifi,
@@ -36,16 +34,9 @@ export default function PropertyDetail() {
   const [currentImage, setCurrentImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [showBookingWizard, setShowBookingWizard] = useState(false);
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [guests, setGuests] = useState(2);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [inquiryForm, setInquiryForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    message: '',
-  });
-
   // Fetch property from database
   const { data: property, isLoading, error } = useQuery({
     queryKey: ['property', id],
@@ -103,39 +94,12 @@ export default function PropertyDetail() {
   const totalPrice = nights * pricePerNight + cleaningFee;
   const serviceFee = Math.round(totalPrice * 0.05);
 
-  const handleInquiry = async () => {
+  const handleOpenBookingWizard = () => {
     if (!dateRange.from || !dateRange.to) {
       toast.error('Vælg venligst check-in og check-out datoer');
       return;
     }
-    if (!inquiryForm.name || !inquiryForm.email) {
-      toast.error('Udfyld venligst navn og email');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from('inquiries').insert({
-        property_id: property.id,
-        guest_name: inquiryForm.name,
-        guest_email: inquiryForm.email,
-        guest_phone: inquiryForm.phone,
-        message: inquiryForm.message,
-        check_in: format(dateRange.from, 'yyyy-MM-dd'),
-        check_out: format(dateRange.to, 'yyyy-MM-dd'),
-        guests: guests,
-      });
-
-      if (error) throw error;
-
-      toast.success('Din forespørgsel er sendt! Vi vender tilbage hurtigst muligt.');
-      setInquiryForm({ name: '', email: '', phone: '', message: '' });
-    } catch (error) {
-      console.error('Error submitting inquiry:', error);
-      toast.error('Der opstod en fejl. Prøv venligst igen.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setShowBookingWizard(true);
   };
 
   return (
@@ -395,61 +359,17 @@ export default function PropertyDetail() {
                     </div>
                   )}
 
-                  {/* Inquiry Form */}
-                  <div className="space-y-3 pt-4 border-t">
-                    <div>
-                      <Label htmlFor="name">Navn *</Label>
-                      <Input
-                        id="name"
-                        value={inquiryForm.name}
-                        onChange={(e) => setInquiryForm({ ...inquiryForm, name: e.target.value })}
-                        placeholder="Dit navn"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={inquiryForm.email}
-                        onChange={(e) => setInquiryForm({ ...inquiryForm, email: e.target.value })}
-                        placeholder="din@email.dk"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Telefon</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={inquiryForm.phone}
-                        onChange={(e) => setInquiryForm({ ...inquiryForm, phone: e.target.value })}
-                        placeholder="+45 12 34 56 78"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="message">Besked</Label>
-                      <Textarea
-                        id="message"
-                        value={inquiryForm.message}
-                        onChange={(e) => setInquiryForm({ ...inquiryForm, message: e.target.value })}
-                        placeholder="Fortæl os om dit ophold..."
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-
                   <Button 
-                    onClick={handleInquiry} 
-                    disabled={isSubmitting}
+                    onClick={handleOpenBookingWizard}
                     className="w-full"
                     variant="gold"
                     size="lg"
                   >
-                    {isSubmitting ? 'Sender...' : 'Send forespørgsel'}
+                    Book nu
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">
-                    Du betaler ikke nu. Vi kontakter dig med bekræftelse.
+                    Vælg datoer og se samlet pris inkl. gebyrer og tilkøb.
                   </p>
                 </CardContent>
               </Card>
@@ -489,6 +409,15 @@ export default function PropertyDetail() {
           </div>
         </div>
       )}
+
+      {/* Booking Wizard */}
+      <BookingWizard
+        isOpen={showBookingWizard}
+        onClose={() => setShowBookingWizard(false)}
+        property={property}
+        dateRange={dateRange}
+        guests={guests}
+      />
     </PublicLayout>
   );
 }
