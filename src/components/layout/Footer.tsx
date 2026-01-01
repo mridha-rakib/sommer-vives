@@ -69,7 +69,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/admin" className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
+                <Link to="/admin/auth" className="text-sm text-primary-foreground/70 hover:text-accent transition-colors">
                   Admin
                 </Link>
               </li>

@@ -29,9 +29,11 @@ import OwnerCalendar from "./pages/owner/OwnerCalendar";
 import OwnerPackages from "./pages/owner/OwnerPackages";
 
 // Admin pages
+import AdminAuth from "./pages/admin/AdminAuth";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOwners from "./pages/admin/AdminOwners";
 import AdminProperties from "./pages/admin/AdminProperties";
+import AdminPropertyEdit from "./pages/admin/AdminPropertyEdit";
 import AdminListings from "./pages/admin/AdminListings";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminInquiries from "./pages/admin/AdminInquiries";
@@ -96,9 +98,11 @@ const App = () => (
             <Route path="/owner/packages" element={<ProtectedRoute><OwnerPackages /></ProtectedRoute>} />
 
             {/* Admin routes */}
+            <Route path="/admin/auth" element={<AdminAuth />} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/owners" element={<ProtectedRoute requireAdmin><AdminOwners /></ProtectedRoute>} />
             <Route path="/admin/properties" element={<ProtectedRoute requireAdmin><AdminProperties /></ProtectedRoute>} />
+            <Route path="/admin/properties/:id/edit" element={<ProtectedRoute requireAdmin><AdminPropertyEdit /></ProtectedRoute>} />
             <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListings /></ProtectedRoute>} />
             <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />

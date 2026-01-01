@@ -18,15 +18,15 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp, signInWithPassword, user } = useAuth();
+  const { signUp, signInWithPassword, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
-      navigate('/owner');
+      navigate(isAdmin ? '/admin' : '/owner');
     }
-  }, [user, navigate]);
+  }, [user, isAdmin, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
