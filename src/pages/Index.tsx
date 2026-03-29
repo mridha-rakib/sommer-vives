@@ -1,10 +1,12 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { HeroSection } from '@/components/landing/HeroSection';
+import { SocialProofSection } from '@/components/landing/SocialProofSection';
 import { ValuePropsSection } from '@/components/landing/ValuePropsSection';
+import { PropertyTypesSection } from '@/components/landing/PropertyTypesSection';
+import { ComparisonSection } from '@/components/landing/ComparisonSection';
+import { TaxBenefitSection } from '@/components/landing/TaxBenefitSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { ModernPlatformSection } from '@/components/landing/ModernPlatformSection';
-import { TaxBenefitSection } from '@/components/landing/TaxBenefitSection';
-import { PropertyTypesSection } from '@/components/landing/PropertyTypesSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { ContactExpertsSection } from '@/components/landing/ContactExpertsSection';
@@ -13,8 +15,10 @@ const Index = () => {
   return (
     <PublicLayout>
       <HeroSection />
+      <SocialProofSection />
       <ValuePropsSection />
       <PropertyTypesSection />
+      <ComparisonSection />
       <TaxBenefitSection />
       <HowItWorksSection />
       <ModernPlatformSection />

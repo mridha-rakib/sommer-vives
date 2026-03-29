@@ -5,21 +5,24 @@ import { Star, Quote } from 'lucide-react';
 const testimonials = [
   {
     name: 'Mette & Lars Sørensen',
-    location: 'Blåvand',
-    quote: 'Vi har aldrig haft så mange bookinger som nu. Den personlige kontakt og lave kommission er guld værd.',
+    location: 'Blåvand · Premium sommerhus',
+    quote: 'Vi har aldrig haft så mange bookinger som nu. Den personlige kontakt og lave kommission er guld værd. Vi skiftede fra et stort bureau og har aldrig set os tilbage.',
     rating: 5,
+    earnings: '187.000 kr./år',
   },
   {
     name: 'Thomas Nielsen',
-    location: 'Nordjylland',
-    quote: 'Endelig et bureau der lytter. Pengene kommer hurtigt, og supporten er fantastisk.',
+    location: 'Løkken · Klassisk sommerhus',
+    quote: 'Endelig et bureau der lytter og ikke bare ser os som endnu et nummer. Pengene kommer hurtigt, og supporten er fantastisk. Kan varmt anbefales!',
     rating: 5,
+    earnings: '94.000 kr./år',
   },
   {
-    name: 'Camilla Madsen',
-    location: 'Bornholm',
-    quote: 'Fra oprettelse til første booking gik der kun 2 uger. Den professionelle fotopakke gjorde forskellen.',
+    name: 'Camilla & Jakob Madsen',
+    location: 'Bornholm · Ekstraordinært',
+    quote: 'Fra oprettelse til første booking gik der kun 2 uger. Den professionelle fotopakke gjorde virkelig hele forskellen for vores bookingrate.',
     rating: 5,
+    earnings: '245.000 kr./år',
   },
 ];
 
@@ -39,31 +42,36 @@ export function TestimonialsSection() {
             Vores ejere
           </span>
           <h2 className="font-display text-3xl md:text-5xl font-bold text-primary">
-            Hvad de siger
+            De valgte SommerVibes
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {testimonials.map((t, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.15 * i }}
-              className="relative bg-muted/30 rounded-2xl p-8 border border-border hover:shadow-elevated transition-shadow duration-500 group"
+              className="relative bg-card rounded-2xl p-8 border border-border hover:shadow-elevated hover:border-accent/20 transition-all duration-500 group flex flex-col"
             >
-              <Quote className="absolute top-6 right-6 w-10 h-10 text-accent/10 group-hover:text-accent/20 transition-colors" />
-              <div className="flex gap-0.5 mb-6">
+              <Quote className="absolute top-6 right-6 w-8 h-8 text-accent/10 group-hover:text-accent/20 transition-colors" />
+              <div className="flex gap-0.5 mb-4">
                 {Array.from({ length: t.rating }).map((_, j) => (
                   <Star key={j} className="w-4 h-4 text-accent fill-accent" />
                 ))}
               </div>
-              <p className="text-foreground/80 leading-relaxed mb-8 text-lg italic font-display">
+              <p className="text-foreground/80 leading-relaxed mb-6 text-base italic font-display flex-1">
                 "{t.quote}"
               </p>
-              <div className="border-t border-border pt-4">
-                <p className="font-semibold text-primary">{t.name}</p>
-                <p className="text-sm text-muted-foreground">{t.location}</p>
+              <div className="border-t border-border pt-4 flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-primary text-sm">{t.name}</p>
+                  <p className="text-xs text-muted-foreground">{t.location}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-display font-bold text-accent text-sm">{t.earnings}</p>
+                </div>
               </div>
             </motion.div>
           ))}

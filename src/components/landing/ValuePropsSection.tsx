@@ -1,67 +1,51 @@
-import { Percent, Globe, Sparkles, Clock, HeadphonesIcon, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { Percent, Globe, Camera, Clock, Shield, Headphones } from 'lucide-react';
 
-const valueProps = [
-  {
-    icon: Percent,
-    title: 'Lav kommission',
-    description: 'Kun 15% i kommission – behold mere af din indtjening. Gæster betaler kun 5% servicegebyr.',
-  },
-  {
-    icon: Globe,
-    title: 'Bred eksponering',
-    description: 'Dit sommerhus vises på de største udlejningsportaler.',
-  },
-  {
-    icon: Sparkles,
-    title: 'Professionel rengøring',
-    description: 'Vi sørger for professionel rengøring mellem lejere.',
-  },
-  {
-    icon: Clock,
-    title: 'Ingen binding',
-    description: 'Fleksibel aftale – du kan altid opsige uden varsel.',
-  },
-  {
-    icon: HeadphonesIcon,
-    title: 'Vi håndterer alt',
-    description: 'Al lejerdialog og administration klares af os.',
-  },
-  {
-    icon: Users,
-    title: 'Lokale partnere',
-    description: 'Samarbejde med pålidelige, lokale servicepartnere.',
-  },
+const props = [
+  { icon: Percent, title: 'Lav kommission', desc: 'Kun 15% i kommission – behold mere af din indtjening. Gæster betaler kun 5% servicegebyr.' },
+  { icon: Globe, title: 'Bred eksponering', desc: 'Dit sommerhus vises på Airbnb, Booking.com, VRBO og vores egne kanaler.' },
+  { icon: Camera, title: 'Professionel foto', desc: 'Vi sørger for at dit hus præsenterer sig fra sin allerbedste side.' },
+  { icon: Headphones, title: 'Vi klarer alt', desc: 'Gæstekontakt, check-in, support og koordinering — du læner dig bare tilbage.' },
+  { icon: Clock, title: 'Ingen binding', desc: 'Fleksibel aftale — du kan altid opsige uden varsel.' },
+  { icon: Shield, title: 'Personlig kontakt', desc: 'Ét menneske du kan ringe til. Altid klar.' },
 ];
 
 export function ValuePropsSection() {
-  return (
-    <section className="section-padding bg-background">
-      <div className="container mx-auto">
-        <div className="text-center mb-12 md:mb-16">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4">
-            Hvorfor vælge os?
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Læn dig tilbage og lad os klare al administration, lejerdialog og rengøring.
-          </p>
-        </div>
+  const { ref, isInView } = useScrollReveal();
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {valueProps.map((prop, index) => (
-            <div
-              key={index}
-              className="group p-6 md:p-8 rounded-xl bg-card border border-border hover:border-accent/50 hover:shadow-elevated transition-all duration-300"
+  return (
+    <section ref={ref} className="py-24 md:py-32 bg-background">
+      <div className="container mx-auto px-4 md:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+            Derfor SommerVibes
+          </span>
+          <h2 className="font-display text-3xl md:text-5xl font-bold text-primary leading-tight max-w-3xl mx-auto">
+            Alt du har brug for — samlet ét sted
+          </h2>
+        </motion.div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
+          {props.map((p, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className="group bg-card rounded-2xl border border-border p-7 hover:shadow-elevated hover:border-accent/30 transition-all duration-500 hover:-translate-y-1"
             >
-              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-                <prop.icon className="w-6 h-6 text-accent" />
+              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-5 group-hover:bg-accent/20 transition-colors duration-300">
+                <p.icon className="w-6 h-6 text-accent" />
               </div>
-              <h3 className="font-display text-xl font-semibold text-primary mb-2">
-                {prop.title}
-              </h3>
-              <p className="text-muted-foreground">
-                {prop.description}
-              </p>
-            </div>
+              <h3 className="font-display text-xl font-bold text-primary mb-2">{p.title}</h3>
+              <p className="text-muted-foreground leading-relaxed text-sm">{p.desc}</p>
+            </motion.div>
           ))}
         </div>
       </div>
