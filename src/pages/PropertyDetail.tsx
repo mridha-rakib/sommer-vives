@@ -108,7 +108,7 @@ function PropertyDetailInner() {
       {/* Navigation */}
       <section className="bg-primary">
         <div className="container mx-auto px-4 py-4">
-          <Link to="/rentals" className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+          <Link to="/rentals" className="inline-flex items-center gap-2 text-background/80 hover:text-background transition-colors">
             <ChevronLeft className="w-4 h-4" />
             Tilbage til sommerhuse
           </Link>

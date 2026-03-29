@@ -48,7 +48,7 @@ function StepsSection() {
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors duration-300">
                   <step.icon className="w-8 h-8 md:w-10 md:h-10 text-accent" />
                 </div>
-                <span className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                <span className="absolute -top-2 -left-2 w-8 h-8 rounded-full bg-primary text-background text-xs font-bold flex items-center justify-center">
                   {step.number}
                 </span>
                 {i < steps.length - 1 && (
@@ -152,7 +152,7 @@ export default function HowItWorks() {
   return (
     <PublicLayout>
       {/* Hero */}
-      <section className="relative pt-32 pb-20 bg-primary text-primary-foreground overflow-hidden">
+      <section className="relative pt-32 pb-20 bg-primary text-background overflow-hidden">
         <div className="container mx-auto px-4 md:px-8 text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">Sådan virker det</span>
@@ -170,7 +170,7 @@ export default function HowItWorks() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-lg text-primary-foreground/80 max-w-2xl mx-auto mb-10"
+            className="text-lg text-background/80 max-w-2xl mx-auto mb-10"
           >
             Vi har gjort det så enkelt som muligt at udleje dit sommerhus professionelt.
           </motion.p>
@@ -223,11 +223,11 @@ export default function HowItWorks() {
       <WhySection />
 
       {/* CTA */}
-      <section className="py-24 bg-primary text-primary-foreground">
+      <section className="py-24 bg-primary text-background">
         <div className="container mx-auto px-4 md:px-8 text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
             <h2 className="font-display text-3xl md:text-5xl font-bold mb-6">Klar til at komme i gang?</h2>
-            <p className="text-primary-foreground/70 text-lg mb-10 max-w-2xl mx-auto">
+            <p className="text-background/70 text-lg mb-10 max-w-2xl mx-auto">
               Det tager kun 5 minutter at oprette dit sommerhus.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
