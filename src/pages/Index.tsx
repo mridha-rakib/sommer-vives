@@ -3,6 +3,7 @@ import { HeroSection } from '@/components/landing/HeroSection';
 import { SocialProofSection } from '@/components/landing/SocialProofSection';
 import { CampaignCard } from '@/components/landing/CampaignCard';
 import { ValuePropsSection } from '@/components/landing/ValuePropsSection';
+import { ExitIntentPopup } from '@/components/landing/ExitIntentPopup';
 import { RevenueSection } from '@/components/landing/RevenueSection';
 import { PropertyTypesSection } from '@/components/landing/PropertyTypesSection';
 import { ComparisonSection } from '@/components/landing/ComparisonSection';
