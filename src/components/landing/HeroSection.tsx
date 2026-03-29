@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowRight, Play, CheckCircle2, Zap, Droplets, Flame, BedDouble, Clock, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowRight, Play, CheckCircle2, Zap, BedDouble, Clock, Sparkles, TrendingUp, ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
@@ -11,11 +11,43 @@ const trustPoints = [
   'Personlig kontaktperson fra dag 1',
 ];
 
-const revenueHighlights = [
-  { icon: Zap, label: 'El, vand & varme', tip: 'Gæsten betaler forbrug — op til 1.500 kr. ekstra pr. uge' },
-  { icon: BedDouble, label: 'Sengepakker & håndklæder', tip: 'Tillæg pr. person — 75-150 kr. ekstra pr. booking' },
-  { icon: Clock, label: 'Tidlig check-in & sen check-out', tip: 'Gæster betaler 200-400 kr. for fleksibilitet' },
-  { icon: Sparkles, label: 'Rengøring, husdyr & mere', tip: 'Slutrengøring, husdyrtillæg, brænde m.m.' },
+const revenueCategories = [
+  {
+    icon: Zap,
+    label: 'Forbrugsafregning',
+    share: 8,
+    color: 'from-amber-400/80 to-accent/80',
+    items: ['Elforbrug', 'Vandforbrug', 'Varme & gas'],
+    example: 'Op til 1.500 kr. ekstra pr. uge',
+    desc: 'Gæsten betaler det reelle forbrug af el, vand og varme. Du tjener på det — ikke bureauet.',
+  },
+  {
+    icon: BedDouble,
+    label: 'Tillægspakker',
+    share: 5,
+    color: 'from-accent/80 to-emerald-400/80',
+    items: ['Sengepakker', 'Håndklæder', 'Velkomstpakke'],
+    example: '75-200 kr. pr. person pr. booking',
+    desc: 'Linnedpakker, håndklæder og velkomstpakker — alt faktureres som tillæg direkte til gæsten.',
+  },
+  {
+    icon: Clock,
+    label: 'Fleksibilitet',
+    share: 4,
+    color: 'from-emerald-400/80 to-teal-400/80',
+    items: ['Tidlig check-in', 'Sen check-out', 'Husdyrtillæg'],
+    example: '200-500 kr. pr. tilvalg',
+    desc: 'Gæster betaler gerne ekstra for fleksibilitet. Du bestemmer selv hvad du tilbyder.',
+  },
+  {
+    icon: Sparkles,
+    label: 'Service & gebyr',
+    share: 3,
+    color: 'from-teal-400/80 to-cyan-400/80',
+    items: ['Slutrengøring', 'Skadesforsikring', 'Brænde & grill'],
+    example: '800-1.500 kr. pr. ophold',
+    desc: 'Slutrengøring og forsikring faktureres gæsten. Du har ingen udgifter — kun indtægt.',
+  },
 ];
 
 export function HeroSection() {
