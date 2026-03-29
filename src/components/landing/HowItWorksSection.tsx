@@ -31,69 +31,73 @@ export function HowItWorksSection() {
   const { ref, isInView } = useScrollReveal();
 
   return (
-    <section ref={ref} className="py-24 md:py-32 bg-primary text-primary-foreground overflow-hidden">
+    <section ref={ref} className="py-28 md:py-36 bg-primary text-primary-foreground overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-[1fr_1.5fr] gap-16 items-start">
-            {/* Left sticky text */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.7 }}
-              className="lg:sticky lg:top-32"
-            >
-              <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
-                Sådan virker det
-              </span>
-              <h2 className="font-display text-3xl md:text-5xl font-bold leading-tight mb-6">
-                Fra oprettelse
-                <span className="block text-accent italic font-normal">til indtjening</span>
-              </h2>
-              <p className="text-primary-foreground/70 leading-relaxed mb-8 text-lg">
-                Fire enkle trin — så klarer vi resten. Du bestemmer altid selv priser, datoer og vilkår.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link to="/kom-i-gang">
-                  <Button variant="gold" size="lg" className="gap-2 group">
-                    Opret dit hus nu
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link to="/contact">
-                  <Button variant="outline" size="lg" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
-                    Book et udlejningstjek
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
+        <div className="max-w-5xl mx-auto">
+          {/* Centered header */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7 }}
+            className="text-center mb-20"
+          >
+            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+              Sådan virker det
+            </span>
+            <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
+              Fra oprettelse
+              <span className="block text-accent italic font-normal">til indtjening</span>
+            </h2>
+          </motion.div>
 
-            {/* Right steps */}
-            <div className="space-y-0">
-              {steps.map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 40 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.5, delay: 0.2 + i * 0.15 }}
-                  className="border-b border-primary-foreground/10 last:border-0 py-10 first:pt-0 group"
-                >
-                  <div className="flex gap-8 items-start">
-                    <span className="font-display text-5xl md:text-7xl font-bold text-accent/20 group-hover:text-accent/40 transition-colors duration-500 leading-none flex-shrink-0">
-                      {step.number}
-                    </span>
-                    <div>
-                      <h3 className="font-display text-2xl font-bold mb-3 group-hover:text-accent transition-colors duration-300">
-                        {step.title}
-                      </h3>
-                      <p className="text-primary-foreground/60 leading-relaxed text-lg">
-                        {step.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+          {/* Horizontal timeline on desktop */}
+          <div className="grid md:grid-cols-4 gap-0 relative">
+            {/* Connecting line */}
+            <div className="hidden md:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-accent/10 via-accent/30 to-accent/10" />
+
+            {steps.map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.2 + i * 0.15 }}
+                className="text-center px-4 relative"
+              >
+                {/* Step circle */}
+                <div className="w-16 h-16 rounded-full border border-accent/20 bg-primary flex items-center justify-center mx-auto mb-6 relative z-10">
+                  <span className="font-display text-xl font-bold text-accent">{step.number}</span>
+                </div>
+                <h3 className="font-display text-lg md:text-xl font-bold mb-3">
+                  {step.title}
+                </h3>
+                <p className="text-primary-foreground/50 text-sm leading-relaxed">
+                  {step.description}
+                </p>
+              </motion.div>
+            ))}
           </div>
+
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.5, delay: 0.8 }}
+            className="text-center mt-16"
+          >
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link to="/kom-i-gang">
+                <Button variant="gold" size="lg" className="gap-2 group rounded-full">
+                  Opret dit hus nu
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Link to="/contact">
+                <Button variant="outline" size="lg" className="border-primary-foreground/15 text-primary-foreground/70 hover:bg-primary-foreground/5 rounded-full">
+                  Book et udlejningstjek
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

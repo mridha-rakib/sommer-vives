@@ -1,6 +1,7 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { Star, Quote } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const testimonials = [
   {
@@ -28,15 +29,25 @@ const testimonials = [
 
 export function TestimonialsSection() {
   const { ref, isInView } = useScrollReveal();
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent(prev => (prev + 1) % testimonials.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const t = testimonials[current];
 
   return (
-    <section ref={ref} className="py-28 md:py-36 bg-primary text-primary-foreground overflow-hidden">
+    <section ref={ref} className="py-28 md:py-40 bg-primary text-primary-foreground overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
-          className="text-center mb-16 md:mb-20"
+          className="text-center mb-16"
         >
           <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
             Vores ejere
@@ -46,35 +57,68 @@ export function TestimonialsSection() {
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-5 md:gap-6 max-w-6xl mx-auto">
-          {testimonials.map((t, i) => (
+        {/* Single testimonial carousel — cinematic, minimal */}
+        <div className="max-w-3xl mx-auto relative">
+          <Quote className="absolute -top-4 left-0 md:left-[-2rem] w-16 h-16 text-accent/[0.06]" />
+
+          <AnimatePresence mode="wait">
             <motion.div
-              key={i}
+              key={current}
               initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.15 * i }}
-              className="relative rounded-2xl p-8 md:p-9 border border-primary-foreground/8 bg-primary-foreground/[0.03] hover:bg-primary-foreground/[0.06] hover:border-accent/15 transition-all duration-500 group flex flex-col"
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="text-center"
             >
-              <Quote className="absolute top-7 right-7 w-8 h-8 text-accent/10 group-hover:text-accent/20 transition-colors" />
-              <div className="flex gap-0.5 mb-5">
+              {/* Stars */}
+              <div className="flex justify-center gap-1 mb-8">
                 {Array.from({ length: t.rating }).map((_, j) => (
                   <Star key={j} className="w-4 h-4 text-accent fill-accent" />
                 ))}
               </div>
-              <p className="text-primary-foreground/70 leading-relaxed mb-8 text-base italic font-display flex-1">
+
+              {/* Quote */}
+              <p className="font-display text-xl md:text-3xl lg:text-4xl font-light text-primary-foreground/80 leading-relaxed italic mb-10">
                 "{t.quote}"
               </p>
-              <div className="border-t border-primary-foreground/8 pt-5 flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-primary-foreground text-sm">{t.name}</p>
-                  <p className="text-xs text-primary-foreground/40 mt-0.5">{t.location}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-display font-bold text-accent text-sm">{t.earnings}</p>
-                </div>
+
+              {/* Author */}
+              <div className="space-y-2">
+                <p className="font-semibold text-primary-foreground text-base">{t.name}</p>
+                <p className="text-sm text-primary-foreground/40">{t.location}</p>
+                <p className="font-display font-bold text-accent text-lg">{t.earnings}</p>
               </div>
             </motion.div>
-          ))}
+          </AnimatePresence>
+
+          {/* Navigation */}
+          <div className="flex items-center justify-center gap-6 mt-12">
+            <button
+              onClick={() => setCurrent(prev => (prev - 1 + testimonials.length) % testimonials.length)}
+              className="w-10 h-10 rounded-full border border-primary-foreground/10 flex items-center justify-center hover:border-accent/30 hover:bg-accent/5 transition-all"
+            >
+              <ChevronLeft className="w-4 h-4 text-primary-foreground/60" />
+            </button>
+
+            <div className="flex gap-2">
+              {testimonials.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  className={`h-1 rounded-full transition-all duration-500 ${
+                    i === current ? 'w-8 bg-accent' : 'w-2 bg-primary-foreground/15 hover:bg-primary-foreground/25'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrent(prev => (prev + 1) % testimonials.length)}
+              className="w-10 h-10 rounded-full border border-primary-foreground/10 flex items-center justify-center hover:border-accent/30 hover:bg-accent/5 transition-all"
+            >
+              <ChevronRight className="w-4 h-4 text-primary-foreground/60" />
+            </button>
+          </div>
         </div>
       </div>
     </section>

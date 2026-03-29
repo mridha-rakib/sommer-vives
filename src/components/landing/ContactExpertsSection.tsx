@@ -2,83 +2,68 @@ import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Phone, MapPin, Clock } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export function ContactExpertsSection() {
   const { ref, isInView } = useScrollReveal();
 
   return (
-    <section ref={ref} className="py-28 md:py-36 bg-primary text-primary-foreground overflow-hidden">
-      <div className="container mx-auto px-4 md:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.8 }}
-            >
-              <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">
-                Klar til at komme i gang?
-              </span>
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-[0.95]">
-                Lad os snakke om{' '}
-                <span className="block text-accent italic font-normal">dit sommerhus</span>
-              </h2>
-              <p className="text-lg text-primary-foreground/60 leading-relaxed mb-10 max-w-lg">
-                Book et gratis og uforpligtende udlejningstjek — vi kører ud til dig.
-                Eller opret dit hus online på 5 minutter.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link to="/kom-i-gang">
-                  <Button variant="gold" size="xl" className="gap-3 group text-base w-full sm:w-auto rounded-full">
-                    Udlej dit hus nu
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link to="/book-vurdering">
-                  <Button
-                    variant="outline"
-                    size="xl"
-                    className="border-accent/30 text-accent hover:bg-accent/10 text-base w-full sm:w-auto rounded-full"
-                  >
-                    Book gratis udlejningstjek
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
+    <section ref={ref} className="py-32 md:py-44 bg-primary text-primary-foreground overflow-hidden relative">
+      {/* Subtle radial glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--accent)/0.06),transparent_70%)] pointer-events-none" />
 
-            {/* Right — Contact details */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="space-y-4"
-            >
-              {[
-                { icon: Phone, title: 'Ring til os', detail: '+45 12 34 56 78', sub: 'Hverdage 8–18' },
-                { icon: MapPin, title: 'Vi kører ud til dig', detail: 'Hele Danmark', sub: 'Gratis og uforpligtende' },
-                { icon: Clock, title: 'Hurtig opstart', detail: 'Op og køre på 5 min', sub: 'Eller vi hjælper dig' },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
-                  className="flex gap-5 items-start p-6 rounded-2xl bg-primary-foreground/[0.03] border border-primary-foreground/5 hover:bg-primary-foreground/[0.06] hover:border-accent/10 transition-all duration-500 group"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0 group-hover:bg-accent/15 transition-colors">
-                    <item.icon className="w-5 h-5 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-lg font-bold mb-0.5">{item.title}</h3>
-                    <p className="text-primary-foreground/80 font-medium">{item.detail}</p>
-                    <p className="text-primary-foreground/40 text-sm">{item.sub}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
+      <div className="container mx-auto px-4 md:px-8 relative">
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[0.95]">
+              Lad os snakke om{' '}
+              <span className="block text-accent italic font-normal mt-2">dit sommerhus</span>
+            </h2>
+            <p className="text-lg md:text-xl text-primary-foreground/50 leading-relaxed mb-12 max-w-lg mx-auto">
+              Book et gratis og uforpligtende udlejningstjek — vi kører ud til dig.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-3 justify-center"
+          >
+            <Link to="/kom-i-gang">
+              <Button variant="gold" size="xl" className="gap-3 group text-base w-full sm:w-auto rounded-full">
+                Udlej dit hus nu
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link to="/book-vurdering">
+              <Button
+                variant="outline"
+                size="xl"
+                className="border-primary-foreground/15 text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground text-base w-full sm:w-auto rounded-full"
+              >
+                Book gratis udlejningstjek
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Minimal contact info */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="mt-14 flex items-center justify-center gap-6 text-primary-foreground/30"
+          >
+            <span className="text-sm">+45 12 34 56 78</span>
+            <span className="w-1 h-1 rounded-full bg-primary-foreground/15" />
+            <span className="text-sm">Hverdage 8–18</span>
+            <span className="w-1 h-1 rounded-full bg-primary-foreground/15" />
+            <span className="text-sm">Hele Danmark</span>
+          </motion.div>
         </div>
       </div>
     </section>
