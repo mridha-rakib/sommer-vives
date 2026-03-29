@@ -235,10 +235,10 @@ export function HeroSection() {
           <motion.path
             d="M1500 200 Q1200 350 1050 500 Q900 650 750 780 Q650 860 600 920"
             stroke="white"
-            strokeWidth="28"
+            strokeWidth="44"
             strokeLinecap="round"
             fill="none"
-            opacity="0.15"
+            opacity="0.25"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1.8, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
@@ -247,10 +247,10 @@ export function HeroSection() {
           <motion.path
             d="M1520 180 Q1220 330 1070 480 Q920 630 770 760 Q670 840 620 900"
             stroke="#C8102E"
-            strokeWidth="18"
+            strokeWidth="30"
             strokeLinecap="round"
             fill="none"
-            opacity="0.35"
+            opacity="0.55"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1.6, delay: 1, ease: [0.22, 1, 0.36, 1] }}
@@ -259,10 +259,10 @@ export function HeroSection() {
           <motion.path
             d="M1540 165 Q1240 315 1090 465 Q940 615 790 745 Q690 825 640 885"
             stroke="white"
-            strokeWidth="6"
+            strokeWidth="10"
             strokeLinecap="round"
             fill="none"
-            opacity="0.12"
+            opacity="0.2"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1.4, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
