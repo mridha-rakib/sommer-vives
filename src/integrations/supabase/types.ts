@@ -143,33 +143,49 @@ export type Database = {
       }
       availability_holds: {
         Row: {
+          booking_id: string | null
           created_at: string
           end_date: string
           expires_at: string
+          hold_token: string | null
           id: string
           listing_id: string
+          released: boolean | null
           session_id: string
           start_date: string
         }
         Insert: {
+          booking_id?: string | null
           created_at?: string
           end_date: string
           expires_at: string
+          hold_token?: string | null
           id?: string
           listing_id: string
+          released?: boolean | null
           session_id: string
           start_date: string
         }
         Update: {
+          booking_id?: string | null
           created_at?: string
           end_date?: string
           expires_at?: string
+          hold_token?: string | null
           id?: string
           listing_id?: string
+          released?: boolean | null
           session_id?: string
           start_date?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "availability_holds_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "availability_holds_listing_id_fkey"
             columns: ["listing_id"]
@@ -222,6 +238,8 @@ export type Database = {
       }
       bookings: {
         Row: {
+          amount_paid: number | null
+          amount_remaining: number | null
           base_price: number
           case_number: string | null
           check_in: string
@@ -240,16 +258,20 @@ export type Database = {
           notes: string | null
           owner_id: string
           owner_payout: number | null
+          payment_status: string | null
           platform_earnings: number | null
           platform_fee_percent: number | null
           property_id: string
           service_fee: number | null
           source_channel: Database["public"]["Enums"]["source_channel"] | null
           status: Database["public"]["Enums"]["booking_status"] | null
+          stripe_session_id: string | null
           total_amount: number
           updated_at: string | null
         }
         Insert: {
+          amount_paid?: number | null
+          amount_remaining?: number | null
           base_price: number
           case_number?: string | null
           check_in: string
@@ -268,16 +290,20 @@ export type Database = {
           notes?: string | null
           owner_id: string
           owner_payout?: number | null
+          payment_status?: string | null
           platform_earnings?: number | null
           platform_fee_percent?: number | null
           property_id: string
           service_fee?: number | null
           source_channel?: Database["public"]["Enums"]["source_channel"] | null
           status?: Database["public"]["Enums"]["booking_status"] | null
+          stripe_session_id?: string | null
           total_amount: number
           updated_at?: string | null
         }
         Update: {
+          amount_paid?: number | null
+          amount_remaining?: number | null
           base_price?: number
           case_number?: string | null
           check_in?: string
@@ -296,12 +322,14 @@ export type Database = {
           notes?: string | null
           owner_id?: string
           owner_payout?: number | null
+          payment_status?: string | null
           platform_earnings?: number | null
           platform_fee_percent?: number | null
           property_id?: string
           service_fee?: number | null
           source_channel?: Database["public"]["Enums"]["source_channel"] | null
           status?: Database["public"]["Enums"]["booking_status"] | null
+          stripe_session_id?: string | null
           total_amount?: number
           updated_at?: string | null
         }
@@ -767,6 +795,7 @@ export type Database = {
           reason: string | null
           source: string
           start_date: string
+          summary: string | null
         }
         Insert: {
           created_at?: string
@@ -778,6 +807,7 @@ export type Database = {
           reason?: string | null
           source?: string
           start_date: string
+          summary?: string | null
         }
         Update: {
           created_at?: string
@@ -789,6 +819,7 @@ export type Database = {
           reason?: string | null
           source?: string
           start_date?: string
+          summary?: string | null
         }
         Relationships: [
           {
@@ -1096,11 +1127,14 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          note: string | null
           owner_id: string
+          paid_at: string | null
           payment_method: string | null
           status: string
           stripe_checkout_session_id: string | null
           stripe_payment_id: string | null
+          stripe_payment_intent_id: string | null
         }
         Insert: {
           amount: number
@@ -1108,11 +1142,14 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          note?: string | null
           owner_id: string
+          paid_at?: string | null
           payment_method?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_id?: string | null
+          stripe_payment_intent_id?: string | null
         }
         Update: {
           amount?: number
@@ -1120,11 +1157,14 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          note?: string | null
           owner_id?: string
+          paid_at?: string | null
           payment_method?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_id?: string | null
+          stripe_payment_intent_id?: string | null
         }
         Relationships: [
           {
