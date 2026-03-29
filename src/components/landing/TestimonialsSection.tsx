@@ -41,7 +41,7 @@ export function TestimonialsSection() {
   const t = testimonials[current];
 
   return (
-    <section ref={ref} className="py-28 md:py-40 bg-primary text-primary-foreground overflow-hidden">
+    <section ref={ref} className="py-28 md:py-40 bg-background overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

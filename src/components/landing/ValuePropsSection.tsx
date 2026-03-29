@@ -17,7 +17,7 @@ export function ValuePropsSection() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   return (
-    <section ref={ref} className="py-28 md:py-36 bg-background overflow-hidden">
+    <section ref={ref} className="py-28 md:py-36 bg-muted/20 overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

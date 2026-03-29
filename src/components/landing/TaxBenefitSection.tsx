@@ -30,7 +30,7 @@ export function TaxBenefitSection() {
   const commissionAmount = Math.round(income * 0.15);
 
   return (
-    <section ref={ref} className="py-24 md:py-32 bg-background overflow-hidden">
+    <section ref={ref} className="py-24 md:py-32 bg-muted/20 overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
