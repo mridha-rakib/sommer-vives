@@ -64,11 +64,11 @@ export function TaxBenefitSection() {
               initial={{ opacity: 0, x: 30 }}
               animate={isInView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="bg-primary text-primary-foreground rounded-3xl p-8 md:p-10"
+              className="bg-primary text-background rounded-3xl p-8 md:p-10"
             >
               <div className="mb-8">
                 <div className="flex justify-between items-end mb-4">
-                  <span className="text-primary-foreground/60 text-sm font-body uppercase tracking-wider">Brutto lejeindtægt</span>
+                  <span className="text-background/60 text-sm font-body uppercase tracking-wider">Brutto lejeindtægt</span>
                   <span className="font-display text-3xl font-bold text-accent">{fmt(income)} kr.</span>
                 </div>
                 <Slider
@@ -79,7 +79,7 @@ export function TaxBenefitSection() {
                   step={5000}
                   className="my-6"
                 />
-                <div className="flex justify-between text-xs text-primary-foreground/40 font-body">
+                <div className="flex justify-between text-xs text-background/40 font-body">
                   <span>20.000 kr.</span>
                   <span>300.000 kr.</span>
                 </div>
@@ -91,19 +91,19 @@ export function TaxBenefitSection() {
                   { label: 'Skattefrit bundfradrag', value: `${fmt(result.taxFree)} kr.`, muted: false },
                   { label: 'Skat (gns. ca. 34%)', value: `-${fmt(result.tax)} kr.`, muted: true },
                 ].map((row, i) => (
-                  <div key={i} className="flex justify-between items-center py-3 border-b border-primary-foreground/10">
-                    <span className={`text-sm ${row.muted ? 'text-primary-foreground/50' : 'text-primary-foreground/80'}`}>{row.label}</span>
-                    <span className={`font-body font-semibold ${row.muted ? 'text-primary-foreground/60' : 'text-accent'}`}>{row.value}</span>
+                  <div key={i} className="flex justify-between items-center py-3 border-b border-background/10">
+                    <span className={`text-sm ${row.muted ? 'text-background/50' : 'text-background/80'}`}>{row.label}</span>
+                    <span className={`font-body font-semibold ${row.muted ? 'text-background/60' : 'text-accent'}`}>{row.value}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="bg-primary-foreground/5 rounded-2xl p-6 text-center">
-                <div className="text-primary-foreground/50 text-sm mb-1 font-body uppercase tracking-wider">Du beholder ca.</div>
+              <div className="bg-background/5 rounded-2xl p-6 text-center">
+                <div className="text-background/50 text-sm mb-1 font-body uppercase tracking-wider">Du beholder ca.</div>
                 <div className="font-display text-4xl md:text-5xl font-bold text-accent">
                   {fmt(result.afterTax - commissionAmount)} kr.
                 </div>
-                <div className="text-primary-foreground/40 text-xs mt-2">efter skat og kommission</div>
+                <div className="text-background/40 text-xs mt-2">efter skat og kommission</div>
               </div>
             </motion.div>
           </div>

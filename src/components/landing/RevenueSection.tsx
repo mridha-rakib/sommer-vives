@@ -218,7 +218,7 @@ export function RevenueSection() {
             Andre bureauer beholder disse indtægter. Hos SommerVibes er de <strong className="text-background/80">dine</strong>.
           </p>
           <Link to="/kom-i-gang">
-            <Button variant="gold" size="lg" className="gap-2 group">
+            <Button size="lg" className="gap-2 group bg-background text-foreground hover:bg-background/90 font-semibold">
               Beregn din indtægt
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>

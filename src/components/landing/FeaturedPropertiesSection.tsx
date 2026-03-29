@@ -128,7 +128,7 @@ export function FeaturedPropertiesSection() {
 
             {/* Discount */}
             {property.discount && (
-              <Badge className="absolute top-3 left-3 bg-accent text-primary font-semibold">
+              <Badge className="absolute top-3 left-3 bg-accent text-background font-semibold">
                 -{property.discount}%
               </Badge>
             )}

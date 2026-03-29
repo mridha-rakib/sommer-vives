@@ -131,7 +131,7 @@
   }
 
   .btn-gold {
-    @apply bg-accent text-primary hover:bg-gold-dark transition-all duration-300 font-semibold shadow-gold;
+    @apply bg-accent text-accent-foreground hover:bg-gold-dark transition-all duration-300 font-semibold shadow-gold;
   }
 
   .section-padding {
