@@ -14,10 +14,10 @@ interface TrustBadgesProps {
 }
 
 export function TrustBadges({ variant = 'dark', className = '' }: TrustBadgesProps) {
-  const textColor = variant === 'dark' ? 'text-primary-foreground' : 'text-primary';
-  const mutedColor = variant === 'dark' ? 'text-primary-foreground/70' : 'text-muted-foreground';
-  const bgColor = variant === 'dark' ? 'bg-primary' : 'bg-card';
-  const borderColor = variant === 'dark' ? 'border-primary-foreground/20' : 'border-border';
+  const textColor = variant === 'dark' ? 'text-foreground' : 'text-foreground';
+  const mutedColor = variant === 'dark' ? 'text-foreground/70' : 'text-muted-foreground';
+  const bgColor = variant === 'dark' ? 'bg-card' : 'bg-card';
+  const borderColor = variant === 'dark' ? 'border-foreground/20' : 'border-border';
 
   return (
     <div className={`${bgColor} py-4 ${className}`}>
