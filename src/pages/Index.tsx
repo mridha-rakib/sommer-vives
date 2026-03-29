@@ -1,24 +1,24 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
-import { ValuePropsSection } from '@/components/landing/ValuePropsSection';
-import { StorySection } from '@/components/landing/StorySection';
-import { ComparisonSection } from '@/components/landing/ComparisonSection';
+import { ModernPlatformSection } from '@/components/landing/ModernPlatformSection';
+import { TaxBenefitSection } from '@/components/landing/TaxBenefitSection';
+import { PropertyTypesSection } from '@/components/landing/PropertyTypesSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { FAQSection } from '@/components/landing/FAQSection';
-import { CTASection } from '@/components/landing/CTASection';
+import { ContactExpertsSection } from '@/components/landing/ContactExpertsSection';
 
 const Index = () => {
   return (
     <PublicLayout>
       <HeroSection />
+      <ModernPlatformSection />
+      <TaxBenefitSection />
+      <PropertyTypesSection />
       <HowItWorksSection />
-      <ValuePropsSection />
-      <StorySection />
-      <ComparisonSection />
       <TestimonialsSection />
       <FAQSection />
-      <CTASection />
+      <ContactExpertsSection />
     </PublicLayout>
   );
 };
