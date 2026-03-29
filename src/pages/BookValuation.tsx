@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PublicLayout } from '@/components/layout/PublicLayout';
+import { SocialProofSection } from '@/components/landing/SocialProofSection';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { MapPin, CalendarDays, Phone, Mail, CheckCircle2, ArrowRight, Clock, Shield, Star, Home } from 'lucide-react';
 import { toast } from 'sonner';
