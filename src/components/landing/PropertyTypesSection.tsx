@@ -31,7 +31,7 @@ export function PropertyTypesSection() {
   const [active, setActive] = useState(1);
 
   return (
-    <section ref={ref} className="py-24 md:py-36 bg-muted/20 overflow-hidden">
+    <section ref={ref} className="py-24 md:py-36 bg-background overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

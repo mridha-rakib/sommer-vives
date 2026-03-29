@@ -8,7 +8,7 @@ export function ModernPlatformSection() {
   const { ref, isInView } = useScrollReveal();
 
   return (
-    <section ref={ref} className="py-28 md:py-36 bg-background overflow-hidden">
+    <section ref={ref} className="py-28 md:py-36 bg-muted/20 overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Centered header */}

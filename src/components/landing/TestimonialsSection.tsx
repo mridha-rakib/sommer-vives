@@ -19,11 +19,11 @@ const testimonials = [
     earnings: '94.000 kr./år',
   },
   {
-    name: 'Camilla & Jakob Madsen',
-    location: 'Bornholm · Ekstraordinært',
-    quote: 'Fra oprettelse til første booking gik der kun 2 uger. Den professionelle fotopakke gjorde virkelig hele forskellen for vores bookingrate.',
+    name: 'Anne-Marie Vestergaard',
+    location: 'Marielyst · Ekstraordinært sommerhus',
+    quote: 'Professionel fotografering, optimeret prissætning og gennemsigtige udbetalinger. Det hele fungerer bare. Vi havde 32 ugers udlejning i første sæson.',
     rating: 5,
-    earnings: '245.000 kr./år',
+    earnings: '243.000 kr./år',
   },
 ];
 
@@ -41,7 +41,7 @@ export function TestimonialsSection() {
   const t = testimonials[current];
 
   return (
-    <section ref={ref} className="py-28 md:py-40 bg-primary text-primary-foreground overflow-hidden">
+    <section ref={ref} className="py-28 md:py-40 bg-background overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -52,14 +52,14 @@ export function TestimonialsSection() {
           <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
             Vores ejere
           </span>
-          <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold">
+          <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-primary">
             De valgte <span className="text-accent italic font-normal">SommerVibes</span>
           </h2>
         </motion.div>
 
         {/* Single testimonial carousel — cinematic, minimal */}
         <div className="max-w-3xl mx-auto relative">
-          <Quote className="absolute -top-4 left-0 md:left-[-2rem] w-16 h-16 text-accent/[0.06]" />
+          <Quote className="absolute -top-4 left-0 md:left-[-2rem] w-16 h-16 text-accent/[0.08]" />
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -78,14 +78,14 @@ export function TestimonialsSection() {
               </div>
 
               {/* Quote */}
-              <p className="font-display text-xl md:text-3xl lg:text-4xl font-light text-primary-foreground/80 leading-relaxed italic mb-10">
+              <p className="font-display text-xl md:text-3xl lg:text-4xl font-light text-foreground/80 leading-relaxed italic mb-10">
                 "{t.quote}"
               </p>
 
               {/* Author */}
               <div className="space-y-2">
-                <p className="font-semibold text-primary-foreground text-base">{t.name}</p>
-                <p className="text-sm text-primary-foreground/40">{t.location}</p>
+                <p className="font-semibold text-foreground text-base">{t.name}</p>
+                <p className="text-sm text-muted-foreground">{t.location}</p>
                 <p className="font-display font-bold text-accent text-lg">{t.earnings}</p>
               </div>
             </motion.div>
@@ -95,9 +95,9 @@ export function TestimonialsSection() {
           <div className="flex items-center justify-center gap-6 mt-12">
             <button
               onClick={() => setCurrent(prev => (prev - 1 + testimonials.length) % testimonials.length)}
-              className="w-10 h-10 rounded-full border border-primary-foreground/10 flex items-center justify-center hover:border-accent/30 hover:bg-accent/5 transition-all"
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:border-accent/30 hover:bg-accent/5 transition-all"
             >
-              <ChevronLeft className="w-4 h-4 text-primary-foreground/60" />
+              <ChevronLeft className="w-4 h-4 text-muted-foreground" />
             </button>
 
             <div className="flex gap-2">
@@ -106,7 +106,7 @@ export function TestimonialsSection() {
                   key={i}
                   onClick={() => setCurrent(i)}
                   className={`h-1 rounded-full transition-all duration-500 ${
-                    i === current ? 'w-8 bg-accent' : 'w-2 bg-primary-foreground/15 hover:bg-primary-foreground/25'
+                    i === current ? 'w-8 bg-accent' : 'w-2 bg-border hover:bg-muted-foreground/30'
                   }`}
                 />
               ))}
@@ -114,9 +114,9 @@ export function TestimonialsSection() {
 
             <button
               onClick={() => setCurrent(prev => (prev + 1) % testimonials.length)}
-              className="w-10 h-10 rounded-full border border-primary-foreground/10 flex items-center justify-center hover:border-accent/30 hover:bg-accent/5 transition-all"
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:border-accent/30 hover:bg-accent/5 transition-all"
             >
-              <ChevronRight className="w-4 h-4 text-primary-foreground/60" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
         </div>

@@ -18,29 +18,29 @@ const Index = () => {
     <PublicLayout>
       {/* 1. Hero — full viewport, dark, cinematic */}
       <HeroSection />
-      {/* 2. Social proof — minimal stat strip */}
+      {/* 2. Social proof — minimal stat strip + logo marquee */}
       <SocialProofSection />
-      {/* 3. Campaign — conversion card */}
-      <CampaignCard />
-      {/* 4. Value props — why us */}
+      {/* 3. Value props — why us (cream) */}
       <ValuePropsSection />
-      {/* 5. Revenue — Tesla-style interactive */}
+      {/* 4. Revenue — +20% interactive (dark) */}
       <RevenueSection />
-      {/* 6. Property types — full-bleed imagery */}
+      {/* 5. Property types — full-bleed imagery (white) */}
       <PropertyTypesSection />
-      {/* 7. How it works — process */}
+      {/* 6. How it works — process (dark) */}
       <HowItWorksSection />
-      {/* 8. Tax benefit — interactive calc */}
+      {/* 7. Campaign — conversion offer (white, after understanding value) */}
+      <CampaignCard />
+      {/* 8. Tax benefit — interactive calc (cream) */}
       <TaxBenefitSection />
-      {/* 9. Comparison — vs competitors */}
+      {/* 9. Comparison — vs competitors (dark) */}
       <ComparisonSection />
-      {/* 10. Platform — dashboard mockup */}
-      <ModernPlatformSection />
-      {/* 11. Testimonials — social proof */}
+      {/* 10. Testimonials — social proof (white) */}
       <TestimonialsSection />
-      {/* 12. FAQ */}
+      {/* 11. Platform — dashboard mockup (cream) */}
+      <ModernPlatformSection />
+      {/* 12. FAQ (white) */}
       <FAQSection />
-      {/* 13. Final CTA */}
+      {/* 13. Final CTA (dark) */}
       <ContactExpertsSection />
     </PublicLayout>
   );
