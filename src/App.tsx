@@ -11,8 +11,7 @@ import Auth from "./pages/Auth";
 import HowItWorks from "./pages/HowItWorks";
 import Pricing from "./pages/Pricing";
 import Contact from "./pages/Contact";
-import Rentals from "./pages/Rentals";
-import PropertyDetail from "./pages/PropertyDetail";
+// Rentals removed — redirects to /listings
 import PriceCalculator from "./pages/PriceCalculator";
 import Team from "./pages/Team";
 import ReferAHost from "./pages/ReferAHost";
@@ -33,9 +32,7 @@ import OwnerPackages from "./pages/owner/OwnerPackages";
 import AdminAuth from "./pages/admin/AdminAuth";
 import AdminDashboard from "./pages/admin/AdminDashboardNew";
 import AdminOwners from "./pages/admin/AdminOwnersNew";
-import AdminProperties from "./pages/admin/AdminProperties";
-import AdminPropertyEdit from "./pages/admin/AdminPropertyEdit";
-import AdminListings from "./pages/admin/AdminListings";
+import AdminListingsNew from "./pages/admin/AdminListingsNew";
 import AdminListingsNew from "./pages/admin/AdminListingsNew";
 import AdminPricing from "./pages/admin/AdminPricing";
 import AdminCalendarPage from "./pages/admin/AdminCalendarPage";
@@ -94,8 +91,8 @@ const App = () => (
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/rentals" element={<Rentals />} />
-            <Route path="/property/:id" element={<PropertyDetail />} />
+            <Route path="/rentals" element={<Navigate to="/listings" replace />} />
+            <Route path="/property/:id" element={<Navigate to="/listings" replace />} />
             <Route path="/beregn-lejeindtaegt" element={<PriceCalculator />} />
             <Route path="/team" element={<Team />} />
             <Route path="/refer-a-host" element={<ReferAHost />} />
@@ -117,10 +114,8 @@ const App = () => (
             <Route path="/admin/auth" element={<AdminAuth />} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/owners" element={<ProtectedRoute requireAdmin><AdminOwners /></ProtectedRoute>} />
-            <Route path="/admin/properties" element={<ProtectedRoute requireAdmin><AdminProperties /></ProtectedRoute>} />
-            <Route path="/admin/properties/:id/edit" element={<ProtectedRoute requireAdmin><AdminPropertyEdit /></ProtectedRoute>} />
-            <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListings /></ProtectedRoute>} />
-            <Route path="/admin/listings-new" element={<ProtectedRoute requireAdmin><AdminListingsNew /></ProtectedRoute>} />
+            <Route path="/admin/properties" element={<Navigate to="/admin/listings" replace />} />
+            <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListingsNew /></ProtectedRoute>} />
             <Route path="/admin/pricing" element={<ProtectedRoute requireAdmin><AdminPricing /></ProtectedRoute>} />
             <Route path="/admin/calendar" element={<ProtectedRoute requireAdmin><AdminCalendarPage /></ProtectedRoute>} />
             <Route path="/admin/emails" element={<ProtectedRoute requireAdmin><AdminEmailsPage /></ProtectedRoute>} />

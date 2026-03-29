@@ -36,7 +36,7 @@ export function Header() {
   const navigation = [
     { name: 'Sådan virker det', href: '/how-it-works' },
     { name: 'Priser', href: '/pricing' },
-    { name: 'Sommerhuse', href: '/rentals' },
+    { name: 'Sommerhuse', href: '/listings' },
     { name: 'Teamet', href: '/team' },
   ];
 
