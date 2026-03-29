@@ -1,75 +1,122 @@
+import { motion } from 'framer-motion';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, BarChart3, Calendar, MessageSquare, Star } from 'lucide-react';
 
 export function ModernPlatformSection() {
+  const { ref, isInView } = useScrollReveal();
+
   return (
-    <section className="py-20 md:py-28 bg-muted/20">
+    <section ref={ref} className="py-24 md:py-32 bg-muted/30 overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
           {/* Left - Text */}
-          <div>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-6 leading-tight">
-              Den nye standard for moderne sommerhusudlejning
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+              Din ejerportal
+            </span>
+            <h2 className="font-display text-3xl md:text-5xl font-bold text-primary mb-6 leading-tight">
+              Fuld kontrol
+              <span className="block text-accent italic font-normal">fra din telefon</span>
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-              Med SommerVibes' omhyggelige design og funktioner specifikt lavet til
-              sommerhusejere, er SommerVibes det moderne værktøj til at udleje dit sommerhus.
+              Følg dine bookinger, indtjening og gæstekommunikation i realtid.
+              SommerVibes' ejerportal er designet til at give dig overblik — ikke besvær.
             </p>
             <Link to="/how-it-works">
-              <Button variant="gold" size="lg" className="gap-2">
-                Udforsk hvordan du udlejer
-                <ArrowRight className="w-4 h-4" />
+              <Button variant="gold" size="lg" className="gap-2 group">
+                Udforsk platformen
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-          </div>
+          </motion.div>
 
           {/* Right - Dashboard mockup */}
-          <div className="relative">
-            {/* Main dashboard card */}
-            <div className="bg-background rounded-2xl shadow-elevated border border-border p-6 md:p-8">
+          <motion.div
+            initial={{ opacity: 0, x: 40, rotate: 2 }}
+            animate={isInView ? { opacity: 1, x: 0, rotate: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="bg-background rounded-3xl shadow-elevated border border-border p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-3 h-3 rounded-full bg-destructive/60" />
+                <div className="w-3 h-3 rounded-full bg-accent/60" />
+                <div className="w-3 h-3 rounded-full bg-secondary/60" />
+                <div className="w-3 h-3 rounded-full bg-green-500/60" />
+              </div>
+              
               <div className="text-sm text-muted-foreground mb-1">God eftermiddag 👋</div>
               <h3 className="font-display text-xl font-bold text-primary mb-6">Dit overblik</h3>
 
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-muted/50 rounded-xl p-4">
-                  <div className="text-xs text-muted-foreground mb-1">Indtjening i år</div>
-                  <div className="font-display text-2xl font-bold text-primary">132.730 DKK</div>
-                </div>
-                <div className="bg-muted/50 rounded-xl p-4">
-                  <div className="text-xs text-muted-foreground mb-1">Godkendelsesrate</div>
-                  <div className="font-display text-2xl font-bold text-accent">100%</div>
-                </div>
+                {[
+                  { icon: BarChart3, label: 'Indtjening i år', value: '132.730 kr.', accent: false },
+                  { icon: Star, label: 'Vurdering', value: '4.9 / 5.0', accent: true },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                    transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
+                    className="bg-muted/50 rounded-xl p-4"
+                  >
+                    <item.icon className="w-4 h-4 text-muted-foreground mb-2" />
+                    <div className="text-xs text-muted-foreground mb-1">{item.label}</div>
+                    <div className={`font-display text-xl font-bold ${item.accent ? 'text-accent' : 'text-primary'}`}>
+                      {item.value}
+                    </div>
+                  </motion.div>
+                ))}
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between bg-accent/10 rounded-lg p-3">
-                  <span className="text-sm font-medium text-primary">Ny bookingforespørgsel</span>
-                  <Button variant="outline" size="sm" className="h-7 text-xs border-accent text-accent">
-                    Se detaljer
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
-                  <span className="text-sm text-muted-foreground">Næste check-in: 15. jul</span>
-                  <span className="text-xs text-accent font-medium">3 dage</span>
-                </div>
-                <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
-                  <span className="text-sm text-muted-foreground">Svartid</span>
-                  <span className="text-xs text-primary font-medium">Under 1 time</span>
-                </div>
+                {[
+                  { icon: Calendar, text: 'Ny bookingforespørgsel', badge: 'Ny', badgeColor: 'bg-accent text-primary' },
+                  { icon: MessageSquare, text: 'Besked fra gæst', badge: '2', badgeColor: 'bg-primary text-primary-foreground' },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={isInView ? { opacity: 1, x: 0 } : {}}
+                    transition={{ duration: 0.4, delay: 0.7 + i * 0.1 }}
+                    className="flex items-center justify-between bg-accent/5 rounded-xl p-4 hover:bg-accent/10 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <item.icon className="w-5 h-5 text-accent" />
+                      <span className="text-sm font-medium text-primary">{item.text}</span>
+                    </div>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${item.badgeColor}`}>
+                      {item.badge}
+                    </span>
+                  </motion.div>
+                ))}
               </div>
             </div>
 
-            {/* Floating stats card */}
-            <div className="absolute -bottom-4 -right-4 bg-background rounded-xl shadow-xl border border-border p-4 w-48">
-              <div className="text-xs text-muted-foreground mb-1">Visninger denne uge</div>
-              <div className="font-display text-xl font-bold text-primary">296</div>
-              <div className="flex items-center gap-1 mt-1">
-                <div className="w-2 h-2 rounded-full bg-accent" />
-                <span className="text-xs text-accent font-medium">+22% vs. sidst</span>
+            {/* Floating notification */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 1 }}
+              className="absolute -bottom-4 -left-4 bg-background rounded-2xl shadow-xl border border-border p-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Denne uge</div>
+                  <div className="font-display text-lg font-bold text-primary">+22% visninger</div>
+                </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>

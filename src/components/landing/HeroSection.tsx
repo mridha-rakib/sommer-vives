@@ -1,23 +1,14 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Check, ArrowRight, Star, Shield, Heart, TrendingUp, Users, Camera } from 'lucide-react';
-
-const benefits = [
-  { icon: TrendingUp, text: 'Kun 15% kommission' },
-  { icon: Users, text: 'Personlig kontaktperson' },
-  { icon: Camera, text: 'Gratis professionel foto' },
-  { icon: Shield, text: 'Ingen binding' },
-];
-
-const stats = [
-  { value: '15%', label: 'Laveste kommission' },
-  { value: '5 min', label: 'At komme i gang' },
-  { value: '100%', label: 'Dansk support' },
-];
+import { ArrowRight, Play } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 export function HeroSection() {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+
   return (
-    <section className="relative min-h-[100vh] flex flex-col">
+    <section className="relative min-h-[100dvh] flex flex-col overflow-hidden">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
         <video
@@ -25,77 +16,127 @@ export function HeroSection() {
           loop
           muted
           playsInline
-          className="w-full h-full object-cover"
-          poster=""
+          onLoadedData={() => setVideoLoaded(true)}
+          className={`w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
         >
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/90" />
+        {/* Cinematic overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/40 to-primary/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/60 via-transparent to-transparent" />
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex-1 flex items-center">
-        <div className="container mx-auto px-4 md:px-8 py-20">
-          <div className="max-w-3xl">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-accent/20 backdrop-blur-sm border border-accent/30 rounded-full px-4 py-2 mb-8 animate-fade-in">
-              <Star className="w-4 h-4 text-accent" />
-              <span className="text-sm font-medium text-accent">Danmarks mest fleksible udlejningsbureau</span>
-            </div>
+      <div className="relative z-10 flex-1 flex items-center pt-20">
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="max-w-4xl">
+            {/* Overline */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mb-6"
+            >
+              <span className="inline-block text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase">
+                Sommerhusudlejning — gjort rigtigt
+              </span>
+            </motion.div>
 
-            <h1 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-primary-foreground mb-6 animate-fade-in-up leading-tight">
-              Udlej dit sommerhus
-              <span className="block text-gradient-gold">— uden besvær</span>
-            </h1>
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="font-display text-5xl md:text-6xl lg:text-8xl font-bold text-primary-foreground mb-8 leading-[0.95] tracking-tight"
+            >
+              Udlej dit
+              <br />
+              sommerhus
+              <motion.span
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 1 }}
+                className="block text-accent italic font-normal"
+              >
+                uden besvær
+              </motion.span>
+            </motion.h1>
 
-            <p className="text-lg md:text-xl text-primary-foreground/85 mb-10 max-w-xl animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.1s' }}>
-              Vi håndterer alt fra markedsføring til gæstekontakt. 
-              Du læner dig tilbage og tjener penge på dit feriehus.
-            </p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="text-lg md:text-xl text-primary-foreground/80 mb-12 max-w-lg leading-relaxed font-light"
+            >
+              Vi håndterer alt fra professionel markedsføring til gæstekontakt.
+              Kun 15% i kommission — ingen binding.
+            </motion.p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            {/* Dual CTA */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
+              className="flex flex-col sm:flex-row gap-4"
+            >
+              <Link to="/contact">
+                <Button variant="gold" size="xl" className="gap-3 text-base group">
+                  Book en gratis vurdering
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
               <Link to="/kom-i-gang">
-                <Button variant="gold" size="xl" className="gap-2 text-base">
-                  Kom i gang gratis
-                  <ArrowRight className="w-5 h-5" />
+                <Button
+                  variant="outline"
+                  size="xl"
+                  className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 text-base gap-2"
+                >
+                  <Play className="w-4 h-4" />
+                  Opret dit hus på 5 min
                 </Button>
               </Link>
-              <Link to="/beregn-lejeindtaegt">
-                <Button variant="outline" size="xl" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 text-base">
-                  Se din potentielle indtjening
-                </Button>
-              </Link>
-            </div>
-
-            {/* Benefits Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              {benefits.map((benefit, i) => (
-                <div key={i} className="flex items-center gap-2 text-primary-foreground/80">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-                    <benefit.icon className="w-4 h-4 text-accent" />
-                  </div>
-                  <span className="text-sm font-medium">{benefit.text}</span>
-                </div>
-              ))}
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
 
-      {/* Stats Bar */}
-      <div className="relative z-10 bg-primary/95 backdrop-blur-sm border-t border-accent/20">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-center gap-8 md:gap-16">
-            {stats.map((stat, i) => (
-              <div key={i} className={`text-center ${i > 0 ? 'border-l border-primary-foreground/15 pl-8 md:pl-16' : ''}`}>
-                <div className="font-display text-2xl md:text-3xl font-bold text-accent">{stat.value}</div>
-                <div className="text-xs md:text-sm text-primary-foreground/60 mt-1">{stat.label}</div>
+      {/* Bottom stats strip */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 1.3 }}
+        className="relative z-10 border-t border-primary-foreground/10"
+      >
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-3 divide-x divide-primary-foreground/10">
+            {[
+              { value: '15%', label: 'Kommission' },
+              { value: '5 min', label: 'At komme i gang' },
+              { value: '0 kr.', label: 'Bindingsperiode' },
+            ].map((stat, i) => (
+              <div key={i} className="py-6 md:py-8 text-center">
+                <div className="font-display text-2xl md:text-4xl font-bold text-accent">{stat.value}</div>
+                <div className="text-xs md:text-sm text-primary-foreground/50 mt-1 font-body tracking-wide uppercase">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2 }}
+        className="absolute bottom-28 left-1/2 -translate-x-1/2 z-10 hidden md:block"
+      >
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+          className="w-6 h-10 border-2 border-primary-foreground/30 rounded-full flex items-start justify-center p-1.5"
+        >
+          <div className="w-1 h-2 bg-accent rounded-full" />
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
