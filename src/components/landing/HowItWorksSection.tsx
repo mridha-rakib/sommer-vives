@@ -1,77 +1,98 @@
-import { Home, Camera, Globe, Wallet, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
 const steps = [
   {
-    icon: Home,
-    title: 'Opret dit hus',
-    description: 'Del lidt information og billeder af dit sommerhus. Det tager kun 5 minutter.',
     number: '01',
+    title: 'Opret dit hus',
+    description: 'Del information og billeder af dit sommerhus. Det tager kun 5 minutter online.',
   },
   {
-    icon: Camera,
-    title: 'Vi fotograferer',
-    description: 'Vores team hjælper med professionelt indhold der skaber bookinger.',
     number: '02',
+    title: 'Vi vurderer & fotograferer',
+    description: 'Vi kigger dit hus igennem og sørger for professionelt indhold der skaber bookinger.',
   },
   {
-    icon: Globe,
-    title: 'Vi markedsfører',
-    description: 'Dit hus vises på de største portaler og vores egne kanaler.',
     number: '03',
+    title: 'Vi markedsfører',
+    description: 'Dit hus vises på alle de største portaler og vores egne kanaler med optimal prissætning.',
   },
   {
-    icon: Wallet,
+    number: '04',
     title: 'Du tjener',
     description: 'Bookinger ruller ind. Gennemsigtige udbetalinger direkte til din konto.',
-    number: '04',
   },
 ];
 
 export function HowItWorksSection() {
+  const { ref, isInView } = useScrollReveal();
+
   return (
-    <section className="py-20 md:py-28 bg-background">
+    <section ref={ref} className="py-24 md:py-32 bg-primary text-primary-foreground overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4">
-              Fra oprettelse til indtjening
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Fire enkle trin – så klarer vi resten
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
-            {steps.map((step, index) => (
-              <div key={index} className="relative text-center group">
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-px bg-border" />
-                )}
-                <div className="relative z-10">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                    <step.icon className="w-10 h-10 text-accent" />
-                  </div>
-                  <span className="text-xs font-bold text-accent/60 uppercase tracking-widest">
-                    {step.number}
-                  </span>
-                  <h3 className="font-display text-lg font-semibold text-primary mt-1 mb-2">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
-                </div>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-[1fr_1.5fr] gap-16 items-start">
+            {/* Left sticky text */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.7 }}
+              className="lg:sticky lg:top-32"
+            >
+              <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+                Sådan virker det
+              </span>
+              <h2 className="font-display text-3xl md:text-5xl font-bold leading-tight mb-6">
+                Fra oprettelse
+                <span className="block text-accent italic font-normal">til indtjening</span>
+              </h2>
+              <p className="text-primary-foreground/70 leading-relaxed mb-8 text-lg">
+                Fire enkle trin — så klarer vi resten. Du bestemmer altid selv priser, datoer og vilkår.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link to="/kom-i-gang">
+                  <Button variant="gold" size="lg" className="gap-2 group">
+                    Opret dit hus nu
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+                <Link to="/contact">
+                  <Button variant="outline" size="lg" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
+                    Book en vurdering
+                  </Button>
+                </Link>
               </div>
-            ))}
-          </div>
+            </motion.div>
 
-          <div className="text-center">
-            <Link to="/kom-i-gang">
-              <Button variant="gold" size="lg" className="gap-2">
-                Start din rejse
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
+            {/* Right steps */}
+            <div className="space-y-0">
+              {steps.map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.5, delay: 0.2 + i * 0.15 }}
+                  className="border-b border-primary-foreground/10 last:border-0 py-10 first:pt-0 group"
+                >
+                  <div className="flex gap-8 items-start">
+                    <span className="font-display text-5xl md:text-7xl font-bold text-accent/20 group-hover:text-accent/40 transition-colors duration-500 leading-none flex-shrink-0">
+                      {step.number}
+                    </span>
+                    <div>
+                      <h3 className="font-display text-2xl font-bold mb-3 group-hover:text-accent transition-colors duration-300">
+                        {step.title}
+                      </h3>
+                      <p className="text-primary-foreground/60 leading-relaxed text-lg">
+                        {step.description}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
