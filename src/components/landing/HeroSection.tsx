@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowRight, Play, CheckCircle2, Zap, Droplets, Flame, BedDouble, Clock, Sparkles, TrendingUp, Shirt, UtensilsCrossed, ShieldCheck, Wifi, Dog, TreePine } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { ArrowRight, Play, CheckCircle2, Zap, Droplets, Flame, BedDouble, Clock, Sparkles, TrendingUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 const trustPoints = [
   'Ingen binding — opsig når som helst',
@@ -11,24 +11,23 @@ const trustPoints = [
   'Personlig kontaktperson fra dag 1',
 ];
 
-const revenueStreams = [
-  { icon: Zap, label: 'El', tooltip: 'Gæsten betaler strøm efter forbrug — op til 800 kr./uge ekstra' },
-  { icon: Droplets, label: 'Vand', tooltip: 'Vandforbrug faktureres direkte — ca. 150-300 kr./uge' },
-  { icon: Flame, label: 'Varme', tooltip: 'Fjernvarme/gas faktureres gæsten — op til 500 kr./uge' },
-  { icon: BedDouble, label: 'Sengepakker', tooltip: 'Tillæg pr. seng — typisk 75-150 kr. pr. person' },
-  { icon: Shirt, label: 'Håndklæder', tooltip: 'Håndklædepakker som tillæg — 50-100 kr. pr. sæt' },
-  { icon: Clock, label: 'Tidlig check-in', tooltip: 'Gæster betaler gerne 200-400 kr. for tidlig ankomst' },
-  { icon: Clock, label: 'Sen check-out', tooltip: 'Sen afrejse som ekstraydelse — 200-400 kr.' },
-  { icon: Dog, label: 'Husdyr', tooltip: 'Husdyrtillæg pr. dyr — 300-500 kr. pr. ophold' },
-  { icon: UtensilsCrossed, label: 'Slutrengøring', tooltip: 'Slutrengøring faktureres gæsten — 800-1.500 kr.' },
-  { icon: Wifi, label: 'Premium WiFi', tooltip: 'Opgrader WiFi som tillæg — 50-100 kr./uge' },
-  { icon: TreePine, label: 'Brænde', tooltip: 'Brænde til pejs som forbrug — 100-250 kr.' },
-  { icon: ShieldCheck, label: 'Forsikring', tooltip: 'Skadesforsikring betalt af gæsten — 150-300 kr.' },
-  { icon: Sparkles, label: 'Meget mere', tooltip: 'Velkomstpakker, cykler, kajak, grill m.m.' },
+const revenueHighlights = [
+  { icon: Zap, label: 'El, vand & varme', tip: 'Gæsten betaler forbrug — op til 1.500 kr. ekstra pr. uge' },
+  { icon: BedDouble, label: 'Sengepakker & håndklæder', tip: 'Tillæg pr. person — 75-150 kr. ekstra pr. booking' },
+  { icon: Clock, label: 'Tidlig check-in & sen check-out', tip: 'Gæster betaler 200-400 kr. for fleksibilitet' },
+  { icon: Sparkles, label: 'Rengøring, husdyr & mere', tip: 'Slutrengøring, husdyrtillæg, brænde m.m.' },
 ];
 
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [activeHighlight, setActiveHighlight] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveHighlight((prev) => (prev + 1) % revenueHighlights.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -81,18 +80,103 @@ export function HeroSection() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.6 }}
-                  className="text-sm sm:text-lg md:text-xl text-primary-foreground/75 mb-4 sm:mb-8 max-w-md leading-relaxed"
+                  className="text-sm sm:text-lg md:text-xl text-primary-foreground/75 mb-4 sm:mb-6 max-w-md leading-relaxed"
                 >
                   Vi markedsfører, styrer gæstekontakt og rengøring.
                   Du får pengene — vi tager kun <strong className="text-accent">15%</strong>.
                 </motion.p>
 
+                {/* Revenue highlight — emotional, not data-heavy */}
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                  className="mb-5 sm:mb-8"
+                >
+                  <div className="relative bg-primary-foreground/5 backdrop-blur-md rounded-2xl border border-accent/20 p-3 sm:p-4 max-w-md overflow-hidden group">
+                    {/* Shimmer accent line */}
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-accent/60 to-transparent animate-hero-shimmer" />
+                    
+                    {/* Top row */}
+                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-accent/20 flex items-center justify-center">
+                          <TrendingUp className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-accent" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] sm:text-xs font-bold text-accent tracking-wide uppercase">Merindtjening</p>
+                          <p className="text-[9px] sm:text-[10px] text-primary-foreground/40">kun hos SommerVibes</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <motion.p
+                          key="percent"
+                          initial={{ scale: 0.8 }}
+                          animate={{ scale: [1, 1.05, 1] }}
+                          transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse' }}
+                          className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-accent leading-none"
+                        >
+                          +20%
+                        </motion.p>
+                        <p className="text-[8px] sm:text-[9px] text-primary-foreground/40 font-medium">ekstra indtægt</p>
+                      </div>
+                    </div>
+
+                    {/* Rotating highlight */}
+                    <div className="h-8 sm:h-9 relative">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={activeHighlight}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.4 }}
+                          className="absolute inset-0 flex items-center gap-2"
+                        >
+                          {(() => {
+                            const item = revenueHighlights[activeHighlight];
+                            const Icon = item.icon;
+                            return (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center gap-2 cursor-default">
+                                    <Icon className="w-3.5 h-3.5 text-accent/70 flex-shrink-0" />
+                                    <span className="text-xs sm:text-sm text-primary-foreground/70 font-medium">{item.label}</span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[220px] text-xs bg-background/95 backdrop-blur-xl border-accent/20">
+                                  <p className="text-muted-foreground">{item.tip}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            );
+                          })()}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Progress dots */}
+                    <div className="flex gap-1.5 mt-1">
+                      {revenueHighlights.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setActiveHighlight(i)}
+                          className={`h-1 rounded-full transition-all duration-500 ${
+                            i === activeHighlight
+                              ? 'w-6 bg-accent/70'
+                              : 'w-1.5 bg-primary-foreground/15 hover:bg-primary-foreground/25'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+
                 {/* Trust bullets — hidden on very small screens */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.8 }}
-                  className="hidden sm:block space-y-2.5 mb-6"
+                  transition={{ duration: 0.5, delay: 1 }}
+                  className="hidden sm:block space-y-2 mb-6"
                 >
                   {trustPoints.map((point, i) => (
                     <div key={i} className="flex items-center gap-2.5 text-primary-foreground/70 text-sm">
@@ -100,47 +184,6 @@ export function HeroSection() {
                       {point}
                     </div>
                   ))}
-                </motion.div>
-
-                {/* Inline revenue marquee — inside hero copy */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 1 }}
-                  className="mb-6 sm:mb-8"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-accent" />
-                    <span className="text-[9px] sm:text-[10px] font-bold text-accent tracking-[0.15em] uppercase">
-                      Merindtjening kun hos os
-                    </span>
-                  </div>
-                  
-                  {/* Marquee container */}
-                  <div className="relative overflow-hidden max-w-md rounded-xl">
-                    {/* Fade edges */}
-                    <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-primary/80 to-transparent z-10 pointer-events-none" />
-                    <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-primary/80 to-transparent z-10 pointer-events-none" />
-                    
-                    <div className="flex animate-marquee hover:[animation-play-state:paused]">
-                      {[...revenueStreams, ...revenueStreams].map((item, i) => (
-                        <Tooltip key={i}>
-                          <TooltipTrigger asChild>
-                            <div className="flex-shrink-0 flex items-center gap-1.5 bg-primary-foreground/8 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-primary-foreground/10 hover:border-accent/30 hover:bg-accent/15 transition-all duration-300 cursor-default mx-1 group">
-                              <div className="flex items-center justify-center w-5 h-5 rounded-md bg-accent/15 group-hover:bg-accent/25 transition-colors">
-                                <item.icon className="w-3 h-3 text-accent" />
-                              </div>
-                              <span className="text-[10px] sm:text-[11px] text-primary-foreground/80 font-semibold whitespace-nowrap">{item.label}</span>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-[200px] text-xs bg-background/95 backdrop-blur-xl border-accent/20">
-                            <p className="font-semibold text-accent mb-0.5">{item.label}</p>
-                            <p className="text-muted-foreground">{item.tooltip}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      ))}
-                    </div>
-                  </div>
                 </motion.div>
 
                 {/* CTAs */}
@@ -180,7 +223,7 @@ export function HeroSection() {
                 <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[80%] h-[55%] rounded-full blur-[80px] sm:blur-[100px] animate-hero-shimmer" />
                 <div className="absolute top-[25%] left-1/2 -translate-x-1/2 w-[50%] h-[40%] bg-accent/8 rounded-full blur-[50px] animate-hero-shimmer-slow" />
 
-                {/* Cutout with heavy edge masking to hide transparent artifacts */}
+                {/* Cutout with heavy edge masking */}
                 <div
                   className="relative"
                   style={{
@@ -197,7 +240,7 @@ export function HeroSection() {
                   />
                 </div>
 
-                {/* Floating badge — hidden on very small, shown sm+ */}
+                {/* Floating badge */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
