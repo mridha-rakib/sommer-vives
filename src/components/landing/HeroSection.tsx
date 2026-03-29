@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play, CheckCircle2, TrendingUp, Zap, BedDouble, Clock, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 
 const trustPoints = [
   '6 måneders binding — tryghed for begge parter',
@@ -20,6 +20,10 @@ const revenueItems = [
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [activeItem, setActiveItem] = useState(0);
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const swooshY = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const swooshRotate = useTransform(scrollYProgress, [0, 1], [0, -3]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -29,7 +33,7 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section className="relative min-h-[100dvh] flex flex-col overflow-hidden">
+    <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
         <video
@@ -223,7 +227,10 @@ export function HeroSection() {
       </div>
 
       {/* Dannebrog swoosh */}
-      <div className="absolute bottom-0 right-0 w-full h-full pointer-events-none z-[5] overflow-hidden">
+      <motion.div
+        style={{ y: swooshY, rotate: swooshRotate }}
+        className="absolute bottom-0 right-0 w-full h-full pointer-events-none z-[5] overflow-hidden"
+      >
         <svg
           viewBox="0 0 1440 900"
           fill="none"
@@ -268,7 +275,7 @@ export function HeroSection() {
             transition={{ duration: 1.4, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
           />
         </svg>
-      </div>
+      </motion.div>
 
       {/* Bottom stats strip */}
       <motion.div
