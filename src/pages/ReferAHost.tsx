@@ -139,7 +139,7 @@ export default function ReferAHost() {
       </section>
 
       {/* Benefits */}
-      <section className="py-16 md:py-24 bg-primary text-background">
+      <section className="py-16 md:py-24 bg-background text-foreground">
         <div className="container mx-auto px-4 md:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -147,7 +147,7 @@ export default function ReferAHost() {
                 <h2 className="font-display text-3xl md:text-4xl font-semibold mb-6">
                   Hvorfor henvise til <span className="text-accent">SommerVibes</span>?
                 </h2>
-                <p className="text-background/70 text-lg mb-8">
+                <p className="text-muted-foreground text-lg mb-8">
                   Vi tror på, at de bedste anbefalinger kommer fra tilfredse kunder. 
                   Derfor belønner vi dig, når du hjælper os med at vokse.
                 </p>
@@ -156,7 +156,7 @@ export default function ReferAHost() {
                   {benefits.map((benefit) => (
                     <li key={benefit} className="flex items-start gap-3">
                       <CheckCircle className="h-6 w-6 text-accent flex-shrink-0 mt-0.5" />
-                      <span className="text-background/90">{benefit}</span>
+                      <span className="text-foreground/90">{benefit}</span>
                     </li>
                   ))}
                 </ul>
