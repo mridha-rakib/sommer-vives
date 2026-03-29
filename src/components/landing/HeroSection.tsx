@@ -1,74 +1,81 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Check, ArrowRight, Star, Shield, Heart, MessageCircle } from 'lucide-react';
-import heroImage from '@/assets/hero-house.jpg';
-import { SearchBar } from '@/components/search/SearchBar';
+import { Check, ArrowRight, Star, Shield, Heart, TrendingUp, Users, Camera } from 'lucide-react';
 
 const benefits = [
-  'Kun 15% i kommission',
-  'Udlej på de største portaler',
-  'Ingen binding og besvær',
+  { icon: TrendingUp, text: 'Kun 15% kommission' },
+  { icon: Users, text: 'Personlig kontaktperson' },
+  { icon: Camera, text: 'Gratis professionel foto' },
+  { icon: Shield, text: 'Ingen binding' },
 ];
 
-const trustBadges = [
-  { icon: Star, label: 'Fremragende', sublabel: '4.8 på Trustpilot' },
-  { icon: Shield, label: 'Dansk virksomhed' },
-  { icon: Check, label: 'Gratis afbestilling' },
-  { icon: Heart, label: 'Ingen depositum' },
-  { icon: MessageCircle, label: 'Dansk support' },
+const stats = [
+  { value: '15%', label: 'Laveste kommission' },
+  { value: '5 min', label: 'At komme i gang' },
+  { value: '100%', label: 'Dansk support' },
 ];
 
 export function HeroSection() {
   return (
-    <section className="relative">
-      {/* Hero with Search */}
-      <div className="relative min-h-[80vh] flex flex-col justify-center">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroImage}
-            alt="Dansk sommerhus ved kysten"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/50 to-primary/80" />
-        </div>
+    <section className="relative min-h-[100vh] flex flex-col">
+      {/* Video Background */}
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+          poster=""
+        >
+          <source src="/videos/hero.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/80 via-primary/60 to-primary/90" />
+      </div>
 
-        {/* Content */}
-        <div className="relative z-10 container mx-auto px-4 md:px-8 py-20 flex-1 flex flex-col justify-center">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-primary-foreground mb-6 animate-fade-in-up">
-              Dit sommerhus,<br />vores passion
+      {/* Main Content */}
+      <div className="relative z-10 flex-1 flex items-center">
+        <div className="container mx-auto px-4 md:px-8 py-20">
+          <div className="max-w-3xl">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 bg-accent/20 backdrop-blur-sm border border-accent/30 rounded-full px-4 py-2 mb-8 animate-fade-in">
+              <Star className="w-4 h-4 text-accent" />
+              <span className="text-sm font-medium text-accent">Danmarks mest fleksible udlejningsbureau</span>
+            </div>
+
+            <h1 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-primary-foreground mb-6 animate-fade-in-up leading-tight">
+              Udlej dit sommerhus
+              <span className="block text-gradient-gold">— uden besvær</span>
             </h1>
-            
-            <p className="text-lg md:text-xl text-primary-foreground/90 mb-10 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              Fremtidens digitale sommerhusudlejning – uanset størrelse eller stil
+
+            <p className="text-lg md:text-xl text-primary-foreground/85 mb-10 max-w-xl animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.1s' }}>
+              Vi håndterer alt fra markedsføring til gæstekontakt. 
+              Du læner dig tilbage og tjener penge på dit feriehus.
             </p>
 
-            {/* Search Bar */}
-            <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <SearchBar variant="hero" />
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <Link to="/kom-i-gang">
+                <Button variant="gold" size="xl" className="gap-2 text-base">
+                  Kom i gang gratis
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Link to="/beregn-lejeindtaegt">
+                <Button variant="outline" size="xl" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 text-base">
+                  Se din potentielle indtjening
+                </Button>
+              </Link>
             </div>
-          </div>
-        </div>
 
-        {/* Trust Badges - Integrated at bottom of hero */}
-        <div className="relative z-10 bg-primary/90 backdrop-blur-sm py-4 border-t border-primary-foreground/10">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-center gap-4 md:gap-8 overflow-x-auto">
-              {trustBadges.map((badge, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center gap-2 whitespace-nowrap ${
-                    index > 0 ? 'border-l border-primary-foreground/20 pl-4 md:pl-8' : ''
-                  }`}
-                >
-                  <badge.icon className="w-4 h-4 text-primary-foreground" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-primary-foreground">{badge.label}</span>
-                    {badge.sublabel && (
-                      <span className="text-xs text-primary-foreground/70">{badge.sublabel}</span>
-                    )}
+            {/* Benefits Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              {benefits.map((benefit, i) => (
+                <div key={i} className="flex items-center gap-2 text-primary-foreground/80">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                    <benefit.icon className="w-4 h-4 text-accent" />
                   </div>
+                  <span className="text-sm font-medium">{benefit.text}</span>
                 </div>
               ))}
             </div>
@@ -76,41 +83,16 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Owner CTA Section */}
-      <div className="bg-card py-16">
-        <div className="container mx-auto px-4 md:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-primary mb-4">
-              Ejer du et sommerhus?
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Bliv en del af vores netværk og udlej dit sommerhus med kun 15% i kommission.
-            </p>
-            
-            <ul className="flex flex-wrap justify-center gap-4 mb-8">
-              {benefits.map((benefit, index) => (
-                <li key={index} className="flex items-center gap-2">
-                  <div className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-accent" />
-                  </div>
-                  <span className="text-primary font-medium text-sm">{benefit}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/kom-i-gang">
-                <Button variant="gold" size="lg" className="px-8">
-                  Kom i gang nu
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <Link to="/beregn-lejeindtaegt">
-                <Button variant="outline" size="lg" className="border-accent text-accent hover:bg-accent/10">
-                  Se din potentielle indtjening
-                </Button>
-              </Link>
-            </div>
+      {/* Stats Bar */}
+      <div className="relative z-10 bg-primary/95 backdrop-blur-sm border-t border-accent/20">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-center gap-8 md:gap-16">
+            {stats.map((stat, i) => (
+              <div key={i} className={`text-center ${i > 0 ? 'border-l border-primary-foreground/15 pl-8 md:pl-16' : ''}`}>
+                <div className="font-display text-2xl md:text-3xl font-bold text-accent">{stat.value}</div>
+                <div className="text-xs md:text-sm text-primary-foreground/60 mt-1">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

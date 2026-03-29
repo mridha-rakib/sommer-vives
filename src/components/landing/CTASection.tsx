@@ -7,13 +7,13 @@ export function CTASection() {
     <section className="section-padding bg-primary">
       <div className="container mx-auto text-center">
         <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-6">
-          Klar til at komme i gang?
+          Klar til at udleje dit sommerhus?
         </h2>
         <p className="text-lg md:text-xl text-primary-foreground/80 mb-10 max-w-2xl mx-auto">
-          Opret dit sommerhus i dag og begynd at tjene penge på din feriebolig – uden besvær.
+          Kom i gang i dag og lad os tage os af resten – fra markedsføring til gæstekontakt.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link to="/auth?mode=signup">
+          <Link to="/kom-i-gang">
             <Button variant="hero" size="xl">
               Opret dit sommerhus gratis
               <ArrowRight className="w-5 h-5" />
