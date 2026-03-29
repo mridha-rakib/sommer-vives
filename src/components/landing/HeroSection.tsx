@@ -26,8 +26,8 @@ export function HeroSection() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex-1 flex items-center pt-20">
-        <div className="container mx-auto px-4 md:px-8">
+      <div className="relative z-10 flex-1 flex items-center pt-16">
+        <div className="container mx-auto px-4 md:px-8 py-12 md:py-16">
           <div className="max-w-4xl">
             {/* Overline */}
             <motion.div
