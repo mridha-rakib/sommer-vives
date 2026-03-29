@@ -116,11 +116,11 @@ export default function BookValuation() {
             className="max-w-3xl"
           >
             <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">Gratis & uforpligtende</span>
-            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground mb-6 leading-[0.95]">
+            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-background mb-6 leading-[0.95]">
               Book et gratis
               <span className="block text-accent italic font-normal">udlejningstjek</span>
             </h1>
-            <p className="text-primary-foreground/70 text-lg md:text-xl max-w-2xl leading-relaxed">
+            <p className="text-background/70 text-lg md:text-xl max-w-2xl leading-relaxed">
               Vi kører ud til dig og tjekker dit sommerhus' udlejningspotentiale — helt gratis. 
               Få et konkret overblik over forventet indtjening og kom i gang med at tjene penge.
             </p>
@@ -134,13 +134,13 @@ export default function BookValuation() {
             className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4"
           >
             {benefits.map((b, i) => (
-              <motion.div key={i} variants={fadeUp} className="flex items-start gap-3 p-4 rounded-2xl bg-primary-foreground/5 hover:bg-primary-foreground/10 transition-colors">
+              <motion.div key={i} variants={fadeUp} className="flex items-start gap-3 p-4 rounded-2xl bg-background/5 hover:bg-background/10 transition-colors">
                 <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center flex-shrink-0">
                   <b.icon className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-primary-foreground font-semibold text-sm">{b.title}</p>
-                  <p className="text-primary-foreground/50 text-xs">{b.desc}</p>
+                  <p className="text-background font-semibold text-sm">{b.title}</p>
+                  <p className="text-background/50 text-xs">{b.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -305,8 +305,8 @@ export default function BookValuation() {
             className="text-center mb-16"
           >
             <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-3">Dækningsområder</span>
-            <h2 className="font-display text-3xl md:text-5xl font-bold text-primary-foreground mb-4">Vi dækker hele Danmark</h2>
-            <p className="text-primary-foreground/60 text-lg max-w-2xl mx-auto">
+            <h2 className="font-display text-3xl md:text-5xl font-bold text-background mb-4">Vi dækker hele Danmark</h2>
+            <p className="text-background/60 text-lg max-w-2xl mx-auto">
               Fra Skagen i nord til Rømø i syd — vi kører ud til dit sommerhus uanset beliggenhed.
             </p>
           </motion.div>
@@ -322,14 +322,14 @@ export default function BookValuation() {
                 key={region.name}
                 variants={fadeUp}
                 whileHover={{ scale: 1.03, y: -4 }}
-                className="flex items-start gap-4 p-5 rounded-2xl bg-primary-foreground/5 hover:bg-primary-foreground/10 border border-primary-foreground/10 transition-colors cursor-default group"
+                className="flex items-start gap-4 p-5 rounded-2xl bg-background/5 hover:bg-background/10 border border-background/10 transition-colors cursor-default group"
               >
                 <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center flex-shrink-0 group-hover:bg-accent/25 transition-colors">
                   <MapPin className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <h3 className="text-primary-foreground font-display font-bold text-lg">{region.name}</h3>
-                  <p className="text-primary-foreground/50 text-sm">{region.desc}</p>
+                  <h3 className="text-background font-display font-bold text-lg">{region.name}</h3>
+                  <p className="text-background/50 text-sm">{region.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -342,7 +342,7 @@ export default function BookValuation() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="text-center mt-16"
           >
-            <p className="text-primary-foreground/60 text-lg mb-6">Kan du ikke finde dit område? Kontakt os alligevel — vi finder en løsning.</p>
+            <p className="text-background/60 text-lg mb-6">Kan du ikke finde dit område? Kontakt os alligevel — vi finder en løsning.</p>
             <Button variant="gold" size="xl" className="gap-3 group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
               Book dit udlejningstjek nu
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

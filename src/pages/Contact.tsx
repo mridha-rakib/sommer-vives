@@ -93,10 +93,10 @@ function ContactContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.7 }}
-              className="bg-primary rounded-xl p-6 text-primary-foreground"
+              className="bg-primary rounded-xl p-6 text-background"
             >
               <h3 className="font-display font-semibold mb-2">Vil du hellere udleje?</h3>
-              <p className="text-sm text-primary-foreground/70 mb-4">
+              <p className="text-sm text-background/70 mb-4">
                 Opret dit sommerhus og kom i gang med at tjene penge i dag.
               </p>
               <Link to="/kom-i-gang">
@@ -115,7 +115,7 @@ function ContactContent() {
 export default function Contact() {
   return (
     <PublicLayout>
-      <section className="pt-32 pb-16 bg-primary text-primary-foreground overflow-hidden">
+      <section className="pt-32 pb-16 bg-primary text-background overflow-hidden">
         <div className="container mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">Kontakt</span>
@@ -133,7 +133,7 @@ export default function Contact() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-lg text-primary-foreground/80 max-w-xl mx-auto"
+            className="text-lg text-background/80 max-w-xl mx-auto"
           >
             Har du spørgsmål om udlejning? Vi er klar til at hjælpe dig.
           </motion.p>

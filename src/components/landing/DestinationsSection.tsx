@@ -61,7 +61,7 @@ export function DestinationsSection() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3">
-                  <span className="font-display text-lg font-semibold text-primary-foreground">
+                  <span className="font-display text-lg font-semibold text-background">
                     {destination.name}
                   </span>
                 </div>

@@ -66,10 +66,10 @@ export default function Auth() {
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12">
         <div className="max-w-md text-center">
           <Home className="w-16 h-16 text-accent mx-auto mb-6" />
-          <h1 className="font-display text-4xl font-bold text-primary-foreground mb-4">
+          <h1 className="font-display text-4xl font-bold text-background mb-4">
             Dit sommerhus. Dine regler.
           </h1>
-          <p className="text-primary-foreground/80">
+          <p className="text-background/80">
             Få en effektiv udlejningsløsning med bedre service til en lavere pris.
           </p>
         </div>
