@@ -234,7 +234,7 @@ export function HeroSection() {
             {[
               { value: '15%', label: 'Kommission' },
               { value: '5 min', label: 'At komme i gang' },
-              { value: '0 kr.', label: 'Binding' },
+              { value: '6 mdr.', label: 'Binding' },
               { value: '50.200', label: 'Skattefrit' },
             ].map((stat, i) => (
               <div key={i} className="py-4 sm:py-5 md:py-6 text-center">
