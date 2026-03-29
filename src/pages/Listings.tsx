@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { ListingCard } from '@/components/listing/ListingCard';
 import { BrandDivider } from '@/components/listing/BrandDivider';
+import { ContactHost } from '@/components/listing/ContactHost';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
@@ -137,6 +138,7 @@ const Listings = () => {
           </div>
         </section>
 
+        <ContactHost />
         <BrandDivider />
       </div>
     </PublicLayout>
