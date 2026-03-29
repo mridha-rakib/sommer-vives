@@ -143,11 +143,11 @@ export function FeaturedPropertiesSection() {
 
             {/* Highlight */}
             {property.highlight && (
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-primary/90 to-transparent p-4 pt-12">
-                <p className="text-sm text-primary-foreground/90 italic">
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent p-4 pt-12">
+                <p className="text-sm text-foreground/90 italic">
                   "{property.highlight}"
                 </p>
-                <p className="text-xs text-primary-foreground/70 mt-1">
+                <p className="text-xs text-foreground/70 mt-1">
                   Highlight fra værten {property.host}
                 </p>
               </div>
