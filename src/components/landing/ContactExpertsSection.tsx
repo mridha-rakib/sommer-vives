@@ -36,7 +36,7 @@ export function ContactExpertsSection() {
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
-                <Link to="/contact">
+                <Link to="/book-vurdering">
                   <Button
                     variant="outline"
                     size="xl"
