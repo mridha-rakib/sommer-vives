@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowRight, Play, CheckCircle2, Zap, BedDouble, Clock, Sparkles, TrendingUp, ChevronRight, X } from 'lucide-react';
+import { ArrowRight, Play, CheckCircle2, TrendingUp, Zap, BedDouble, Clock, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
