@@ -17,6 +17,7 @@ const Index = () => {
   return (
     <PublicLayout>
       <HeroSection />
+      <CampaignCard />
       <SocialProofSection />
       <ValuePropsSection />
       <RevenueSection />
