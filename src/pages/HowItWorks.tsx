@@ -170,7 +170,7 @@ export default function HowItWorks() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-lg text-background/80 max-w-2xl mx-auto mb-10"
+            className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10"
           >
             Vi har gjort det så enkelt som muligt at udleje dit sommerhus professionelt.
           </motion.p>
