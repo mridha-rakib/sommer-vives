@@ -26,7 +26,7 @@ export function SearchBar({ variant = 'hero', className = '' }: SearchBarProps) 
     if (dateRange.from) params.set('checkin', format(dateRange.from, 'yyyy-MM-dd'));
     if (dateRange.to) params.set('checkout', format(dateRange.to, 'yyyy-MM-dd'));
     if (guests) params.set('guests', guests.toString());
-    navigate(`/rentals?${params.toString()}`);
+    navigate(`/listings?${params.toString()}`);
   };
 
   if (variant === 'compact') {

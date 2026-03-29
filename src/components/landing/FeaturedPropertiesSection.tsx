@@ -191,7 +191,7 @@ export function FeaturedPropertiesSection() {
             Håndplukkede anbefalinger til dig
           </h2>
           <Link 
-            to="/rentals" 
+            to="/listings" 
             className="flex items-center gap-2 text-accent hover:underline font-medium"
           >
             Udforsk alle sommerhuse

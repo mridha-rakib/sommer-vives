@@ -38,7 +38,7 @@ export function DestinationsSection() {
             Populære destinationer
           </h2>
           <Link 
-            to="/rentals" 
+            to="/listings" 
             className="flex items-center gap-2 text-accent hover:underline font-medium"
           >
             Se alle
@@ -50,7 +50,7 @@ export function DestinationsSection() {
           {destinations.map((destination) => (
             <Link
               key={destination.name}
-              to={`/rentals?location=${destination.name}`}
+              to={`/listings?location=${destination.name}`}
               className="group flex-shrink-0 w-40 snap-start"
             >
               <div className="relative aspect-square rounded-2xl overflow-hidden mb-2">
