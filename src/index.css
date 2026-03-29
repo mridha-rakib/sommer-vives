@@ -197,4 +197,36 @@
       transform: translateX(0);
     }
   }
+
+  @keyframes heroShimmer {
+    0%, 100% {
+      opacity: 0.12;
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      opacity: 0.25;
+      transform: translateX(-50%) scale(1.15);
+    }
+  }
+
+  @keyframes heroShimmerSlow {
+    0%, 100% {
+      opacity: 0.06;
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      opacity: 0.15;
+      transform: translateX(-50%) scale(1.25);
+    }
+  }
+
+  .animate-hero-shimmer {
+    background: radial-gradient(ellipse, hsl(var(--accent)) 0%, transparent 70%);
+    animation: heroShimmer 4s ease-in-out infinite;
+  }
+
+  .animate-hero-shimmer-slow {
+    background: radial-gradient(ellipse, hsl(var(--accent)) 0%, transparent 70%);
+    animation: heroShimmerSlow 6s ease-in-out infinite;
+  }
 }
