@@ -17,6 +17,8 @@ const revenueItems = [
   { icon: Sparkles, label: 'Rengøring & service', pct: '+3%' },
 ];
 
+const channels = ['Airbnb', 'Booking.com', 'VRBO', 'Feriepartner', 'Google', 'Facebook', 'Instagram'];
+
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [activeItem, setActiveItem] = useState(0);
@@ -227,8 +229,7 @@ export function HeroSection() {
         </div>
       </div>
 
-
-      {/* Bottom stats strip */}
+      {/* Bottom stats strip + channel marquee */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -249,6 +250,28 @@ export function HeroSection() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Channel marquee */}
+        <div className="overflow-hidden relative border-t border-primary-foreground/5">
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-primary/60 to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-primary/60 to-transparent z-10" />
+          <motion.div
+            animate={{ x: [0, -400] }}
+            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+            className="flex items-center gap-12 whitespace-nowrap py-3"
+          >
+            {[...Array(4)].flatMap((_, rep) =>
+              channels.map((name, i) => (
+                <span
+                  key={`${rep}-${i}`}
+                  className="text-primary-foreground/15 font-display text-xs font-bold tracking-tight"
+                >
+                  {name}
+                </span>
+              ))
+            )}
+          </motion.div>
         </div>
       </motion.div>
     </section>
