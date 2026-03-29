@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/accordion';
 
 const faqs = [
-  { q: 'Hvordan kommer jeg i gang?', a: 'Del lidt information om dit sommerhus online — det tager 5 minutter. Eller ring til os, så kører vi ud og laver en gratis vurdering af dit hus.' },
+  { q: 'Hvordan kommer jeg i gang?', a: 'Del lidt information om dit sommerhus online — det tager 5 minutter. Eller ring til os, så kører vi ud og laver et gratis udlejningstjek af dit hus.' },
   { q: 'Hvad koster det?', a: 'Gratis at oprette dig. Du betaler kun 15% kommission ved gennemførte bookinger. Gæster betaler 5% servicegebyr. Ingen skjulte gebyrer.' },
   { q: 'Er der bindingsperiode?', a: 'Nej. Du kan opsige samarbejdet når som helst uden varsel.' },
   { q: 'Hvad med fotografering?', a: 'Vi hjælper med professionelt indhold der skaber bookinger. Vi vejleder dig og tilbyder professionel fotografering.' },

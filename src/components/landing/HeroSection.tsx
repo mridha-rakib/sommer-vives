@@ -104,7 +104,7 @@ export function HeroSection() {
                     className="border-accent/40 text-accent hover:bg-accent/10 text-base gap-2 w-full sm:w-auto"
                   >
                     <Play className="w-4 h-4" />
-                    Gratis vurdering
+                    Gratis udlejningstjek
                   </Button>
                 </Link>
               </motion.div>
