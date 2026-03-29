@@ -52,6 +52,12 @@ export function Footer() {
                 København, Danmark
               </li>
             </ul>
+            <div className="mt-4 space-y-1">
+              <p className="text-xs text-foreground/50 font-semibold uppercase tracking-wider">Åbningstider</p>
+              <p className="text-sm text-foreground/70">Tirsdag–fredag: 10–15</p>
+              <p className="text-sm text-foreground/70">Mandag, lørdag & søndag: Lukket</p>
+              <p className="text-xs text-foreground/50 mt-2">Chatsupport (gæster/ejere): 10–22</p>
+            </div>
           </div>
         </div>
 

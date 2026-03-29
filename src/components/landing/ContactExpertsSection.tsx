@@ -73,7 +73,7 @@ export function ContactExpertsSection() {
           >
             <span className="text-sm">+45 12 34 56 78</span>
             <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
-            <span className="text-sm">Hverdage 8–18</span>
+            <span className="text-sm">Tirsdag–fredag 10–15</span>
             <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
             <span className="text-sm">Hele Danmark</span>
           </motion.div>
