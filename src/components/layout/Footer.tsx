@@ -9,7 +9,7 @@ export function Footer() {
           <div className="md:col-span-1">
             <Link to="/" className="inline-block mb-4">
               <span className="font-display text-2xl font-bold tracking-tight text-primary-foreground">
-                Sommer<span className="text-accent italic">V<span className="inline-block relative w-0"><svg className="absolute -top-[1.1em] left-[-0.35em] w-[0.55em] h-[0.55em] text-accent" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5" /><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" /></svg></span>ibes</span>
+                S<span className="inline-block relative"><svg className="inline w-[0.75em] h-[0.75em] -mt-[0.05em] text-accent" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5" /><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" /></svg></span>mmer<span className="text-accent italic">Vibes</span>
               </span>
             </Link>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
