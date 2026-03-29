@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      add_ons: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          listing_id: string
+          name: string
+          owner_id: string
+          price: number
+          price_type: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          listing_id: string
+          name: string
+          owner_id: string
+          price?: number
+          price_type?: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          listing_id?: string
+          name?: string
+          owner_id?: string
+          price?: number
+          price_type?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "add_ons_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -90,6 +137,85 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      availability_holds: {
+        Row: {
+          created_at: string
+          end_date: string
+          expires_at: string
+          id: string
+          listing_id: string
+          session_id: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          expires_at: string
+          id?: string
+          listing_id: string
+          session_id: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          expires_at?: string
+          id?: string
+          listing_id?: string
+          session_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_holds_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_line_items: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          item_type: string
+          label: string
+          quantity: number
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          item_type?: string
+          label: string
+          quantity?: number
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          item_type?: string
+          label?: string
+          quantity?: number
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_line_items_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -288,6 +414,50 @@ export type Database = {
           },
         ]
       }
+      daily_price_overrides: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          listing_id: string
+          note: string | null
+          owner_id: string
+          price: number
+          price_percentage: number | null
+          price_type: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          listing_id: string
+          note?: string | null
+          owner_id: string
+          price: number
+          price_percentage?: number | null
+          price_type?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          listing_id?: string
+          note?: string | null
+          owner_id?: string
+          price?: number
+          price_percentage?: number | null
+          price_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_price_overrides_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       damage_pool: {
         Row: {
           amount: number
@@ -319,6 +489,174 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discount_rules: {
+        Row: {
+          combinable_with_codes: boolean
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          listing_id: string | null
+          max_nights: number | null
+          min_nights: number
+          name: string
+          owner_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          combinable_with_codes?: boolean
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          listing_id?: string | null
+          max_nights?: number | null
+          min_nights?: number
+          name: string
+          owner_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          combinable_with_codes?: boolean
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          listing_id?: string | null
+          max_nights?: number | null
+          min_nights?: number
+          name?: string
+          owner_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_rules_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          body_text: string
+          created_at: string
+          cta_label: string | null
+          cta_url: string | null
+          email_type: string
+          heading: string
+          id: string
+          is_active: boolean
+          listing_id: string | null
+          owner_id: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body_text?: string
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          email_type?: string
+          heading?: string
+          id?: string
+          is_active?: boolean
+          listing_id?: string | null
+          owner_id: string
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          body_text?: string
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          email_type?: string
+          heading?: string
+          id?: string
+          is_active?: boolean
+          listing_id?: string | null
+          owner_id?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_rules: {
+        Row: {
+          amount: number
+          condition_max_nights: number | null
+          condition_min_nights: number | null
+          created_at: string
+          description: string | null
+          fee_type: string
+          id: string
+          is_active: boolean
+          is_mandatory: boolean
+          listing_id: string
+          name: string
+          owner_id: string
+          sort_order: number
+        }
+        Insert: {
+          amount?: number
+          condition_max_nights?: number | null
+          condition_min_nights?: number | null
+          created_at?: string
+          description?: string | null
+          fee_type?: string
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          listing_id: string
+          name: string
+          owner_id: string
+          sort_order?: number
+        }
+        Update: {
+          amount?: number
+          condition_max_nights?: number | null
+          condition_min_nights?: number | null
+          created_at?: string
+          description?: string | null
+          fee_type?: string
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          listing_id?: string
+          name?: string
+          owner_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_rules_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
             referencedColumns: ["id"]
           },
         ]
@@ -418,6 +756,285 @@ export type Database = {
           },
         ]
       }
+      listing_blocks: {
+        Row: {
+          created_at: string
+          end_date: string
+          external_uid: string | null
+          id: string
+          listing_id: string
+          owner_id: string
+          reason: string | null
+          source: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          external_uid?: string | null
+          id?: string
+          listing_id: string
+          owner_id: string
+          reason?: string | null
+          source?: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          external_uid?: string | null
+          id?: string
+          listing_id?: string
+          owner_id?: string
+          reason?: string | null
+          source?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_blocks_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_relationships: {
+        Row: {
+          combo_discount_percent: number | null
+          created_at: string
+          id: string
+          listing_a_id: string
+          listing_b_id: string
+          relationship_type: string
+        }
+        Insert: {
+          combo_discount_percent?: number | null
+          created_at?: string
+          id?: string
+          listing_a_id: string
+          listing_b_id: string
+          relationship_type?: string
+        }
+        Update: {
+          combo_discount_percent?: number | null
+          created_at?: string
+          id?: string
+          listing_a_id?: string
+          listing_b_id?: string
+          relationship_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_relationships_listing_a_id_fkey"
+            columns: ["listing_a_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_relationships_listing_b_id_fkey"
+            columns: ["listing_b_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_seo: {
+        Row: {
+          canonical_url: string | null
+          created_at: string
+          id: string
+          listing_id: string
+          meta_description: string | null
+          meta_title: string | null
+          og_image: string | null
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          canonical_url?: string | null
+          created_at?: string
+          id?: string
+          listing_id: string
+          meta_description?: string | null
+          meta_title?: string | null
+          og_image?: string | null
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          canonical_url?: string | null
+          created_at?: string
+          id?: string
+          listing_id?: string
+          meta_description?: string | null
+          meta_title?: string | null
+          og_image?: string | null
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_seo_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_videos: {
+        Row: {
+          created_at: string
+          emoji: string | null
+          id: string
+          is_active: boolean
+          listing_id: string
+          owner_id: string
+          sort_order: number
+          thumbnail_url: string | null
+          title: string
+          youtube_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          listing_id: string
+          owner_id: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          title?: string
+          youtube_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          listing_id?: string
+          owner_id?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          title?: string
+          youtube_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_videos_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listings: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          base_price_per_night: number
+          bathrooms: number | null
+          bedroom_images: Json
+          bedrooms: number | null
+          check_in_time: string | null
+          check_out_time: string | null
+          cleaning_fee: number | null
+          created_at: string
+          currency: string
+          description: string | null
+          extra_sections: Json
+          facilities: Json
+          floor_plan_images: string[] | null
+          hero_image: string | null
+          house_rules: string | null
+          id: string
+          image_labels: Json | null
+          images: string[] | null
+          is_active: boolean
+          location_map_image: string | null
+          location_mood_image: string | null
+          max_guests: number
+          name: string
+          owner_id: string
+          practical_info: string | null
+          region: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          base_price_per_night?: number
+          bathrooms?: number | null
+          bedroom_images?: Json
+          bedrooms?: number | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          cleaning_fee?: number | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          extra_sections?: Json
+          facilities?: Json
+          floor_plan_images?: string[] | null
+          hero_image?: string | null
+          house_rules?: string | null
+          id?: string
+          image_labels?: Json | null
+          images?: string[] | null
+          is_active?: boolean
+          location_map_image?: string | null
+          location_mood_image?: string | null
+          max_guests?: number
+          name: string
+          owner_id: string
+          practical_info?: string | null
+          region?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          base_price_per_night?: number
+          bathrooms?: number | null
+          bedroom_images?: Json
+          bedrooms?: number | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          cleaning_fee?: number | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          extra_sections?: Json
+          facilities?: Json
+          floor_plan_images?: string[] | null
+          hero_image?: string | null
+          house_rules?: string | null
+          id?: string
+          image_labels?: Json | null
+          images?: string[] | null
+          is_active?: boolean
+          location_map_image?: string | null
+          location_mood_image?: string | null
+          max_guests?: number
+          name?: string
+          owner_id?: string
+          practical_info?: string | null
+          region?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       package_purchases: {
         Row: {
           amount: number
@@ -468,6 +1085,53 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string
+          currency: string
+          id: string
+          owner_id: string
+          payment_method: string | null
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_id: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          owner_id: string
+          payment_method?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_id?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          owner_id?: string
+          payment_method?: string | null
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
         ]
@@ -718,6 +1382,74 @@ export type Database = {
           },
         ]
       }
+      season_rules: {
+        Row: {
+          check_in_days: number[] | null
+          check_out_days: number[] | null
+          created_at: string
+          end_day: number
+          end_month: number
+          id: string
+          listing_id: string
+          min_nights: number | null
+          name: string
+          owner_id: string
+          price_per_night: number
+          price_percentage: number | null
+          price_type: string
+          priority: number | null
+          start_day: number
+          start_month: number
+          status: string
+        }
+        Insert: {
+          check_in_days?: number[] | null
+          check_out_days?: number[] | null
+          created_at?: string
+          end_day: number
+          end_month: number
+          id?: string
+          listing_id: string
+          min_nights?: number | null
+          name: string
+          owner_id: string
+          price_per_night: number
+          price_percentage?: number | null
+          price_type?: string
+          priority?: number | null
+          start_day: number
+          start_month: number
+          status?: string
+        }
+        Update: {
+          check_in_days?: number[] | null
+          check_out_days?: number[] | null
+          created_at?: string
+          end_day?: number
+          end_month?: number
+          id?: string
+          listing_id?: string
+          min_nights?: number | null
+          name?: string
+          owner_id?: string
+          price_per_night?: number
+          price_percentage?: number | null
+          price_type?: string
+          priority?: number | null
+          start_day?: number
+          start_month?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_rules_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_packages: {
         Row: {
           category: string
@@ -753,6 +1485,59 @@ export type Database = {
           sort_order?: number | null
         }
         Relationships: []
+      }
+      sync_settings: {
+        Row: {
+          config: Json | null
+          created_at: string
+          direction: string
+          feed_url: string | null
+          id: string
+          is_active: boolean
+          last_synced_at: string | null
+          listing_id: string
+          owner_id: string
+          provider: string
+          sync_interval_minutes: number | null
+          updated_at: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          direction?: string
+          feed_url?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          listing_id: string
+          owner_id: string
+          provider: string
+          sync_interval_minutes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          direction?: string
+          feed_url?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          listing_id?: string
+          owner_id?: string
+          provider?: string
+          sync_interval_minutes?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_settings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
