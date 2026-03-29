@@ -33,9 +33,9 @@ export function HeroSection() {
       {/* Main Content — always side by side */}
       <div className="relative z-10 flex-1 flex items-end sm:items-center">
         <div className="container mx-auto px-4 md:px-8 pt-20 pb-0 sm:py-20">
-          <div className="flex items-end gap-2 sm:gap-6 md:gap-10 lg:gap-16">
+          <div className="flex items-center gap-2 sm:gap-6 md:gap-10 lg:gap-16">
             {/* Left — Copy */}
-            <div className="flex-1 min-w-0 pb-6 sm:pb-0">
+            <div className="flex-1 min-w-0">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
