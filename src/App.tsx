@@ -44,6 +44,8 @@ import AdminPayouts from "./pages/admin/AdminPayouts";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminOptimizations from "./pages/admin/AdminOptimizations";
 
+import Listings from "./pages/Listings";
+import ListingDetail from "./pages/ListingDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
