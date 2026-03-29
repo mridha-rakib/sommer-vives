@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play, CheckCircle2, TrendingUp, Zap, BedDouble, Clock, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 
 const trustPoints = [
   '6 måneders binding — tryghed for begge parter',
