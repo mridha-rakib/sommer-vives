@@ -3,6 +3,7 @@ import { HeroSection } from '@/components/landing/HeroSection';
 import { SocialProofSection } from '@/components/landing/SocialProofSection';
 import { CampaignCard } from '@/components/landing/CampaignCard';
 import { ValuePropsSection } from '@/components/landing/ValuePropsSection';
+import { ExitIntentPopup } from '@/components/landing/ExitIntentPopup';
 import { RevenueSection } from '@/components/landing/RevenueSection';
 import { PropertyTypesSection } from '@/components/landing/PropertyTypesSection';
 import { ComparisonSection } from '@/components/landing/ComparisonSection';
@@ -16,6 +17,7 @@ import { ContactExpertsSection } from '@/components/landing/ContactExpertsSectio
 const Index = () => {
   return (
     <PublicLayout>
+      <ExitIntentPopup />
       {/* 1. Hero — full viewport, dark, cinematic */}
       <HeroSection />
       {/* 2. Social proof — minimal stat strip + logo marquee */}
