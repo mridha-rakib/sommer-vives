@@ -44,7 +44,7 @@ export function CategorySection() {
           {categories.map((category) => (
             <Link
               key={category.id}
-              to={`/rentals?category=${category.id}`}
+              to={`/listings?category=${category.id}`}
               className="group"
             >
               <div className="bg-card rounded-2xl p-6 text-center transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 border border-border hover:border-accent/30">
