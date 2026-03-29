@@ -125,8 +125,10 @@ export function HeroSection() {
               <div
                 className="relative"
                 style={{
-                  maskImage: 'radial-gradient(ellipse 85% 90% at 50% 40%, black 60%, transparent 100%)',
-                  WebkitMaskImage: 'radial-gradient(ellipse 85% 90% at 50% 40%, black 60%, transparent 100%)',
+                  maskImage: 'linear-gradient(to bottom, black 65%, transparent 95%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 65%, transparent 95%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+                  maskComposite: 'intersect',
+                  WebkitMaskComposite: 'destination-in',
                 } as React.CSSProperties}
               >
                 <img
