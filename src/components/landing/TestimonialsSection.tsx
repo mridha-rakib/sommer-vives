@@ -49,17 +49,17 @@ export function TestimonialsSection() {
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
-          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+          <span className="text-primary font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
             Vores ejere
           </span>
-          <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-primary">
-            De valgte <span className="text-accent italic font-normal">SommerVibes</span>
+          <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-foreground">
+            De valgte <span className="text-primary italic font-normal">SommerVibes</span>
           </h2>
         </motion.div>
 
         {/* Single testimonial carousel — cinematic, minimal */}
         <div className="max-w-3xl mx-auto relative">
-          <Quote className="absolute -top-4 left-0 md:left-[-2rem] w-16 h-16 text-accent/[0.08]" />
+          <Quote className="absolute -top-4 left-0 md:left-[-2rem] w-16 h-16 text-primary/[0.08]" />
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -73,7 +73,7 @@ export function TestimonialsSection() {
               {/* Stars */}
               <div className="flex justify-center gap-1 mb-8">
                 {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} className="w-4 h-4 text-accent fill-accent" />
+                  <Star key={j} className="w-4 h-4 text-primary fill-primary" />
                 ))}
               </div>
 
@@ -86,7 +86,7 @@ export function TestimonialsSection() {
               <div className="space-y-2">
                 <p className="font-semibold text-foreground text-base">{t.name}</p>
                 <p className="text-sm text-muted-foreground">{t.location}</p>
-                <p className="font-display font-bold text-accent text-lg">{t.earnings}</p>
+                <p className="font-display font-bold text-primary text-lg">{t.earnings}</p>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -95,7 +95,7 @@ export function TestimonialsSection() {
           <div className="flex items-center justify-center gap-6 mt-12">
             <button
               onClick={() => setCurrent(prev => (prev - 1 + testimonials.length) % testimonials.length)}
-              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:border-accent/30 hover:bg-accent/5 transition-all"
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:border-primary/30 hover:bg-primary/5 transition-all"
             >
               <ChevronLeft className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -106,7 +106,7 @@ export function TestimonialsSection() {
                   key={i}
                   onClick={() => setCurrent(i)}
                   className={`h-1 rounded-full transition-all duration-500 ${
-                    i === current ? 'w-8 bg-accent' : 'w-2 bg-border hover:bg-muted-foreground/30'
+                    i === current ? 'w-8 bg-primary' : 'w-2 bg-border hover:bg-muted-foreground/30'
                   }`}
                 />
               ))}
@@ -114,7 +114,7 @@ export function TestimonialsSection() {
 
             <button
               onClick={() => setCurrent(prev => (prev + 1) % testimonials.length)}
-              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:border-accent/30 hover:bg-accent/5 transition-all"
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:border-primary/30 hover:bg-primary/5 transition-all"
             >
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>

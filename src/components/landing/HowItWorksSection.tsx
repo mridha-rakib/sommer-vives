@@ -31,7 +31,7 @@ export function HowItWorksSection() {
   const { ref, isInView } = useScrollReveal();
 
   return (
-    <section ref={ref} className="py-28 md:py-36 bg-primary text-primary-foreground overflow-hidden">
+    <section ref={ref} className="py-28 md:py-36 bg-card text-foreground overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <div className="max-w-5xl mx-auto">
           {/* Centered header */}
@@ -41,19 +41,19 @@ export function HowItWorksSection() {
             transition={{ duration: 0.7 }}
             className="text-center mb-20"
           >
-            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+            <span className="text-primary font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
               Sådan virker det
             </span>
             <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
               Fra oprettelse
-              <span className="block text-accent italic font-normal">til indtjening</span>
+              <span className="block text-primary italic font-normal">til indtjening</span>
             </h2>
           </motion.div>
 
           {/* Horizontal timeline on desktop */}
           <div className="grid md:grid-cols-4 gap-0 relative">
             {/* Connecting line */}
-            <div className="hidden md:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-accent/10 via-accent/30 to-accent/10" />
+            <div className="hidden md:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-primary/10 via-primary/30 to-primary/10" />
 
             {steps.map((step, i) => (
               <motion.div
@@ -64,13 +64,13 @@ export function HowItWorksSection() {
                 className="text-center px-4 relative"
               >
                 {/* Step circle */}
-                <div className="w-16 h-16 rounded-full border border-accent/20 bg-primary flex items-center justify-center mx-auto mb-6 relative z-10">
-                  <span className="font-display text-xl font-bold text-accent">{step.number}</span>
+                <div className="w-16 h-16 rounded-full border border-primary/20 bg-card flex items-center justify-center mx-auto mb-6 relative z-10">
+                  <span className="font-display text-xl font-bold text-primary">{step.number}</span>
                 </div>
                 <h3 className="font-display text-lg md:text-xl font-bold mb-3">
                   {step.title}
                 </h3>
-                <p className="text-primary-foreground/50 text-sm leading-relaxed">
+                <p className="text-foreground/50 text-sm leading-relaxed">
                   {step.description}
                 </p>
               </motion.div>
@@ -92,7 +92,7 @@ export function HowItWorksSection() {
                 </Button>
               </Link>
               <Link to="/contact">
-                <Button variant="outline" size="lg" className="border-primary-foreground/15 text-primary-foreground/70 hover:bg-primary-foreground/5 rounded-full">
+                <Button variant="outline" size="lg" className="border-foreground/15 text-foreground/70 hover:bg-foreground/5 rounded-full">
                   Book et udlejningstjek
                 </Button>
               </Link>

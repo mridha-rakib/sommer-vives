@@ -50,30 +50,30 @@ export function ExitIntentPopup() {
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[101] w-[90vw] max-w-md"
           >
-            <div className="relative bg-primary rounded-3xl overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)]">
+            <div className="relative bg-card rounded-3xl overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)]">
               {/* Glow */}
-              <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-accent/[0.06] rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+              <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary/[0.06] rounded-full blur-[80px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
 
               {/* Close button */}
               <button
                 onClick={close}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-primary-foreground/5 flex items-center justify-center hover:bg-primary-foreground/10 transition-colors z-10"
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-foreground/5 flex items-center justify-center hover:bg-foreground/10 transition-colors z-10"
               >
-                <X className="w-4 h-4 text-primary-foreground/60" />
+                <X className="w-4 h-4 text-foreground/60" />
               </button>
 
               <div className="relative p-8 pt-10 text-center">
                 {/* Icon */}
-                <div className="w-14 h-14 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-6">
-                  <Home className="w-6 h-6 text-accent" />
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6">
+                  <Home className="w-6 h-6 text-primary" />
                 </div>
 
-                <h3 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-3 leading-tight">
+                <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3 leading-tight">
                   Vent — har du et{' '}
-                  <span className="text-accent italic font-normal">sommerhus?</span>
+                  <span className="text-primary italic font-normal">sommerhus?</span>
                 </h3>
 
-                <p className="text-primary-foreground/50 text-sm md:text-base leading-relaxed mb-8 max-w-xs mx-auto">
+                <p className="text-foreground/50 text-sm md:text-base leading-relaxed mb-8 max-w-xs mx-auto">
                   Få et gratis og uforpligtende udlejningstjek. Vi vurderer dit hus' potentiale på under 2 minutter.
                 </p>
 
@@ -86,7 +86,7 @@ export function ExitIntentPopup() {
                   </Link>
                   <button
                     onClick={close}
-                    className="text-primary-foreground/30 text-sm hover:text-primary-foreground/50 transition-colors py-2"
+                    className="text-foreground/30 text-sm hover:text-foreground/50 transition-colors py-2"
                   >
                     Nej tak, jeg kigger bare
                   </button>

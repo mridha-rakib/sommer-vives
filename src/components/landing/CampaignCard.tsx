@@ -38,20 +38,20 @@ export function CampaignCard() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-5xl mx-auto"
         >
-          <div className="relative rounded-[2rem] bg-primary overflow-hidden shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.6)]">
+          <div className="relative rounded-[2rem] bg-card overflow-hidden shadow-[0_30px_80px_-20px_hsl(var(--background)/0.6)]">
             {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/[0.04] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/[0.03] rounded-full blur-[80px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--accent)/0.06),transparent_60%)] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/[0.04] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/[0.03] rounded-full blur-[80px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.06),transparent_60%)] pointer-events-none" />
 
             {/* Top badge */}
-            <div className="relative flex items-center justify-center py-3 border-b border-accent/10">
+            <div className="relative flex items-center justify-center py-3 border-b border-primary/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                <span className="text-[11px] font-bold text-accent tracking-[0.2em] uppercase">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-[11px] font-bold text-primary tracking-[0.2em] uppercase">
                   Eksklusivt introduktionstilbud
                 </span>
-                <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               </div>
             </div>
 
@@ -64,11 +64,11 @@ export function CampaignCard() {
                 transition={{ duration: 0.5, delay: 0.15 }}
                 className="text-center max-w-2xl mx-auto mb-12"
               >
-                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-primary-foreground leading-tight mb-4">
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground leading-tight mb-4">
                   Få flere bookinger og mindre bøvl{' '}
-                  <span className="text-accent">med dit sommerhus</span>
+                  <span className="text-primary">med dit sommerhus</span>
                 </h3>
-                <p className="text-sm sm:text-base text-primary-foreground/50 leading-relaxed max-w-xl mx-auto">
+                <p className="text-sm sm:text-base text-foreground/50 leading-relaxed max-w-xl mx-auto">
                   Som ny husejer hos os får du en eksklusiv opstartspakke med professionel
                   præsentation, stærkere markedsføring og ingen betaling ved opstart.
                 </p>
@@ -83,15 +83,15 @@ export function CampaignCard() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
-                    className="group relative rounded-2xl border border-accent/10 bg-primary-foreground/[0.03] p-6 sm:p-7 transition-all duration-500 hover:bg-primary-foreground/[0.07] hover:border-accent/20 hover:shadow-[0_8px_30px_-10px_hsl(var(--accent)/0.15)]"
+                    className="group relative rounded-2xl border border-primary/10 bg-foreground/[0.03] p-6 sm:p-7 transition-all duration-500 hover:bg-foreground/[0.07] hover:border-primary/20 hover:shadow-[0_8px_30px_-10px_hsl(var(--primary)/0.15)]"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center mb-5 transition-all duration-500 group-hover:bg-accent/20 group-hover:scale-105">
-                      <b.icon className="w-5 h-5 text-accent" />
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-5 transition-all duration-500 group-hover:bg-primary/20 group-hover:scale-105">
+                      <b.icon className="w-5 h-5 text-primary" />
                     </div>
-                    <h4 className="text-base font-semibold text-primary-foreground mb-2 leading-snug">
+                    <h4 className="text-base font-semibold text-foreground mb-2 leading-snug">
                       {b.title}
                     </h4>
-                    <p className="text-sm text-primary-foreground/40 leading-relaxed">
+                    <p className="text-sm text-foreground/40 leading-relaxed">
                       {b.text}
                     </p>
                   </motion.div>
@@ -110,7 +110,7 @@ export function CampaignCard() {
                   asChild
                   variant="gold"
                   size="xl"
-                  className="rounded-full px-10 sm:px-14 shadow-[0_4px_20px_-4px_hsl(var(--accent)/0.5)] hover:shadow-[0_8px_30px_-4px_hsl(var(--accent)/0.6)] transition-all duration-300"
+                  className="rounded-full px-10 sm:px-14 shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.5)] hover:shadow-[0_8px_30px_-4px_hsl(var(--primary)/0.6)] transition-all duration-300"
                 >
                   <Link to="/kom-i-gang">
                     Få en gratis vurdering af dit sommerhus
@@ -121,8 +121,8 @@ export function CampaignCard() {
                 {/* Trust points */}
                 <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-6">
                   {trustPoints.map((tp, i) => (
-                    <div key={i} className="flex items-center gap-1.5 text-primary-foreground/30">
-                      <tp.icon className="w-3.5 h-3.5 text-accent/50" />
+                    <div key={i} className="flex items-center gap-1.5 text-foreground/30">
+                      <tp.icon className="w-3.5 h-3.5 text-primary/50" />
                       <span className="text-[11px] font-medium">{tp.text}</span>
                     </div>
                   ))}
