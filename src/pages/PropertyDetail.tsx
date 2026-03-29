@@ -16,6 +16,7 @@ import { da } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { BookingProvider, useBooking } from '@/components/booking/BookingContext';
 import { BookingWizard } from '@/components/booking/BookingWizard';
 
 const amenityIcons: Record<string, any> = {
