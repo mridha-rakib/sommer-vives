@@ -41,7 +41,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
       )}
 
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-64 bg-primary text-primary-foreground transition-transform flex flex-col`}>
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-64 bg-primary text-background transition-transform flex flex-col`}>
         <div className="p-6 flex-1">
           <div className="flex items-center justify-between mb-8">
             <Link to="/" className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
                 Sommerhus<span className="text-accent">Bureau</span>
               </span>
             </Link>
-            <button className="md:hidden text-primary-foreground" onClick={() => setSidebarOpen(false)}>
+            <button className="md:hidden text-background" onClick={() => setSidebarOpen(false)}>
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -75,11 +75,11 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
         </div>
 
         <div className="p-6 border-t border-sidebar-border">
-          <div className="text-sm text-primary-foreground/60 mb-2 truncate">{user?.email}</div>
+          <div className="text-sm text-background/60 mb-2 truncate">{user?.email}</div>
           <Button
             variant="ghost"
             onClick={signOut}
-            className="w-full justify-start text-primary-foreground/70 hover:text-primary-foreground hover:bg-sidebar-accent/50"
+            className="w-full justify-start text-background/70 hover:text-background hover:bg-sidebar-accent/50"
           >
             <LogOut className="w-5 h-5 mr-2" />
             Log ud
