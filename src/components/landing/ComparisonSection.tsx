@@ -1,103 +1,119 @@
-import { Check, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { Check, X, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
-const features = [
-  { name: 'Lav kommission (20%)', us: true, traditional: false, portals: true },
-  { name: '100% fleksibel', us: true, traditional: false, portals: true },
-  { name: 'Professionel rengøring', us: true, traditional: true, portals: false },
-  { name: 'Ingen binding', us: true, traditional: false, portals: true },
-  { name: 'Vi håndterer lejerdialog', us: true, traditional: true, portals: false },
-  { name: 'Lokale servicepartnere', us: true, traditional: true, portals: false },
+const competitors = [
+  {
+    name: 'Traditionelle bureauer',
+    sub: 'Høj kommission, lav fleksibilitet',
+    cons: ['25-40% kommission', 'Lang binding', 'Du bestemmer ikke priser', 'Langsom kommunikation'],
+  },
+  {
+    name: 'Gør-det-selv portaler',
+    sub: 'Al arbejdet er dit',
+    cons: ['Du klarer alt selv', 'Ingen gæstesupport', 'Ingen rengøringsservice', 'Ingen prisoptimering'],
+  },
 ];
 
-function FeatureIcon({ available }: { available: boolean }) {
-  return available ? (
-    <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center">
-      <Check className="w-4 h-4 text-accent" />
-    </div>
-  ) : (
-    <div className="w-6 h-6 rounded-full bg-destructive/10 flex items-center justify-center">
-      <X className="w-4 h-4 text-destructive" />
-    </div>
-  );
-}
+const ourBenefits = [
+  'Kun 15% kommission',
+  'Ingen binding efter 6 mdr.',
+  'Professionel fotopakke',
+  'Komplet gæstehåndtering',
+  'Bred markedsføring',
+  'Personlig kontaktperson',
+  'Skatteoptimeret setup',
+  'Fleksibel prisstyring',
+];
 
 export function ComparisonSection() {
+  const { ref, isInView } = useScrollReveal();
+
   return (
-    <section className="section-padding bg-cream-dark">
-      <div className="container mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-4">
-            Sammenlign os med andre
+    <section ref={ref} className="py-24 md:py-32 bg-muted/30 overflow-hidden">
+      <div className="container mx-auto px-4 md:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+            Sammenligning
+          </span>
+          <h2 className="font-display text-3xl md:text-5xl font-bold text-primary leading-tight">
+            Hvorfor vælge SommerVibes?
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Se hvordan vi adskiller os fra traditionelle bureauer og udlejningsportaler.
-          </p>
+        </motion.div>
+
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-5 md:gap-6">
+          {/* Competitor cards */}
+          {competitors.map((comp, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="rounded-2xl border border-border bg-card p-7 md:p-8"
+            >
+              <h3 className="font-display text-lg font-bold text-primary mb-1">{comp.name}</h3>
+              <p className="text-xs text-muted-foreground mb-6">{comp.sub}</p>
+              <div className="space-y-3">
+                {comp.cons.map((con, j) => (
+                  <div key={j} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                      <X className="w-3 h-3 text-destructive" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">{con}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+
+          {/* Our card — highlighted */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="rounded-2xl border-2 border-accent/30 bg-primary text-primary-foreground p-7 md:p-8 shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.5)] relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-40 h-40 bg-accent/[0.04] rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            <div className="relative">
+              <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-accent/15 text-accent text-[10px] font-bold uppercase tracking-wider mb-3">
+                Anbefalet
+              </div>
+              <h3 className="font-display text-lg font-bold mb-1">SommerVibes</h3>
+              <p className="text-xs text-primary-foreground/50 mb-6">Alt du har brug for</p>
+              <div className="space-y-3">
+                {ourBenefits.map((benefit, j) => (
+                  <div key={j} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-accent" />
+                    </div>
+                    <span className="text-sm text-primary-foreground/80">{benefit}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-primary/10">
-                  <th className="text-left py-4 px-4 font-display text-lg font-semibold text-primary">
-                    Feature
-                  </th>
-                  <th className="text-center py-4 px-4">
-                    <div className="inline-flex flex-col items-center">
-                      <span className="font-display text-lg font-bold text-accent">
-                        SommerVibes
-                      </span>
-                      <span className="text-xs text-muted-foreground">Vores løsning</span>
-                    </div>
-                  </th>
-                  <th className="text-center py-4 px-4">
-                    <div className="inline-flex flex-col items-center">
-                      <span className="font-display text-lg font-semibold text-primary">
-                        Traditionelle bureauer
-                      </span>
-                      <span className="text-xs text-muted-foreground">Høj kommission</span>
-                    </div>
-                  </th>
-                  <th className="text-center py-4 px-4">
-                    <div className="inline-flex flex-col items-center">
-                      <span className="font-display text-lg font-semibold text-primary">
-                        Udlejningsportaler
-                      </span>
-                      <span className="text-xs text-muted-foreground">Gør-det-selv</span>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {features.map((feature, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-border hover:bg-card/50 transition-colors"
-                  >
-                    <td className="py-4 px-4 font-medium text-primary">
-                      {feature.name}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex justify-center">
-                        <FeatureIcon available={feature.us} />
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex justify-center">
-                        <FeatureIcon available={feature.traditional} />
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex justify-center">
-                        <FeatureIcon available={feature.portals} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="text-center mt-12"
+        >
+          <Link to="/kom-i-gang">
+            <Button variant="gold" size="lg" className="gap-2 group rounded-full">
+              Skift til SommerVibes
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

@@ -16,18 +16,31 @@ import { ContactExpertsSection } from '@/components/landing/ContactExpertsSectio
 const Index = () => {
   return (
     <PublicLayout>
+      {/* 1. Hero — full viewport, dark, cinematic */}
       <HeroSection />
-      <CampaignCard />
+      {/* 2. Social proof — minimal stat strip */}
       <SocialProofSection />
+      {/* 3. Campaign — conversion card */}
+      <CampaignCard />
+      {/* 4. Value props — why us */}
       <ValuePropsSection />
+      {/* 5. Revenue — Tesla-style interactive */}
       <RevenueSection />
+      {/* 6. Property types — full-bleed imagery */}
       <PropertyTypesSection />
-      <ComparisonSection />
-      <TaxBenefitSection />
+      {/* 7. How it works — process */}
       <HowItWorksSection />
+      {/* 8. Tax benefit — interactive calc */}
+      <TaxBenefitSection />
+      {/* 9. Comparison — vs competitors */}
+      <ComparisonSection />
+      {/* 10. Platform — dashboard mockup */}
       <ModernPlatformSection />
+      {/* 11. Testimonials — social proof */}
       <TestimonialsSection />
+      {/* 12. FAQ */}
       <FAQSection />
+      {/* 13. Final CTA */}
       <ContactExpertsSection />
     </PublicLayout>
   );
