@@ -1,6 +1,7 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { SocialProofSection } from '@/components/landing/SocialProofSection';
+import { CampaignCard } from '@/components/landing/CampaignCard';
 import { ValuePropsSection } from '@/components/landing/ValuePropsSection';
 import { RevenueSection } from '@/components/landing/RevenueSection';
 import { PropertyTypesSection } from '@/components/landing/PropertyTypesSection';
@@ -16,6 +17,7 @@ const Index = () => {
   return (
     <PublicLayout>
       <HeroSection />
+      <CampaignCard />
       <SocialProofSection />
       <ValuePropsSection />
       <RevenueSection />
