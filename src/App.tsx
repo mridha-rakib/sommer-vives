@@ -42,6 +42,7 @@ import AdminBookings from "./pages/admin/AdminBookings";
 import AdminGuests from "./pages/admin/AdminGuests";
 import AdminPayouts from "./pages/admin/AdminPayouts";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
+import AdminChat from "./pages/admin/AdminChat";
 import AdminOptimizations from "./pages/admin/AdminOptimizations";
 
 import Listings from "./pages/Listings";
@@ -121,6 +122,7 @@ const App = () => (
             <Route path="/admin/payouts" element={<ProtectedRoute requireAdmin><AdminPayouts /></ProtectedRoute>} />
             <Route path="/admin/audit-log" element={<ProtectedRoute requireAdmin><AdminAuditLog /></ProtectedRoute>} />
             <Route path="/admin/optimizations" element={<ProtectedRoute requireAdmin><AdminOptimizations /></ProtectedRoute>} />
+            <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminChat /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
 
             {/* Catch-all */}

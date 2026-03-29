@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { ChatWidget } from '@/components/chat/ChatWidget';
 
 interface PublicLayoutProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
         {children}
       </main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 }

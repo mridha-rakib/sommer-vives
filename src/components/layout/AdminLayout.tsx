@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Settings, Users, Building, Wallet, LogOut, Menu, X, Shield, Calendar, UserCheck, Activity } from 'lucide-react';
+import { Home, Settings, Users, Building, Wallet, LogOut, Menu, X, Shield, Calendar, UserCheck, Activity, MessageCircle } from 'lucide-react';
 import { GlobalSearch } from '@/components/admin/GlobalSearch';
 
 interface AdminLayoutProps {
@@ -19,6 +19,7 @@ const navItems = [
   { name: 'Ejere', href: '/admin/owners', icon: UserCheck },
   { name: 'Afregning', href: '/admin/payouts', icon: Wallet },
   { name: 'Optimeringer', href: '/admin/optimizations', icon: Calculator },
+  { name: 'Live Chat', href: '/admin/chat', icon: MessageCircle },
   { name: 'Aktivitetslog', href: '/admin/audit-log', icon: Activity },
   { name: 'Indstillinger', href: '/admin/settings', icon: Settings },
 ];
