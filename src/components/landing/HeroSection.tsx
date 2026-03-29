@@ -238,41 +238,77 @@ export function HeroSection() {
           className="absolute bottom-0 right-0 w-[110%] h-full"
           preserveAspectRatio="none"
         >
-          {/* White stripe (behind) */}
+          {/* Broad red band — outer */}
           <motion.path
-            d="M1500 200 Q1200 350 1050 500 Q900 650 750 780 Q650 860 600 920"
-            stroke="white"
-            strokeWidth="44"
+            d="M1550 120 Q1300 280 1100 460 Q900 640 720 780 Q600 870 520 950"
+            stroke="#C8102E"
+            strokeWidth="62"
             strokeLinecap="round"
             fill="none"
-            opacity="0.25"
+            opacity="0.5"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 2, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          />
+          {/* White cross stripe on outer band */}
+          <motion.path
+            d="M1550 120 Q1300 280 1100 460 Q900 640 720 780 Q600 870 520 950"
+            stroke="white"
+            strokeWidth="22"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.85"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1.8, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
           />
-          {/* Red stripe (front) */}
+          {/* Second red band — inner */}
           <motion.path
-            d="M1520 180 Q1220 330 1070 480 Q920 630 770 760 Q670 840 620 900"
+            d="M1530 150 Q1280 310 1080 490 Q880 670 700 805 Q580 890 500 965"
             stroke="#C8102E"
-            strokeWidth="30"
+            strokeWidth="52"
             strokeLinecap="round"
             fill="none"
-            opacity="0.55"
+            opacity="0.45"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1.6, delay: 1, ease: [0.22, 1, 0.36, 1] }}
           />
-          {/* Thin white accent */}
+          {/* White cross stripe on inner band */}
           <motion.path
-            d="M1540 165 Q1240 315 1090 465 Q940 615 790 745 Q690 825 640 885"
+            d="M1530 150 Q1280 310 1080 490 Q880 670 700 805 Q580 890 500 965"
             stroke="white"
-            strokeWidth="10"
+            strokeWidth="18"
             strokeLinecap="round"
             fill="none"
-            opacity="0.2"
+            opacity="0.75"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
-            transition={{ duration: 1.4, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.5, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
+          />
+          {/* Gold accent — outer edge */}
+          <motion.path
+            d="M1565 98 Q1315 258 1115 438 Q915 618 735 758 Q615 848 535 928"
+            stroke="hsl(43, 74%, 49%)"
+            strokeWidth="8"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.6"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.4, delay: 1.3, ease: [0.22, 1, 0.36, 1] }}
+          />
+          {/* Gold accent — inner edge */}
+          <motion.path
+            d="M1510 175 Q1260 335 1060 515 Q860 695 680 830 Q560 915 480 990"
+            stroke="hsl(43, 74%, 49%)"
+            strokeWidth="6"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.4"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.3, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
           />
         </svg>
       </motion.div>
