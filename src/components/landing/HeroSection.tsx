@@ -143,7 +143,7 @@ export function HeroSection() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1.4 }}
-                className="hidden sm:block absolute bottom-[12%] left-1/2 -translate-x-1/2 w-[90%] max-w-[240px]"
+                className="hidden sm:block absolute bottom-[12%] left-1/2 -translate-x-1/2 mr-6 sm:mr-8 md:mr-10 lg:mr-16 w-[90%] max-w-[240px]"
               >
                 <div className="bg-background/90 backdrop-blur-xl rounded-2xl px-4 py-2.5 border border-accent/15 shadow-elevated text-center">
                   <p className="font-display font-bold text-foreground text-xs sm:text-sm">Emil W. Klockmann</p>
