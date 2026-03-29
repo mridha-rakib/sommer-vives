@@ -27,7 +27,7 @@ export function ComparisonSection() {
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
-          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+          <span className="text-primary-foreground/70 font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
             Sammenligning
           </span>
           <h2 className="font-display text-3xl md:text-5xl font-bold text-primary-foreground leading-tight">
@@ -41,7 +41,7 @@ export function ComparisonSection() {
           <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 mb-2 px-2">
             <div />
             <div className="text-center">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-accent/15 text-accent text-xs font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary-foreground/15 text-primary-foreground text-xs font-bold uppercase tracking-wider">
                 SommerVibes
               </span>
             </div>
@@ -64,7 +64,7 @@ export function ComparisonSection() {
               >
                 <span className="text-sm font-medium text-primary-foreground">{row.label}</span>
                 <div className="flex items-center justify-center gap-2">
-                  <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                  <Check className="w-4 h-4 text-primary-foreground flex-shrink-0" />
                   <span className="text-sm text-primary-foreground/80">{row.us}</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
