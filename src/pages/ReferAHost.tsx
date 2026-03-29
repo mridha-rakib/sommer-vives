@@ -68,7 +68,7 @@ export default function ReferAHost() {
             </h1>
             
             <p className="text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
-              Kender du nogen med et sommerhus? Hjælp dem med at komme i gang hos Sommerdrøm – 
+              Kender du nogen med et sommerhus? Hjælp dem med at komme i gang hos SommerVibes – 
               og få 500 kr. når de får deres første booking.
             </p>
 
@@ -145,7 +145,7 @@ export default function ReferAHost() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div>
                 <h2 className="font-display text-3xl md:text-4xl font-semibold mb-6">
-                  Hvorfor henvise til <span className="text-accent">Sommerdrøm</span>?
+                  Hvorfor henvise til <span className="text-accent">SommerVibes</span>?
                 </h2>
                 <p className="text-primary-foreground/70 text-lg mb-8">
                   Vi tror på, at de bedste anbefalinger kommer fra tilfredse kunder. 
@@ -206,7 +206,7 @@ export default function ReferAHost() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  <span>Du kan ikke henvise dig selv eller eksisterende Sommerdrøm-ejere</span>
+                  <span>Du kan ikke henvise dig selv eller eksisterende SommerVibes-ejere</span>
                 </li>
               </ul>
             </div>

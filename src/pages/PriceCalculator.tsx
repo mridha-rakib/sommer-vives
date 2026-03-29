@@ -113,8 +113,8 @@ export default function PriceCalculator() {
     const occupancyRate = 0.65; // 65% average occupancy
     
     const grossIncome = Math.round(basePrice * 7 * weeks * occupancyRate);
-    const taxFreeAmount = 47900;
-    const commission = 0.20;
+    const taxFreeAmount = 50200;
+    const commission = 0.15;
     const netIncome = Math.round(grossIncome * (1 - commission));
     const taxableIncome = Math.max(0, netIncome - taxFreeAmount);
     const taxSavings = Math.round(taxableIncome * 0.4); // 40% of remaining is also tax-free
@@ -161,8 +161,9 @@ export default function PriceCalculator() {
           <Link to="/" className="flex items-center gap-2">
             <Home className="h-6 w-6 text-primary" />
             <span className="font-display text-xl font-bold">
-              <span className="text-primary">Sommerhus</span>
-              <span className="text-accent">Bureau</span>
+              <span className="text-primary">Sommer</span>
+              <span className="text-accent">Vibes</span>
+              <span className="text-primary text-sm">.dk</span>
             </span>
           </Link>
         </div>
@@ -174,7 +175,7 @@ export default function PriceCalculator() {
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 text-sm">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-accent" />
-              <span className="text-muted-foreground">47.900 kr. skattefrit og 20% i kommission</span>
+              <span className="text-muted-foreground">50.200 kr. skattefrit og kun 15% i kommission</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-accent" />
@@ -540,9 +541,9 @@ export default function PriceCalculator() {
                   <Phone className="w-4 h-4" />
                   +45 12 34 56 78
                 </a>
-                <a href="mailto:udlejning@sommerhusbureau.dk" className="flex items-center gap-1 text-accent hover:underline">
+                <a href="mailto:kontakt@sommervibes.dk" className="flex items-center gap-1 text-accent hover:underline">
                   <Mail className="w-4 h-4" />
-                  udlejning@sommerhusbureau.dk
+                  kontakt@sommervibes.dk
                 </a>
               </div>
               <p className="text-xs text-muted-foreground mt-1">08:00 - 16:00 alle hverdage</p>
