@@ -9,7 +9,7 @@ export function Footer() {
           <div className="md:col-span-1">
             <Link to="/" className="inline-block mb-4">
               <span className="font-display text-2xl font-bold tracking-tight text-primary-foreground">
-                Sommer<span className="text-accent">Vibes</span>
+                Sommer<span className="text-accent italic relative">V<span className="absolute -top-1 left-[0.32em] text-[0.35em] not-italic">☀</span>ibes</span>
               </span>
             </Link>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
