@@ -537,6 +537,9 @@ const ListingDetail = () => {
           <VideoGuideGrid listingId={listing.id} />
         </section>
 
+        {/* Contact Host / Emil */}
+        <ContactHost />
+
         {/* Floor Plan Dialog */}
         {floorPlanImages.length > 0 && (
           <Dialog open={floorPlanOpen} onOpenChange={(open) => { setFloorPlanOpen(open); if (!open) setFloorPlanIndex(0); }}>
