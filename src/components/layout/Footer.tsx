@@ -9,7 +9,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           <div className="md:col-span-1">
             <Link to="/" className="inline-block mb-4">
-              <img src={logo} alt="SommerVibes.dk" className="h-8 brightness-200" />
+              <img src={logo} alt="SommerVibes" className="h-8 brightness-200" />
             </Link>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               Din partner i professionel sommerhusudlejning. Vi gør det nemt at udleje dit sommerhus med kun 15% kommission.
