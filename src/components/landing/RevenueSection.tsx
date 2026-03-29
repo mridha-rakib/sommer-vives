@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { Zap, BedDouble, Clock, Sparkles, TrendingUp, ArrowRight, Droplets, Flame, Shirt, Dog, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
