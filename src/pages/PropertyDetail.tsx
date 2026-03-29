@@ -35,7 +35,7 @@ function PropertyDetailInner() {
   const [currentImage, setCurrentImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
-  const [showBookingWizard, setShowBookingWizard] = useState(false);
+  const booking = useBooking();
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [guests, setGuests] = useState(2);
   // Fetch property from database
