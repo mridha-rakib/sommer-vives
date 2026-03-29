@@ -30,3 +30,5 @@ const Index = () => {
     </PublicLayout>
   );
 };
+
+export default Index;
