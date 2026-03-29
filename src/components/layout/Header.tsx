@@ -48,7 +48,7 @@ export function Header() {
             <span className={`font-display text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300 ${
               transparent ? 'text-primary-foreground' : 'text-primary'
             }`}>
-              S<span className="inline-block relative"><svg className="inline w-[0.75em] h-[0.75em] -mt-[0.05em] text-accent" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5" /><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" /></svg></span>mmer<span className="text-accent italic">Vibes</span>
+              S<span className="inline-block relative w-[0.65em] h-[0.65em] -mb-[0.05em] mx-[0.02em]"><svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_6px_hsl(var(--accent)/0.6)]" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="8" fill="hsl(var(--accent))" /><circle cx="16" cy="16" r="11" stroke="hsl(var(--accent))" strokeWidth="1.5" strokeDasharray="3 4" opacity="0.5" />{[0,45,90,135,180,225,270,315].map((angle, i) => { const rad = (angle * Math.PI) / 180; const x1 = 16 + 12 * Math.cos(rad); const y1 = 16 + 12 * Math.sin(rad); const x2 = 16 + 15 * Math.cos(rad); const y2 = 16 + 15 * Math.sin(rad); return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--accent))" strokeWidth="1.8" strokeLinecap="round" />; })}</svg></span>mmer<span className="text-accent italic">Vibes</span>
             </span>
           </Link>
 
