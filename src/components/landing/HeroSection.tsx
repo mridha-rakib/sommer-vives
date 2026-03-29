@@ -32,6 +32,19 @@ export function HeroSection() {
     return () => clearInterval(interval);
   }, []);
 
+  const particles = useMemo(() =>
+    Array.from({ length: 18 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 3 + Math.random() * 6,
+      opacity: 0.15 + Math.random() * 0.35,
+      duration: 6 + Math.random() * 8,
+      delay: Math.random() * 5,
+      drift: 20 + Math.random() * 40,
+    })),
+  []);
+
   return (
     <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
       {/* Gold floating particles */}
