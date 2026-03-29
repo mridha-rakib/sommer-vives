@@ -47,7 +47,7 @@ export function ModernPlatformSection() {
               <div className="flex items-center gap-2 mb-6">
                 <div className="w-3 h-3 rounded-full bg-destructive/40" />
                 <div className="w-3 h-3 rounded-full bg-accent/40" />
-                <div className="w-3 h-3 rounded-full bg-green-500/40" />
+                <div className="w-3 h-3 rounded-full bg-accent/30" />
               </div>
               
               <div className="text-sm text-muted-foreground mb-1">God eftermiddag 👋</div>
