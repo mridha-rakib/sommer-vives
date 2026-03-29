@@ -29,7 +29,7 @@ export function Header() {
       <nav className="container mx-auto px-4 md:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src={logo} alt="SommerVibes.dk" className="h-9" />
+            <img src={logo} alt="SommerVibes" className="h-9" />
           </Link>
 
           {/* Desktop Navigation */}
