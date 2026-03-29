@@ -23,24 +23,24 @@ const values = [
 
 export function StorySection() {
   return (
-    <section className="py-24 bg-primary text-primary-foreground overflow-hidden">
+    <section className="py-24 bg-primary overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center max-w-6xl mx-auto">
           {/* Content */}
           <div>
-            <span className="text-accent font-medium text-sm uppercase tracking-widest">Fremtidens sommerhusbreau</span>
+            <span className="text-background/70 font-medium text-sm uppercase tracking-widest">Fremtidens sommerhusbreau</span>
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mt-3 mb-6">
               Vi gør tingene<br />
               <span className="text-accent">anderledes</span>
             </h2>
             
-            <p className="text-primary-foreground/80 leading-relaxed mb-6 text-lg">
+            <p className="text-background/80 leading-relaxed mb-6 text-lg">
               De store bureauer fokuserer på volumen og behandler ejere som numre i rækken. 
               Vi startede SommerVibes fordi vi vidste det kunne gøres bedre.
             </p>
             
-            <p className="text-primary-foreground/80 leading-relaxed mb-8">
-              Med kun <span className="text-accent font-semibold">15% i kommission</span> og en personlig 
+            <p className="text-background/80 leading-relaxed mb-8">
+              Med kun <span className="text-background font-semibold">15% i kommission</span> og en personlig 
               rådgiver til hver ejer, får du det bedste af begge verdener: Professionel service 
               til en fair pris – uden kompromis på kvalitet.
             </p>
@@ -48,19 +48,19 @@ export function StorySection() {
             <div className="space-y-4 mb-10">
               {values.map((value, index) => (
                 <div key={index} className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center flex-shrink-0">
-                    <value.icon className="w-6 h-6 text-accent" />
-                  </div>
+                   <div className="w-12 h-12 rounded-xl bg-background/20 flex items-center justify-center flex-shrink-0">
+                     <value.icon className="w-6 h-6 text-background" />
+                   </div>
                   <div>
-                    <h3 className="font-semibold mb-1">{value.title}</h3>
-                    <p className="text-sm text-primary-foreground/70">{value.description}</p>
+                     <h3 className="font-semibold mb-1 text-background">{value.title}</h3>
+                     <p className="text-sm text-background/70">{value.description}</p>
                   </div>
                 </div>
               ))}
             </div>
 
             <Link to="/team">
-              <Button variant="gold" className="gap-2">
+              <Button className="gap-2 bg-background text-foreground hover:bg-background/90 font-semibold">
                 Mød teamet bag
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -83,10 +83,10 @@ export function StorySection() {
               <div className="text-sm text-muted-foreground">Tilfredse ejere</div>
             </div>
             
-            <div className="absolute -top-6 -right-6 bg-accent rounded-xl p-6 shadow-xl text-primary">
-              <div className="text-3xl font-bold mb-1">15%</div>
-              <div className="text-sm">Kommission</div>
-            </div>
+             <div className="absolute -top-6 -right-6 bg-background rounded-xl p-6 shadow-xl">
+               <div className="text-3xl font-bold mb-1 text-primary">15%</div>
+               <div className="text-sm text-muted-foreground">Kommission</div>
+             </div>
           </div>
         </div>
       </div>
