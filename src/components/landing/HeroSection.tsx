@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowRight, Play, CheckCircle2, Zap, Droplets, Flame, BedDouble, Clock, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowRight, Play, CheckCircle2, Zap, BedDouble, Clock, Sparkles, TrendingUp, ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
@@ -11,23 +11,61 @@ const trustPoints = [
   'Personlig kontaktperson fra dag 1',
 ];
 
-const revenueHighlights = [
-  { icon: Zap, label: 'El, vand & varme', tip: 'Gæsten betaler forbrug — op til 1.500 kr. ekstra pr. uge' },
-  { icon: BedDouble, label: 'Sengepakker & håndklæder', tip: 'Tillæg pr. person — 75-150 kr. ekstra pr. booking' },
-  { icon: Clock, label: 'Tidlig check-in & sen check-out', tip: 'Gæster betaler 200-400 kr. for fleksibilitet' },
-  { icon: Sparkles, label: 'Rengøring, husdyr & mere', tip: 'Slutrengøring, husdyrtillæg, brænde m.m.' },
+const revenueCategories = [
+  {
+    icon: Zap,
+    label: 'Forbrugsafregning',
+    share: 8,
+    color: 'from-amber-400/80 to-accent/80',
+    items: ['Elforbrug', 'Vandforbrug', 'Varme & gas'],
+    example: 'Op til 1.500 kr. ekstra pr. uge',
+    desc: 'Gæsten betaler det reelle forbrug af el, vand og varme. Du tjener på det — ikke bureauet.',
+  },
+  {
+    icon: BedDouble,
+    label: 'Tillægspakker',
+    share: 5,
+    color: 'from-accent/80 to-emerald-400/80',
+    items: ['Sengepakker', 'Håndklæder', 'Velkomstpakke'],
+    example: '75-200 kr. pr. person pr. booking',
+    desc: 'Linnedpakker, håndklæder og velkomstpakker — alt faktureres som tillæg direkte til gæsten.',
+  },
+  {
+    icon: Clock,
+    label: 'Fleksibilitet',
+    share: 4,
+    color: 'from-emerald-400/80 to-teal-400/80',
+    items: ['Tidlig check-in', 'Sen check-out', 'Husdyrtillæg'],
+    example: '200-500 kr. pr. tilvalg',
+    desc: 'Gæster betaler gerne ekstra for fleksibilitet. Du bestemmer selv hvad du tilbyder.',
+  },
+  {
+    icon: Sparkles,
+    label: 'Service & gebyr',
+    share: 3,
+    color: 'from-teal-400/80 to-cyan-400/80',
+    items: ['Slutrengøring', 'Skadesforsikring', 'Brænde & grill'],
+    example: '800-1.500 kr. pr. ophold',
+    desc: 'Slutrengøring og forsikring faktureres gæsten. Du har ingen udgifter — kun indtægt.',
+  },
 ];
 
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [activeHighlight, setActiveHighlight] = useState(0);
+  const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
+  const [autoIndex, setAutoIndex] = useState(0);
 
+  // Auto-cycle through categories when none is manually expanded
   useEffect(() => {
+    if (expandedCategory !== null) return;
     const interval = setInterval(() => {
-      setActiveHighlight((prev) => (prev + 1) % revenueHighlights.length);
-    }, 3000);
+      setAutoIndex((prev) => (prev + 1) % revenueCategories.length);
+    }, 3500);
     return () => clearInterval(interval);
-  }, []);
+  }, [expandedCategory]);
+
+  const totalShare = revenueCategories.reduce((sum, c) => sum + c.share, 0);
+  const visibleIndex = expandedCategory ?? autoIndex;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -86,87 +124,103 @@ export function HeroSection() {
                   Du får pengene — vi tager kun <strong className="text-accent">15%</strong>.
                 </motion.p>
 
-                {/* Revenue highlight — emotional, not data-heavy */}
+                {/* Tesla-style revenue breakdown */}
                 <motion.div
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.8 }}
                   className="mb-5 sm:mb-8"
                 >
-                  <div className="relative bg-primary-foreground/5 backdrop-blur-md rounded-2xl border border-accent/20 p-3 sm:p-4 max-w-md overflow-hidden group">
-                    {/* Shimmer accent line */}
+                  <div className="relative bg-primary-foreground/5 backdrop-blur-md rounded-2xl border border-accent/20 max-w-md overflow-hidden">
+                    {/* Shimmer top line */}
                     <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-accent/60 to-transparent animate-hero-shimmer" />
-                    
-                    {/* Top row */}
-                    <div className="flex items-center justify-between mb-2 sm:mb-3">
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-3 sm:p-4 pb-0">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-accent/20 flex items-center justify-center">
-                          <TrendingUp className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-accent" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] sm:text-xs font-bold text-accent tracking-wide uppercase">Merindtjening</p>
-                          <p className="text-[9px] sm:text-[10px] text-primary-foreground/40">kun hos SommerVibes</p>
-                        </div>
+                        <TrendingUp className="w-4 h-4 text-accent" />
+                        <p className="text-[10px] sm:text-xs font-bold text-accent tracking-wide uppercase">Din merindtjening</p>
                       </div>
-                      <div className="text-right">
-                        <motion.p
-                          key="percent"
-                          initial={{ scale: 0.8 }}
-                          animate={{ scale: [1, 1.05, 1] }}
-                          transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse' }}
-                          className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-accent leading-none"
-                        >
-                          +20%
-                        </motion.p>
-                        <p className="text-[8px] sm:text-[9px] text-primary-foreground/40 font-medium">ekstra indtægt</p>
+                      <motion.p
+                        animate={{ scale: [1, 1.04, 1] }}
+                        transition={{ duration: 2.5, repeat: Infinity, repeatType: 'reverse' }}
+                        className="font-display text-lg sm:text-2xl font-bold text-accent leading-none"
+                      >
+                        +20%
+                      </motion.p>
+                    </div>
+
+                    {/* Visual bar */}
+                    <div className="px-3 sm:px-4 py-2 sm:py-3">
+                      <div className="flex h-2 rounded-full overflow-hidden bg-primary-foreground/5">
+                        {revenueCategories.map((cat, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(cat.share / totalShare) * 100}%` }}
+                            transition={{ duration: 0.8, delay: 1 + i * 0.15 }}
+                            className={`h-full bg-gradient-to-r ${cat.color} cursor-pointer transition-opacity ${visibleIndex === i ? 'opacity-100' : 'opacity-40 hover:opacity-70'}`}
+                            onClick={() => setExpandedCategory(expandedCategory === i ? null : i)}
+                          />
+                        ))}
                       </div>
                     </div>
 
-                    {/* Rotating highlight */}
-                    <div className="h-8 sm:h-9 relative">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={activeHighlight}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.4 }}
-                          className="absolute inset-0 flex items-center gap-2"
-                        >
-                          {(() => {
-                            const item = revenueHighlights[activeHighlight];
-                            const Icon = item.icon;
-                            return (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="flex items-center gap-2 cursor-default">
-                                    <Icon className="w-3.5 h-3.5 text-accent/70 flex-shrink-0" />
-                                    <span className="text-xs sm:text-sm text-primary-foreground/70 font-medium">{item.label}</span>
+                    {/* Category rows */}
+                    <div className="px-1 sm:px-2 pb-2">
+                      {revenueCategories.map((cat, i) => {
+                        const Icon = cat.icon;
+                        const isActive = visibleIndex === i;
+                        const isExpanded = expandedCategory === i;
+                        return (
+                          <div key={i}>
+                            <button
+                              onClick={() => setExpandedCategory(isExpanded ? null : i)}
+                              className={`w-full flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl transition-all duration-300 text-left ${
+                                isActive
+                                  ? 'bg-accent/10'
+                                  : 'hover:bg-primary-foreground/5'
+                              }`}
+                            >
+                              <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${isActive ? 'bg-accent/20' : 'bg-primary-foreground/5'}`}>
+                                <Icon className={`w-3 h-3 ${isActive ? 'text-accent' : 'text-primary-foreground/40'}`} />
+                              </div>
+                              <span className={`flex-1 text-[11px] sm:text-xs font-semibold transition-colors ${isActive ? 'text-primary-foreground/90' : 'text-primary-foreground/50'}`}>
+                                {cat.label}
+                              </span>
+                              <span className={`font-display text-xs sm:text-sm font-bold ${isActive ? 'text-accent' : 'text-primary-foreground/30'}`}>
+                                +{cat.share}%
+                              </span>
+                              <ChevronRight className={`w-3 h-3 text-primary-foreground/30 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
+                            </button>
+
+                            {/* Expandable detail panel */}
+                            <AnimatePresence>
+                              {isExpanded && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: 'auto', opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="mx-2 sm:mx-3 mb-2 p-2.5 sm:p-3 rounded-xl bg-accent/5 border border-accent/10">
+                                    <p className="text-[11px] sm:text-xs text-primary-foreground/60 leading-relaxed mb-2">{cat.desc}</p>
+                                    <div className="flex flex-wrap gap-1.5 mb-2">
+                                      {cat.items.map((item, j) => (
+                                        <span key={j} className="text-[9px] sm:text-[10px] bg-accent/10 text-accent/80 px-2 py-0.5 rounded-full font-medium">
+                                          {item}
+                                        </span>
+                                      ))}
+                                    </div>
+                                    <p className="text-[10px] sm:text-[11px] text-accent font-semibold">{cat.example}</p>
                                   </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-[220px] text-xs bg-background/95 backdrop-blur-xl border-accent/20">
-                                  <p className="text-muted-foreground">{item.tip}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            );
-                          })()}
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
-
-                    {/* Progress dots */}
-                    <div className="flex gap-1.5 mt-1">
-                      {revenueHighlights.map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setActiveHighlight(i)}
-                          className={`h-1 rounded-full transition-all duration-500 ${
-                            i === activeHighlight
-                              ? 'w-6 bg-accent/70'
-                              : 'w-1.5 bg-primary-foreground/15 hover:bg-primary-foreground/25'
-                          }`}
-                        />
-                      ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </motion.div>
