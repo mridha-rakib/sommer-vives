@@ -44,6 +44,8 @@ import AdminPayouts from "./pages/admin/AdminPayouts";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminOptimizations from "./pages/admin/AdminOptimizations";
 
+import Listings from "./pages/Listings";
+import ListingDetail from "./pages/ListingDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -94,6 +96,8 @@ const App = () => (
             <Route path="/refer-a-host" element={<ReferAHost />} />
             <Route path="/kom-i-gang" element={<GetStarted />} />
             <Route path="/book-vurdering" element={<BookValuation />} />
+            <Route path="/listings" element={<Listings />} />
+            <Route path="/listing/:id" element={<ListingDetail />} />
             {/* Owner routes */}
             <Route path="/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
             <Route path="/owner/properties" element={<ProtectedRoute><OwnerProperties /></ProtectedRoute>} />

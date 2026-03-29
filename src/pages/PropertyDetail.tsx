@@ -16,6 +16,7 @@ import { da } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { BookingProvider, useBooking } from '@/components/booking/BookingContext';
 import { BookingWizard } from '@/components/booking/BookingWizard';
 
 const amenityIcons: Record<string, any> = {
@@ -29,12 +30,12 @@ const amenityIcons: Record<string, any> = {
   'Pool': Waves,
 };
 
-export default function PropertyDetail() {
+function PropertyDetailInner() {
   const { id } = useParams();
   const [currentImage, setCurrentImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
-  const [showBookingWizard, setShowBookingWizard] = useState(false);
+  const booking = useBooking();
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [guests, setGuests] = useState(2);
   // Fetch property from database
@@ -95,11 +96,11 @@ export default function PropertyDetail() {
   const serviceFee = Math.round(totalPrice * 0.05);
 
   const handleOpenBookingWizard = () => {
-    if (!dateRange.from || !dateRange.to) {
-      toast.error('Vælg venligst check-in og check-out datoer');
-      return;
-    }
-    setShowBookingWizard(true);
+    if (!property) return;
+    booking.open(
+      { id: property.id, title: property.title, image: images[0], maxGuests: property.capacity },
+      { checkIn: dateRange.from, checkOut: dateRange.to, guests }
+    );
   };
 
   return (
@@ -410,14 +411,17 @@ export default function PropertyDetail() {
         </div>
       )}
 
+
       {/* Booking Wizard */}
-      <BookingWizard
-        isOpen={showBookingWizard}
-        onClose={() => setShowBookingWizard(false)}
-        property={property}
-        dateRange={dateRange}
-        guests={guests}
-      />
+      <BookingWizard />
     </PublicLayout>
+  );
+}
+
+export default function PropertyDetail() {
+  return (
+    <BookingProvider>
+      <PropertyDetailInner />
+    </BookingProvider>
   );
 }
