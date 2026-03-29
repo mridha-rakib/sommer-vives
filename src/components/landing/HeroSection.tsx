@@ -135,7 +135,7 @@ export function HeroSection() {
                   <div className="absolute bottom-0 left-0 right-0 p-6">
                     <div className="bg-background/90 backdrop-blur-md rounded-2xl p-4 border border-border/50">
                       <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
+                        <div className="w-2 h-2 rounded-full bg-accent animate-pulse flex-shrink-0" />
                         <div>
                           <p className="font-display font-bold text-foreground text-sm">Din personlige rådgiver</p>
                           <p className="text-muted-foreground text-xs">Klar til at hjælpe dig i gang</p>
@@ -173,7 +173,7 @@ export function HeroSection() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
                   <p className="font-display font-bold text-foreground text-sm">Din personlige rådgiver</p>
                 </div>
                 <p className="text-muted-foreground text-xs mt-0.5">Klar til at hjælpe dig — ring eller book et møde</p>
