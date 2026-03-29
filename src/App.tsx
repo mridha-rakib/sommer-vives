@@ -20,9 +20,7 @@ import BookValuation from "./pages/BookValuation";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
-import OwnerProperties from "./pages/owner/OwnerProperties";
-import PropertyForm from "./pages/owner/PropertyForm";
-import CreateProperty from "./pages/owner/CreateProperty";
+import OwnerListings from "./pages/owner/OwnerListings";
 import OwnerInquiries from "./pages/owner/OwnerInquiries";
 import OwnerPayouts from "./pages/owner/OwnerPayouts";
 import OwnerCalendar from "./pages/owner/OwnerCalendar";
@@ -101,9 +99,8 @@ const App = () => (
             <Route path="/listing/:slug" element={<ListingDetail />} />
             {/* Owner routes */}
             <Route path="/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
-            <Route path="/owner/properties" element={<ProtectedRoute><OwnerProperties /></ProtectedRoute>} />
-            <Route path="/owner/properties/new" element={<ProtectedRoute><CreateProperty /></ProtectedRoute>} />
-            <Route path="/owner/properties/:id/edit" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
+            <Route path="/owner/listings" element={<ProtectedRoute><OwnerListings /></ProtectedRoute>} />
+            <Route path="/owner/properties" element={<Navigate to="/owner/listings" replace />} />
             <Route path="/owner/calendar" element={<ProtectedRoute><OwnerCalendar /></ProtectedRoute>} />
             <Route path="/owner/inquiries" element={<ProtectedRoute><OwnerInquiries /></ProtectedRoute>} />
             <Route path="/owner/payouts" element={<ProtectedRoute><OwnerPayouts /></ProtectedRoute>} />
