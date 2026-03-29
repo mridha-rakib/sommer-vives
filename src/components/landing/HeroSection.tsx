@@ -32,40 +32,8 @@ export function HeroSection() {
     return () => clearInterval(interval);
   }, []);
 
-  const particles = useMemo(() =>
-    Array.from({ length: 18 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 3 + Math.random() * 6,
-      opacity: 0.15 + Math.random() * 0.35,
-      duration: 6 + Math.random() * 8,
-      delay: Math.random() * 5,
-      drift: 20 + Math.random() * 40,
-    })),
-  []);
-
   return (
     <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
-      {/* Gold floating particles */}
-      <div className="absolute inset-0 z-[6] pointer-events-none overflow-hidden">
-        {particles.map((p) => (
-          <motion.div
-            key={p.id}
-            className="absolute rounded-full"
-            style={{
-              width: p.size,
-              height: p.size,
-              left: `${p.x}%`,
-              top: `${p.y}%`,
-              background: `radial-gradient(circle, hsl(43, 74%, ${55 + p.id % 20}%) 0%, transparent 70%)`,
-            }}
-            animate={{
-              y: [0, -p.drift, 0],
-              x: [0, p.drift * 0.5, 0],
-              opacity: [0, p.opacity, 0],
-              scale: [0.5, 1, 0.5],
-            }}
             transition={{
               duration: p.duration,
               delay: p.delay,
