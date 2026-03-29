@@ -4,28 +4,15 @@ import { Check, X, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
-const competitors = [
-  {
-    name: 'Traditionelle bureauer',
-    sub: 'Høj kommission, lav fleksibilitet',
-    cons: ['25-40% kommission', 'Lang binding', 'Du bestemmer ikke priser', 'Langsom kommunikation'],
-  },
-  {
-    name: 'Gør-det-selv portaler',
-    sub: 'Al arbejdet er dit',
-    cons: ['Du klarer alt selv', 'Ingen gæstesupport', 'Ingen rengøringsservice', 'Ingen prisoptimering'],
-  },
-];
-
-const ourBenefits = [
-  'Kun 15% kommission',
-  'Ingen binding efter 6 mdr.',
-  'Professionel fotopakke',
-  'Komplet gæstehåndtering',
-  'Bred markedsføring',
-  'Personlig kontaktperson',
-  'Skatteoptimeret setup',
-  'Fleksibel prisstyring',
+const rows = [
+  { label: 'Kommission', us: 'Kun 15%', them: '25-40%' },
+  { label: 'Binding', us: '6 mdr., derefter frit', them: '12-24 mdr.' },
+  { label: 'Præsentation', us: 'Professionel foto & video', them: 'Gør-det-selv' },
+  { label: 'Gæstehåndtering', us: 'Vi klarer alt', them: 'Du klarer alt' },
+  { label: 'Markedsføring', us: 'Alle portaler + egne kanaler', them: 'Én platform' },
+  { label: 'Personlig kontakt', us: 'Dedikeret kontaktperson', them: 'Callcenter' },
+  { label: 'Tillægsindtægter', us: 'Du beholder alt', them: 'Bureauet beholder' },
+  { label: 'Skatteoptimering', us: 'Fuldt bundfradrag', them: 'Ingen hjælp' },
 ];
 
 export function ComparisonSection() {
@@ -48,64 +35,52 @@ export function ComparisonSection() {
           </h2>
         </motion.div>
 
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-5 md:gap-6">
-          {/* Competitor cards */}
-          {competitors.map((comp, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="rounded-2xl border border-border bg-card p-7 md:p-8"
-            >
-              <h3 className="font-display text-lg font-bold text-primary mb-1">{comp.name}</h3>
-              <p className="text-xs text-muted-foreground mb-6">{comp.sub}</p>
-              <div className="space-y-3">
-                {comp.cons.map((con, j) => (
-                  <div key={j} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                      <X className="w-3 h-3 text-destructive" />
-                    </div>
-                    <span className="text-sm text-muted-foreground">{con}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          ))}
-
-          {/* Our card — highlighted */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="rounded-2xl border-2 border-accent/30 bg-primary text-primary-foreground p-7 md:p-8 shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.5)] relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-accent/[0.04] rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <div className="relative">
-              <div className="inline-flex items-center px-2.5 py-1 rounded-full bg-accent/15 text-accent text-[10px] font-bold uppercase tracking-wider mb-3">
-                Anbefalet
-              </div>
-              <h3 className="font-display text-lg font-bold mb-1">SommerVibes</h3>
-              <p className="text-xs text-primary-foreground/50 mb-6">Alt du har brug for</p>
-              <div className="space-y-3">
-                {ourBenefits.map((benefit, j) => (
-                  <div key={j} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-3 h-3 text-accent" />
-                    </div>
-                    <span className="text-sm text-primary-foreground/80">{benefit}</span>
-                  </div>
-                ))}
-              </div>
+        {/* Clean minimal comparison table */}
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 mb-2 px-2">
+            <div />
+            <div className="text-center">
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-bold uppercase tracking-wider">
+                SommerVibes
+              </span>
             </div>
-          </motion.div>
+            <div className="text-center">
+              <span className="text-xs font-medium text-muted-foreground/50 uppercase tracking-wider">
+                Andre
+              </span>
+            </div>
+          </div>
+
+          {/* Rows */}
+          <div className="space-y-0">
+            {rows.map((row, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={isInView ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
+                className="grid grid-cols-[1fr_1fr_1fr] gap-4 items-center py-4 border-b border-border/40 last:border-0 group hover:bg-accent/[0.02] rounded-lg px-2 transition-colors"
+              >
+                <span className="text-sm font-medium text-primary">{row.label}</span>
+                <div className="flex items-center justify-center gap-2">
+                  <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                  <span className="text-sm text-primary/80">{row.us}</span>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <X className="w-3.5 h-3.5 text-destructive/50 flex-shrink-0" />
+                  <span className="text-sm text-muted-foreground/60">{row.them}</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="text-center mt-12"
+          className="text-center mt-14"
         >
           <Link to="/kom-i-gang">
             <Button variant="gold" size="lg" className="gap-2 group rounded-full">

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BarChart3, Calendar, MessageSquare, Star } from 'lucide-react';
+import { ArrowRight, BarChart3, Calendar, MessageSquare, Star, TrendingUp, Bell } from 'lucide-react';
 
 export function ModernPlatformSection() {
   const { ref, isInView } = useScrollReveal();
@@ -10,111 +10,132 @@ export function ModernPlatformSection() {
   return (
     <section ref={ref} className="py-28 md:py-36 bg-background overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
-        <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
-          {/* Left - Text */}
+        <div className="max-w-7xl mx-auto">
+          {/* Centered header */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7 }}
+            className="text-center mb-16 md:mb-20"
           >
             <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
               Din ejerportal
             </span>
-            <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-primary mb-6 leading-tight">
+            <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-primary mb-5 leading-tight max-w-3xl mx-auto">
               Fuld kontrol{' '}
-              <span className="text-accent italic font-normal block">fra din telefon</span>
+              <span className="text-accent italic font-normal">fra din telefon</span>
             </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-lg">
-              Følg dine bookinger, indtjening og gæstekommunikation i realtid.
-              Ejerportalen er designet til at give dig overblik — ikke besvær.
+            <p className="text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto">
+              Følg bookinger, indtjening og gæstekommunikation i realtid.
             </p>
+          </motion.div>
+
+          {/* Phone mockup — centered, minimal */}
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="max-w-sm mx-auto relative"
+          >
+            {/* Phone frame */}
+            <div className="bg-card rounded-[2.5rem] shadow-[0_40px_100px_-20px_hsl(var(--primary)/0.15)] border border-border p-3">
+              <div className="bg-background rounded-[2rem] overflow-hidden">
+                {/* Status bar */}
+                <div className="flex items-center justify-between px-6 pt-4 pb-2">
+                  <span className="text-[10px] text-muted-foreground/50 font-medium">9:41</span>
+                  <div className="w-20 h-5 bg-primary rounded-full" />
+                  <div className="flex gap-1">
+                    <div className="w-3.5 h-2 rounded-sm bg-muted-foreground/30" />
+                  </div>
+                </div>
+
+                <div className="px-5 pb-6 pt-3">
+                  <div className="text-xs text-muted-foreground mb-0.5">God eftermiddag 👋</div>
+                  <h3 className="font-display text-lg font-bold text-primary mb-5">Dit overblik</h3>
+
+                  {/* Stats row */}
+                  <div className="grid grid-cols-2 gap-3 mb-5">
+                    {[
+                      { icon: BarChart3, label: 'Indtjening', value: '132.730 kr.', color: false },
+                      { icon: Star, label: 'Vurdering', value: '4.9 / 5.0', color: true },
+                    ].map((item, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                        transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
+                        className="bg-muted/40 rounded-2xl p-4"
+                      >
+                        <item.icon className="w-4 h-4 text-muted-foreground/50 mb-2" />
+                        <div className="text-[10px] text-muted-foreground mb-1">{item.label}</div>
+                        <div className={`font-display text-lg font-bold ${item.color ? 'text-accent' : 'text-primary'}`}>
+                          {item.value}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Notifications */}
+                  <div className="space-y-2">
+                    {[
+                      { icon: Calendar, text: 'Ny booking', badge: 'Ny', accent: true },
+                      { icon: MessageSquare, text: 'Besked fra gæst', badge: '2', accent: false },
+                      { icon: TrendingUp, text: '+22% visninger', badge: '↑', accent: true },
+                    ].map((item, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={isInView ? { opacity: 1, x: 0 } : {}}
+                        transition={{ duration: 0.4, delay: 0.7 + i * 0.1 }}
+                        className="flex items-center justify-between bg-accent/[0.04] rounded-xl p-3.5"
+                      >
+                        <div className="flex items-center gap-3">
+                          <item.icon className="w-4 h-4 text-accent/70" />
+                          <span className="text-xs font-medium text-primary">{item.text}</span>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          item.accent ? 'bg-accent/15 text-accent' : 'bg-primary text-primary-foreground'
+                        }`}>
+                          {item.badge}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating notification */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, x: -40 }}
+              animate={isInView ? { opacity: 1, scale: 1, x: 0 } : {}}
+              transition={{ duration: 0.5, delay: 1.2, type: 'spring' }}
+              className="absolute top-1/3 -left-8 md:-left-32 bg-card rounded-2xl shadow-elevated border border-border p-3.5 max-w-[180px]"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-accent/15 flex items-center justify-center flex-shrink-0">
+                  <Bell className="w-4 h-4 text-accent" />
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted-foreground">Lige nu</div>
+                  <div className="text-xs font-semibold text-primary">Ny booking! 🎉</div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.5, delay: 1 }}
+            className="text-center mt-14"
+          >
             <Link to="/how-it-works">
               <Button variant="gold" size="lg" className="gap-2 group rounded-full">
                 Udforsk platformen
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-          </motion.div>
-
-          {/* Right - Dashboard mockup */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative"
-          >
-            <div className="bg-card rounded-3xl shadow-elevated border border-border p-6 md:p-8">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-3 h-3 rounded-full bg-destructive/40" />
-                <div className="w-3 h-3 rounded-full bg-accent/40" />
-                <div className="w-3 h-3 rounded-full bg-accent/30" />
-              </div>
-              
-              <div className="text-sm text-muted-foreground mb-1">God eftermiddag 👋</div>
-              <h3 className="font-display text-xl font-bold text-primary mb-6">Dit overblik</h3>
-
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                {[
-                  { icon: BarChart3, label: 'Indtjening i år', value: '132.730 kr.', accent: false },
-                  { icon: Star, label: 'Vurdering', value: '4.9 / 5.0', accent: true },
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                    transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
-                    className="bg-muted/50 rounded-xl p-4"
-                  >
-                    <item.icon className="w-4 h-4 text-muted-foreground mb-2" />
-                    <div className="text-xs text-muted-foreground mb-1">{item.label}</div>
-                    <div className={`font-display text-xl font-bold ${item.accent ? 'text-accent' : 'text-primary'}`}>
-                      {item.value}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  { icon: Calendar, text: 'Ny bookingforespørgsel', badge: 'Ny', badgeColor: 'bg-accent text-primary' },
-                  { icon: MessageSquare, text: 'Besked fra gæst', badge: '2', badgeColor: 'bg-primary text-primary-foreground' },
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={isInView ? { opacity: 1, x: 0 } : {}}
-                    transition={{ duration: 0.4, delay: 0.7 + i * 0.1 }}
-                    className="flex items-center justify-between bg-accent/5 rounded-xl p-4 hover:bg-accent/10 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <item.icon className="w-5 h-5 text-accent" />
-                      <span className="text-sm font-medium text-primary">{item.text}</span>
-                    </div>
-                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${item.badgeColor}`}>
-                      {item.badge}
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Floating notification */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 1 }}
-              className="absolute -bottom-4 -left-4 bg-card rounded-2xl shadow-xl border border-border p-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Denne uge</div>
-                  <div className="font-display text-lg font-bold text-primary">+22% visninger</div>
-                </div>
-              </div>
-            </motion.div>
           </motion.div>
         </div>
       </div>

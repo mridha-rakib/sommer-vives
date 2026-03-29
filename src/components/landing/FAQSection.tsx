@@ -25,43 +25,51 @@ export function FAQSection() {
 
   return (
     <section ref={ref} id="faq" className="py-28 md:py-36 bg-background overflow-hidden">
-      <div className="container mx-auto px-4 md:px-8 max-w-4xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7 }}
-          className="text-center mb-16 md:mb-20"
-        >
-          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
-            FAQ
-          </span>
-          <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-primary">
-            Spørgsmål & svar
-          </h2>
-        </motion.div>
+      <div className="container mx-auto px-4 md:px-8">
+        <div className="max-w-5xl mx-auto grid lg:grid-cols-[1fr_1.5fr] gap-16 items-start">
+          {/* Left sticky header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7 }}
+            className="lg:sticky lg:top-32"
+          >
+            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+              FAQ
+            </span>
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary leading-tight">
+              Spørgsmål{' '}
+              <span className="text-accent italic font-normal block">& svar</span>
+            </h2>
+            <p className="text-muted-foreground mt-4 leading-relaxed">
+              Find svar på de mest stillede spørgsmål om udlejning med SommerVibes.
+            </p>
+          </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Accordion type="single" collapsible className="space-y-2">
-            {faqs.map((faq, i) => (
-              <AccordionItem
-                key={i}
-                value={`faq-${i}`}
-                className="bg-card rounded-xl border border-border px-6 data-[state=open]:shadow-soft data-[state=open]:border-accent/15 transition-all"
-              >
-                <AccordionTrigger className="text-left font-display font-semibold text-primary hover:no-underline py-5 text-base md:text-lg">
-                  {faq.q}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground pb-5 leading-relaxed text-base">
-                  {faq.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </motion.div>
+          {/* Right accordion */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Accordion type="single" collapsible className="space-y-1">
+              {faqs.map((faq, i) => (
+                <AccordionItem
+                  key={i}
+                  value={`faq-${i}`}
+                  className="border-b border-border/40 last:border-0 data-[state=open]:border-accent/10"
+                >
+                  <AccordionTrigger className="text-left font-display font-semibold text-primary hover:no-underline hover:text-accent transition-colors py-5 text-base">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground pb-5 leading-relaxed">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
+        </div>
       </div>
     </section>
   );
