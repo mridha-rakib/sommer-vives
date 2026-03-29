@@ -52,14 +52,20 @@ const revenueCategories = [
 
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [activeHighlight, setActiveHighlight] = useState(0);
+  const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
+  const [autoIndex, setAutoIndex] = useState(0);
 
+  // Auto-cycle through categories when none is manually expanded
   useEffect(() => {
+    if (expandedCategory !== null) return;
     const interval = setInterval(() => {
-      setActiveHighlight((prev) => (prev + 1) % revenueHighlights.length);
-    }, 3000);
+      setAutoIndex((prev) => (prev + 1) % revenueCategories.length);
+    }, 3500);
     return () => clearInterval(interval);
-  }, []);
+  }, [expandedCategory]);
+
+  const totalShare = revenueCategories.reduce((sum, c) => sum + c.share, 0);
+  const visibleIndex = expandedCategory ?? autoIndex;
 
   return (
     <TooltipProvider delayDuration={200}>
