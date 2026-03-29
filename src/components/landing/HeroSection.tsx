@@ -34,15 +34,6 @@ export function HeroSection() {
 
   return (
     <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
-            transition={{
-              duration: p.duration,
-              delay: p.delay,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-      </div>
 
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
