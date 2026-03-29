@@ -49,7 +49,7 @@ export function HeroSection() {
         >
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/50 to-primary/85" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background/85" />
       </div>
 
       {/* Main Content — always side by side */}
@@ -64,8 +64,8 @@ export function HeroSection() {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="mb-3 sm:mb-5"
               >
-                <span className="inline-flex items-center gap-2 bg-accent/15 backdrop-blur-sm border border-accent/25 rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-accent font-body text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <span className="inline-flex items-center gap-2 bg-primary/15 backdrop-blur-sm border border-primary/25 rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-primary font-body text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                   Danmarks mest fleksible bureau
                 </span>
               </motion.div>
@@ -74,21 +74,21 @@ export function HeroSection() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-primary-foreground mb-3 sm:mb-6 leading-[0.95] tracking-tight"
+                className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-foreground mb-3 sm:mb-6 leading-[0.95] tracking-tight"
               >
                 Dit sommerhus,
                 <br />
-                <span className="italic font-normal text-accent">vores passion</span>
+                <span className="italic font-normal text-primary">vores passion</span>
               </motion.h1>
 
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 }}
-                className="text-sm sm:text-lg md:text-xl text-primary-foreground/75 mb-4 sm:mb-6 max-w-md leading-relaxed"
+                className="text-sm sm:text-lg md:text-xl text-foreground/75 mb-4 sm:mb-6 max-w-md leading-relaxed"
               >
                 Vi markedsfører, styrer gæstekontakt og rengøring.
-                Du får pengene — vi tager kun <strong className="text-accent">15%</strong>.
+                Du får pengene — vi tager kun <strong className="text-primary">15%</strong>.
               </motion.p>
 
               {/* Minimal revenue teaser — inline, transparent */}
@@ -99,8 +99,8 @@ export function HeroSection() {
                 className="mb-5 sm:mb-7 max-w-md"
               >
                 <div className="flex items-center gap-2 mb-2.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-accent" />
-                  <span className="text-[9px] sm:text-[10px] font-bold text-accent/80 tracking-[0.15em] uppercase">
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-[9px] sm:text-[10px] font-bold text-primary/80 tracking-[0.15em] uppercase">
                     +20% merindtjening kun hos os
                   </span>
                 </div>
@@ -114,12 +114,12 @@ export function HeroSection() {
                         onClick={() => setActiveItem(i)}
                         className={`flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-all duration-500 ${
                           isActive
-                            ? 'bg-accent/10 border border-accent/20'
-                            : 'bg-transparent border border-transparent hover:bg-primary-foreground/5'
+                            ? 'bg-primary/10 border border-primary/20'
+                            : 'bg-transparent border border-transparent hover:bg-foreground/5'
                         }`}
                       >
-                        <Icon className={`w-3.5 h-3.5 transition-colors duration-300 ${isActive ? 'text-accent' : 'text-primary-foreground/30'}`} />
-                        <span className={`font-display text-xs sm:text-sm font-bold transition-colors duration-300 ${isActive ? 'text-accent' : 'text-primary-foreground/20'}`}>
+                        <Icon className={`w-3.5 h-3.5 transition-colors duration-300 ${isActive ? 'text-primary' : 'text-foreground/30'}`} />
+                        <span className={`font-display text-xs sm:text-sm font-bold transition-colors duration-300 ${isActive ? 'text-primary' : 'text-foreground/20'}`}>
                           {item.pct}
                         </span>
                       </button>
@@ -135,7 +135,7 @@ export function HeroSection() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.3 }}
-                      className="text-[10px] sm:text-xs text-primary-foreground/50 font-medium text-center absolute inset-x-0"
+                      className="text-[10px] sm:text-xs text-foreground/50 font-medium text-center absolute inset-x-0"
                     >
                       {revenueItems[activeItem].label}
                     </motion.p>
@@ -151,8 +151,8 @@ export function HeroSection() {
                 className="hidden sm:block space-y-2 mb-6"
               >
                 {trustPoints.map((point, i) => (
-                  <div key={i} className="flex items-center gap-2.5 text-primary-foreground/70 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0" />
+                  <div key={i} className="flex items-center gap-2.5 text-foreground/70 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
                     {point}
                   </div>
                 ))}
@@ -175,7 +175,7 @@ export function HeroSection() {
                   <Button
                     variant="outline"
                     size="xl"
-                    className="border-accent/40 text-accent hover:bg-accent/10 text-base gap-2 w-full sm:w-auto"
+                    className="border-primary/40 text-primary hover:bg-primary/10 text-base gap-2 w-full sm:w-auto"
                   >
                     <Play className="w-4 h-4" />
                     Gratis udlejningstjek
@@ -234,10 +234,10 @@ export function HeroSection() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.5 }}
-        className="relative z-10 bg-primary/60 backdrop-blur-sm border-t border-primary-foreground/10"
+        className="relative z-10 bg-background/60 backdrop-blur-sm border-t border-foreground/10"
       >
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-4 divide-x divide-primary-foreground/10">
+          <div className="grid grid-cols-4 divide-x divide-foreground/10">
             {[
               { value: '15%', label: 'Kommission' },
               { value: '5 min', label: 'At komme i gang' },
@@ -245,17 +245,17 @@ export function HeroSection() {
               { value: '50.200', label: 'Skattefrit' },
             ].map((stat, i) => (
               <div key={i} className="py-4 sm:py-5 md:py-6 text-center">
-                <div className="font-display text-base sm:text-xl md:text-3xl font-bold text-accent">{stat.value}</div>
-                <div className="text-[8px] sm:text-[10px] md:text-xs text-primary-foreground/50 mt-0.5 font-body tracking-wider uppercase">{stat.label}</div>
+                <div className="font-display text-base sm:text-xl md:text-3xl font-bold text-primary">{stat.value}</div>
+                <div className="text-[8px] sm:text-[10px] md:text-xs text-foreground/50 mt-0.5 font-body tracking-wider uppercase">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Channel marquee */}
-        <div className="overflow-hidden relative border-t border-primary-foreground/5">
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-primary/60 to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-primary/60 to-transparent z-10" />
+        <div className="overflow-hidden relative border-t border-foreground/5">
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background/60 to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background/60 to-transparent z-10" />
           <motion.div
             animate={{ x: [0, -400] }}
             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
@@ -265,7 +265,7 @@ export function HeroSection() {
               channels.map((name, i) => (
                 <span
                   key={`${rep}-${i}`}
-                  className="text-primary-foreground/15 font-display text-xs font-bold tracking-tight"
+                  className="text-foreground/15 font-display text-xs font-bold tracking-tight"
                 >
                   {name}
                 </span>
