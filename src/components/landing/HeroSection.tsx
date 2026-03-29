@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
 const trustPoints = [
-  'Ingen binding — opsig når som helst',
+  '6 måneders binding — tryghed for begge parter',
   'Professionel fotografering inkluderet',
   'Personlig kontaktperson fra dag 1',
 ];
