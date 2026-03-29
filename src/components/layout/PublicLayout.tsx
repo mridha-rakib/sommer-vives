@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { CampaignBanner } from './CampaignBanner';
 
 interface PublicLayoutProps {
   children: ReactNode;
@@ -9,6 +10,7 @@ interface PublicLayoutProps {
 export function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col">
+      <CampaignBanner />
       <Header />
       <main className="flex-1">
         {children}
