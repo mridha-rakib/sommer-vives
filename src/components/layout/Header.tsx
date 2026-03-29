@@ -44,11 +44,11 @@ export function Header() {
     >
       <nav className="container mx-auto px-4 md:px-8">
         <div className="flex h-16 md:h-20 items-center justify-between">
-          <Link to="/" className="flex items-center gap-1">
+          <Link to="/" className="flex items-center gap-1 flex-shrink-0">
             <span className={`font-display text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300 ${
               transparent ? 'text-primary-foreground' : 'text-primary'
             }`}>
-              Sommer<span className="text-accent italic relative">V<span className="absolute -top-1 left-[0.32em] text-[0.35em] not-italic">☀</span>ibes</span>
+              Sommer<span className="text-accent italic">V<span className="inline-block relative w-0"><svg className="absolute -top-[1.1em] left-[-0.35em] w-[0.55em] h-[0.55em] text-accent" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5" /><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" /></svg></span>ibes</span>
             </span>
           </Link>
 
