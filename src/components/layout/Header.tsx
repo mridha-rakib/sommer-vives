@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
-import logo from '@/assets/sommervibes-logo.png';
 
 export function Header() {
   const { user, signOut, isAdmin, isOwner } = useAuth();
@@ -45,12 +44,12 @@ export function Header() {
     >
       <nav className="container mx-auto px-4 md:px-8">
         <div className="flex h-16 md:h-20 items-center justify-between">
-          <Link to="/" className="flex items-center">
-            <img
-              src={logo}
-              alt="SommerVibes"
-              className={`h-8 md:h-9 transition-all duration-300 ${transparent ? 'brightness-200' : ''}`}
-            />
+          <Link to="/" className="flex items-center gap-1">
+            <span className={`font-display text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300 ${
+              transparent ? 'text-primary-foreground' : 'text-primary'
+            }`}>
+              Sommer<span className="text-accent">Vibes</span>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
