@@ -211,7 +211,7 @@ const ListingDetail = () => {
             />
             {getImageLabel(images[currentImage]) && (
               <div className="absolute top-0 left-0 z-10">
-                <div className="bg-primary/90 backdrop-blur-sm text-primary-foreground px-4 py-1.5 rounded-br-xl text-sm font-medium tracking-wide shadow-lg">
+                <div className="bg-primary/90 backdrop-blur-sm text-background px-4 py-1.5 rounded-br-xl text-sm font-medium tracking-wide shadow-lg">
                   🏠 {getImageLabel(images[currentImage])}
                 </div>
               </div>
@@ -225,7 +225,7 @@ const ListingDetail = () => {
             )}
 
             <button onClick={() => setLightboxOpen(true)}
-              className="absolute top-4 right-4 z-10 p-2.5 rounded-xl bg-background/80 backdrop-blur-sm border border-border/50 text-foreground hover:bg-primary hover:text-primary-foreground transition-all">
+              className="absolute top-4 right-4 z-10 p-2.5 rounded-xl bg-background/80 backdrop-blur-sm border border-border/50 text-foreground hover:bg-primary hover:text-background transition-all">
               <Maximize2 className="h-4 w-4" />
             </button>
 
@@ -245,7 +245,7 @@ const ListingDetail = () => {
               <div className="absolute bottom-4 left-4 right-4 flex gap-2 justify-center lg:justify-start">
                 {actionButtons.map((item) => (
                   <button key={item.label} onClick={item.onClick}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-background/80 backdrop-blur-md text-foreground rounded-xl border border-border/50 hover:bg-primary hover:text-primary-foreground transition-all text-xs sm:text-sm font-medium whitespace-nowrap">
+                    className="flex items-center gap-2 px-4 py-2.5 bg-background/80 backdrop-blur-md text-foreground rounded-xl border border-border/50 hover:bg-primary hover:text-background transition-all text-xs sm:text-sm font-medium whitespace-nowrap">
                     <item.icon className="h-4 w-4 flex-shrink-0" />
                     <span className="hidden sm:inline">{item.label}</span>
                   </button>
@@ -602,7 +602,7 @@ const ListingDetail = () => {
               <div className="relative" onClick={(e) => e.stopPropagation()}>
                 {getImageLabel(images[currentImage]) && (
                   <div className="absolute top-0 left-0 z-10">
-                    <div className="bg-primary/90 backdrop-blur-sm text-primary-foreground px-4 py-1.5 rounded-br-xl text-sm font-medium">
+                    <div className="bg-primary/90 backdrop-blur-sm text-background px-4 py-1.5 rounded-br-xl text-sm font-medium">
                       🏠 {getImageLabel(images[currentImage])}
                     </div>
                   </div>
