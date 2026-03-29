@@ -110,7 +110,7 @@ export function HeroSection() {
               </motion.div>
             </div>
 
-            {/* Right — Advisor cutout */}
+            {/* Right — Advisor cutout (desktop & tablet) */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -118,15 +118,22 @@ export function HeroSection() {
               className="hidden md:flex justify-center lg:justify-end relative"
             >
               <div className="relative">
-                {/* Subtle glow */}
-                <div className="absolute inset-0 bg-accent/8 rounded-full blur-[80px] scale-75" />
+                {/* Glow behind person */}
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[70%] h-[60%] bg-accent/15 rounded-full blur-[100px]" />
+                <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[40%] h-[40%] bg-accent/10 rounded-full blur-[60px]" />
                 
-                {/* Cutout image with bottom fade */}
-                <div className="relative max-h-[65vh] lg:max-h-[72vh]" style={{ maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)' } as React.CSSProperties}>
+                {/* Cutout image — bigger on desktop, right-sized on tablet */}
+                <div
+                  className="relative"
+                  style={{
+                    maskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, black 75%, transparent 100%)',
+                  } as React.CSSProperties}
+                >
                   <img
                     src="/images/advisor-cutout.png"
                     alt="Emil W. Klockmann — Udlejningschef"
-                    className="h-[55vh] md:h-[60vh] lg:h-[68vh] w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+                    className="h-[50vh] md:h-[55vh] lg:h-[78vh] xl:h-[82vh] w-auto object-contain drop-shadow-[0_15px_40px_rgba(0,0,0,0.4)]"
                   />
                 </div>
 
@@ -135,7 +142,7 @@ export function HeroSection() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 1.4 }}
-                  className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[85%] max-w-[280px]"
+                  className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[85%] max-w-[280px]"
                 >
                   <div className="bg-background/90 backdrop-blur-xl rounded-2xl px-5 py-3 border border-accent/15 shadow-elevated text-center">
                     <p className="font-display font-bold text-foreground text-sm">Emil W. Klockmann</p>
@@ -152,8 +159,8 @@ export function HeroSection() {
               transition={{ duration: 0.6, delay: 1.2 }}
               className="md:hidden flex items-center gap-4 bg-background/90 backdrop-blur-md rounded-2xl p-4 border border-border/50"
             >
-              <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border-2 border-accent/25">
-                <img src="/images/advisor-headshot.jpg" alt="Emil W. Klockmann" className="w-full h-full object-cover" />
+              <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border-2 border-accent/25 shadow-[0_0_15px_hsl(var(--accent)/0.3)]">
+                <img src="/images/advisor-cutout.png" alt="Emil W. Klockmann" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="font-display font-bold text-foreground text-sm">Emil W. Klockmann</p>
