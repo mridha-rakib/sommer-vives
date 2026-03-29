@@ -222,6 +222,54 @@ export function HeroSection() {
         </div>
       </div>
 
+      {/* Dannebrog swoosh */}
+      <div className="absolute bottom-0 right-0 w-full h-full pointer-events-none z-[5] overflow-hidden">
+        <svg
+          viewBox="0 0 1440 900"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="absolute bottom-0 right-0 w-[110%] h-full"
+          preserveAspectRatio="none"
+        >
+          {/* White stripe (behind) */}
+          <motion.path
+            d="M1500 200 Q1200 350 1050 500 Q900 650 750 780 Q650 860 600 920"
+            stroke="white"
+            strokeWidth="28"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.15"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.8, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          />
+          {/* Red stripe (front) */}
+          <motion.path
+            d="M1520 180 Q1220 330 1070 480 Q920 630 770 760 Q670 840 620 900"
+            stroke="#C8102E"
+            strokeWidth="18"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.35"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.6, delay: 1, ease: [0.22, 1, 0.36, 1] }}
+          />
+          {/* Thin white accent */}
+          <motion.path
+            d="M1540 165 Q1240 315 1090 465 Q940 615 790 745 Q690 825 640 885"
+            stroke="white"
+            strokeWidth="6"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.12"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.4, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </svg>
+      </div>
+
       {/* Bottom stats strip */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
