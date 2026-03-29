@@ -71,9 +71,9 @@ export function HeroSection() {
                   transition={{ duration: 0.8, delay: 0.4 }}
                   className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-primary-foreground mb-3 sm:mb-6 leading-[0.95] tracking-tight"
                 >
-                  Tjen penge på
+                  Dit sommerhus,
                   <br />
-                  <span className="italic font-normal text-accent">dit sommerhus</span>
+                  <span className="italic font-normal text-accent">vores passion</span>
                 </motion.h1>
 
                 <motion.p
