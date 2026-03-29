@@ -6,6 +6,7 @@ import { RareFindBadge } from '@/components/listing/RareFindBadge';
 import { BestValueBadge } from '@/components/listing/BestValueBadge';
 import { ReviewsSection } from '@/components/listing/ReviewsSection';
 import { VideoGuideGrid } from '@/components/listing/VideoGuideGrid';
+import { ContactHost } from '@/components/listing/ContactHost';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
