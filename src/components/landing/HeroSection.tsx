@@ -110,56 +110,59 @@ export function HeroSection() {
               </motion.div>
             </div>
 
-            {/* Right — Personal advisor */}
+            {/* Right — Advisor image, blended into hero */}
             <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
-              className="hidden lg:flex flex-col items-center"
+              initial={{ opacity: 0, x: 60 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1, delay: 0.8 }}
+              className="hidden lg:block relative"
             >
-              <div className="relative w-[320px] xl:w-[360px]">
-                {/* Video of advisor */}
-                <div className="relative rounded-3xl overflow-hidden shadow-elevated border-2 border-accent/20 aspect-[3/4]">
-                  <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover"
-                  >
-                    <source src="/videos/advisor.mp4" type="video/mp4" />
-                  </video>
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent" />
-                  
-                  {/* Name badge overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <div className="bg-background/90 backdrop-blur-md rounded-2xl p-4 border border-border/50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-accent animate-pulse flex-shrink-0" />
-                        <div>
-                          <p className="font-display font-bold text-foreground text-sm">Din personlige rådgiver</p>
-                          <p className="text-muted-foreground text-xs">Klar til at hjælpe dig i gang</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 mt-3">
-                        {[
-                          { v: '15%', l: 'Kommission' },
-                          { v: '4.9★', l: 'Rating' },
-                          { v: '14 dage', l: 'Til booking' },
-                        ].map((s, i) => (
-                          <div key={i} className="text-center p-2 bg-muted/50 rounded-lg">
-                            <div className="font-display text-sm font-bold text-accent">{s.v}</div>
-                            <div className="text-[10px] text-muted-foreground">{s.l}</div>
-                          </div>
-                        ))}
+              <div className="relative">
+                {/* Glow behind */}
+                <div className="absolute -inset-8 bg-accent/10 rounded-full blur-3xl" />
+                
+                {/* Image with fade edges */}
+                <div className="relative" style={{ maskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 85%, transparent 100%), linear-gradient(to right, transparent 0%, black 15%, black 100%)', maskComposite: 'intersect', WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 8%, black 85%, transparent 100%)', WebkitMaskComposite: 'source-in' } as React.CSSProperties}>
+                  <img
+                    src="/images/advisor-hero.jpg"
+                    alt="Din personlige udlejningsrådgiver"
+                    className="w-full h-auto max-h-[75vh] object-cover object-top"
+                  />
+                </div>
+
+                {/* Floating name badge */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 1.4 }}
+                  className="absolute bottom-8 left-4 right-4"
+                >
+                  <div className="bg-background/85 backdrop-blur-xl rounded-2xl p-4 border border-accent/15 shadow-elevated">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-2 h-2 rounded-full bg-accent animate-pulse flex-shrink-0" />
+                      <div>
+                        <p className="font-display font-bold text-foreground text-sm">Emil Kastrup</p>
+                        <p className="text-muted-foreground text-xs">Stifter & Udlejningsrådgiver</p>
                       </div>
                     </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { v: '15%', l: 'Kommission' },
+                        { v: '4.9★', l: 'Rating' },
+                        { v: '14 dage', l: 'Til booking' },
+                      ].map((s, i) => (
+                        <div key={i} className="text-center p-2 bg-primary/5 rounded-lg">
+                          <div className="font-display text-sm font-bold text-accent">{s.v}</div>
+                          <div className="text-[10px] text-muted-foreground">{s.l}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
 
-            {/* Mobile advisor strip */}
+            {/* Mobile/tablet advisor strip */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -167,16 +170,14 @@ export function HeroSection() {
               className="lg:hidden flex items-center gap-4 bg-background/90 backdrop-blur-md rounded-2xl p-4 border border-border/50"
             >
               <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-accent/20">
-                <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                  <source src="/videos/advisor.mp4" type="video/mp4" />
-                </video>
+                <img src="/images/advisor-headshot.jpg" alt="Emil Kastrup" className="w-full h-full object-cover" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                  <p className="font-display font-bold text-foreground text-sm">Din personlige rådgiver</p>
+                  <p className="font-display font-bold text-foreground text-sm">Emil Kastrup</p>
                 </div>
-                <p className="text-muted-foreground text-xs mt-0.5">Klar til at hjælpe dig — ring eller book et møde</p>
+                <p className="text-muted-foreground text-xs mt-0.5">Stifter & Udlejningsrådgiver — book et møde</p>
               </div>
             </motion.div>
           </div>
