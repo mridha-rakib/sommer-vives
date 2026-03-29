@@ -139,7 +139,7 @@ export default function ReferAHost() {
       </section>
 
       {/* Benefits */}
-      <section className="py-16 md:py-24 bg-primary text-primary-foreground">
+      <section className="py-16 md:py-24 bg-primary text-background">
         <div className="container mx-auto px-4 md:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -147,7 +147,7 @@ export default function ReferAHost() {
                 <h2 className="font-display text-3xl md:text-4xl font-semibold mb-6">
                   Hvorfor henvise til <span className="text-accent">SommerVibes</span>?
                 </h2>
-                <p className="text-primary-foreground/70 text-lg mb-8">
+                <p className="text-background/70 text-lg mb-8">
                   Vi tror på, at de bedste anbefalinger kommer fra tilfredse kunder. 
                   Derfor belønner vi dig, når du hjælper os med at vokse.
                 </p>
@@ -156,20 +156,20 @@ export default function ReferAHost() {
                   {benefits.map((benefit) => (
                     <li key={benefit} className="flex items-start gap-3">
                       <CheckCircle className="h-6 w-6 text-accent flex-shrink-0 mt-0.5" />
-                      <span className="text-primary-foreground/90">{benefit}</span>
+                      <span className="text-background/90">{benefit}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="bg-primary-foreground/10 rounded-3xl p-8 md:p-12 text-center">
+              <div className="bg-background/10 rounded-3xl p-8 md:p-12 text-center">
                 <div className="text-6xl md:text-7xl font-display font-bold text-accent mb-4">
                   500 kr.
                 </div>
-                <p className="text-primary-foreground/70 text-lg mb-6">
+                <p className="text-background/70 text-lg mb-6">
                   For hver kvalificeret henvisning
                 </p>
-                <p className="text-sm text-primary-foreground/50">
+                <p className="text-sm text-background/50">
                   Ingen øvre grænse – jo flere du henviser, jo mere tjener du
                 </p>
               </div>

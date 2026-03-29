@@ -94,7 +94,7 @@ export function ModernPlatformSection() {
                           <span className="text-xs font-medium text-primary">{item.text}</span>
                         </div>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          item.accent ? 'bg-accent/15 text-accent' : 'bg-primary text-primary-foreground'
+                          item.accent ? 'bg-accent/15 text-accent' : 'bg-primary text-background'
                         }`}>
                           {item.badge}
                         </span>

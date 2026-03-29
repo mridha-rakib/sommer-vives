@@ -144,7 +144,7 @@ function PricingContent() {
 export default function Pricing() {
   return (
     <PublicLayout>
-      <section className="pt-32 pb-16 bg-primary text-primary-foreground overflow-hidden">
+      <section className="pt-32 pb-16 bg-primary text-background overflow-hidden">
         <div className="container mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">Priser</span>
@@ -162,7 +162,7 @@ export default function Pricing() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-lg text-primary-foreground/80 max-w-2xl mx-auto"
+            className="text-lg text-background/80 max-w-2xl mx-auto"
           >
             Ingen skjulte gebyrer. Du betaler kun når du tjener.
           </motion.p>

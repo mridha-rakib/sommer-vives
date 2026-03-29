@@ -75,17 +75,17 @@ export function RevenueSection() {
           transition={{ duration: 0.7 }}
           className="text-center mb-12 md:mb-16"
         >
-          <span className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-4 py-1.5 text-accent font-body text-xs font-semibold tracking-[0.2em] uppercase mb-5">
+          <span className="inline-flex items-center gap-2 bg-background/10 border border-background/20 rounded-full px-4 py-1.5 text-background font-body text-xs font-semibold tracking-[0.2em] uppercase mb-5">
             <TrendingUp className="w-3.5 h-3.5" />
             Kun hos SommerVibes
           </span>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-4">
-            Op til <span className="text-accent italic font-normal">+20% merindtjening</span>
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-background mb-4">
+            Op til <span className="text-background/90 italic font-normal">+20% merindtjening</span>
           </h2>
-          <p className="text-primary-foreground/60 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
-            Traditionelle bureauer beholder tillægsindtægter. Hos os går alt til dig —
-            forbrugsafregning, tillæg og gebyrer er <strong className="text-primary-foreground/80">dine penge</strong>.
-          </p>
+           <p className="text-background/60 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+             Traditionelle bureauer beholder tillægsindtægter. Hos os går alt til dig —
+             forbrugsafregning, tillæg og gebyrer er <strong className="text-background/80">dine penge</strong>.
+           </p>
         </motion.div>
 
         {/* Visual bar */}
@@ -96,7 +96,7 @@ export function RevenueSection() {
           className="mb-10 md:mb-14 max-w-2xl mx-auto origin-left"
         >
           <div className="flex items-center gap-3 mb-2">
-            <div className="flex-1 flex h-2.5 rounded-full overflow-hidden bg-primary-foreground/5 border border-primary-foreground/10">
+            <div className="flex-1 flex h-2.5 rounded-full overflow-hidden bg-background/5 border border-background/10">
               {categories.map((cat, i) => (
                 <motion.div
                   key={i}
@@ -112,7 +112,7 @@ export function RevenueSection() {
                 />
               ))}
             </div>
-            <span className="font-display text-xl md:text-2xl font-bold text-accent whitespace-nowrap">+{totalShare}%</span>
+            <span className="font-display text-xl md:text-2xl font-bold text-background whitespace-nowrap">+{totalShare}%</span>
           </div>
         </motion.div>
 
@@ -132,7 +132,7 @@ export function RevenueSection() {
                 className={`group relative rounded-2xl border transition-all duration-500 cursor-default overflow-hidden ${
                   isActive
                     ? 'bg-accent/8 border-accent/25 shadow-[0_0_40px_-10px_hsl(var(--accent)/0.15)]'
-                    : 'bg-primary-foreground/3 border-primary-foreground/8 hover:border-accent/15'
+                    : 'bg-background/3 border-background/8 hover:border-accent/15'
                 }`}
               >
                 {/* Top shimmer */}
@@ -142,21 +142,21 @@ export function RevenueSection() {
                   {/* Icon + share */}
                   <div className="flex items-center justify-between mb-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-300 ${
-                      isActive ? 'bg-accent/15' : 'bg-primary-foreground/5'
+                      isActive ? 'bg-accent/15' : 'bg-background/5'
                     }`}>
-                      <Icon className={`w-5 h-5 transition-colors duration-300 ${isActive ? 'text-accent' : 'text-primary-foreground/40'}`} />
+                      <Icon className={`w-5 h-5 transition-colors duration-300 ${isActive ? 'text-accent' : 'text-background/40'}`} />
                     </div>
                     <span className={`font-display text-2xl font-bold transition-colors duration-300 ${
-                      isActive ? 'text-accent' : 'text-primary-foreground/15'
+                      isActive ? 'text-accent' : 'text-background/15'
                     }`}>
                       +{cat.share}%
                     </span>
                   </div>
 
-                  <h3 className="font-display text-sm md:text-base font-bold text-primary-foreground mb-1.5">
+                  <h3 className="font-display text-sm md:text-base font-bold text-background mb-1.5">
                     {cat.title}
                   </h3>
-                  <p className="text-[11px] md:text-xs text-primary-foreground/45 leading-relaxed mb-4">
+                  <p className="text-[11px] md:text-xs text-background/45 leading-relaxed mb-4">
                     {cat.desc}
                   </p>
 
@@ -182,7 +182,7 @@ export function RevenueSection() {
                                 className="flex items-center gap-2.5"
                               >
                                 <DetailIcon className="w-3 h-3 text-accent/60 flex-shrink-0" />
-                                <span className="flex-1 text-[11px] text-primary-foreground/60">{detail.label}</span>
+                                <span className="flex-1 text-[11px] text-background/60">{detail.label}</span>
                                 <span className="text-[10px] font-semibold text-accent/70">{detail.amount}</span>
                               </motion.div>
                             );
@@ -194,10 +194,10 @@ export function RevenueSection() {
 
                   {/* Bottom highlight */}
                   <div className={`flex items-center gap-2 pt-3 border-t transition-colors duration-300 ${
-                    isActive ? 'border-accent/10' : 'border-primary-foreground/5'
+                    isActive ? 'border-accent/10' : 'border-background/5'
                   }`}>
-                    <CheckCircle2 className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-accent' : 'text-primary-foreground/15'}`} />
-                    <span className={`text-xs font-semibold transition-colors ${isActive ? 'text-accent' : 'text-primary-foreground/30'}`}>
+                    <CheckCircle2 className={`w-3.5 h-3.5 transition-colors ${isActive ? 'text-accent' : 'text-background/15'}`} />
+                    <span className={`text-xs font-semibold transition-colors ${isActive ? 'text-accent' : 'text-background/30'}`}>
                       {cat.highlight}
                     </span>
                   </div>
@@ -214,11 +214,11 @@ export function RevenueSection() {
           transition={{ duration: 0.6, delay: 1.2 }}
           className="text-center"
         >
-          <p className="text-primary-foreground/50 text-sm mb-5">
-            Andre bureauer beholder disse indtægter. Hos SommerVibes er de <strong className="text-primary-foreground/80">dine</strong>.
+          <p className="text-background/50 text-sm mb-5">
+            Andre bureauer beholder disse indtægter. Hos SommerVibes er de <strong className="text-background/80">dine</strong>.
           </p>
           <Link to="/kom-i-gang">
-            <Button variant="gold" size="lg" className="gap-2 group">
+            <Button size="lg" className="gap-2 group bg-background text-foreground hover:bg-background/90 font-semibold">
               Beregn din indtægt
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
