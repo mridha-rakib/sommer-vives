@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 export function CampaignCard() {
   return (
-    <section className="relative -mt-16 z-20 pb-8">
+    <section className="relative z-10 py-6">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
