@@ -34,12 +34,12 @@ export function FAQSection() {
             transition={{ duration: 0.7 }}
             className="lg:sticky lg:top-32"
           >
-            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+            <span className="text-primary font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
               FAQ
             </span>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary leading-tight">
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
               Spørgsmål{' '}
-              <span className="text-accent italic font-normal block">& svar</span>
+              <span className="text-primary italic font-normal block">& svar</span>
             </h2>
             <p className="text-muted-foreground mt-4 leading-relaxed">
               Find svar på de mest stillede spørgsmål om udlejning med SommerVibes.
@@ -57,9 +57,9 @@ export function FAQSection() {
                 <AccordionItem
                   key={i}
                   value={`faq-${i}`}
-                  className="border-b border-border/40 last:border-0 data-[state=open]:border-accent/10"
+                  className="border-b border-border/40 last:border-0 data-[state=open]:border-primary/10"
                 >
-                  <AccordionTrigger className="text-left font-display font-semibold text-primary hover:no-underline hover:text-accent transition-colors py-5 text-base">
+                  <AccordionTrigger className="text-left font-display font-semibold text-foreground hover:no-underline hover:text-primary transition-colors py-5 text-base">
                     {faq.q}
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground pb-5 leading-relaxed">

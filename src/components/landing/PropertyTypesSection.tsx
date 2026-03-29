@@ -39,10 +39,10 @@ export function PropertyTypesSection() {
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
-          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
+          <span className="text-primary font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
             Hvad kan du tjene?
           </span>
-          <h2 className="font-display text-3xl md:text-5xl font-bold text-primary leading-tight">
+          <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground leading-tight">
             Find dit sommerhus
           </h2>
         </motion.div>
@@ -71,17 +71,17 @@ export function PropertyTypesSection() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
                   <div className={`absolute inset-x-0 bottom-0 p-5 md:p-8 transition-opacity duration-500 ${
                     isActive ? 'opacity-100' : 'opacity-0'
                   }`}>
-                    <div className="font-display text-lg text-accent font-semibold mb-1">
+                    <div className="font-display text-lg text-primary font-semibold mb-1">
                       {type.earnings}
                     </div>
-                    <h3 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
+                    <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
                       {type.title}
                     </h3>
-                    <p className="text-primary-foreground/70 text-sm leading-relaxed max-w-sm">
+                    <p className="text-foreground/70 text-sm leading-relaxed max-w-sm">
                       {type.description}
                     </p>
                   </div>
@@ -90,7 +90,7 @@ export function PropertyTypesSection() {
                   <div className={`absolute inset-0 flex items-end justify-center pb-8 transition-opacity duration-500 ${
                     isActive ? 'opacity-0' : 'opacity-100'
                   }`}>
-                    <span className="font-display text-xl font-bold text-primary-foreground/90 [writing-mode:vertical-rl] md:[writing-mode:horizontal-tb]">
+                    <span className="font-display text-xl font-bold text-foreground/90 [writing-mode:vertical-rl] md:[writing-mode:horizontal-tb]">
                       {type.title}
                     </span>
                   </div>
@@ -106,7 +106,7 @@ export function PropertyTypesSection() {
                 key={i}
                 onClick={() => setActive(i)}
                 className={`h-1 rounded-full transition-all duration-500 ${
-                  i === active ? 'w-8 bg-accent' : 'w-2 bg-primary/15 hover:bg-primary/30'
+                  i === active ? 'w-8 bg-primary' : 'w-2 bg-foreground/15 hover:bg-foreground/30'
                 }`}
               />
             ))}

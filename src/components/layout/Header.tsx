@@ -55,16 +55,16 @@ export function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-1 flex-shrink-0 group">
             <span className={`font-display text-2xl md:text-[1.65rem] font-bold tracking-tight transition-colors duration-300 ${
-              transparent ? 'text-primary-foreground' : 'text-primary'
+              transparent ? 'text-foreground' : 'text-foreground'
             }`}>
-              S<span className="inline-block relative w-[0.65em] h-[0.65em] -mb-[0.05em] mx-[0.02em]"><svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_6px_hsl(var(--accent)/0.6)]" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="8" fill="hsl(var(--accent))" /><circle cx="16" cy="16" r="11" stroke="hsl(var(--accent))" strokeWidth="1.5" strokeDasharray="3 4" opacity="0.5" />{[0,45,90,135,180,225,270,315].map((angle, i) => { const rad = (angle * Math.PI) / 180; const x1 = 16 + 12 * Math.cos(rad); const y1 = 16 + 12 * Math.sin(rad); const x2 = 16 + 15 * Math.cos(rad); const y2 = 16 + 15 * Math.sin(rad); return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--accent))" strokeWidth="1.8" strokeLinecap="round" />; })}</svg></span>mmer<span className="text-accent italic group-hover:brightness-110 transition-all">Vibes</span>
+              S<span className="inline-block relative w-[0.65em] h-[0.65em] -mb-[0.05em] mx-[0.02em]"><svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_6px_hsl(var(--primary)/0.6)]" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="8" fill="hsl(var(--primary))" /><circle cx="16" cy="16" r="11" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeDasharray="3 4" opacity="0.5" />{[0,45,90,135,180,225,270,315].map((angle, i) => { const rad = (angle * Math.PI) / 180; const x1 = 16 + 12 * Math.cos(rad); const y1 = 16 + 12 * Math.sin(rad); const x2 = 16 + 15 * Math.cos(rad); const y2 = 16 + 15 * Math.sin(rad); return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="round" />; })}</svg></span>mmer<span className="text-primary italic group-hover:brightness-110 transition-all">Vibes</span>
             </span>
           </Link>
 
           {/* Desktop Navigation — pill style */}
           <div className={`hidden md:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
             transparent
-              ? 'bg-primary-foreground/8 backdrop-blur-md border border-primary-foreground/10'
+              ? 'bg-foreground/8 backdrop-blur-md border border-foreground/10'
               : 'bg-muted/50 border border-border/50'
           }`}>
             {navigation.map((item) => {
@@ -76,10 +76,10 @@ export function Header() {
                   className={`relative px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-300 ${
                     active
                       ? transparent
-                        ? 'text-accent bg-accent/15'
-                        : 'text-accent bg-accent/10'
+                        ? 'text-primary bg-primary/15'
+                        : 'text-primary bg-primary/10'
                       : transparent
-                        ? 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/8'
+                        ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/8'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
@@ -100,14 +100,14 @@ export function Header() {
                     size="sm"
                     className={`gap-2 rounded-full ${
                       transparent
-                        ? 'text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                        ? 'text-foreground/80 hover:text-foreground hover:bg-foreground/10'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      transparent ? 'bg-accent/20' : 'bg-accent/10'
+                      transparent ? 'bg-primary/20' : 'bg-primary/10'
                     }`}>
-                      <User className="h-3 w-3 text-accent" />
+                      <User className="h-3 w-3 text-primary" />
                     </div>
                     Min konto
                   </Button>
@@ -138,7 +138,7 @@ export function Header() {
                     size="sm"
                     className={`rounded-full text-[13px] ${
                       transparent
-                        ? 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                        ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -146,7 +146,7 @@ export function Header() {
                   </Button>
                 </Link>
                 <Link to="/kom-i-gang">
-                  <Button variant="gold" size="sm" className="rounded-full text-[13px] px-5 shadow-[0_2px_12px_-3px_hsl(var(--accent)/0.4)]">
+                  <Button variant="gold" size="sm" className="rounded-full text-[13px] px-5 shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">
                     Udlej dit hus
                   </Button>
                 </Link>
@@ -158,7 +158,7 @@ export function Header() {
           <button
             className={`md:hidden p-2 rounded-xl transition-colors ${
               transparent
-                ? 'text-primary-foreground hover:bg-primary-foreground/10'
+                ? 'text-foreground hover:bg-foreground/10'
                 : 'text-foreground hover:bg-muted'
             }`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -187,13 +187,13 @@ export function Header() {
                         to={item.href}
                         className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                           active
-                            ? 'text-accent bg-accent/8'
+                            ? 'text-primary bg-primary/8'
                             : 'text-foreground hover:bg-muted/50'
                         }`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item.name}
-                        <ChevronRight className={`w-4 h-4 ${active ? 'text-accent' : 'text-muted-foreground/30'}`} />
+                        <ChevronRight className={`w-4 h-4 ${active ? 'text-primary' : 'text-muted-foreground/30'}`} />
                       </Link>
                     );
                   })}
@@ -220,7 +220,7 @@ export function Header() {
                         <Button variant="outline" className="w-full rounded-xl">Ejer Login</Button>
                       </Link>
                       <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--accent)/0.4)]">Udlej dit hus</Button>
+                        <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">Udlej dit hus</Button>
                       </Link>
                     </>
                   )}
