@@ -30,7 +30,7 @@ export function ComparisonSection() {
           <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
             Sammenligning
           </span>
-          <h2 className="font-display text-3xl md:text-5xl font-bold text-primary leading-tight">
+          <h2 className="font-display text-3xl md:text-5xl font-bold text-primary-foreground leading-tight">
             Hvorfor vælge SommerVibes?
           </h2>
         </motion.div>
@@ -41,12 +41,12 @@ export function ComparisonSection() {
           <div className="grid grid-cols-[1fr_1fr_1fr] gap-4 mb-2 px-2">
             <div />
             <div className="text-center">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-accent/15 text-accent text-xs font-bold uppercase tracking-wider">
                 SommerVibes
               </span>
             </div>
             <div className="text-center">
-              <span className="text-xs font-medium text-muted-foreground/50 uppercase tracking-wider">
+              <span className="text-xs font-medium text-primary-foreground/40 uppercase tracking-wider">
                 Andre
               </span>
             </div>
@@ -60,16 +60,16 @@ export function ComparisonSection() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
-                className="grid grid-cols-[1fr_1fr_1fr] gap-4 items-center py-4 border-b border-border/40 last:border-0 group hover:bg-accent/[0.02] rounded-lg px-2 transition-colors"
+                className="grid grid-cols-[1fr_1fr_1fr] gap-4 items-center py-4 border-b border-primary-foreground/10 last:border-0 group hover:bg-primary-foreground/[0.03] rounded-lg px-2 transition-colors"
               >
-                <span className="text-sm font-medium text-primary">{row.label}</span>
+                <span className="text-sm font-medium text-primary-foreground">{row.label}</span>
                 <div className="flex items-center justify-center gap-2">
                   <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                  <span className="text-sm text-primary/80">{row.us}</span>
+                  <span className="text-sm text-primary-foreground/80">{row.us}</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
-                  <X className="w-3.5 h-3.5 text-destructive/50 flex-shrink-0" />
-                  <span className="text-sm text-muted-foreground/60">{row.them}</span>
+                  <X className="w-3.5 h-3.5 text-destructive/60 flex-shrink-0" />
+                  <span className="text-sm text-primary-foreground/40">{row.them}</span>
                 </div>
               </motion.div>
             ))}
