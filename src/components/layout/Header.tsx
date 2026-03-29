@@ -112,15 +112,29 @@ export function Header() {
                     Min konto
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 rounded-xl border-border/50 shadow-elevated">
+                <DropdownMenuContent align="end" className="w-52 rounded-xl border-border/50 shadow-elevated">
+                  <div className="px-3 py-2 text-xs text-muted-foreground truncate">{user.email}</div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="rounded-lg">
+                    <Link to="/" className="flex items-center gap-2">
+                      <ChevronRight className="h-3 w-3" />
+                      Forside
+                    </Link>
+                  </DropdownMenuItem>
                   {isOwner && (
                     <DropdownMenuItem asChild className="rounded-lg">
-                      <Link to="/owner">Ejerportal</Link>
+                      <Link to="/owner" className="flex items-center gap-2">
+                        <ChevronRight className="h-3 w-3" />
+                        Ejerportal
+                      </Link>
                     </DropdownMenuItem>
                   )}
                   {isAdmin && (
                     <DropdownMenuItem asChild className="rounded-lg">
-                      <Link to="/admin">Admin</Link>
+                      <Link to="/admin" className="flex items-center gap-2">
+                        <ChevronRight className="h-3 w-3" />
+                        Admin Portal
+                      </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
