@@ -226,7 +226,7 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Dannebrog swoosh */}
+      {/* Brand swoosh */}
       <motion.div
         style={{ y: swooshY, rotate: swooshRotate }}
         className="absolute bottom-0 right-0 w-full h-full pointer-events-none z-[5] overflow-hidden"
@@ -238,77 +238,65 @@ export function HeroSection() {
           className="absolute bottom-0 right-0 w-[110%] h-full"
           preserveAspectRatio="none"
         >
-          {/* Broad red band — outer */}
+          {/* Soft wide gold glow — background layer */}
           <motion.path
             d="M1550 120 Q1300 280 1100 460 Q900 640 720 780 Q600 870 520 950"
-            stroke="#C8102E"
-            strokeWidth="62"
+            stroke="hsl(43, 74%, 49%)"
+            strokeWidth="70"
             strokeLinecap="round"
             fill="none"
-            opacity="0.5"
+            opacity="0.12"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
-            transition={{ duration: 2, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 2.2, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
           />
-          {/* White cross stripe on outer band */}
+          {/* Primary gold ribbon */}
           <motion.path
             d="M1550 120 Q1300 280 1100 460 Q900 640 720 780 Q600 870 520 950"
-            stroke="white"
-            strokeWidth="22"
+            stroke="hsl(43, 74%, 49%)"
+            strokeWidth="28"
             strokeLinecap="round"
             fill="none"
-            opacity="0.85"
+            opacity="0.55"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
-            transition={{ duration: 1.8, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
           />
-          {/* Second red band — inner */}
+          {/* Bright gold core */}
           <motion.path
-            d="M1530 150 Q1280 310 1080 490 Q880 670 700 805 Q580 890 500 965"
-            stroke="#C8102E"
-            strokeWidth="52"
+            d="M1550 120 Q1300 280 1100 460 Q900 640 720 780 Q600 870 520 950"
+            stroke="hsl(43, 80%, 58%)"
+            strokeWidth="8"
             strokeLinecap="round"
             fill="none"
-            opacity="0.45"
+            opacity="0.7"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
-            transition={{ duration: 1.6, delay: 1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.6, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
           />
-          {/* White cross stripe on inner band */}
+          {/* Secondary ribbon — offset */}
           <motion.path
-            d="M1530 150 Q1280 310 1080 490 Q880 670 700 805 Q580 890 500 965"
-            stroke="white"
+            d="M1530 155 Q1280 315 1080 495 Q880 675 700 810 Q580 895 500 970"
+            stroke="hsl(43, 74%, 49%)"
             strokeWidth="18"
             strokeLinecap="round"
             fill="none"
-            opacity="0.75"
+            opacity="0.35"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1.5, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
           />
-          {/* Gold accent — outer edge */}
+          {/* White shimmer accent */}
           <motion.path
-            d="M1565 98 Q1315 258 1115 438 Q915 618 735 758 Q615 848 535 928"
-            stroke="hsl(43, 74%, 49%)"
-            strokeWidth="8"
+            d="M1565 100 Q1315 260 1115 440 Q915 620 735 760 Q615 850 535 930"
+            stroke="white"
+            strokeWidth="4"
             strokeLinecap="round"
             fill="none"
-            opacity="0.6"
+            opacity="0.3"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
-            transition={{ duration: 1.4, delay: 1.3, ease: [0.22, 1, 0.36, 1] }}
-          />
-          {/* Gold accent — inner edge */}
-          <motion.path
-            d="M1510 175 Q1260 335 1060 515 Q860 695 680 830 Q560 915 480 990"
-            stroke="hsl(43, 74%, 49%)"
-            strokeWidth="6"
-            strokeLinecap="round"
-            fill="none"
-            opacity="0.4"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1.3, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.3, delay: 1.3, ease: [0.22, 1, 0.36, 1] }}
           />
         </svg>
       </motion.div>
