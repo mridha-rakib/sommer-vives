@@ -61,7 +61,7 @@ export function HowItWorksSection() {
                 </Link>
                 <Link to="/contact">
                   <Button variant="outline" size="lg" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
-                    Book en vurdering
+                    Book et udlejningstjek
                   </Button>
                 </Link>
               </div>

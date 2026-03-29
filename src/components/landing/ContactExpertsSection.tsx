@@ -26,7 +26,7 @@ export function ContactExpertsSection() {
                 <span className="block text-accent italic font-normal">dit sommerhus</span>
               </h2>
               <p className="text-lg text-primary-foreground/70 leading-relaxed mb-10 max-w-lg">
-                Book en gratis og uforpligtende vurdering — vi kører ud til dig.
+                Book et gratis og uforpligtende udlejningstjek — vi kører ud til dig.
                 Eller opret dit hus online på 5 minutter.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 mb-8">
@@ -42,7 +42,7 @@ export function ContactExpertsSection() {
                     size="xl"
                     className="border-accent/40 text-accent hover:bg-accent/10 text-base w-full sm:w-auto"
                   >
-                    Book gratis vurdering
+                    Book gratis udlejningstjek
                   </Button>
                 </Link>
               </div>

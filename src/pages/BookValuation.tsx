@@ -29,7 +29,7 @@ const regions = [
 
 const benefits = [
   { icon: Shield, title: '100% gratis & uforpligtende', desc: 'Ingen skjulte gebyrer eller bindinger' },
-  { icon: Home, title: 'Vi kører ud til dig', desc: 'Professionel vurdering på stedet' },
+  { icon: Home, title: 'Vi kører ud til dig', desc: 'Professionelt udlejningstjek på stedet' },
   { icon: Star, title: 'Individuel prisanalyse', desc: 'Baseret på lokale markedsdata' },
   { icon: Clock, title: 'Svar inden 24 timer', desc: 'Vi kontakter dig hurtigt' },
 ];
@@ -64,7 +64,7 @@ export default function BookValuation() {
         property_id: '00000000-0000-0000-0000-000000000000',
         check_in: date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
         check_out: date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-        message: `Vurdering - ${form.region} - ${form.address}\nBoligtype: ${form.propertyType}\n${form.message}`,
+        message: `Udlejningstjek - ${form.region} - ${form.address}\nBoligtype: ${form.propertyType}\n${form.message}`,
         status: 'new',
       });
       if (error) throw error;
@@ -91,9 +91,9 @@ export default function BookValuation() {
               <CheckCircle2 className="w-10 h-10 text-accent" />
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">Tak for din henvendelse!</h1>
-            <p className="text-muted-foreground text-lg mb-8">Vi kontakter dig inden 24 timer for at aftale en tid til din gratis vurdering.</p>
+            <p className="text-muted-foreground text-lg mb-8">Vi kontakter dig inden 24 timer for at aftale en tid til dit gratis udlejningstjek.</p>
             <Button variant="gold" size="xl" onClick={() => setSubmitted(false)} className="gap-2">
-              Book endnu en vurdering <ArrowRight className="w-4 h-4" />
+              Book endnu et udlejningstjek <ArrowRight className="w-4 h-4" />
             </Button>
           </motion.div>
         </section>
@@ -117,11 +117,11 @@ export default function BookValuation() {
           >
             <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">Gratis & uforpligtende</span>
             <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground mb-6 leading-[0.95]">
-              Book en gratis
-              <span className="block text-accent italic font-normal">udlejningsvurdering</span>
+              Book et gratis
+              <span className="block text-accent italic font-normal">udlejningstjek</span>
             </h1>
             <p className="text-primary-foreground/70 text-lg md:text-xl max-w-2xl leading-relaxed">
-              Vi kører ud til dig og vurderer dit sommerhus' udlejningspotentiale — helt gratis. 
+              Vi kører ud til dig og tjekker dit sommerhus' udlejningspotentiale — helt gratis. 
               Få et konkret overblik over forventet indtjening og kom i gang med at tjene penge.
             </p>
           </motion.div>
@@ -227,7 +227,7 @@ export default function BookValuation() {
                 </div>
 
                 <Button type="submit" variant="gold" size="xl" disabled={submitting} className="w-full gap-3 text-base group">
-                  {submitting ? 'Sender...' : 'Book gratis vurdering'}
+                  {submitting ? 'Sender...' : 'Book gratis udlejningstjek'}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
 
@@ -344,7 +344,7 @@ export default function BookValuation() {
           >
             <p className="text-primary-foreground/60 text-lg mb-6">Kan du ikke finde dit område? Kontakt os alligevel — vi finder en løsning.</p>
             <Button variant="gold" size="xl" className="gap-3 group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-              Book din vurdering nu
+              Book dit udlejningstjek nu
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </motion.div>
