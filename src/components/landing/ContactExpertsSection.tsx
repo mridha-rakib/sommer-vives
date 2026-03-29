@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Clock } from 'lucide-react';
 
 export function ContactExpertsSection() {
   const { ref, isInView } = useScrollReveal();
@@ -23,9 +23,22 @@ export function ContactExpertsSection() {
               Lad os snakke om{' '}
               <span className="block text-accent italic font-normal mt-2">dit sommerhus</span>
             </h2>
-            <p className="text-lg md:text-xl text-primary-foreground/50 leading-relaxed mb-12 max-w-lg mx-auto">
+            <p className="text-lg md:text-xl text-primary-foreground/50 leading-relaxed mb-8 max-w-lg mx-auto">
               Book et gratis og uforpligtende udlejningstjek — vi kører ud til dig.
             </p>
+          </motion.div>
+
+          {/* Urgency badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 mb-10"
+          >
+            <Clock className="w-3.5 h-3.5 text-accent" />
+            <span className="text-accent text-sm font-semibold">
+              Kun 8 ledige pladser i denne sæson
+            </span>
           </motion.div>
 
           <motion.div
