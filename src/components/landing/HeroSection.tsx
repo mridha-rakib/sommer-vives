@@ -22,13 +22,12 @@ export function HeroSection() {
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
         {/* Cinematic overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/40 to-primary/80" />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/60 via-primary/50 to-primary/80" />
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex-1 flex items-center pt-20">
-        <div className="container mx-auto px-4 md:px-8">
+      <div className="relative z-10 flex-1 flex items-center pt-16">
+        <div className="container mx-auto px-4 md:px-8 py-12 md:py-16">
           <div className="max-w-4xl">
             {/* Overline */}
             <motion.div
@@ -88,7 +87,7 @@ export function HeroSection() {
                 <Button
                   variant="outline"
                   size="xl"
-                  className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 text-base gap-2"
+                  className="border-accent/50 text-accent hover:bg-accent/10 text-base gap-2"
                 >
                   <Play className="w-4 h-4" />
                   Opret dit hus på 5 min
