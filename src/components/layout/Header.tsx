@@ -1,8 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +26,11 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const transparent = isHome && !scrolled && !mobileMenuOpen;
 
   const navigation = [
@@ -34,64 +40,91 @@ export function Header() {
     { name: 'Teamet', href: '/team' },
   ];
 
+  const isActiveLink = (href: string) => location.pathname === href;
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         transparent
-          ? 'bg-transparent border-b border-transparent'
-          : 'bg-background/95 backdrop-blur-sm border-b border-border'
+          ? 'bg-transparent'
+          : 'bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-[0_1px_20px_-6px_rgba(0,0,0,0.1)]'
       }`}
     >
       <nav className="container mx-auto px-4 md:px-8">
-        <div className="flex h-16 md:h-20 items-center justify-between">
-          <Link to="/" className="flex items-center gap-1 flex-shrink-0">
-            <span className={`font-display text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300 ${
+        <div className="flex h-16 md:h-[72px] items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-1 flex-shrink-0 group">
+            <span className={`font-display text-2xl md:text-[1.65rem] font-bold tracking-tight transition-colors duration-300 ${
               transparent ? 'text-primary-foreground' : 'text-primary'
             }`}>
-              S<span className="inline-block relative w-[0.65em] h-[0.65em] -mb-[0.05em] mx-[0.02em]"><svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_6px_hsl(var(--accent)/0.6)]" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="8" fill="hsl(var(--accent))" /><circle cx="16" cy="16" r="11" stroke="hsl(var(--accent))" strokeWidth="1.5" strokeDasharray="3 4" opacity="0.5" />{[0,45,90,135,180,225,270,315].map((angle, i) => { const rad = (angle * Math.PI) / 180; const x1 = 16 + 12 * Math.cos(rad); const y1 = 16 + 12 * Math.sin(rad); const x2 = 16 + 15 * Math.cos(rad); const y2 = 16 + 15 * Math.sin(rad); return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--accent))" strokeWidth="1.8" strokeLinecap="round" />; })}</svg></span>mmer<span className="text-accent italic">Vibes</span>
+              S<span className="inline-block relative w-[0.65em] h-[0.65em] -mb-[0.05em] mx-[0.02em]"><svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_6px_hsl(var(--accent)/0.6)]" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="8" fill="hsl(var(--accent))" /><circle cx="16" cy="16" r="11" stroke="hsl(var(--accent))" strokeWidth="1.5" strokeDasharray="3 4" opacity="0.5" />{[0,45,90,135,180,225,270,315].map((angle, i) => { const rad = (angle * Math.PI) / 180; const x1 = 16 + 12 * Math.cos(rad); const y1 = 16 + 12 * Math.sin(rad); const x2 = 16 + 15 * Math.cos(rad); const y2 = 16 + 15 * Math.sin(rad); return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--accent))" strokeWidth="1.8" strokeLinecap="round" />; })}</svg></span>mmer<span className="text-accent italic group-hover:brightness-110 transition-all">Vibes</span>
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`text-sm font-medium transition-colors ${
-                  transparent
-                    ? 'text-primary-foreground/80 hover:text-accent'
-                    : 'text-muted-foreground hover:text-primary'
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+          {/* Desktop Navigation — pill style */}
+          <div className={`hidden md:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
+            transparent
+              ? 'bg-primary-foreground/8 backdrop-blur-md border border-primary-foreground/10'
+              : 'bg-muted/50 border border-border/50'
+          }`}>
+            {navigation.map((item) => {
+              const active = isActiveLink(item.href);
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`relative px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-300 ${
+                    active
+                      ? transparent
+                        ? 'text-accent bg-accent/15'
+                        : 'text-accent bg-accent/10'
+                      : transparent
+                        ? 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/8'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
+          {/* Right side actions */}
+          <div className="hidden md:flex items-center gap-2">
             <LanguageSelector />
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant={transparent ? 'ghost' : 'outline'} size="sm" className={`gap-2 ${transparent ? 'text-primary-foreground border-primary-foreground/30' : ''}`}>
-                    <User className="h-4 w-4" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`gap-2 rounded-full ${
+                      transparent
+                        ? 'text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      transparent ? 'bg-accent/20' : 'bg-accent/10'
+                    }`}>
+                      <User className="h-3 w-3 text-accent" />
+                    </div>
                     Min konto
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-48 rounded-xl border-border/50 shadow-elevated">
                   {isOwner && (
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className="rounded-lg">
                       <Link to="/owner">Ejerportal</Link>
                     </DropdownMenuItem>
                   )}
                   {isAdmin && (
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className="rounded-lg">
                       <Link to="/admin">Admin</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="text-destructive">
+                  <DropdownMenuItem onClick={signOut} className="text-destructive rounded-lg">
                     <LogOut className="h-4 w-4 mr-2" />
                     Log ud
                   </DropdownMenuItem>
@@ -100,12 +133,22 @@ export function Header() {
             ) : (
               <>
                 <Link to="/auth">
-                  <Button variant="ghost" size="sm" className={transparent ? 'text-primary-foreground hover:text-accent' : ''}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`rounded-full text-[13px] ${
+                      transparent
+                        ? 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
                     Ejer Login
                   </Button>
                 </Link>
                 <Link to="/kom-i-gang">
-                  <Button variant="gold" size="sm">Udlej dit hus</Button>
+                  <Button variant="gold" size="sm" className="rounded-full text-[13px] px-5 shadow-[0_2px_12px_-3px_hsl(var(--accent)/0.4)]">
+                    Udlej dit hus
+                  </Button>
                 </Link>
               </>
             )}
@@ -113,60 +156,79 @@ export function Header() {
 
           {/* Mobile menu button */}
           <button
-            className="md:hidden"
+            className={`md:hidden p-2 rounded-xl transition-colors ${
+              transparent
+                ? 'text-primary-foreground hover:bg-primary-foreground/10'
+                : 'text-foreground hover:bg-muted'
+            }`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            {mobileMenuOpen ? (
-              <X className={`h-6 w-6 ${transparent ? 'text-primary-foreground' : ''}`} />
-            ) : (
-              <Menu className={`h-6 w-6 ${transparent ? 'text-primary-foreground' : ''}`} />
-            )}
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border bg-background rounded-b-2xl">
-            <div className="flex flex-col gap-4">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                {user ? (
-                  <>
-                    {isOwner && (
-                      <Link to="/owner" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full">Ejerportal</Button>
+        {/* Mobile Navigation — slide down */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="md:hidden overflow-hidden"
+            >
+              <div className="pb-5 pt-2">
+                <div className="flex flex-col gap-1 mb-4">
+                  {navigation.map((item) => {
+                    const active = isActiveLink(item.href);
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.href}
+                        className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                          active
+                            ? 'text-accent bg-accent/8'
+                            : 'text-foreground hover:bg-muted/50'
+                        }`}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {item.name}
+                        <ChevronRight className={`w-4 h-4 ${active ? 'text-accent' : 'text-muted-foreground/30'}`} />
                       </Link>
-                    )}
-                    {isAdmin && (
-                      <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full">Admin</Button>
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
+                  {user ? (
+                    <>
+                      {isOwner && (
+                        <Link to="/owner" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="outline" className="w-full rounded-xl">Ejerportal</Button>
+                        </Link>
+                      )}
+                      {isAdmin && (
+                        <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="outline" className="w-full rounded-xl">Admin</Button>
+                        </Link>
+                      )}
+                      <Button variant="ghost" onClick={signOut} className="w-full text-destructive rounded-xl">Log ud</Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full rounded-xl">Ejer Login</Button>
                       </Link>
-                    )}
-                    <Button variant="ghost" onClick={signOut} className="w-full text-destructive">Log ud</Button>
-                  </>
-                ) : (
-                  <>
-                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full">Ejer Login</Button>
-                    </Link>
-                    <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="gold" className="w-full">Udlej dit hus</Button>
-                    </Link>
-                  </>
-                )}
+                      <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--accent)/0.4)]">Udlej dit hus</Button>
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </header>
   );
