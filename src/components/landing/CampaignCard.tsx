@@ -1,93 +1,133 @@
-import { Flame, Camera, ChevronRight, Gift, Clock } from 'lucide-react';
+import { Camera, Sparkles, CreditCard, ChevronRight, Shield, Users, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
+const benefits = [
+  {
+    icon: Camera,
+    title: 'Professionel foto- og videopakke',
+    text: 'Professionelle billeder og video, der får dit hus til at skille sig ud og øger chancen for flere bookinger.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Optimeret opstart',
+    text: 'Vi hjælper med præsentation, opsætning og de detaljer, der gør boligen mere indbydende for gæster.',
+  },
+  {
+    icon: CreditCard,
+    title: 'Ingen betaling ved opstart',
+    text: 'Du kommer i gang uden opstartsbetaling. Opstarten afregnes via dine fremtidige bookinger.',
+  },
+];
+
+const trustPoints = [
+  { icon: Shield, text: 'Kun for nye husejere' },
+  { icon: Star, text: 'Begrænset antal pladser' },
+  { icon: Users, text: 'Uforpligtende gennemgang' },
+];
+
 export function CampaignCard() {
   return (
-    <section className="relative z-10 py-8 sm:py-12">
+    <section className="relative z-10 py-12 sm:py-20">
       <div className="container mx-auto px-4">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="max-w-4xl mx-auto"
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="max-w-5xl mx-auto"
         >
-          <div className="relative rounded-3xl border border-accent/20 bg-primary/95 backdrop-blur-xl shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.5)] overflow-hidden">
-            {/* Decorative glow */}
-            <div className="absolute -top-20 -right-20 w-60 h-60 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
-            
-            {/* Top label */}
-            <div className="relative flex items-center justify-center gap-2 py-2.5 bg-accent/15 border-b border-accent/20">
-              <Gift className="w-3.5 h-3.5 text-accent" />
-              <span className="text-xs font-semibold text-accent tracking-wide uppercase">Eksklusivt introduktionstilbud</span>
-              <Gift className="w-3.5 h-3.5 text-accent" />
+          <div className="relative rounded-[2rem] bg-primary overflow-hidden shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.6)]">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/[0.04] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/[0.03] rounded-full blur-[80px] translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--accent)/0.06),transparent_60%)] pointer-events-none" />
+
+            {/* Top badge */}
+            <div className="relative flex items-center justify-center py-3 border-b border-accent/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <span className="text-[11px] font-bold text-accent tracking-[0.2em] uppercase">
+                  Eksklusivt introduktionstilbud
+                </span>
+                <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              </div>
             </div>
 
-            <div className="relative px-6 py-8 sm:px-10 sm:py-10">
-              {/* Headline */}
-              <div className="text-center mb-8">
-                <h3 className="text-2xl sm:text-3xl font-display font-bold text-primary-foreground mb-2">
-                  Start din udlejning med <span className="text-accent">ekstra fordele</span>
+            <div className="relative px-6 py-10 sm:px-12 sm:py-14 lg:px-16 lg:py-16">
+              {/* Header */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.15 }}
+                className="text-center max-w-2xl mx-auto mb-12"
+              >
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-primary-foreground leading-tight mb-4">
+                  Få flere bookinger og mindre bøvl{' '}
+                  <span className="text-accent">med dit sommerhus</span>
                 </h3>
-                <p className="text-sm text-primary-foreground/60">Tilbuddet gælder kun nye kunder — ingen betaling nu</p>
-              </div>
+                <p className="text-sm sm:text-base text-primary-foreground/50 leading-relaxed max-w-xl mx-auto">
+                  Som ny husejer hos os får du en eksklusiv opstartspakke med professionel
+                  præsentation, stærkere markedsføring og ingen betaling ved opstart.
+                </p>
+              </motion.div>
 
-              {/* Two offer cards */}
-              <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-8">
-                {/* Offer 1 - Free fireplace */}
-                <div className="group relative rounded-2xl border border-accent/20 bg-primary-foreground/5 hover:bg-primary-foreground/10 transition-all duration-300 p-6">
-                  <div className="absolute top-4 right-4">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-accent/20 text-accent text-[10px] font-bold uppercase tracking-wider">Gratis</span>
-                  </div>
-                  <div className="w-12 h-12 rounded-2xl bg-accent/15 flex items-center justify-center mb-4">
-                    <Flame className="w-6 h-6 text-accent" />
-                  </div>
-                  <h4 className="text-lg font-semibold text-primary-foreground mb-1">Gratis biopejs</h4>
-                  <p className="text-sm text-primary-foreground/50 leading-relaxed">Inkluderet ved opstart — gør dit hus mere attraktivt for gæsterne og øg din bookingrate.</p>
-                  <p className="text-xs text-accent/80 mt-3 font-medium">Værdi: 3.500 kr.</p>
-                </div>
-
-                {/* Offer 2 - Photo/video */}
-                <div className="group relative rounded-2xl border border-accent/20 bg-primary-foreground/5 hover:bg-primary-foreground/10 transition-all duration-300 p-6">
-                  <div className="absolute top-4 right-4">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-accent/20 text-accent text-[10px] font-bold uppercase tracking-wider">-48%</span>
-                  </div>
-                  <div className="w-12 h-12 rounded-2xl bg-accent/15 flex items-center justify-center mb-4">
-                    <Camera className="w-6 h-6 text-accent" />
-                  </div>
-                  <h4 className="text-lg font-semibold text-primary-foreground mb-1">Foto- & videopakke</h4>
-                  <p className="text-sm text-primary-foreground/50 leading-relaxed">Professionelle billeder og video der sælger dit hus — betales via dine fremtidige bookings.</p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <span className="text-xs line-through text-primary-foreground/30">12.500 kr.</span>
-                    <span className="text-sm font-bold text-accent">6.500 kr.</span>
-                  </div>
-                </div>
+              {/* Benefit cards */}
+              <div className="grid sm:grid-cols-3 gap-4 sm:gap-5 lg:gap-6 mb-12">
+                {benefits.map((b, i) => (
+                  <motion.div
+                    key={b.title}
+                    initial={{ opacity: 0, y: 25 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
+                    className="group relative rounded-2xl border border-accent/10 bg-primary-foreground/[0.03] p-6 sm:p-7 transition-all duration-500 hover:bg-primary-foreground/[0.07] hover:border-accent/20 hover:shadow-[0_8px_30px_-10px_hsl(var(--accent)/0.15)]"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center mb-5 transition-all duration-500 group-hover:bg-accent/20 group-hover:scale-105">
+                      <b.icon className="w-5 h-5 text-accent" />
+                    </div>
+                    <h4 className="text-base font-semibold text-primary-foreground mb-2 leading-snug">
+                      {b.title}
+                    </h4>
+                    <p className="text-sm text-primary-foreground/40 leading-relaxed">
+                      {b.text}
+                    </p>
+                  </motion.div>
+                ))}
               </div>
 
               {/* CTA */}
-              <div className="text-center">
-                <Button asChild variant="gold" size="lg" className="rounded-full px-10 text-base">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="text-center"
+              >
+                <Button
+                  asChild
+                  variant="gold"
+                  size="xl"
+                  className="rounded-full px-10 sm:px-14 shadow-[0_4px_20px_-4px_hsl(var(--accent)/0.5)] hover:shadow-[0_8px_30px_-4px_hsl(var(--accent)/0.6)] transition-all duration-300"
+                >
                   <Link to="/kom-i-gang">
-                    Kom i gang nu — helt gratis
+                    Få en gratis vurdering af dit sommerhus
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Link>
                 </Button>
-              </div>
 
-              {/* Footer terms */}
-              <div className="flex items-center justify-center gap-4 mt-6 pt-5 border-t border-primary-foreground/10">
-                <div className="flex items-center gap-1.5 text-primary-foreground/40">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span className="text-[11px]">6 måneders binding</span>
+                {/* Trust points */}
+                <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-6">
+                  {trustPoints.map((tp, i) => (
+                    <div key={i} className="flex items-center gap-1.5 text-primary-foreground/30">
+                      <tp.icon className="w-3.5 h-3.5 text-accent/50" />
+                      <span className="text-[11px] font-medium">{tp.text}</span>
+                    </div>
+                  ))}
                 </div>
-                <span className="text-primary-foreground/20">•</span>
-                <span className="text-[11px] text-primary-foreground/40">Ingen betaling ved opstart</span>
-                <span className="text-primary-foreground/20">•</span>
-                <span className="text-[11px] text-primary-foreground/40">Opsig når du vil herefter</span>
-              </div>
+              </motion.div>
             </div>
           </div>
         </motion.div>
