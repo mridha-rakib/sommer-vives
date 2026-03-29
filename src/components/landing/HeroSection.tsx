@@ -56,7 +56,7 @@ export function HeroSection() {
               >
                 Tjen penge på
                 <br />
-                dit sommerhus
+                <span className="italic font-normal text-accent">dit sommerhus</span>
               </motion.h1>
 
               <motion.p

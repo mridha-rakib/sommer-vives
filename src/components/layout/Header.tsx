@@ -48,7 +48,7 @@ export function Header() {
             <span className={`font-display text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300 ${
               transparent ? 'text-primary-foreground' : 'text-primary'
             }`}>
-              Sommer<span className="text-accent">Vibes</span>
+              Sommer<span className="text-accent italic relative">V<span className="absolute -top-1 left-[0.32em] text-[0.35em] not-italic">☀</span>ibes</span>
             </span>
           </Link>
 
