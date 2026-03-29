@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Play, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Play, CheckCircle2, Zap, Droplets, Flame, BedDouble, Clock, Sparkles, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
@@ -155,11 +155,50 @@ export function HeroSection() {
         </div>
       </div>
 
+      {/* Revenue Streams Strip */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1.3 }}
+        className="relative z-10 bg-accent/10 backdrop-blur-sm border-t border-accent/20"
+      >
+        <div className="container mx-auto px-4 py-3 sm:py-4">
+          <div className="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-3">
+            <TrendingUp className="w-4 h-4 text-accent flex-shrink-0" />
+            <p className="text-[10px] sm:text-xs font-semibold text-accent tracking-[0.15em] uppercase">
+              Merindtjening andre bureauer ikke tilbyder
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {[
+              { icon: Zap, label: 'El-indtjening' },
+              { icon: Droplets, label: 'Vand' },
+              { icon: Flame, label: 'Varme' },
+              { icon: BedDouble, label: 'Sengepakker' },
+              { icon: Clock, label: 'Tidlig check-in' },
+              { icon: Clock, label: 'Sen check-out' },
+              { icon: Sparkles, label: 'Og meget mere' },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 1.5 + i * 0.08 }}
+                className="flex items-center gap-1.5 bg-primary-foreground/10 backdrop-blur-sm rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 border border-primary-foreground/10 hover:border-accent/30 hover:bg-accent/10 transition-all duration-300 group cursor-default"
+              >
+                <item.icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-accent group-hover:scale-110 transition-transform" />
+                <span className="text-[10px] sm:text-xs text-primary-foreground/80 font-medium whitespace-nowrap">{item.label}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
       {/* Bottom stats strip */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.5 }}
+        transition={{ duration: 0.6, delay: 1.7 }}
         className="relative z-10 bg-primary/60 backdrop-blur-sm border-t border-primary-foreground/10"
       >
         <div className="container mx-auto px-4">
