@@ -75,17 +75,17 @@ export function RevenueSection() {
           transition={{ duration: 0.7 }}
           className="text-center mb-12 md:mb-16"
         >
-          <span className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-4 py-1.5 text-accent font-body text-xs font-semibold tracking-[0.2em] uppercase mb-5">
+          <span className="inline-flex items-center gap-2 bg-background/10 border border-background/20 rounded-full px-4 py-1.5 text-background font-body text-xs font-semibold tracking-[0.2em] uppercase mb-5">
             <TrendingUp className="w-3.5 h-3.5" />
             Kun hos SommerVibes
           </span>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-4">
-            Op til <span className="text-accent italic font-normal">+20% merindtjening</span>
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-background mb-4">
+            Op til <span className="text-background/90 italic font-normal">+20% merindtjening</span>
           </h2>
-          <p className="text-primary-foreground/60 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
-            Traditionelle bureauer beholder tillægsindtægter. Hos os går alt til dig —
-            forbrugsafregning, tillæg og gebyrer er <strong className="text-primary-foreground/80">dine penge</strong>.
-          </p>
+           <p className="text-background/60 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+             Traditionelle bureauer beholder tillægsindtægter. Hos os går alt til dig —
+             forbrugsafregning, tillæg og gebyrer er <strong className="text-background/80">dine penge</strong>.
+           </p>
         </motion.div>
 
         {/* Visual bar */}
@@ -96,7 +96,7 @@ export function RevenueSection() {
           className="mb-10 md:mb-14 max-w-2xl mx-auto origin-left"
         >
           <div className="flex items-center gap-3 mb-2">
-            <div className="flex-1 flex h-2.5 rounded-full overflow-hidden bg-primary-foreground/5 border border-primary-foreground/10">
+            <div className="flex-1 flex h-2.5 rounded-full overflow-hidden bg-background/5 border border-background/10">
               {categories.map((cat, i) => (
                 <motion.div
                   key={i}
@@ -112,7 +112,7 @@ export function RevenueSection() {
                 />
               ))}
             </div>
-            <span className="font-display text-xl md:text-2xl font-bold text-accent whitespace-nowrap">+{totalShare}%</span>
+            <span className="font-display text-xl md:text-2xl font-bold text-background whitespace-nowrap">+{totalShare}%</span>
           </div>
         </motion.div>
 
