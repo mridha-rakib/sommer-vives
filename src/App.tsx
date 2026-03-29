@@ -36,6 +36,10 @@ import AdminOwners from "./pages/admin/AdminOwnersNew";
 import AdminProperties from "./pages/admin/AdminProperties";
 import AdminPropertyEdit from "./pages/admin/AdminPropertyEdit";
 import AdminListings from "./pages/admin/AdminListings";
+import AdminListingsNew from "./pages/admin/AdminListingsNew";
+import AdminPricing from "./pages/admin/AdminPricing";
+import AdminCalendarPage from "./pages/admin/AdminCalendarPage";
+import AdminEmailsPage from "./pages/admin/AdminEmailsPage";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminInquiries from "./pages/admin/AdminInquiries";
 import AdminBookings from "./pages/admin/AdminBookings";
@@ -116,6 +120,10 @@ const App = () => (
             <Route path="/admin/properties" element={<ProtectedRoute requireAdmin><AdminProperties /></ProtectedRoute>} />
             <Route path="/admin/properties/:id/edit" element={<ProtectedRoute requireAdmin><AdminPropertyEdit /></ProtectedRoute>} />
             <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListings /></ProtectedRoute>} />
+            <Route path="/admin/listings-new" element={<ProtectedRoute requireAdmin><AdminListingsNew /></ProtectedRoute>} />
+            <Route path="/admin/pricing" element={<ProtectedRoute requireAdmin><AdminPricing /></ProtectedRoute>} />
+            <Route path="/admin/calendar" element={<ProtectedRoute requireAdmin><AdminCalendarPage /></ProtectedRoute>} />
+            <Route path="/admin/emails" element={<ProtectedRoute requireAdmin><AdminEmailsPage /></ProtectedRoute>} />
             <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
             <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />
             <Route path="/admin/guests" element={<ProtectedRoute requireAdmin><AdminGuests /></ProtectedRoute>} />

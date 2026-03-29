@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Settings, Users, Building, Wallet, LogOut, Menu, X, Shield, Calendar, UserCheck, Activity, MessageCircle } from 'lucide-react';
+import { Home, Settings, Users, Building, Wallet, LogOut, Menu, X, Shield, Calendar, UserCheck, Activity, MessageCircle, Tag, Mail, List } from 'lucide-react';
 import { GlobalSearch } from '@/components/admin/GlobalSearch';
 
 interface AdminLayoutProps {
@@ -14,12 +14,16 @@ import { Calculator } from 'lucide-react';
 const navItems = [
   { name: 'Dashboard', href: '/admin', icon: Home },
   { name: 'Bookinger', href: '/admin/bookings', icon: Calendar },
+  { name: 'Listings', href: '/admin/listings-new', icon: List },
+  { name: 'Priser & Sæsoner', href: '/admin/pricing', icon: Tag },
+  { name: 'Kalender', href: '/admin/calendar', icon: Calendar },
   { name: 'Boliger', href: '/admin/properties', icon: Building },
   { name: 'Gæster', href: '/admin/guests', icon: Users },
   { name: 'Ejere', href: '/admin/owners', icon: UserCheck },
   { name: 'Afregning', href: '/admin/payouts', icon: Wallet },
-  { name: 'Optimeringer', href: '/admin/optimizations', icon: Calculator },
+  { name: 'Emails', href: '/admin/emails', icon: Mail },
   { name: 'Live Chat', href: '/admin/chat', icon: MessageCircle },
+  { name: 'Optimeringer', href: '/admin/optimizations', icon: Calculator },
   { name: 'Aktivitetslog', href: '/admin/audit-log', icon: Activity },
   { name: 'Indstillinger', href: '/admin/settings', icon: Settings },
 ];
