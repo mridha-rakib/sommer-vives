@@ -17,6 +17,7 @@ import { ContactExpertsSection } from '@/components/landing/ContactExpertsSectio
 const Index = () => {
   return (
     <PublicLayout>
+      <ExitIntentPopup />
       {/* 1. Hero — full viewport, dark, cinematic */}
       <HeroSection />
       {/* 2. Social proof — minimal stat strip + logo marquee */}
