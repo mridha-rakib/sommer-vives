@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react';
-import logo from '@/assets/sommervibes-logo.png';
 
 export function Footer() {
   return (
@@ -9,7 +8,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           <div className="md:col-span-1">
             <Link to="/" className="inline-block mb-4">
-              <img src={logo} alt="SommerVibes" className="h-8 brightness-200" />
+              <span className="font-display text-2xl font-bold tracking-tight text-primary-foreground">
+                Sommer<span className="text-accent">Vibes</span>
+              </span>
             </Link>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               Din partner i professionel sommerhusudlejning. Vi gør det nemt at udleje dit sommerhus med kun 15% kommission.
@@ -56,7 +57,7 @@ export function Footer() {
 
         <div className="border-t border-primary-foreground/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-primary-foreground/50">
-            © {new Date().getFullYear()} SommerVibes.dk. Alle rettigheder forbeholdes.
+            © {new Date().getFullYear()} SommerVibes. Alle rettigheder forbeholdes.
           </p>
           <div className="flex gap-6">
             <Link to="/privacy" className="text-sm text-primary-foreground/50 hover:text-accent transition-colors">Privatlivspolitik</Link>
