@@ -8,7 +8,7 @@ export function ModernPlatformSection() {
   const { ref, isInView } = useScrollReveal();
 
   return (
-    <section ref={ref} className="py-24 md:py-32 bg-muted/30 overflow-hidden">
+    <section ref={ref} className="py-28 md:py-36 bg-background overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
           {/* Left - Text */}
@@ -20,16 +20,16 @@ export function ModernPlatformSection() {
             <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">
               Din ejerportal
             </span>
-            <h2 className="font-display text-3xl md:text-5xl font-bold text-primary mb-6 leading-tight">
-              Fuld kontrol
-              <span className="block text-accent italic font-normal">fra din telefon</span>
+            <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-bold text-primary mb-6 leading-tight">
+              Fuld kontrol{' '}
+              <span className="text-accent italic font-normal block">fra din telefon</span>
             </h2>
-            <p className="text-lg text-muted-foreground leading-relaxed mb-8">
+            <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-lg">
               Følg dine bookinger, indtjening og gæstekommunikation i realtid.
-              SommerVibes' ejerportal er designet til at give dig overblik — ikke besvær.
+              Ejerportalen er designet til at give dig overblik — ikke besvær.
             </p>
             <Link to="/how-it-works">
-              <Button variant="gold" size="lg" className="gap-2 group">
+              <Button variant="gold" size="lg" className="gap-2 group rounded-full">
                 Udforsk platformen
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -38,17 +38,16 @@ export function ModernPlatformSection() {
 
           {/* Right - Dashboard mockup */}
           <motion.div
-            initial={{ opacity: 0, x: 40, rotate: 2 }}
-            animate={isInView ? { opacity: 1, x: 0, rotate: 0 } : {}}
+            initial={{ opacity: 0, x: 40 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <div className="bg-background rounded-3xl shadow-elevated border border-border p-6 md:p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-3 h-3 rounded-full bg-destructive/60" />
-                <div className="w-3 h-3 rounded-full bg-accent/60" />
-                <div className="w-3 h-3 rounded-full bg-secondary/60" />
-                <div className="w-3 h-3 rounded-full bg-green-500/60" />
+            <div className="bg-card rounded-3xl shadow-elevated border border-border p-6 md:p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-3 h-3 rounded-full bg-destructive/40" />
+                <div className="w-3 h-3 rounded-full bg-accent/40" />
+                <div className="w-3 h-3 rounded-full bg-green-500/40" />
               </div>
               
               <div className="text-sm text-muted-foreground mb-1">God eftermiddag 👋</div>
@@ -85,7 +84,7 @@ export function ModernPlatformSection() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={isInView ? { opacity: 1, x: 0 } : {}}
                     transition={{ duration: 0.4, delay: 0.7 + i * 0.1 }}
-                    className="flex items-center justify-between bg-accent/5 rounded-xl p-4 hover:bg-accent/10 transition-colors cursor-pointer group"
+                    className="flex items-center justify-between bg-accent/5 rounded-xl p-4 hover:bg-accent/10 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       <item.icon className="w-5 h-5 text-accent" />
@@ -104,7 +103,7 @@ export function ModernPlatformSection() {
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 1 }}
-              className="absolute -bottom-4 -left-4 bg-background rounded-2xl shadow-xl border border-border p-4"
+              className="absolute -bottom-4 -left-4 bg-card rounded-2xl shadow-xl border border-border p-4"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
