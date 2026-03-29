@@ -50,7 +50,7 @@ export function EarningsSection() {
           <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
             Hvad kan du <span className="text-primary italic font-normal">tjene?</span>
           </h2>
-          <p className="text-foreground/50 max-w-xl mx-auto text-sm md:text-base">
+          <p className="text-muted-foreground max-w-xl mx-auto text-sm md:text-base">
             Udforsk din ekstra indtjening og se hvad du beholder efter skat.
           </p>
         </motion.div>
@@ -72,7 +72,7 @@ export function EarningsSection() {
               className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                 tab === key
                   ? 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]'
-                  : 'bg-foreground/5 text-foreground/50 hover:bg-foreground/10 border border-foreground/10'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80 border border-border'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -102,28 +102,28 @@ export function EarningsSection() {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.4, delay: i * 0.08 }}
-                      className="group rounded-2xl border border-foreground/8 bg-foreground/[0.03] p-5 hover:bg-primary/8 hover:border-primary/20 transition-all duration-400"
+                      className="group rounded-2xl border border-border bg-card p-5 hover:bg-primary/10 hover:border-primary/20 transition-all duration-400"
                     >
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-9 h-9 rounded-xl bg-foreground/5 group-hover:bg-primary/15 flex items-center justify-center transition-colors">
-                          <Icon className="w-4 h-4 text-foreground/40 group-hover:text-primary transition-colors" />
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                          <Icon className="w-4 h-4 text-primary/70 group-hover:text-primary transition-colors" />
                         </div>
-                        <span className="font-display text-xl font-bold text-foreground/15 group-hover:text-primary transition-colors">
+                      <span className="font-display text-xl font-bold text-primary/40 group-hover:text-primary transition-colors">
                           +{cat.share}%
                         </span>
                       </div>
                       <h3 className="font-display text-sm font-bold text-foreground mb-1">{cat.title}</h3>
                       <div className="flex items-center gap-1.5">
                         <CheckCircle2 className="w-3 h-3 text-primary/50" />
-                        <span className="text-xs text-foreground/40">{cat.highlight}</span>
+                        <span className="text-xs text-muted-foreground">{cat.highlight}</span>
                       </div>
                     </motion.div>
                   );
                 })}
               </div>
 
-              <p className="text-center text-foreground/40 text-sm mb-5">
-                Andre bureauer beholder disse indtægter. Hos SommerVibes er de <strong className="text-foreground/70">dine</strong>.
+              <p className="text-center text-muted-foreground text-sm mb-5">
+                Andre bureauer beholder disse indtægter. Hos SommerVibes er de <strong className="text-foreground">dine</strong>.
               </p>
               <div className="text-center">
                 <Link to="/kom-i-gang">
@@ -143,11 +143,11 @@ export function EarningsSection() {
               transition={{ duration: 0.4 }}
               className="max-w-xl mx-auto"
             >
-              <div className="bg-foreground/[0.03] border border-foreground/10 rounded-3xl p-6 md:p-8">
+              <div className="bg-card border border-border rounded-3xl p-6 md:p-8">
                 {/* Slider */}
                 <div className="mb-6">
                   <div className="flex justify-between items-end mb-3">
-                    <span className="text-foreground/50 text-sm">Brutto lejeindtægt</span>
+                    <span className="text-muted-foreground text-sm">Brutto lejeindtægt</span>
                     <span className="font-display text-2xl font-bold text-primary">{fmt(income)} kr.</span>
                   </div>
                   <Slider
@@ -158,7 +158,7 @@ export function EarningsSection() {
                     step={5000}
                     className="my-4"
                   />
-                  <div className="flex justify-between text-xs text-foreground/30">
+                  <div className="flex justify-between text-xs text-muted-foreground/70">
                     <span>20.000 kr.</span>
                     <span>300.000 kr.</span>
                   </div>
@@ -171,20 +171,20 @@ export function EarningsSection() {
                     { label: 'Skattefrit bundfradrag', value: `${fmt(result.taxFree)} kr.`, muted: false },
                     { label: 'Skat (gns. ~34%)', value: `-${fmt(result.tax)} kr.`, muted: true },
                   ].map((row, i) => (
-                    <div key={i} className="flex justify-between items-center py-2.5 border-b border-foreground/8">
-                      <span className={`text-sm ${row.muted ? 'text-foreground/40' : 'text-foreground/70'}`}>{row.label}</span>
-                      <span className={`font-semibold ${row.muted ? 'text-foreground/50' : 'text-primary'}`}>{row.value}</span>
+                    <div key={i} className="flex justify-between items-center py-2.5 border-b border-border">
+                      <span className={`text-sm ${row.muted ? 'text-muted-foreground' : 'text-foreground'}`}>{row.label}</span>
+                      <span className={`font-semibold ${row.muted ? 'text-muted-foreground' : 'text-primary'}`}>{row.value}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Result */}
-                <div className="bg-foreground/5 rounded-2xl p-5 text-center">
-                  <div className="text-foreground/40 text-xs mb-1 uppercase tracking-wider">Du beholder ca.</div>
+                  <div className="bg-primary/10 rounded-2xl p-5 text-center border border-primary/20">
+                    <div className="text-muted-foreground text-xs mb-1 uppercase tracking-wider">Du beholder ca.</div>
                   <div className="font-display text-3xl md:text-4xl font-bold text-primary">
                     {fmt(result.afterTax - commission)} kr.
                   </div>
-                  <div className="text-foreground/30 text-xs mt-1">efter skat og kommission</div>
+                  <div className="text-muted-foreground/70 text-xs mt-1">efter skat og kommission</div>
                 </div>
               </div>
 
