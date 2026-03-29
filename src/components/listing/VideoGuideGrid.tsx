@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ListingVideo {
   id: string;
@@ -12,7 +13,21 @@ interface ListingVideo {
   youtube_id: string;
 }
 
-export function VideoGuideGrid({ videos }: { videos: ListingVideo[] }) {
+export function VideoGuideGrid({ videos: videosProp, listingId }: { videos?: ListingVideo[]; listingId?: string }) {
+  const [fetchedVideos, setFetchedVideos] = useState<ListingVideo[]>([]);
+
+  useEffect(() => {
+    if (videosProp || !listingId) return;
+    supabase
+      .from('listing_videos')
+      .select('id, sort_order, thumbnail_url, emoji, title, youtube_id')
+      .eq('listing_id', listingId)
+      .eq('is_active', true)
+      .order('sort_order')
+      .then(({ data }) => setFetchedVideos((data as unknown as ListingVideo[]) || []));
+  }, [listingId, videosProp]);
+
+  const videos = videosProp || fetchedVideos;
   const isMobile = useIsMobile();
   const [activeVideo, setActiveVideo] = useState<ListingVideo | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);

@@ -13,6 +13,8 @@ interface ListingCardProps {
   pricePerNight: number;
   teaser?: string;
   tags?: string[];
+  rating?: number;
+  reviewCount?: number;
 }
 
 export const ListingCard = ({
@@ -26,6 +28,8 @@ export const ListingCard = ({
   pricePerNight,
   teaser,
   tags = [],
+  rating,
+  reviewCount,
 }: ListingCardProps) => {
   return (
     <Link
@@ -41,6 +45,17 @@ export const ListingCard = ({
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+
+        {/* Rating Badge */}
+        {rating && (
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-background/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-border/50">
+            <Star className="h-3 w-3 text-primary fill-primary" />
+            <span className="text-xs font-semibold text-foreground">{rating}</span>
+            {reviewCount !== undefined && (
+              <span className="text-[10px] text-muted-foreground">({reviewCount})</span>
+            )}
+          </div>
+        )}
 
         {/* Tags */}
         {tags.length > 0 && (

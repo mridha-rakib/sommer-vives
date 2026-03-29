@@ -97,7 +97,7 @@ const App = () => (
             <Route path="/kom-i-gang" element={<GetStarted />} />
             <Route path="/book-vurdering" element={<BookValuation />} />
             <Route path="/listings" element={<Listings />} />
-            <Route path="/listing/:id" element={<ListingDetail />} />
+            <Route path="/listing/:slug" element={<ListingDetail />} />
             {/* Owner routes */}
             <Route path="/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
             <Route path="/owner/properties" element={<ProtectedRoute><OwnerProperties /></ProtectedRoute>} />

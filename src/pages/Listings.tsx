@@ -3,39 +3,48 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { ListingCard } from '@/components/listing/ListingCard';
 import { BrandDivider } from '@/components/listing/BrandDivider';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { MapPin } from 'lucide-react';
 
 interface ListingData {
   id: string;
-  title: string;
-  address: string;
-  region: string;
+  slug: string;
+  name: string;
   description: string | null;
-  capacity: number;
+  address: string | null;
+  region: string | null;
+  max_guests: number;
   bedrooms: number | null;
   bathrooms: number | null;
-  price_per_night: number | null;
+  base_price_per_night: number;
+  hero_image: string | null;
   images: string[] | null;
   amenities: string[] | null;
 }
 
+const REGIONS = ['Alle', 'Nordsjælland', 'Vestjylland', 'Limfjorden', 'Sydsjælland', 'Fyn', 'Bornholm'];
+
 const Listings = () => {
   const [listings, setListings] = useState<ListingData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeRegion, setActiveRegion] = useState('Alle');
 
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
-        .from('properties')
-        .select('id, title, address, region, description, capacity, bedrooms, bathrooms, price_per_night, images, amenities')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
-      setListings((data as ListingData[]) || []);
+        .from('listings')
+        .select('id, slug, name, description, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, hero_image, images, amenities')
+        .eq('is_active', true)
+        .order('sort_order');
+      setListings((data as unknown as ListingData[]) || []);
       setLoading(false);
     };
     load();
   }, []);
+
+  const filtered = activeRegion === 'Alle'
+    ? listings
+    : listings.filter(l => l.region === activeRegion);
 
   return (
     <PublicLayout>
@@ -51,8 +60,28 @@ const Listings = () => {
           </p>
         </div>
 
+        {/* Region Filter */}
+        <div className="container mx-auto px-4 lg:px-8 mb-6">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 justify-center flex-wrap">
+            {REGIONS.map((region) => (
+              <button
+                key={region}
+                onClick={() => setActiveRegion(region)}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
+                  activeRegion === region
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-foreground'
+                }`}
+              >
+                {region !== 'Alle' && <MapPin className="h-3 w-3 inline mr-1.5" />}
+                {region}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Listings Grid */}
-        <section className="py-8 sm:py-14">
+        <section className="py-4 sm:py-8">
           <div className="container mx-auto px-4 lg:px-8">
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
@@ -72,14 +101,16 @@ const Listings = () => {
                   </div>
                 ))}
               </div>
-            ) : listings.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-muted-foreground text-lg">Ingen sommerhuse tilgængelige endnu.</p>
+                <p className="text-muted-foreground text-lg">
+                  {activeRegion !== 'Alle' ? `Ingen sommerhuse i ${activeRegion} endnu.` : 'Ingen sommerhuse tilgængelige endnu.'}
+                </p>
                 <p className="text-muted-foreground/60 text-sm mt-2">Kom snart tilbage for nye listings!</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-                {listings.map((listing, i) => (
+                {filtered.map((listing, i) => (
                   <motion.div
                     key={listing.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -88,14 +119,14 @@ const Listings = () => {
                     transition={{ delay: i * 0.08, duration: 0.5 }}
                   >
                     <ListingCard
-                      id={listing.id}
-                      title={listing.title}
-                      location={`${listing.address}, ${listing.region}`}
-                      image={listing.images?.[0] || '/placeholder.svg'}
-                      capacity={listing.capacity}
+                      id={listing.slug}
+                      title={listing.name}
+                      location={[listing.address, listing.region].filter(Boolean).join(', ')}
+                      image={listing.hero_image || listing.images?.[0] || '/placeholder.svg'}
+                      capacity={listing.max_guests}
                       bedrooms={listing.bedrooms || undefined}
                       bathrooms={listing.bathrooms || undefined}
-                      pricePerNight={listing.price_per_night || 0}
+                      pricePerNight={listing.base_price_per_night / 100}
                       teaser={listing.description?.substring(0, 120) || undefined}
                       tags={listing.amenities?.slice(0, 2) || []}
                     />
