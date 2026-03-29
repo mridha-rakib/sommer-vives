@@ -30,7 +30,7 @@ const teamMembers = [
 function ValuesSection() {
   const { ref, isInView } = useScrollReveal();
   return (
-    <section ref={ref} className="py-24 bg-primary text-background">
+    <section ref={ref} className="py-24 bg-background text-foreground">
       <div className="container mx-auto px-4 md:px-8 max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -252,13 +252,13 @@ export default function Team() {
       <ExpertiseSection />
 
       {/* CTA */}
-      <section className="py-24 bg-primary text-background">
+      <section className="py-24 bg-background text-foreground">
         <div className="container mx-auto px-4 text-center max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
             <h2 className="font-display text-3xl md:text-5xl font-semibold mb-6">
               Du får en fast personlig rådgiver
             </h2>
-            <p className="text-background/70 text-lg mb-12 max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-lg mb-12 max-w-2xl mx-auto">
               Du er ikke bare et nummer i rækken. Du får en dedikeret kontaktperson der kender dit hus og dine mål.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
