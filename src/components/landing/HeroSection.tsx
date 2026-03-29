@@ -34,6 +34,35 @@ export function HeroSection() {
 
   return (
     <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
+      {/* Gold floating particles */}
+      <div className="absolute inset-0 z-[6] pointer-events-none overflow-hidden">
+        {particles.map((p) => (
+          <motion.div
+            key={p.id}
+            className="absolute rounded-full"
+            style={{
+              width: p.size,
+              height: p.size,
+              left: `${p.x}%`,
+              top: `${p.y}%`,
+              background: `radial-gradient(circle, hsl(43, 74%, ${55 + p.id % 20}%) 0%, transparent 70%)`,
+            }}
+            animate={{
+              y: [0, -p.drift, 0],
+              x: [0, p.drift * 0.5, 0],
+              opacity: [0, p.opacity, 0],
+              scale: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: p.duration,
+              delay: p.delay,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        ))}
+      </div>
+
       {/* Video Background */}
       <div className="absolute inset-0 z-0">
         <video
