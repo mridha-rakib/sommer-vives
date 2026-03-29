@@ -70,7 +70,7 @@ export function HowItWorksSection() {
                 <h3 className="font-display text-lg md:text-xl font-bold mb-3">
                   {step.title}
                 </h3>
-                <p className="text-foreground/50 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   {step.description}
                 </p>
               </motion.div>
@@ -92,7 +92,7 @@ export function HowItWorksSection() {
                 </Button>
               </Link>
               <Link to="/contact">
-                <Button variant="outline" size="lg" className="border-foreground/15 text-foreground/70 hover:bg-foreground/5 rounded-full">
+                <Button variant="outline" size="lg" className="border-border text-muted-foreground hover:bg-muted hover:text-foreground rounded-full">
                   Book et udlejningstjek
                 </Button>
               </Link>

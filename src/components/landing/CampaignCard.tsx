@@ -68,7 +68,7 @@ export function CampaignCard() {
                   Få flere bookinger og mindre bøvl{' '}
                   <span className="text-primary">med dit sommerhus</span>
                 </h3>
-                <p className="text-sm sm:text-base text-foreground/50 leading-relaxed max-w-xl mx-auto">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
                   Som ny husejer hos os får du en eksklusiv opstartspakke med professionel
                   præsentation, stærkere markedsføring og ingen betaling ved opstart.
                 </p>
@@ -83,7 +83,7 @@ export function CampaignCard() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }}
-                    className="group relative rounded-2xl border border-primary/10 bg-foreground/[0.03] p-6 sm:p-7 transition-all duration-500 hover:bg-foreground/[0.07] hover:border-primary/20 hover:shadow-[0_8px_30px_-10px_hsl(var(--primary)/0.15)]"
+                    className="group relative rounded-2xl border border-border bg-card p-6 sm:p-7 transition-all duration-500 hover:bg-primary/10 hover:border-primary/20 hover:shadow-[0_8px_30px_-10px_hsl(var(--primary)/0.15)]"
                   >
                     <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-5 transition-all duration-500 group-hover:bg-primary/20 group-hover:scale-105">
                       <b.icon className="w-5 h-5 text-primary" />
@@ -91,7 +91,7 @@ export function CampaignCard() {
                     <h4 className="text-base font-semibold text-foreground mb-2 leading-snug">
                       {b.title}
                     </h4>
-                    <p className="text-sm text-foreground/40 leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       {b.text}
                     </p>
                   </motion.div>
@@ -121,7 +121,7 @@ export function CampaignCard() {
                 {/* Trust points */}
                 <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-6">
                   {trustPoints.map((tp, i) => (
-                    <div key={i} className="flex items-center gap-1.5 text-foreground/30">
+                    <div key={i} className="flex items-center gap-1.5 text-muted-foreground">
                       <tp.icon className="w-3.5 h-3.5 text-primary/50" />
                       <span className="text-[11px] font-medium">{tp.text}</span>
                     </div>

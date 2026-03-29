@@ -118,8 +118,8 @@ export function HeroSection() {
                             : 'bg-transparent border border-transparent hover:bg-foreground/5'
                         }`}
                       >
-                        <Icon className={`w-3.5 h-3.5 transition-colors duration-300 ${isActive ? 'text-primary' : 'text-foreground/30'}`} />
-                        <span className={`font-display text-xs sm:text-sm font-bold transition-colors duration-300 ${isActive ? 'text-primary' : 'text-foreground/20'}`}>
+                        <Icon className={`w-3.5 h-3.5 transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <span className={`font-display text-xs sm:text-sm font-bold transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/70'}`}>
                           {item.pct}
                         </span>
                       </button>
@@ -265,7 +265,7 @@ export function HeroSection() {
               channels.map((name, i) => (
                 <span
                   key={`${rep}-${i}`}
-                  className="text-foreground/15 font-display text-xs font-bold tracking-tight"
+                  className="text-muted-foreground/40 font-display text-xs font-bold tracking-tight"
                 >
                   {name}
                 </span>

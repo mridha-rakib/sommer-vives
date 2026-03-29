@@ -23,7 +23,7 @@ export function ContactExpertsSection() {
               Lad os snakke om{' '}
               <span className="block text-primary italic font-normal mt-2">dit sommerhus</span>
             </h2>
-            <p className="text-lg md:text-xl text-foreground/50 leading-relaxed mb-8 max-w-lg mx-auto">
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-8 max-w-lg mx-auto">
               Book et gratis og uforpligtende udlejningstjek — vi kører ud til dig.
             </p>
           </motion.div>
@@ -57,7 +57,7 @@ export function ContactExpertsSection() {
               <Button
                 variant="outline"
                 size="xl"
-                className="border-foreground/15 text-foreground/70 hover:bg-foreground/5 hover:text-foreground text-base w-full sm:w-auto rounded-full"
+                className="border-border text-muted-foreground hover:bg-muted hover:text-foreground text-base w-full sm:w-auto rounded-full"
               >
                 Book gratis udlejningstjek
               </Button>
@@ -69,12 +69,12 @@ export function ContactExpertsSection() {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="mt-14 flex items-center justify-center gap-6 text-foreground/30"
+            className="mt-14 flex items-center justify-center gap-6 text-muted-foreground"
           >
             <span className="text-sm">+45 12 34 56 78</span>
-            <span className="w-1 h-1 rounded-full bg-foreground/15" />
+            <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
             <span className="text-sm">Hverdage 8–18</span>
-            <span className="w-1 h-1 rounded-full bg-foreground/15" />
+            <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
             <span className="text-sm">Hele Danmark</span>
           </motion.div>
         </div>

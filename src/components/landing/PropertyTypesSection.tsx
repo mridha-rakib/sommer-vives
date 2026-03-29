@@ -81,7 +81,7 @@ export function PropertyTypesSection() {
                     <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
                       {type.title}
                     </h3>
-                    <p className="text-foreground/70 text-sm leading-relaxed max-w-sm">
+                    <p className="text-foreground/80 text-sm leading-relaxed max-w-sm">
                       {type.description}
                     </p>
                   </div>
@@ -106,7 +106,7 @@ export function PropertyTypesSection() {
                 key={i}
                 onClick={() => setActive(i)}
                 className={`h-1 rounded-full transition-all duration-500 ${
-                  i === active ? 'w-8 bg-primary' : 'w-2 bg-foreground/15 hover:bg-foreground/30'
+                  i === active ? 'w-8 bg-primary' : 'w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50'
                 }`}
               />
             ))}
