@@ -30,7 +30,7 @@ const amenityIcons: Record<string, any> = {
   'Pool': Waves,
 };
 
-export default function PropertyDetail() {
+function PropertyDetailInner() {
   const { id } = useParams();
   const [currentImage, setCurrentImage] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
@@ -96,11 +96,11 @@ export default function PropertyDetail() {
   const serviceFee = Math.round(totalPrice * 0.05);
 
   const handleOpenBookingWizard = () => {
-    if (!dateRange.from || !dateRange.to) {
-      toast.error('Vælg venligst check-in og check-out datoer');
-      return;
-    }
-    setShowBookingWizard(true);
+    if (!property) return;
+    booking.open(
+      { id: property.id, title: property.title, image: images[0], maxGuests: property.capacity },
+      { checkIn: dateRange.from, checkOut: dateRange.to, guests }
+    );
   };
 
   return (
@@ -411,14 +411,17 @@ export default function PropertyDetail() {
         </div>
       )}
 
+
       {/* Booking Wizard */}
-      <BookingWizard
-        isOpen={showBookingWizard}
-        onClose={() => setShowBookingWizard(false)}
-        property={property}
-        dateRange={dateRange}
-        guests={guests}
-      />
+      <BookingWizard />
     </PublicLayout>
+  );
+}
+
+export default function PropertyDetail() {
+  return (
+    <BookingProvider>
+      <PropertyDetailInner />
+    </BookingProvider>
   );
 }
