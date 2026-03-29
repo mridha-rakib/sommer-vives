@@ -20,6 +20,10 @@ const revenueItems = [
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [activeItem, setActiveItem] = useState(0);
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const swooshY = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const swooshRotate = useTransform(scrollYProgress, [0, 1], [0, -3]);
 
   useEffect(() => {
     const interval = setInterval(() => {
