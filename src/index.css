@@ -2,111 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Danish Vacation Rental - Dark Green & Gold Theme */
-    --background: 150 10% 96%; /* Clean off-white, not beige */
-    --foreground: 158 62% 11%; /* Dark green text */
+    /* ForestCabin – Dark Forest Green & Gold Theme */
+    --background: 150 25% 8%;
+    --foreground: 40 30% 92%;
 
-    --card: 150 8% 98%;
-    --card-foreground: 158 62% 11%;
+    --card: 150 22% 12%;
+    --card-foreground: 40 30% 92%;
 
-    --popover: 150 8% 98%;
-    --popover-foreground: 158 62% 11%;
+    --popover: 150 22% 10%;
+    --popover-foreground: 40 30% 92%;
 
-    --primary: 158 62% 11%; /* #0B2F24 dark green */
-    --primary-foreground: 45 20% 95%;
+    --primary: 38 55% 42%;
+    --primary-foreground: 150 25% 8%;
 
-    --secondary: 158 40% 20%;
-    --secondary-foreground: 45 20% 95%;
+    --secondary: 150 18% 18%;
+    --secondary-foreground: 40 25% 85%;
 
-    --muted: 150 8% 92%;
-    --muted-foreground: 158 30% 35%;
+    --muted: 150 15% 20%;
+    --muted-foreground: 150 10% 60%;
 
-    --accent: 40 55% 50%; /* Rich gold */
-    --accent-foreground: 0 0% 100%;
+    --accent: 38 50% 40%;
+    --accent-foreground: 150 25% 8%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 8% 88%;
-    --input: 150 8% 90%;
-    --ring: 40 55% 50%;
+    --border: 150 15% 20%;
+    --input: 150 15% 22%;
+    --ring: 38 55% 42%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     /* Custom tokens */
-    --gold: 40 55% 50%;
-    --gold-light: 40 55% 62%;
-    --gold-dark: 40 45% 38%;
-    --forest: 158 62% 11%;
-    --forest-light: 158 40% 25%;
-    --cream: 150 10% 96%;
-    --cream-dark: 150 8% 90%;
+    --gold: 38 55% 42%;
+    --gold-light: 38 60% 55%;
+    --gold-dark: 38 45% 32%;
+    --forest: 150 25% 8%;
+    --forest-dark: 150 25% 6%;
+    --forest-light: 150 18% 18%;
+    --cream: 40 30% 92%;
+    --cream-dark: 40 20% 75%;
+
+    /* Warm beige section backgrounds */
+    --warm: 35 30% 90%;
+    --warm-foreground: 150 30% 15%;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(180deg, hsl(158 62% 11%) 0%, hsl(158 50% 18%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(40 55% 50%) 0%, hsl(40 55% 62%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(150 10% 96%) 0%, hsl(150 8% 92%) 100%);
+    --gradient-hero: linear-gradient(180deg,
+      hsla(150, 25%, 6%, 0.2) 0%,
+      hsla(150, 25%, 6%, 0.5) 40%,
+      hsla(150, 25%, 6%, 0.92) 100%);
+    --gradient-gold: linear-gradient(135deg,
+      hsl(38, 70%, 50%) 0%,
+      hsl(38, 60%, 35%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(150 25% 8%) 0%, hsl(150 22% 12%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 4px 20px -4px hsl(158 62% 11% / 0.1);
-    --shadow-elevated: 0 12px 40px -8px hsl(158 62% 11% / 0.15);
-    --shadow-gold: 0 4px 20px -4px hsl(38 45% 48% / 0.3);
+    --shadow-soft: 0 4px 20px -4px hsla(0, 0%, 0%, 0.15);
+    --shadow-elevated: 0 25px 60px -12px hsla(0, 0%, 0%, 0.5);
+    --shadow-gold: 0 0 50px hsla(38, 70%, 50%, 0.12);
 
     /* Typography */
-    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Inter', system-ui, sans-serif;
 
-    --sidebar-background: 158 62% 11%;
-    --sidebar-foreground: 37 35% 95%;
-    --sidebar-primary: 42 54% 54%;
-    --sidebar-primary-foreground: 158 62% 11%;
-    --sidebar-accent: 158 40% 18%;
-    --sidebar-accent-foreground: 37 35% 95%;
-    --sidebar-border: 158 40% 20%;
-    --sidebar-ring: 42 54% 54%;
+    --sidebar-background: 150 22% 10%;
+    --sidebar-foreground: 40 30% 92%;
+    --sidebar-primary: 38 70% 50%;
+    --sidebar-primary-foreground: 150 25% 8%;
+    --sidebar-accent: 150 18% 18%;
+    --sidebar-accent-foreground: 40 30% 92%;
+    --sidebar-border: 150 15% 20%;
+    --sidebar-ring: 38 70% 50%;
   }
 
   .dark {
-    --background: 158 62% 8%;
-    --foreground: 37 35% 95%;
-
-    --card: 158 50% 12%;
-    --card-foreground: 37 35% 95%;
-
-    --popover: 158 50% 12%;
-    --popover-foreground: 37 35% 95%;
-
-    --primary: 42 54% 54%;
-    --primary-foreground: 158 62% 11%;
-
-    --secondary: 158 40% 18%;
-    --secondary-foreground: 37 35% 95%;
-
-    --muted: 158 30% 20%;
-    --muted-foreground: 37 20% 70%;
-
-    --accent: 42 54% 54%;
-    --accent-foreground: 158 62% 11%;
-
-    --destructive: 0 72% 51%;
+    --background: 150 25% 8%;
+    --foreground: 40 30% 92%;
+    --card: 150 22% 12%;
+    --card-foreground: 40 30% 92%;
+    --popover: 150 22% 10%;
+    --popover-foreground: 40 30% 92%;
+    --primary: 38 55% 42%;
+    --primary-foreground: 150 25% 8%;
+    --secondary: 150 18% 18%;
+    --secondary-foreground: 40 25% 85%;
+    --muted: 150 15% 20%;
+    --muted-foreground: 150 10% 60%;
+    --accent: 38 50% 40%;
+    --accent-foreground: 150 25% 8%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 158 30% 25%;
-    --input: 158 30% 25%;
-    --ring: 42 54% 54%;
-
-    --sidebar-background: 158 62% 6%;
-    --sidebar-foreground: 37 35% 95%;
-    --sidebar-primary: 42 54% 54%;
-    --sidebar-primary-foreground: 158 62% 11%;
-    --sidebar-accent: 158 40% 15%;
-    --sidebar-accent-foreground: 37 35% 95%;
-    --sidebar-border: 158 40% 18%;
-    --sidebar-ring: 42 54% 54%;
+    --border: 150 15% 20%;
+    --input: 150 15% 22%;
+    --ring: 38 55% 42%;
+    --sidebar-background: 150 22% 10%;
+    --sidebar-foreground: 40 30% 92%;
+    --sidebar-primary: 38 70% 50%;
+    --sidebar-primary-foreground: 150 25% 8%;
+    --sidebar-accent: 150 18% 18%;
+    --sidebar-accent-foreground: 40 30% 92%;
+    --sidebar-border: 150 15% 20%;
+    --sidebar-ring: 38 70% 50%;
   }
 }
 
