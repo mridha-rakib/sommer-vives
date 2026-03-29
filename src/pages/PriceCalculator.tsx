@@ -541,9 +541,9 @@ export default function PriceCalculator() {
                   <Phone className="w-4 h-4" />
                   +45 12 34 56 78
                 </a>
-                <a href="mailto:udlejning@sommerhusbureau.dk" className="flex items-center gap-1 text-accent hover:underline">
+                <a href="mailto:kontakt@sommervibes.dk" className="flex items-center gap-1 text-accent hover:underline">
                   <Mail className="w-4 h-4" />
-                  udlejning@sommerhusbureau.dk
+                  kontakt@sommervibes.dk
                 </a>
               </div>
               <p className="text-xs text-muted-foreground mt-1">08:00 - 16:00 alle hverdage</p>

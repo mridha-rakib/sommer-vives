@@ -36,7 +36,7 @@ export function StorySection() {
             
             <p className="text-primary-foreground/80 leading-relaxed mb-6 text-lg">
               De store bureauer fokuserer på volumen og behandler ejere som numre i rækken. 
-              Vi startede Sommerdrøm fordi vi vidste det kunne gøres bedre.
+              Vi startede SommerVibes fordi vi vidste det kunne gøres bedre.
             </p>
             
             <p className="text-primary-foreground/80 leading-relaxed mb-8">

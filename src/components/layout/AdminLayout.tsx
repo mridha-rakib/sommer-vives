@@ -56,7 +56,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <span className="font-display text-lg font-bold block">
                   Admin Portal
                 </span>
-                <span className="text-xs text-slate-400">Sommerdrøm</span>
+                <span className="text-xs text-slate-400">SommerVibes</span>
               </div>
             </div>
             <button className="md:hidden text-white p-1" onClick={() => setSidebarOpen(false)}>

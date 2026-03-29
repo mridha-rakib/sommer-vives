@@ -45,7 +45,7 @@ export function ComparisonSection() {
                   <th className="text-center py-4 px-4">
                     <div className="inline-flex flex-col items-center">
                       <span className="font-display text-lg font-bold text-accent">
-                        SommerhusBureau
+                        SommerVibes
                       </span>
                       <span className="text-xs text-muted-foreground">Vores løsning</span>
                     </div>
