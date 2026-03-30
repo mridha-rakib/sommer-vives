@@ -48,10 +48,10 @@ export default function GuestDashboard() {
   const isCheckedIn = booking?.status === 'checked_in';
 
   const quickLinks = [
-    { label: 'Check-in guide', href: '/guest/checkin', icon: DoorOpen, desc: 'Ankomst og adgang' },
-    { label: 'Husinformation', href: '/guest/house-info', icon: MapPin, desc: 'Alt om boligen' },
-    { label: 'Tilkøb', href: '/guest/addons', icon: ShoppingBag, desc: 'Ekstra services' },
-    { label: 'Support', href: '/guest/support', icon: LifeBuoy, desc: 'Vi er klar til at hjælpe' },
+    { label: 'Ankomst & adgang', href: '/guest/checkin', icon: DoorOpen, desc: 'Sådan kommer du ind' },
+    { label: 'Om huset', href: '/guest/house-info', icon: MapPin, desc: 'Praktisk info og faciliteter' },
+    { label: 'Tilkøb', href: '/guest/addons', icon: ShoppingBag, desc: 'Gør opholdet endnu bedre' },
+    { label: 'Hjælp', href: '/guest/support', icon: LifeBuoy, desc: 'Vi er her for dig' },
   ];
 
   if (loading) {
