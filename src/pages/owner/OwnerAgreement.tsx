@@ -422,43 +422,42 @@ export default function OwnerAgreement() {
   // ─── Step 5: Sign ─────────────────────────────────────────
 
   const StepSign = () => (
-    <div className="max-w-md mx-auto">
+    <div className="max-w-lg mx-auto">
       <div className="text-center mb-8">
         <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <PenLine className="w-7 h-7 text-primary" />
         </div>
         <h2 className="font-display text-2xl font-bold text-foreground mb-2">Signer aftalen</h2>
-        <p className="text-muted-foreground text-sm">Skriv dit fulde navn som digital underskrift</p>
+        <p className="text-muted-foreground text-sm">Tegn din underskrift og skriv dit fulde navn</p>
       </div>
 
       <Card className="border-border/30 bg-card/30">
         <CardContent className="p-5 space-y-5">
+          {/* Canvas signature */}
           <div>
-            <Label className="text-foreground font-medium text-sm">Din underskrift *</Label>
+            <Label className="text-foreground font-medium text-sm mb-2 block">Din håndskrevne underskrift *</Label>
+            <SignatureCanvas onSignatureChange={setSignatureDataUrl} />
+          </div>
+
+          {/* Typed name confirmation */}
+          <div>
+            <Label className="text-foreground font-medium text-sm">Bekræft med dit fulde navn *</Label>
             <Input
               placeholder="Skriv dit fulde navn"
               value={signatureName}
               onChange={e => setSignatureName(e.target.value)}
-              className="mt-1.5 bg-background/50 font-display italic text-xl h-14 text-center"
+              className="mt-1.5 bg-background/50 h-12"
             />
           </div>
 
-          <div className="text-center text-muted-foreground/50 text-xs">
+          <div className="text-center text-muted-foreground/50 text-xs space-y-0.5">
             <p>Dato: {new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-            <p className="mt-1">Aftaleversion: v{AGREEMENT_VERSION}</p>
+            <p>Aftaleversion: v{AGREEMENT_VERSION}</p>
           </div>
-
-          {signatureName.trim().length > 2 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 text-center">
-              <p className="font-display italic text-2xl text-primary">{signatureName}</p>
-              <p className="text-xs text-muted-foreground mt-1">Digital underskrift</p>
-            </motion.div>
-          )}
 
           <div className="flex items-center gap-2 justify-center text-muted-foreground/50 text-xs pt-2">
             <Lock className="w-3 h-3" />
-            <span>Krypteret og sikker</span>
+            <span>Krypteret og sikker · IP-logget · Tidsstemplet</span>
           </div>
         </CardContent>
       </Card>
