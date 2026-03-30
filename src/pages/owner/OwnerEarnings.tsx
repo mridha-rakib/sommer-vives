@@ -97,6 +97,9 @@ export default function OwnerEarnings() {
           </Card>
         </div>
 
+        {/* Earnings Chart */}
+        <EarningsChart bookings={bookings} />
+
         {/* Booking income details */}
         <Card>
           <CardHeader className="pb-3">
