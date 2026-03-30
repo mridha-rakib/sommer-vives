@@ -29,6 +29,7 @@ import {
   Eye,
   Star,
   Settings,
+  Percent,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
@@ -443,6 +444,43 @@ function FlexVisual() {
   );
 }
 
+function CommissionVisual() {
+  return (
+    <div className="rounded-xl overflow-hidden border border-primary/12">
+      <div className="bg-gradient-to-r from-secondary via-secondary/80 to-secondary px-3.5 py-2 flex items-center justify-between border-b border-border/30">
+        <div className="flex items-center gap-2">
+          <SvMark size="md" />
+          <span className="text-[8px] font-medium text-muted-foreground/45">Kommission</span>
+        </div>
+        <span className="text-[9px] font-bold text-primary/55">Gennemsigtig model</span>
+      </div>
+      <div className="bg-secondary/40 px-3.5 py-3 space-y-2.5">
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center">
+            <span className="text-[22px] font-display font-bold text-primary/75 leading-none">15%</span>
+            <span className="text-[7.5px] font-medium text-muted-foreground/40 mt-0.5">Ejer</span>
+          </div>
+          <div className="h-8 w-px bg-border/30" />
+          <div className="flex flex-col items-center">
+            <span className="text-[16px] font-display font-semibold text-muted-foreground/45 leading-none">5%</span>
+            <span className="text-[7.5px] font-medium text-muted-foreground/35 mt-0.5">Gæst</span>
+          </div>
+          <div className="ml-auto flex flex-col gap-1">
+            <div className="flex items-center gap-1">
+              <Check className="w-2.5 h-2.5 text-primary/45" strokeWidth={2} />
+              <span className="text-[8px] text-muted-foreground/45">Ingen skjulte gebyrer</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Check className="w-2.5 h-2.5 text-primary/45" strokeWidth={2} />
+              <span className="text-[8px] text-muted-foreground/45">Mere tilbage til dig</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════
    SERVICE DATA
    ═══════════════════════════════════════════ */
@@ -509,6 +547,16 @@ const services: Service[] = [
     visual: RevenueVisual,
   },
   {
+    icon: Percent,
+    title: 'Kun 15% kommission',
+    short: 'Behold mere af din indtjening med en enkel og gennemsigtig model.',
+    long: 'Hos SommerVibes betaler du kun 15% kommission. Der er ingen skjulte overraskelser, og modellen er skabt for at give dig højere udbytte af din udlejning. Samtidig betaler gæsterne kun 5% i servicegebyr, hvilket gør løsningen attraktiv for begge parter.',
+    expandLabel: 'Hvad det betyder for dig',
+    signature: true,
+    badge: 'Mere tilbage til dig',
+    visual: CommissionVisual,
+  },
+  {
     icon: ShieldCheck,
     title: 'Tryghedsgaranti',
     short: 'Ekstra sikkerhed, hvis uheldet skulle være ude under et ophold.',
@@ -555,7 +603,7 @@ const services: Service[] = [
     icon: Megaphone,
     title: 'Effektiv markedsføring',
     short: 'Din bolig skal ikke bare online — den skal præsenteres stærkt og tiltrække de rigtige gæster.',
-    long: 'Vi arbejder aktivt for at give din bolig en præsentation, der skaber interesse. Det handler om visuelt flot opsætning, skarp tekst og målrettet markedsføring, så boligen ikke blot er til stede, men også bliver valgt. Målet er at øge synlighed, tiltrække de rigtige gæster og styrke dine muligheder for flere bookinger.',
+    long: 'Vi sørger for, at dit sommerhus præsenterer sig fra sin allerbedste side med professionelt indhold, visuelt flot opsætning og skarp tekst. Dertil arbejder vi aktivt med målrettet markedsføring, så boligen ikke blot er til stede på de rigtige kanaler, men også bliver valgt af de rigtige gæster. Målet er at øge synlighed, styrke præsentationen og skabe flere relevante bookinger.',
     expandLabel: 'Flere relevante bookinger',
     visual: MarketingVisual,
   },
