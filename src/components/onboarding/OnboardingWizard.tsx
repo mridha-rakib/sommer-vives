@@ -507,6 +507,7 @@ export function OnboardingWizard() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <AppPromptSheet open={showAppPrompt} onOpenChange={setShowAppPrompt} context="onboarding-complete" />
       {renderStepIndicator()}
 
       <Card>
