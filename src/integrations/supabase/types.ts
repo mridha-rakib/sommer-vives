@@ -61,6 +61,39 @@ export type Database = {
           },
         ]
       }
+      agreement_templates: {
+        Row: {
+          body_html: string
+          body_text: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          body_html?: string
+          body_text?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          body_html?: string
+          body_text?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       agreements: {
         Row: {
           accept_marketing: boolean | null
@@ -69,6 +102,7 @@ export type Database = {
           binding_months: number
           commission_percent: number
           created_at: string
+          generated_body: string | null
           id: string
           ip_address: string | null
           notice_days: number
@@ -82,12 +116,16 @@ export type Database = {
           property_id: string | null
           property_region: string | null
           property_title: string | null
+          sent_at: string | null
+          signature_data_url: string | null
           signature_date: string | null
           signature_name: string | null
           signed_at: string | null
           status: string
+          template_id: string | null
           updated_at: string
           version: string
+          viewed_at: string | null
         }
         Insert: {
           accept_marketing?: boolean | null
@@ -96,6 +134,7 @@ export type Database = {
           binding_months?: number
           commission_percent?: number
           created_at?: string
+          generated_body?: string | null
           id?: string
           ip_address?: string | null
           notice_days?: number
@@ -109,12 +148,16 @@ export type Database = {
           property_id?: string | null
           property_region?: string | null
           property_title?: string | null
+          sent_at?: string | null
+          signature_data_url?: string | null
           signature_date?: string | null
           signature_name?: string | null
           signed_at?: string | null
           status?: string
+          template_id?: string | null
           updated_at?: string
           version?: string
+          viewed_at?: string | null
         }
         Update: {
           accept_marketing?: boolean | null
@@ -123,6 +166,7 @@ export type Database = {
           binding_months?: number
           commission_percent?: number
           created_at?: string
+          generated_body?: string | null
           id?: string
           ip_address?: string | null
           notice_days?: number
@@ -136,12 +180,16 @@ export type Database = {
           property_id?: string | null
           property_region?: string | null
           property_title?: string | null
+          sent_at?: string | null
+          signature_data_url?: string | null
           signature_date?: string | null
           signature_name?: string | null
           signed_at?: string | null
           status?: string
+          template_id?: string | null
           updated_at?: string
           version?: string
+          viewed_at?: string | null
         }
         Relationships: [
           {
@@ -149,6 +197,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agreements_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "agreement_templates"
             referencedColumns: ["id"]
           },
         ]

@@ -62,6 +62,7 @@ import AdminChat from "./pages/admin/AdminChat";
 import AdminOptimizations from "./pages/admin/AdminOptimizations";
 import AdminPipeline from "./pages/admin/AdminPipeline";
 import AdminAgreements from "./pages/admin/AdminAgreements";
+import AdminTemplates from "./pages/admin/AdminTemplates";
 import AdminPropertiesMgmt from "./pages/admin/AdminPropertiesMgmt";
 import AdminKeyboxes from "./pages/admin/AdminKeyboxes";
 import AdminSupportTickets from "./pages/admin/AdminSupportTickets";
@@ -208,6 +209,7 @@ const App = () => (
             <Route path="/admin/guests" element={<ProtectedRoute requireAdmin><AdminGuests /></ProtectedRoute>} />
             <Route path="/admin/properties-mgmt" element={<ProtectedRoute requireAdmin><AdminPropertiesMgmt /></ProtectedRoute>} />
             <Route path="/admin/agreements" element={<ProtectedRoute requireAdmin><AdminAgreements /></ProtectedRoute>} />
+            <Route path="/admin/templates" element={<ProtectedRoute requireAdmin><AdminTemplates /></ProtectedRoute>} />
             <Route path="/admin/pipeline" element={<ProtectedRoute requireAdmin><AdminPipeline /></ProtectedRoute>} />
             <Route path="/admin/tasks" element={<ProtectedRoute requireAdmin><AdminTasks /></ProtectedRoute>} />
             <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />

@@ -12,81 +12,32 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FileSignature, Check, Shield, ArrowRight, ArrowLeft, Download,
-  CheckCircle2, Clock, ChevronDown, ChevronUp, Phone, Globe,
-  Star, Wallet, Home, Calendar, PenLine, Lock, Eye
+  CheckCircle2, Phone, Globe, PenLine, Lock, Eye, Home, Calendar,
+  ChevronDown, ChevronUp, FileText, Sparkles
 } from 'lucide-react';
 import { SignatureCanvas } from '@/components/agreement/SignatureCanvas';
-
-// ─── Agreement content ──────────────────────────────────────
+import {
+  renderTemplate, buildVariables, extractPlaceholders, placeholderLabel,
+  getStatusMeta, type AgreementVariables
+} from '@/lib/agreement-engine';
 
 const AGREEMENT_VERSION = '1.2';
 
 interface AgreementData {
-  ownerName: string;
-  ownerEmail: string;
-  ownerPhone: string;
-  ownerAddress: string;
-  propertyTitle: string;
-  propertyAddress: string;
-  propertyRegion: string;
-  propertyId: string | null;
+  ownerName: string; ownerEmail: string; ownerPhone: string; ownerAddress: string;
+  propertyTitle: string; propertyAddress: string; propertyRegion: string; propertyId: string | null;
 }
-
-const LEGAL_SECTIONS = [
-  {
-    id: 'formidling',
-    title: '§1 — Formidling',
-    summary: 'SommerVibes formidler udlejning af din bolig til ferie- og fritidsgæster.',
-    full: `1.1 SommerVibes ApS ("Formidleren") påtager sig at formidle korttidsudlejning af Ejerens sommerhus/feriebolig ("Ejendommen") til ferie- og fritidsgæster på vegne af Ejeren.\n\n1.2 Formidleren markedsfører Ejendommen på relevante platforme, herunder men ikke begrænset til Airbnb, Booking.com, VRBO samt Formidlerens egne kanaler.\n\n1.3 Formidleren har ret til at oprette og administrere annoncer med billeder, tekst og priser godkendt af Ejeren.\n\n1.4 Ejeren bevarer til enhver tid ejendomsretten og retten til selv at benytte Ejendommen i perioder, der ikke er reserveret til gæster.`,
-  },
-  {
-    id: 'kommission',
-    title: '§2 — Kommission og betaling',
-    summary: '15% kommission af gennemførte bookinger. Gæsten betaler 5% servicegebyr.',
-    full: `2.1 Formidleren modtager en kommission på 15% (femten procent) af den samlede lejeindtægt ekskl. rengøringsgebyr for hver gennemført booking.\n\n2.2 Gæsten betaler et servicegebyr på 5% (fem procent) af lejebeløbet, som tilfalder Formidleren.\n\n2.3 Ejeren modtager månedlige udbetalinger med fuld gennemsigtighed via ejerportalen.\n\n2.4 Udbetalinger sker senest den 15. i måneden efter gæstens afrejse.\n\n2.5 Der opkræves ingen oprettelsesgebyr, abonnementsgebyr eller andre skjulte gebyrer.`,
-  },
-  {
-    id: 'service',
-    title: '§3 — Service og drift',
-    summary: 'SommerVibes håndterer gæstekontakt, markedsføring, rengøring og kvalitetssikring.',
-    full: `3.1 Formidleren varetager al gæstekommunikation før, under og efter opholdet.\n\n3.2 Formidleren koordinerer slutrengøring mellem bookinger via godkendte samarbejdspartnere.\n\n3.3 Formidleren optimerer prissætning baseret på sæson, efterspørgsel og markedsdata.\n\n3.4 Formidleren vejleder om professionel fotografering og annoncetekst.\n\n3.5 Formidleren kan facilitere nøgleoverdragelse via nøgleboks eller anden aftalt metode.\n\n3.6 Formidleren gennemfører kvalitetskontrol og opfølgning ved gæsteanmeldelser under 4 stjerner.`,
-  },
-  {
-    id: 'ejer',
-    title: '§4 — Ejerens forpligtelser',
-    summary: 'Ejeren sikrer at boligen er klar, forsikret og tilgængelig som aftalt.',
-    full: `4.1 Ejeren sikrer at Ejendommen til enhver tid er i forsvarlig stand og klar til udlejning.\n\n4.2 Ejeren skal holde Ejendommen forsikret mod brand, storm, vand og indbrud.\n\n4.3 Ejeren opdaterer tilgængelighed via ejerportalen og blokerer datoer til eget brug i god tid.\n\n4.4 Ejeren informerer Formidleren om væsentlige ændringer ved Ejendommen (renovering, skader, etc.).\n\n4.5 Ejeren er ansvarlig for korrekt skattemæssig indberetning af lejeindtægter.`,
-  },
-  {
-    id: 'binding',
-    title: '§5 — Binding og opsigelse',
-    summary: '6 måneders binding. Herefter 30 dages opsigelsesvarsel.',
-    full: `5.1 Aftalen har en bindingsperiode på 6 (seks) måneder fra underskriftsdatoen.\n\n5.2 Efter bindingsperioden kan begge parter opsige aftalen med 30 dages skriftligt varsel.\n\n5.3 Allerede bekræftede bookinger ved aftalens ophør gennemføres som planlagt.\n\n5.4 Ved opsigelse fjernes Ejendommen fra alle markedsføringskanaler inden for 14 dage.`,
-  },
-  {
-    id: 'data',
-    title: '§6 — Data og samtykke',
-    summary: 'Dine data behandles fortroligt iht. GDPR og vores privatlivspolitik.',
-    full: `6.1 Formidleren behandler Ejerens personoplysninger i overensstemmelse med gældende databeskyttelseslovgivning (GDPR).\n\n6.2 Personoplysninger anvendes udelukkende til opfyldelse af denne aftale og relateret kommunikation.\n\n6.3 Ejeren kan til enhver tid anmode om indsigt i, rettelse af eller sletning af sine personoplysninger.\n\n6.4 Ejerens data deles ikke med tredjeparter uden forudgående samtykke, medmindre det er nødvendigt for aftalens opfyldelse.\n\n6.5 For yderligere information henvises til Formidlerens privatlivspolitik på sommervibes.dk/privacy.`,
-  },
-  {
-    id: 'ansvar',
-    title: '§7 — Ansvar og forsikring',
-    summary: 'SommerVibes dækker uforudsete skader via skadepuljen og faciliterer forsikringssager.',
-    full: `7.1 Formidleren opretholder en skadepulje til dækning af pludselige og uforudsete skader forårsaget af gæster.\n\n7.2 Skadepuljen finansieres via et fast bidrag fra hver booking.\n\n7.3 Formidleren er ikke ansvarlig for skader, der skyldes normal slid, vejrforhold eller Ejerens egne forsømmelser.\n\n7.4 Formidleren faciliterer kontakten mellem Ejer og forsikringsselskab ved større skadessager.`,
-  },
-];
-
-// ─── Component ───────────────────────────────────────────────
 
 export default function OwnerAgreement() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [step, setStep] = useState(1); // 1=intro, 2=summary, 3=full, 4=confirm, 5=sign, 6=done
-  const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const [step, setStep] = useState(1); // 1=intro, 2=preview, 3=fields, 4=confirm, 5=sign, 6=done
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingAgreement, setExistingAgreement] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [templateHtml, setTemplateHtml] = useState('');
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [showFullDoc, setShowFullDoc] = useState(false);
 
   const [agreementData, setAgreementData] = useState<AgreementData>({
     ownerName: '', ownerEmail: '', ownerPhone: '', ownerAddress: '',
@@ -99,19 +50,26 @@ export default function OwnerAgreement() {
   const [signatureName, setSignatureName] = useState('');
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
 
-  // Load profile & property data
   useEffect(() => {
     if (!user) return;
     const load = async () => {
       setLoading(true);
+
+      // Load active template
+      const { data: templates } = await supabase
+        .from('agreement_templates' as any)
+        .select('*')
+        .eq('is_active', true)
+        .limit(1);
+      if (templates && templates.length > 0) {
+        setTemplateHtml((templates[0] as any).body_html || '');
+        setTemplateId((templates[0] as any).id);
+      }
+
       // Check existing signed agreement
       const { data: agreements } = await supabase
-        .from('agreements')
-        .select('*')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
+        .from('agreements').select('*').eq('owner_id', user.id)
+        .order('created_at', { ascending: false }).limit(1);
       if (agreements && agreements.length > 0 && agreements[0].status === 'signed') {
         setExistingAgreement(agreements[0]);
         setStep(6);
@@ -120,26 +78,15 @@ export default function OwnerAgreement() {
       // Load profile
       const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       if (profile) {
-        setAgreementData(prev => ({
-          ...prev,
-          ownerName: profile.full_name || '',
-          ownerEmail: profile.email || '',
-          ownerPhone: profile.phone || '',
-        }));
+        setAgreementData(p => ({ ...p, ownerName: profile.full_name || '', ownerEmail: profile.email || '', ownerPhone: profile.phone || '' }));
         setSignatureName(profile.full_name || '');
       }
 
       // Load first property
       const { data: properties } = await supabase.from('properties').select('*').eq('owner_id', user.id).limit(1);
       if (properties && properties.length > 0) {
-        const p = properties[0];
-        setAgreementData(prev => ({
-          ...prev,
-          propertyTitle: p.title || '',
-          propertyAddress: p.address || '',
-          propertyRegion: p.region || '',
-          propertyId: p.id,
-        }));
+        const pr = properties[0];
+        setAgreementData(p => ({ ...p, propertyTitle: pr.title || '', propertyAddress: pr.address || '', propertyRegion: pr.region || '', propertyId: pr.id }));
       }
 
       setLoading(false);
@@ -147,9 +94,16 @@ export default function OwnerAgreement() {
     load();
   }, [user]);
 
-  const toggleSection = (id: string) => {
-    setExpandedSections(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  };
+  const variables = buildVariables({
+    ownerName: agreementData.ownerName, ownerAddress: agreementData.ownerAddress,
+    ownerEmail: agreementData.ownerEmail, ownerPhone: agreementData.ownerPhone,
+    propertyAddress: agreementData.propertyAddress, propertyRegion: agreementData.propertyRegion,
+    commissionPercent: 15, bindingMonths: 6, signatureName,
+  });
+
+  const renderedHtml = renderTemplate(templateHtml, variables);
+  const placeholders = extractPlaceholders(templateHtml);
+  const missingFields = placeholders.filter(k => !variables[k as keyof AgreementVariables]?.trim());
 
   const handleSign = async () => {
     if (!user) return;
@@ -158,6 +112,7 @@ export default function OwnerAgreement() {
       const { error } = await supabase.from('agreements').insert({
         owner_id: user.id,
         property_id: agreementData.propertyId,
+        template_id: templateId,
         version: AGREEMENT_VERSION,
         status: 'signed',
         owner_name: agreementData.ownerName,
@@ -176,14 +131,15 @@ export default function OwnerAgreement() {
         accept_terms: consent.acceptTerms,
         accept_privacy: consent.acceptPrivacy,
         accept_marketing: consent.acceptMarketing,
-      });
+        generated_body: renderedHtml,
+        signature_data_url: signatureDataUrl,
+      } as any);
       if (error) throw error;
 
-      // Reload to show signed state
       const { data: agreements } = await supabase
         .from('agreements').select('*').eq('owner_id', user.id)
         .order('created_at', { ascending: false }).limit(1);
-      if (agreements && agreements.length > 0) setExistingAgreement(agreements[0]);
+      if (agreements?.length) setExistingAgreement(agreements[0]);
 
       setStep(6);
       toast.success('Aftalen er signeret!');
@@ -194,7 +150,8 @@ export default function OwnerAgreement() {
     }
   };
 
-  const canSign = consent.acceptAgreement && consent.acceptTerms && consent.acceptPrivacy && signatureName.trim().length > 2 && signatureDataUrl !== null;
+  const canSign = consent.acceptAgreement && consent.acceptTerms && consent.acceptPrivacy
+    && signatureName.trim().length > 2 && signatureDataUrl !== null;
 
   if (loading) {
     return (
@@ -206,12 +163,11 @@ export default function OwnerAgreement() {
     );
   }
 
-  // ─── Step Indicator ───────────────────────────────────────
-
+  // ─── Step bar ────────────────────────────────────────────
   const STEPS_META = [
     { label: 'Introduktion', icon: Eye },
-    { label: 'Oversigt', icon: FileSignature },
-    { label: 'Fuld aftale', icon: Shield },
+    { label: 'Forhåndsvisning', icon: FileText },
+    { label: 'Dine data', icon: Sparkles },
     { label: 'Bekræftelse', icon: Check },
     { label: 'Signering', icon: PenLine },
     { label: 'Signeret', icon: CheckCircle2 },
@@ -220,9 +176,7 @@ export default function OwnerAgreement() {
   const StepBar = () => (
     <div className="flex items-center justify-center gap-0 mb-8 overflow-x-auto px-2">
       {STEPS_META.map((s, i) => {
-        const idx = i + 1;
-        const done = idx < step;
-        const active = idx === step;
+        const idx = i + 1; const done = idx < step; const active = idx === step;
         return (
           <div key={i} className="flex items-center shrink-0">
             <div className="flex flex-col items-center">
@@ -246,8 +200,6 @@ export default function OwnerAgreement() {
     </div>
   );
 
-  // ─── Info Row ─────────────────────────────────────────────
-
   const InfoRow = ({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) => (
     <div className="flex justify-between text-sm py-1.5">
       <span className="text-muted-foreground">{label}</span>
@@ -255,8 +207,7 @@ export default function OwnerAgreement() {
     </div>
   );
 
-  // ─── Step 1: Intro ────────────────────────────────────────
-
+  // ─── Step 1: Intro ──────────────────────────────────────
   const StepIntro = () => (
     <div className="max-w-xl mx-auto text-center">
       <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
@@ -266,124 +217,131 @@ export default function OwnerAgreement() {
       <p className="text-muted-foreground mb-8 max-w-md mx-auto">
         Gennemgå og underskriv din formidlingsaftale med SommerVibes. Det tager kun et par minutter.
       </p>
-
-      {/* Document meta */}
       <Card className="border-border/30 bg-card/30 text-left mb-8">
         <CardContent className="p-5 space-y-1">
           <InfoRow label="Aftaleversion" value={`v${AGREEMENT_VERSION}`} />
           <InfoRow label="Dato" value={new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })} />
           <InfoRow label="Ejer" value={agreementData.ownerName} />
-          <InfoRow label="E-mail" value={agreementData.ownerEmail} />
           <InfoRow label="Bolig" value={agreementData.propertyTitle || 'Ikke angivet'} />
           <InfoRow label="Kommission" value="15%" highlight />
           <InfoRow label="Binding" value="6 måneder" />
         </CardContent>
       </Card>
-
-      <div className="flex items-center gap-2 justify-center text-muted-foreground/60 text-xs mb-6">
-        <Lock className="w-3 h-3" />
-        <span>Krypteret og sikker digital signering</span>
+      <div className="flex items-center gap-2 justify-center text-muted-foreground/60 text-xs">
+        <Lock className="w-3 h-3" /> Krypteret og sikker digital signering
       </div>
     </div>
   );
 
-  // ─── Step 2: Summary ──────────────────────────────────────
+  // ─── Step 2: Document Preview ───────────────────────────
+  const StepPreview = () => (
+    <div className="max-w-3xl mx-auto">
+      <div className="text-center mb-6">
+        <h2 className="font-display text-2xl font-bold text-foreground mb-2">Forhåndsvisning af aftalen</h2>
+        <p className="text-muted-foreground text-sm">Din aftale med dine data indsat — gennemgå inden signering</p>
+      </div>
 
-  const StepSummary = () => (
-    <div className="max-w-2xl mx-auto">
+      {/* Variable status */}
+      {missingFields.length > 0 && (
+        <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+          <strong>Manglende felter:</strong> {missingFields.map(k => placeholderLabel(k)).join(', ')}
+          <span className="text-xs block mt-1 text-amber-600">Gå til næste trin for at udfylde.</span>
+        </div>
+      )}
+
+      {/* Rendered agreement document */}
+      <Card className="border-border/30 bg-white shadow-sm">
+        <CardContent className="p-6 md:p-10">
+          <div
+            className="prose prose-sm max-w-none 
+              [&_h1]:font-display [&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:mb-4
+              [&_h2]:font-display [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mt-6 [&_h2]:mb-2
+              [&_p]:text-foreground/70 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-2
+              [&_.meta]:text-muted-foreground [&_.meta]:text-sm
+              [&_strong]:text-foreground
+              [&_.signature-block]:border-t [&_.signature-block]:border-border/30 [&_.signature-block]:mt-8 [&_.signature-block]:pt-6"
+            dangerouslySetInnerHTML={{ __html: renderedHtml }}
+          />
+        </CardContent>
+      </Card>
+
+      <div className="mt-4 text-center">
+        <button onClick={() => setShowFullDoc(!showFullDoc)} className="text-primary text-xs underline">
+          {showFullDoc ? 'Skjul variabel-overblik' : 'Vis alle indsatte variabler'}
+        </button>
+        {showFullDoc && (
+          <Card className="mt-3 border-border/30 bg-card/30 text-left">
+            <CardContent className="p-4 space-y-1">
+              {placeholders.map(k => (
+                <InfoRow key={k} label={placeholderLabel(k)} value={variables[k as keyof AgreementVariables] || '—'}
+                  highlight={!variables[k as keyof AgreementVariables]?.trim()} />
+              ))}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+
+  // ─── Step 3: Field Editor ───────────────────────────────
+  const StepFields = () => (
+    <div className="max-w-xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="font-display text-2xl font-bold text-foreground mb-2">Aftalen kort fortalt</h2>
-        <p className="text-muted-foreground text-sm">Her er det vigtigste — i klart og tydeligt sprog</p>
+        <h2 className="font-display text-2xl font-bold text-foreground mb-2">Bekræft dine oplysninger</h2>
+        <p className="text-muted-foreground text-sm">Disse data indsættes i din aftale</p>
       </div>
-
-      <div className="space-y-3">
-        {LEGAL_SECTIONS.map((s, i) => (
-          <motion.div key={s.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}>
-            <Card className="border-border/30 bg-card/30">
-              <CardContent className="p-4 flex items-start gap-3">
-                <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-primary text-[10px] font-bold">{i + 1}</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground text-sm">{s.title}</h3>
-                  <p className="text-muted-foreground text-xs mt-1">{s.summary}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+      <Card className="border-border/30 bg-card/40 backdrop-blur-sm">
+        <CardContent className="p-5 md:p-7 space-y-4">
+          <div>
+            <Label className="text-foreground font-medium text-sm">Fulde navn *</Label>
+            <Input value={agreementData.ownerName} onChange={e => setAgreementData(p => ({ ...p, ownerName: e.target.value }))}
+              className="mt-1.5 bg-background/50" />
+          </div>
+          <div>
+            <Label className="text-foreground font-medium text-sm">E-mail</Label>
+            <Input value={agreementData.ownerEmail} onChange={e => setAgreementData(p => ({ ...p, ownerEmail: e.target.value }))}
+              className="mt-1.5 bg-background/50" />
+          </div>
+          <div>
+            <Label className="text-foreground font-medium text-sm">Telefon</Label>
+            <Input value={agreementData.ownerPhone} onChange={e => setAgreementData(p => ({ ...p, ownerPhone: e.target.value }))}
+              className="mt-1.5 bg-background/50" />
+          </div>
+          <div>
+            <Label className="text-foreground font-medium text-sm">Adresse</Label>
+            <Input value={agreementData.ownerAddress} onChange={e => setAgreementData(p => ({ ...p, ownerAddress: e.target.value }))}
+              className="mt-1.5 bg-background/50" />
+          </div>
+          <div className="border-t border-border/20 pt-4">
+            <Label className="text-foreground font-medium text-sm">Boligens adresse</Label>
+            <Input value={agreementData.propertyAddress} onChange={e => setAgreementData(p => ({ ...p, propertyAddress: e.target.value }))}
+              className="mt-1.5 bg-background/50" />
+          </div>
+          <div>
+            <Label className="text-foreground font-medium text-sm">Region</Label>
+            <Input value={agreementData.propertyRegion} onChange={e => setAgreementData(p => ({ ...p, propertyRegion: e.target.value }))}
+              className="mt-1.5 bg-background/50" />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 
-  // ─── Step 3: Full legal ───────────────────────────────────
-
-  const StepFull = () => (
-    <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="font-display text-2xl font-bold text-foreground mb-2">Fuld aftale</h2>
-        <p className="text-muted-foreground text-sm">Tryk på en sektion for at læse de fulde vilkår</p>
-      </div>
-
-      <div className="space-y-2">
-        {LEGAL_SECTIONS.map((s) => {
-          const isOpen = expandedSections.includes(s.id);
-          return (
-            <Card key={s.id} className="border-border/30 bg-card/30 overflow-hidden">
-              <button
-                onClick={() => toggleSection(s.id)}
-                className="w-full p-4 flex items-center justify-between text-left"
-              >
-                <div>
-                  <h3 className="font-semibold text-foreground text-sm">{s.title}</h3>
-                  {!isOpen && <p className="text-muted-foreground text-xs mt-0.5">{s.summary}</p>}
-                </div>
-                {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
-              </button>
-              <AnimatePresence>
-                {isOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="px-4 pb-4 border-t border-border/20 pt-3">
-                      <pre className="text-foreground/70 text-xs leading-relaxed whitespace-pre-wrap font-body">
-                        {s.full}
-                      </pre>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  // ─── Step 4: Confirm ──────────────────────────────────────
-
+  // ─── Step 4: Confirm ────────────────────────────────────
   const StepConfirm = () => (
     <div className="max-w-xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="font-display text-2xl font-bold text-foreground mb-2">Bekræft vilkårene</h2>
         <p className="text-muted-foreground text-sm">Accepter de relevante punkter for at gå videre</p>
       </div>
-
       <Card className="border-border/30 bg-card/30">
         <CardContent className="p-5 space-y-4">
-          {/* Summary box */}
           <div className="p-4 rounded-xl bg-muted/20 border border-border/20 space-y-1.5 mb-2">
             <InfoRow label="Ejer" value={agreementData.ownerName} />
             <InfoRow label="Bolig" value={agreementData.propertyTitle || `Bolig i ${agreementData.propertyRegion}`} />
             <InfoRow label="Kommission" value="15%" highlight />
             <InfoRow label="Binding" value="6 måneder" />
-            <InfoRow label="Version" value={`v${AGREEMENT_VERSION}`} />
           </div>
-
           <div className="space-y-3 pt-2">
             <label className="flex items-start gap-3 p-3 rounded-xl bg-primary/5 border border-primary/15 cursor-pointer">
               <Checkbox checked={consent.acceptAgreement}
@@ -403,14 +361,14 @@ export default function OwnerAgreement() {
               <Checkbox checked={consent.acceptPrivacy}
                 onCheckedChange={(c) => setConsent(p => ({ ...p, acceptPrivacy: c === true }))} className="mt-0.5" />
               <span className="text-sm text-muted-foreground leading-relaxed">
-                Jeg har læst og forstået <span className="text-primary underline" onClick={e => { e.preventDefault(); window.open('/privacy', '_blank'); }}>privatlivspolitikken</span>. *
+                Jeg har læst <span className="text-primary underline" onClick={e => { e.preventDefault(); window.open('/privacy', '_blank'); }}>privatlivspolitikken</span>. *
               </span>
             </label>
             <label className="flex items-start gap-3 cursor-pointer">
               <Checkbox checked={consent.acceptMarketing}
                 onCheckedChange={(c) => setConsent(p => ({ ...p, acceptMarketing: c === true }))} className="mt-0.5" />
               <span className="text-sm text-muted-foreground leading-relaxed">
-                Ja tak, jeg vil gerne modtage nyheder og tips om udlejning (valgfrit)
+                Ja tak, jeg vil gerne modtage nyheder og tips (valgfrit)
               </span>
             </label>
           </div>
@@ -419,8 +377,7 @@ export default function OwnerAgreement() {
     </div>
   );
 
-  // ─── Step 5: Sign ─────────────────────────────────────────
-
+  // ─── Step 5: Sign ───────────────────────────────────────
   const StepSign = () => (
     <div className="max-w-lg mx-auto">
       <div className="text-center mb-8">
@@ -428,33 +385,23 @@ export default function OwnerAgreement() {
           <PenLine className="w-7 h-7 text-primary" />
         </div>
         <h2 className="font-display text-2xl font-bold text-foreground mb-2">Signer aftalen</h2>
-        <p className="text-muted-foreground text-sm">Tegn din underskrift og skriv dit fulde navn</p>
+        <p className="text-muted-foreground text-sm">Tegn din underskrift og bekræft med dit navn</p>
       </div>
-
       <Card className="border-border/30 bg-card/30">
         <CardContent className="p-5 space-y-5">
-          {/* Canvas signature */}
           <div>
             <Label className="text-foreground font-medium text-sm mb-2 block">Din håndskrevne underskrift *</Label>
             <SignatureCanvas onSignatureChange={setSignatureDataUrl} />
           </div>
-
-          {/* Typed name confirmation */}
           <div>
             <Label className="text-foreground font-medium text-sm">Bekræft med dit fulde navn *</Label>
-            <Input
-              placeholder="Skriv dit fulde navn"
-              value={signatureName}
-              onChange={e => setSignatureName(e.target.value)}
-              className="mt-1.5 bg-background/50 h-12"
-            />
+            <Input placeholder="Skriv dit fulde navn" value={signatureName}
+              onChange={e => setSignatureName(e.target.value)} className="mt-1.5 bg-background/50 h-12" />
           </div>
-
           <div className="text-center text-muted-foreground/50 text-xs space-y-0.5">
             <p>Dato: {new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
             <p>Aftaleversion: v{AGREEMENT_VERSION}</p>
           </div>
-
           <div className="flex items-center gap-2 justify-center text-muted-foreground/50 text-xs pt-2">
             <Lock className="w-3 h-3" />
             <span>Krypteret og sikker · IP-logget · Tidsstemplet</span>
@@ -464,8 +411,7 @@ export default function OwnerAgreement() {
     </div>
   );
 
-  // ─── Step 6: Done ─────────────────────────────────────────
-
+  // ─── Step 6: Done ───────────────────────────────────────
   const StepDone = () => {
     const agreement = existingAgreement;
     const signedDate = agreement?.signed_at
@@ -489,7 +435,6 @@ export default function OwnerAgreement() {
           <p className="text-muted-foreground mb-6">Tak — vi glæder os til samarbejdet!</p>
         </motion.div>
 
-        {/* Signed document card */}
         <Card className="border-border/30 bg-card/30 text-left mb-8">
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-4">
@@ -508,8 +453,7 @@ export default function OwnerAgreement() {
             </div>
             <div className="border-t border-border/20 mt-4 pt-4 flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-muted-foreground/50 text-xs">
-                <Lock className="w-3 h-3" />
-                <span>Arkiveret kopi</span>
+                <Lock className="w-3 h-3" /> Arkiveret kopi
               </div>
               <Button variant="outline" size="sm" className="text-xs gap-1.5 h-8" disabled>
                 <Download className="w-3 h-3" /> PDF (kommer snart)
@@ -518,30 +462,27 @@ export default function OwnerAgreement() {
           </CardContent>
         </Card>
 
-        {/* Next steps */}
         <div className="text-left mb-8">
           <h3 className="font-display text-lg font-semibold text-foreground mb-5 text-center">Hvad sker der nu?</h3>
-          <div className="space-y-0">
-            {nextSteps.map((s, i) => {
-              const Icon = s.icon;
-              return (
-                <motion.div key={i} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + i * 0.1 }} className="flex gap-4 relative">
-                  {i < nextSteps.length - 1 && <div className="absolute left-5 top-12 bottom-0 w-px bg-border/30" />}
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 z-10">
-                    <Icon className="w-5 h-5 text-primary" />
+          {nextSteps.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <motion.div key={i} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + i * 0.1 }} className="flex gap-4 relative">
+                {i < nextSteps.length - 1 && <div className="absolute left-5 top-12 bottom-0 w-px bg-border/30" />}
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 z-10">
+                  <Icon className="w-5 h-5 text-primary" />
+                </div>
+                <div className="pb-6">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <h4 className="font-semibold text-foreground text-sm">{s.title}</h4>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{s.time}</span>
                   </div>
-                  <div className="pb-6">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <h4 className="font-semibold text-foreground text-sm">{s.title}</h4>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{s.time}</span>
-                    </div>
-                    <p className="text-muted-foreground text-sm">{s.desc}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                  <p className="text-muted-foreground text-sm">{s.desc}</p>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -556,12 +497,12 @@ export default function OwnerAgreement() {
     );
   };
 
-  // ─── Render ───────────────────────────────────────────────
-
-  const steps = [StepIntro, StepSummary, StepFull, StepConfirm, StepSign, StepDone];
+  // ─── Render ─────────────────────────────────────────────
+  const steps = [StepIntro, StepPreview, StepFields, StepConfirm, StepSign, StepDone];
   const CurrentStep = steps[step - 1];
 
   const canNextStep = () => {
+    if (step === 3) return !!agreementData.ownerName.trim();
     if (step === 4) return consent.acceptAgreement && consent.acceptTerms && consent.acceptPrivacy;
     if (step === 5) return canSign;
     return true;
@@ -582,8 +523,6 @@ export default function OwnerAgreement() {
             <CurrentStep />
           </motion.div>
         </AnimatePresence>
-
-        {/* Navigation */}
         {step < 6 && (
           <div className="flex items-center justify-between mt-8 max-w-2xl mx-auto">
             <Button variant="outline" onClick={() => setStep(s => s - 1)} disabled={step === 1}
