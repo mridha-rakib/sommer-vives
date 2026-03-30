@@ -9,6 +9,8 @@ import { format, differenceInDays, differenceInHours, isFuture, isPast } from 'd
 import { da } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { GuestStayTimeline } from '@/components/guest/GuestStayTimeline';
+import { GuestSmartChecklist } from '@/components/guest/GuestSmartChecklist';
 
 export default function GuestDashboard() {
   const { user, signOut } = useAuth();
@@ -38,7 +40,6 @@ export default function GuestDashboard() {
         supabase.from('listings').select('hero_image, name, region, check_in_time, check_out_time').eq('is_active', true).limit(10),
       ]);
       setProperty(propRes.data);
-      // Try to match listing to property
       if (listRes.data?.length) {
         const match = listRes.data.find((l: any) => l.name === propRes.data?.title) || listRes.data[0];
         setListing(match);
@@ -193,6 +194,12 @@ export default function GuestDashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* Stay Timeline + Smart Checklist */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <GuestStayTimeline booking={booking} />
+          <GuestSmartChecklist booking={booking} />
+        </div>
 
         {/* Quick links */}
         <div className="grid grid-cols-2 gap-2.5">

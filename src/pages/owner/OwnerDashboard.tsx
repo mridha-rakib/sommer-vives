@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Link } from 'react-router-dom';
 import { 
-  CalendarDays, Wallet, Building2, TrendingUp, Users, CheckSquare, 
-  ArrowRight, Clock, MessageCircle, ChevronRight, Sparkles
+  CalendarDays, Wallet, TrendingUp, CheckSquare, 
+  ArrowRight, ChevronRight, Sparkles
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,10 @@ import { OwnerStatusWidget } from '@/components/owner/OwnerStatusWidget';
 import { SmartNextSteps } from '@/components/owner/SmartNextSteps';
 import { PropertyActivationTimeline } from '@/components/owner/PropertyActivationTimeline';
 import { ListingReadinessScore } from '@/components/owner/ListingReadinessScore';
+import { BookingReadinessScore } from '@/components/owner/BookingReadinessScore';
+import { OperationalPulse } from '@/components/owner/OperationalPulse';
+import { AutomatedUpdatesFeed } from '@/components/owner/AutomatedUpdatesFeed';
+import { EarningsChart } from '@/components/owner/EarningsChart';
 import { format, differenceInDays } from 'date-fns';
 import { da } from 'date-fns/locale';
 
@@ -25,6 +29,8 @@ interface BookingSummary {
   guest_name: string | null;
   status: string | null;
   total_amount: number;
+  owner_payout: number | null;
+  created_at: string | null;
 }
 
 export default function OwnerDashboard() {
@@ -36,6 +42,7 @@ export default function OwnerDashboard() {
   });
   const [nextArrival, setNextArrival] = useState<BookingSummary | null>(null);
   const [recentBookings, setRecentBookings] = useState<BookingSummary[]>([]);
+  const [allBookings, setAllBookings] = useState<BookingSummary[]>([]);
   const [property, setProperty] = useState<any>(null);
   const [onboarding, setOnboarding] = useState<any>(null);
   const [agreement, setAgreement] = useState<any>(null);
@@ -52,7 +59,7 @@ export default function OwnerDashboard() {
 
     const [propsRes, bookingsRes, payoutsRes, onbRes, agrRes, listRes] = await Promise.all([
       supabase.from('properties').select('*').eq('owner_id', user.id).limit(1).single(),
-      supabase.from('bookings').select('id, check_in, check_out, guest_name, status, total_amount, owner_payout')
+      supabase.from('bookings').select('id, check_in, check_out, guest_name, status, total_amount, owner_payout, created_at')
         .eq('owner_id', user.id).order('check_in', { ascending: true }),
       supabase.from('payouts').select('amount, status').eq('owner_id', user.id),
       supabase.from('owner_onboarding').select('*').eq('owner_id', user.id).limit(1).single(),
@@ -71,6 +78,7 @@ export default function OwnerDashboard() {
     setOnboarding(onbRes.data);
     setAgreement(agrRes.data);
     setListings(listRes.data || []);
+    setAllBookings(bookings as BookingSummary[]);
     setStats({
       properties: prop ? 1 : 0,
       publishedProperties: prop?.status === 'published' ? 1 : 0,
@@ -166,6 +174,12 @@ export default function OwnerDashboard() {
           ))}
         </div>
 
+        {/* Operational Pulse + Automated Updates */}
+        <div className="grid lg:grid-cols-2 gap-4">
+          <OperationalPulse stats={stats} property={property} />
+          <AutomatedUpdatesFeed bookings={allBookings} />
+        </div>
+
         {/* Three columns: Bookings | Timeline | Readiness */}
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Recent bookings */}
@@ -213,9 +227,20 @@ export default function OwnerDashboard() {
           {/* Activation Timeline */}
           <PropertyActivationTimeline onboarding={onboarding} />
 
-          {/* Listing Readiness */}
-          <ListingReadinessScore property={property} listings={listings} />
+          {/* Booking Readiness */}
+          <BookingReadinessScore
+            property={property}
+            listings={listings}
+            agreement={agreement}
+            onboarding={onboarding}
+          />
         </div>
+
+        {/* Earnings Chart */}
+        <EarningsChart bookings={allBookings} />
+
+        {/* Listing Readiness */}
+        <ListingReadinessScore property={property} listings={listings} />
 
         {/* App download */}
         <AppDownloadBanner variant="compact" context="owner" />
