@@ -8,16 +8,16 @@ import {
 } from '@/components/ui/accordion';
 
 const faqs = [
-  { q: 'Hvordan kommer jeg i gang?', a: 'Del lidt information om dit sommerhus online — det tager 5 minutter. Eller ring til os, så kører vi ud og laver et gratis udlejningstjek af dit hus.' },
-  { q: 'Hvad koster det?', a: 'Gratis at oprette dig. Du betaler kun 15% kommission ved gennemførte bookinger. Gæster betaler 5% servicegebyr. Ingen skjulte gebyrer.' },
-  { q: 'Er der bindingsperiode?', a: 'Ja, 6 måneders binding for at sikre tryghed for begge parter. Herefter kan du opsige når du vil.' },
-  { q: 'Hvad med fotografering?', a: 'Vi hjælper med professionelt indhold der skaber bookinger. Vi vejleder dig og tilbyder professionel fotografering.' },
-  { q: 'Kan jeg selv bruge mit sommerhus?', a: 'Selvfølgelig! Du bestemmer selv hvornår du vil dele dit sommerhus. Bloker datoer direkte i din ejerportal.' },
-  { q: 'Hvordan bliver mit hus markedsført?', a: 'Vi markedsfører på sociale medier, nyhedsbreve, partnerkanaler og de største udlejningsportaler.' },
-  { q: 'Får jeg det fulde bundfradrag?', a: 'Ja! SommerVibes er registreret som udlejningsbureau, så du har adgang til det fulde bundfradrag på 50.200 kr.' },
-  { q: 'Må jeg udleje på andre platforme?', a: 'Ja, det står dig frit for. Vi kan endda koordinere det for dig.' },
-  { q: 'Hvad med rengøring?', a: 'Gæstens pris inkluderer altid slutrengøring. Du kan selv stå for det eller vi koordinerer med professionelle partnere.' },
-  { q: 'Hvordan er forsikringen?', a: 'Vi har forsikring der dækker pludselige og uforudsete skader under lejeperioden.' },
+  { q: 'Hvordan kommer jeg i gang?', a: 'Det tager fem minutter at oprette din bolig online. Vi tager kontakt bagefter med en personlig rådgiver, der hjælper dig resten af vejen — fra billeder til publicering.' },
+  { q: 'Hvad koster det?', a: 'Oprettelse er gratis. Vi tager 15 % af gennemførte bookinger. Gæsten betaler et servicegebyr på 5 %. Ingen opstartsgebyrer, ingen skjulte omkostninger.' },
+  { q: 'Hvorfor har I en 6-måneders aftale?', a: 'Fordi vi investerer tid i professionelle billeder, listingopsætning og markedsføring fra dag ét. Aftalen sikrer, at vi begge får det bedste ud af samarbejdet. Herefter er du fri til at opsige.' },
+  { q: 'Hvad med fotografering og tekst?', a: 'Vi sørger for professionelt visuelt indhold og velskrevet tekst, der får din bolig til at skille sig ud. Alt er inkluderet i samarbejdet.' },
+  { q: 'Kan jeg selv bruge mit hus?', a: 'Helt naturligt. Du blokerer de perioder, du selv vil bruge huset, direkte i din ejerportal. Du bestemmer altid.' },
+  { q: 'Hvor bliver mit hus vist?', a: 'Vi publicerer på Airbnb, Booking.com, Vrbo og vores egne kanaler — og markedsfører aktivt via sociale medier og nyhedsbreve for at skabe reel synlighed.' },
+  { q: 'Får jeg det fulde bundfradrag?', a: 'Ja. SommerVibes er registreret som udlejningsbureau, så du har adgang til det fulde skattefrie bundfradrag på 50.200 kr. om året.' },
+  { q: 'Må jeg også udleje andre steder?', a: 'Ja. Din bolig er din. Vi kan endda hjælpe med at koordinere kalenderen, så du undgår dobbeltbookinger.' },
+  { q: 'Hvordan fungerer rengøring?', a: 'Vi koordinerer slutrengøring med lokale samarbejdspartnere. Gæstens pris inkluderer altid rengøringsgebyr, så du aldrig selv står med det.' },
+  { q: 'Hvad dækker forsikringen?', a: 'Vores udlejningsforsikring dækker pludselige og uforudsete skader, der opstår under gæstens ophold. Du kan læse vilkårene i din aftale.' },
 ];
 
 export function FAQSection() {
