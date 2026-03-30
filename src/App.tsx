@@ -56,6 +56,17 @@ import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminChat from "./pages/admin/AdminChat";
 import AdminOptimizations from "./pages/admin/AdminOptimizations";
 
+// Guest pages
+import GuestAuth from "./pages/guest/GuestAuth";
+import GuestDashboard from "./pages/guest/GuestDashboard";
+import GuestReservation from "./pages/guest/GuestReservation";
+import GuestCheckin from "./pages/guest/GuestCheckin";
+import GuestHouseInfo from "./pages/guest/GuestHouseInfo";
+import GuestAddons from "./pages/guest/GuestAddons";
+import GuestMessages from "./pages/guest/GuestMessages";
+import GuestSupport from "./pages/guest/GuestSupport";
+import GuestCheckout from "./pages/guest/GuestCheckout";
+
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
 import NotFound from "./pages/NotFound";
@@ -82,6 +93,24 @@ function ProtectedRoute({ children, requireAdmin = false }: { children: React.Re
   
   if (requireAdmin && !isAdmin) {
     return <Navigate to="/owner" replace />;
+  }
+  
+  return <>{children}</>;
+}
+
+function GuestProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/guest/auth" replace />;
   }
   
   return <>{children}</>;
@@ -149,6 +178,17 @@ const App = () => (
             <Route path="/admin/optimizations" element={<ProtectedRoute requireAdmin><AdminOptimizations /></ProtectedRoute>} />
             <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminChat /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+
+            {/* Guest routes */}
+            <Route path="/guest/auth" element={<GuestAuth />} />
+            <Route path="/guest" element={<GuestProtectedRoute><GuestDashboard /></GuestProtectedRoute>} />
+            <Route path="/guest/reservation" element={<GuestProtectedRoute><GuestReservation /></GuestProtectedRoute>} />
+            <Route path="/guest/checkin" element={<GuestProtectedRoute><GuestCheckin /></GuestProtectedRoute>} />
+            <Route path="/guest/house-info" element={<GuestProtectedRoute><GuestHouseInfo /></GuestProtectedRoute>} />
+            <Route path="/guest/addons" element={<GuestProtectedRoute><GuestAddons /></GuestProtectedRoute>} />
+            <Route path="/guest/messages" element={<GuestProtectedRoute><GuestMessages /></GuestProtectedRoute>} />
+            <Route path="/guest/support" element={<GuestProtectedRoute><GuestSupport /></GuestProtectedRoute>} />
+            <Route path="/guest/checkout" element={<GuestProtectedRoute><GuestCheckout /></GuestProtectedRoute>} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
