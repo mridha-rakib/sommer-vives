@@ -34,8 +34,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   if (!agreement || agreement.status !== 'signed') {
     allActions.push({
       id: 'sign-agreement',
-      title: 'Underskriv formidlingsaftale',
-      description: 'Vi kan først publicere din bolig når aftalen er underskrevet.',
+      title: 'Underskriv din aftale',
+      description: 'Aftalen er klar — signér digitalt, så vi kan gøre din bolig klar til udlejning.',
       href: '/owner/agreement',
       icon: FileSignature,
       priority: 'high',
