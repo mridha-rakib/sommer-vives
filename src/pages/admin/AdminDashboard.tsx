@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatDKK } from '@/lib/status-badges';
 import { 
   Home, Calendar, Users, TrendingUp, DollarSign, 
   AlertCircle, CheckCircle, Clock, XCircle, ArrowUpRight,

@@ -284,7 +284,7 @@ export default function AdminOwners() {
                             {owner.property_count}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-medium text-emerald-600">
+                        <TableCell className="text-right font-medium text-accent">
                           {formatCurrency(owner.total_earnings || 0)}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
