@@ -27,6 +27,7 @@ import OwnerInquiries from "./pages/owner/OwnerInquiries";
 import OwnerPayouts from "./pages/owner/OwnerPayouts";
 import OwnerCalendar from "./pages/owner/OwnerCalendar";
 import OwnerPackages from "./pages/owner/OwnerPackages";
+import OwnerAgreement from "./pages/owner/OwnerAgreement";
 
 // Admin pages
 import AdminAuth from "./pages/admin/AdminAuth";
@@ -109,6 +110,7 @@ const App = () => (
             <Route path="/owner/inquiries" element={<ProtectedRoute><OwnerInquiries /></ProtectedRoute>} />
             <Route path="/owner/payouts" element={<ProtectedRoute><OwnerPayouts /></ProtectedRoute>} />
             <Route path="/owner/packages" element={<ProtectedRoute><OwnerPackages /></ProtectedRoute>} />
+            <Route path="/owner/agreement" element={<ProtectedRoute><OwnerAgreement /></ProtectedRoute>} />
 
             {/* Admin routes */}
             <Route path="/admin/auth" element={<AdminAuth />} />
