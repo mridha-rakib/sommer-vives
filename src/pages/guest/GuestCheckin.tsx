@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { AppDownloadBanner } from '@/components/app/AppDownloadBanner';
 
 const checkinSteps = [
-  { step: 1, title: 'Kør til adressen', desc: 'Brug GPS-koordinaterne eller adressen fra din reservation. Følg vejen hele vejen til huset.', icon: MapPin },
-  { step: 2, title: 'Find nøgleboksen', desc: 'Nøgleboksen sidder typisk ved hoveddøren eller carport. Se billedet i din velkomstbesked.', icon: Key },
-  { step: 3, title: 'Indtast adgangskoden', desc: 'Din personlige kode sendes 24 timer før ankomst via SMS og e-mail.', icon: DoorOpen },
-  { step: 4, title: 'Velkommen hjem', desc: 'Lås dig ind, tænd for varme/el og gør dig det hyggeligt. WiFi-koden finder du indendørs.', icon: CheckCircle2 },
+  { step: 1, title: 'Find vej til huset', desc: 'Brug adressen fra din reservation. Vi sender et kort med vejledning dagen før.', icon: MapPin },
+  { step: 2, title: 'Find nøgleboksen', desc: 'Den sidder typisk ved hoveddøren eller carporten. Se billedet i din velkomstbesked.', icon: Key },
+  { step: 3, title: 'Brug din personlige kode', desc: 'Du modtager koden via SMS og e-mail 24 timer inden ankomst.', icon: DoorOpen },
+  { step: 4, title: 'Gør dig det hjemligt', desc: 'Tænd for varme, find WiFi-koden indendørs — og nyd din ferie.', icon: CheckCircle2 },
 ];
 
 export default function GuestCheckin() {
