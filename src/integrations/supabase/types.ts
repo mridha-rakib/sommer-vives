@@ -493,6 +493,108 @@ export type Database = {
           },
         ]
       }
+      checkin_guides: {
+        Row: {
+          access_code_note: string | null
+          arrival_instructions: string | null
+          created_at: string
+          departure_checklist: Json | null
+          emergency_contact: string | null
+          extra_info: Json | null
+          id: string
+          keybox_instructions: string | null
+          listing_id: string
+          owner_id: string
+          parking_info: string | null
+          updated_at: string
+          video_urls: Json | null
+          wifi_name: string | null
+          wifi_password: string | null
+        }
+        Insert: {
+          access_code_note?: string | null
+          arrival_instructions?: string | null
+          created_at?: string
+          departure_checklist?: Json | null
+          emergency_contact?: string | null
+          extra_info?: Json | null
+          id?: string
+          keybox_instructions?: string | null
+          listing_id: string
+          owner_id: string
+          parking_info?: string | null
+          updated_at?: string
+          video_urls?: Json | null
+          wifi_name?: string | null
+          wifi_password?: string | null
+        }
+        Update: {
+          access_code_note?: string | null
+          arrival_instructions?: string | null
+          created_at?: string
+          departure_checklist?: Json | null
+          emergency_contact?: string | null
+          extra_info?: Json | null
+          id?: string
+          keybox_instructions?: string | null
+          listing_id?: string
+          owner_id?: string
+          parking_info?: string | null
+          updated_at?: string
+          video_urls?: Json | null
+          wifi_name?: string | null
+          wifi_password?: string | null
+        }
+        Relationships: []
+      }
+      cleaning_jobs: {
+        Row: {
+          assigned_to: string | null
+          booking_id: string | null
+          checklist: Json | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          job_type: string
+          notes: string | null
+          photos: Json | null
+          property_id: string
+          scheduled_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          booking_id?: string | null
+          checklist?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          job_type?: string
+          notes?: string | null
+          photos?: Json | null
+          property_id: string
+          scheduled_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          booking_id?: string | null
+          checklist?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          job_type?: string
+          notes?: string | null
+          photos?: Json | null
+          property_id?: string
+          scheduled_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       commission_splits: {
         Row: {
           commission_type: Database["public"]["Enums"]["commission_type"]
@@ -671,6 +773,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      documents: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          document_type: string
+          file_size: number | null
+          file_url: string | null
+          id: string
+          mime_type: string | null
+          owner_id: string
+          property_id: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          document_type?: string
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          mime_type?: string | null
+          owner_id: string
+          property_id?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          document_type?: string
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          mime_type?: string | null
+          owner_id?: string
+          property_id?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: []
       }
       email_templates: {
         Row: {
@@ -875,6 +1019,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      keybox_installations: {
+        Row: {
+          access_code: string | null
+          created_at: string
+          id: string
+          installation_date: string | null
+          installed_by: string | null
+          keybox_location: string | null
+          keybox_model: string | null
+          notes: string | null
+          photo_url: string | null
+          property_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_code?: string | null
+          created_at?: string
+          id?: string
+          installation_date?: string | null
+          installed_by?: string | null
+          keybox_location?: string | null
+          keybox_model?: string | null
+          notes?: string | null
+          photo_url?: string | null
+          property_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string | null
+          created_at?: string
+          id?: string
+          installation_date?: string | null
+          installed_by?: string | null
+          keybox_location?: string | null
+          keybox_model?: string | null
+          notes?: string | null
+          photo_url?: string | null
+          property_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       listing_blocks: {
         Row: {
@@ -1154,6 +1343,255 @@ export type Database = {
           region?: string | null
           slug?: string
           sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      maintenance_jobs: {
+        Row: {
+          actual_cost: number | null
+          assigned_to: string | null
+          category: string
+          completed_at: string | null
+          cost_estimate: number | null
+          created_at: string
+          description: string | null
+          id: string
+          photos: Json | null
+          priority: string
+          property_id: string
+          reported_by: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          assigned_to?: string | null
+          category?: string
+          completed_at?: string | null
+          cost_estimate?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          photos?: Json | null
+          priority?: string
+          property_id: string
+          reported_by?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          assigned_to?: string | null
+          category?: string
+          completed_at?: string | null
+          cost_estimate?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          photos?: Json | null
+          priority?: string
+          property_id?: string
+          reported_by?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_bookings: boolean | null
+          email_marketing: boolean | null
+          email_messages: boolean | null
+          email_payouts: boolean | null
+          id: string
+          push_enabled: boolean | null
+          sms_bookings: boolean | null
+          sms_urgent: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_bookings?: boolean | null
+          email_marketing?: boolean | null
+          email_messages?: boolean | null
+          email_payouts?: boolean | null
+          id?: string
+          push_enabled?: boolean | null
+          sms_bookings?: boolean | null
+          sms_urgent?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_bookings?: boolean | null
+          email_marketing?: boolean | null
+          email_messages?: boolean | null
+          email_payouts?: boolean | null
+          id?: string
+          push_enabled?: boolean | null
+          sms_bookings?: boolean | null
+          sms_urgent?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          category: string
+          channel: string
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          read_at: string | null
+          sent_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          category?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          read_at?: string | null
+          sent_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          category?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          read_at?: string | null
+          sent_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      owner_bank_settings: {
+        Row: {
+          account_holder: string | null
+          account_number: string | null
+          bank_name: string | null
+          created_at: string
+          iban: string | null
+          id: string
+          owner_id: string
+          payout_frequency: string | null
+          preferred_currency: string | null
+          reg_number: string | null
+          swift_bic: string | null
+          tax_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_holder?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          created_at?: string
+          iban?: string | null
+          id?: string
+          owner_id: string
+          payout_frequency?: string | null
+          preferred_currency?: string | null
+          reg_number?: string | null
+          swift_bic?: string | null
+          tax_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          created_at?: string
+          iban?: string | null
+          id?: string
+          owner_id?: string
+          payout_frequency?: string | null
+          preferred_currency?: string | null
+          reg_number?: string | null
+          swift_bic?: string | null
+          tax_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      owner_onboarding: {
+        Row: {
+          agreement_generated_at: string | null
+          agreement_signed_at: string | null
+          created_at: string
+          current_step: string | null
+          id: string
+          keybox_installed_at: string | null
+          lead_created_at: string | null
+          lead_source: string | null
+          listing_approved_at: string | null
+          listing_published_at: string | null
+          notes: string | null
+          onboarding_completed_at: string | null
+          owner_id: string
+          profile_activated_at: string | null
+          property_visit_scheduled_at: string | null
+          signup_started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agreement_generated_at?: string | null
+          agreement_signed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          id?: string
+          keybox_installed_at?: string | null
+          lead_created_at?: string | null
+          lead_source?: string | null
+          listing_approved_at?: string | null
+          listing_published_at?: string | null
+          notes?: string | null
+          onboarding_completed_at?: string | null
+          owner_id: string
+          profile_activated_at?: string | null
+          property_visit_scheduled_at?: string | null
+          signup_started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agreement_generated_at?: string | null
+          agreement_signed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          id?: string
+          keybox_installed_at?: string | null
+          lead_created_at?: string | null
+          lead_source?: string | null
+          listing_approved_at?: string | null
+          listing_published_at?: string | null
+          notes?: string | null
+          onboarding_completed_at?: string | null
+          owner_id?: string
+          profile_activated_at?: string | null
+          property_visit_scheduled_at?: string | null
+          signup_started_at?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -1618,6 +2056,60 @@ export type Database = {
         }
         Relationships: []
       }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          booking_id: string | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          priority: string
+          property_id: string | null
+          requester_email: string | null
+          requester_id: string | null
+          requester_type: string
+          resolved_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          booking_id?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          priority?: string
+          property_id?: string | null
+          requester_email?: string | null
+          requester_id?: string | null
+          requester_type?: string
+          resolved_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          booking_id?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          priority?: string
+          property_id?: string | null
+          requester_email?: string | null
+          requester_id?: string | null
+          requester_type?: string
+          resolved_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sync_settings: {
         Row: {
           config: Json | null
@@ -1756,7 +2248,15 @@ export type Database = {
         | "cancelled"
       commission_type: "platform" | "sales_meeting"
       source_channel: "direct" | "airbnb" | "booking_com" | "vrbo" | "other"
-      user_role: "owner" | "admin"
+      user_role:
+        | "owner"
+        | "admin"
+        | "super_admin"
+        | "team"
+        | "service_partner"
+        | "photographer"
+        | "cleaner"
+        | "guest"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1893,7 +2393,16 @@ export const Constants = {
       ],
       commission_type: ["platform", "sales_meeting"],
       source_channel: ["direct", "airbnb", "booking_com", "vrbo", "other"],
-      user_role: ["owner", "admin"],
+      user_role: [
+        "owner",
+        "admin",
+        "super_admin",
+        "team",
+        "service_partner",
+        "photographer",
+        "cleaner",
+        "guest",
+      ],
     },
   },
 } as const
