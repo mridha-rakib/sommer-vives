@@ -2,163 +2,193 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
-import { Wallet, CreditCard, Building } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Wallet, CreditCard, Building, TrendingUp, CalendarDays, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 
-interface Payout {
-  id: string;
-  amount: number;
-  currency: string;
-  status: string;
-  payout_date: string | null;
-  description: string | null;
-  created_at: string;
-  property_id: string | null;
-}
-
 export default function OwnerPayouts() {
   const { user } = useAuth();
-  const [payouts, setPayouts] = useState<Payout[]>([]);
+  const [payouts, setPayouts] = useState<any[]>([]);
+  const [bank, setBank] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [totalEarnings, setTotalEarnings] = useState(0);
-  const [pendingAmount, setPendingAmount] = useState(0);
 
   useEffect(() => {
-    loadPayouts();
+    if (user) loadData();
   }, [user]);
 
-  const loadPayouts = async () => {
+  const loadData = async () => {
     if (!user) return;
-
-    const { data } = await supabase
-      .from('payouts')
-      .select('*')
-      .eq('owner_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (data) {
-      setPayouts(data);
-      const completed = data.filter(p => p.status === 'completed').reduce((sum, p) => sum + Number(p.amount), 0);
-      const pending = data.filter(p => p.status === 'pending').reduce((sum, p) => sum + Number(p.amount), 0);
-      setTotalEarnings(completed);
-      setPendingAmount(pending);
-    }
+    const [pRes, bRes] = await Promise.all([
+      supabase.from('payouts').select('*').eq('owner_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('owner_bank_settings').select('*').eq('owner_id', user.id).maybeSingle(),
+    ]);
+    setPayouts(pRes.data || []);
+    setBank(bRes.data);
     setLoading(false);
   };
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      pending: 'bg-accent/20 text-accent',
-      processing: 'bg-blue-100 text-blue-700',
-      completed: 'bg-green-100 text-green-700',
-      failed: 'bg-destructive/10 text-destructive',
-    };
-    const labels: Record<string, string> = {
-      pending: 'Afventer',
-      processing: 'Behandles',
-      completed: 'Udbetalt',
-      failed: 'Fejlet',
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status] || styles.pending}`}>
-        {labels[status] || status}
-      </span>
-    );
+  const completed = payouts.filter(p => p.status === 'completed');
+  const pending = payouts.filter(p => p.status === 'pending');
+  const totalPaid = completed.reduce((s, p) => s + Number(p.amount), 0);
+  const totalPending = pending.reduce((s, p) => s + Number(p.amount), 0);
+
+  const statusConfig: Record<string, { label: string; icon: any; className: string }> = {
+    pending: { label: 'Afventer', icon: Clock, className: 'bg-amber-400/15 text-amber-400 border-amber-400/20' },
+    processing: { label: 'Behandles', icon: TrendingUp, className: 'bg-blue-400/15 text-blue-400 border-blue-400/20' },
+    completed: { label: 'Udbetalt', icon: CheckCircle2, className: 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20' },
+    failed: { label: 'Fejlet', icon: AlertCircle, className: 'bg-destructive/15 text-destructive border-destructive/20' },
   };
 
   return (
     <OwnerLayout>
-      <div className="mb-8">
-        <h1 className="font-display text-3xl font-bold text-primary">Udbetalinger</h1>
-        <p className="text-muted-foreground">Se dine indtægter og udbetalingshistorik</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-accent" />
-            </div>
-            <span className="text-muted-foreground text-sm">Total udbetalt</span>
-          </div>
-          <div className="font-display text-3xl font-bold text-primary">
-            {totalEarnings.toLocaleString('da-DK')} kr
-          </div>
+      <div className="space-y-6">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-foreground">Udbetalinger</h1>
+          <p className="text-sm text-muted-foreground mt-1">Overblik over dine udbetalinger og betalingsoplysninger</p>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-              <Building className="w-5 h-5 text-accent" />
-            </div>
-            <span className="text-muted-foreground text-sm">Afventer udbetaling</span>
-          </div>
-          <div className="font-display text-3xl font-bold text-accent">
-            {pendingAmount.toLocaleString('da-DK')} kr
-          </div>
-        </div>
-
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-              <CreditCard className="w-5 h-5 text-accent" />
-            </div>
-            <span className="text-muted-foreground text-sm">Betalingsmetode</span>
-          </div>
-          <Button variant="outline" size="sm" className="mt-2">
-            Tilslut bankkonto
-          </Button>
-        </div>
-      </div>
-
-      {/* Stripe Connect placeholder */}
-      <div className="bg-accent/5 border border-accent/20 rounded-xl p-6 mb-8">
-        <h3 className="font-display text-lg font-semibold text-primary mb-2">Stripe Connect</h3>
-        <p className="text-muted-foreground text-sm mb-4">
-          For at modtage udbetalinger skal du tilslutte din bankkonto via Stripe Connect. 
-          Dette sikrer hurtige og sikre overførsler direkte til din konto.
-        </p>
-        <Button variant="gold">Tilslut Stripe Connect</Button>
-      </div>
-
-      {/* Payout history */}
-      <div className="bg-card rounded-xl border border-border">
-        <div className="p-6 border-b border-border">
-          <h2 className="font-display text-xl font-semibold text-primary">Udbetalingshistorik</h2>
-        </div>
-
-        {loading ? (
-          <div className="p-6 text-center text-muted-foreground">Indlæser...</div>
-        ) : payouts.length === 0 ? (
-          <div className="p-12 text-center">
-            <Wallet className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">Ingen udbetalinger endnu.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-border">
-            {payouts.map(payout => (
-              <div key={payout.id} className="p-6 flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-primary">
-                    {payout.description || 'Udbetaling'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {format(new Date(payout.created_at), 'd. MMM yyyy', { locale: da })}
-                  </div>
+        {/* KPIs */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <Card>
+            <CardContent className="p-4">
+              <div className="w-9 h-9 rounded-lg bg-emerald-400/10 flex items-center justify-center mb-3">
+                <Wallet className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div className="text-xs text-muted-foreground mb-0.5">Total udbetalt</div>
+              <div className="font-display text-xl font-bold text-foreground">
+                {loading ? '—' : `${totalPaid.toLocaleString('da-DK')} kr`}
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-accent/20">
+            <CardContent className="p-4">
+              <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center mb-3">
+                <Building className="w-4 h-4 text-accent" />
+              </div>
+              <div className="text-xs text-muted-foreground mb-0.5">Afventer udbetaling</div>
+              <div className="font-display text-xl font-bold text-accent">
+                {loading ? '—' : `${totalPending.toLocaleString('da-DK')} kr`}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center mb-3">
+                <CreditCard className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div className="text-xs text-muted-foreground mb-0.5">Betalingsmetode</div>
+              {bank ? (
+                <div className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  {bank.bank_name || 'Bank'} ····{bank.account_number?.slice(-4) || ''}
                 </div>
-                <div className="flex items-center gap-4">
-                  {getStatusBadge(payout.status)}
-                  <span className="font-display text-lg font-semibold text-primary">
-                    {Number(payout.amount).toLocaleString('da-DK')} {payout.currency}
-                  </span>
+              ) : (
+                <Link to="/owner/settings">
+                  <Button variant="outline" size="sm" className="text-xs mt-1">Tilføj bankkonto</Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Pending payouts highlight */}
+        {pending.length > 0 && (
+          <Card className="border-accent/20 bg-accent/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="w-4 h-4 text-accent" />
+                Kommende udbetalinger
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {pending.map(p => (
+                <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-background/80">
+                  <div>
+                    <div className="text-sm font-medium text-foreground">{p.description || 'Udbetaling'}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {p.payout_date ? `Forventet ${format(new Date(p.payout_date), 'd. MMM yyyy', { locale: da })}` : 'Dato afventes'}
+                    </div>
+                  </div>
+                  <span className="text-sm font-bold text-accent">{Number(p.amount).toLocaleString('da-DK')} kr</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Payout history */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Udbetalingshistorik</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-sm text-muted-foreground text-center py-8">Indlæser...</div>
+            ) : payouts.length === 0 ? (
+              <div className="text-center py-12">
+                <Wallet className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">Ingen udbetalinger endnu</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Udbetalinger foretages 5 hverdage efter gæstens afrejse</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {payouts.map(p => {
+                  const status = statusConfig[p.status] || statusConfig.pending;
+                  const StatusIcon = status.icon;
+                  return (
+                    <div key={p.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-muted flex flex-col items-center justify-center shrink-0">
+                          <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-foreground">{p.description || 'Udbetaling'}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {format(new Date(p.created_at), 'd. MMM yyyy', { locale: da })}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <Badge variant="outline" className={`text-[10px] ${status.className}`}>
+                          {status.label}
+                        </Badge>
+                        <span className="text-sm font-semibold text-foreground min-w-[80px] text-right">
+                          {Number(p.amount).toLocaleString('da-DK')} {p.currency}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Payment info */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                <Building className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-foreground">Udbetalingsrytme</div>
+                <div className="text-xs text-muted-foreground">
+                  Udbetalinger foretages automatisk 5 hverdage efter gæstens afrejse til din registrerede bankkonto.
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+              <Link to="/owner/settings">
+                <Button variant="outline" size="sm" className="text-xs shrink-0">
+                  {bank ? 'Se bankoplysninger' : 'Tilføj bankkonto'}
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </OwnerLayout>
   );
