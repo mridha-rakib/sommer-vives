@@ -47,10 +47,10 @@ export function ListingReadinessScore({ property, listings, className }: Listing
   };
 
   const getScoreLabel = () => {
-    if (score >= 90) return 'Næsten klar!';
-    if (score >= 70) return 'God fremgang';
-    if (score >= 40) return 'Godt startet';
-    return 'Kom i gang';
+    if (score >= 90) return 'Næsten klar til udlejning';
+    if (score >= 70) return 'Godt på vej';
+    if (score >= 40) return 'Fint startet';
+    return 'Lad os komme i gang';
   };
 
   return (
