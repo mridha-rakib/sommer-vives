@@ -38,6 +38,7 @@ export function Header() {
     { name: 'Priser', href: '/pricing' },
     { name: 'Sommerhuse', href: '/listings' },
     { name: 'Teamet', href: '/team' },
+    { name: 'Kontakt', href: '/contact' },
   ];
 
   const isActiveLink = (href: string) => location.pathname === href;

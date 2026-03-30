@@ -78,9 +78,9 @@ export default function Auth() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <Link to="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <Home className="h-6 w-6 text-accent" />
-            <span className="font-display text-xl font-semibold text-primary">
-              Sommerhus<span className="text-accent">Bureau</span>
+            <Home className="h-6 w-6 text-primary" />
+            <span className="font-display text-xl font-semibold text-foreground">
+              Sommer<span className="text-primary italic">Vibes</span>
             </span>
           </Link>
 
