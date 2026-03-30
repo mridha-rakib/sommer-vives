@@ -189,14 +189,14 @@ export function HeroSection() {
               </motion.div>
             </div>
 
-            {/* Right — Advisor cutout (ALWAYS visible, scales per breakpoint) */}
+            {/* Right — Advisor cutout or decorative visual */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, delay: 0.8 }}
               className="relative flex-shrink-0 w-[38vw] sm:w-[34vw] md:w-[32vw] lg:w-[38vw] xl:w-[36vw] max-w-[520px] self-end -mr-6 sm:-mr-8 md:-mr-10 lg:-mr-16"
             >
-              {/* Shimmer glow behind person */}
+              {/* Shimmer glow */}
               <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[80%] h-[55%] rounded-full blur-[80px] sm:blur-[100px] animate-hero-shimmer" />
               <div className="absolute top-[25%] left-1/2 -translate-x-1/2 w-[50%] h-[40%] bg-accent/8 rounded-full blur-[50px] animate-hero-shimmer-slow" />
 
@@ -214,6 +214,7 @@ export function HeroSection() {
                   src="/images/advisor-cutout.png"
                   alt="Emil W. Klockmann — Udlejningschef"
                   className="w-full h-auto object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
 
