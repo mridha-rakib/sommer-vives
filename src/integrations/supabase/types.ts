@@ -1075,6 +1075,68 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          created_at: string
+          currency: string
+          due_at: string | null
+          id: string
+          invoice_number: string
+          issued_at: string
+          order_id: string
+          paid_at: string | null
+          pdf_url: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          status: string
+          subtotal: number
+          tax: number
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          due_at?: string | null
+          id?: string
+          invoice_number: string
+          issued_at?: string
+          order_id: string
+          paid_at?: string | null
+          pdf_url?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          due_at?: string | null
+          id?: string
+          invoice_number?: string
+          issued_at?: string
+          order_id?: string
+          paid_at?: string | null
+          pdf_url?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       keybox_installations: {
         Row: {
           access_code: string | null
@@ -1539,6 +1601,135 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          item_type: string
+          label: string
+          order_id: string
+          quantity: number
+          reference_id: string | null
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_type?: string
+          label: string
+          order_id: string
+          quantity?: number
+          reference_id?: string | null
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_type?: string
+          label?: string
+          order_id?: string
+          quantity?: number
+          reference_id?: string | null
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          currency: string
+          guest_id: string | null
+          id: string
+          notes: string | null
+          payment_status: string
+          property_id: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          subtotal: number
+          tax: number
+          total: number
+          updated_at: string
+          user_id: string | null
+          user_type: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          currency?: string
+          guest_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          property_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+          user_type?: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          currency?: string
+          guest_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          property_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+          user_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       owner_bank_settings: {
         Row: {

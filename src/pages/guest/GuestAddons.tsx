@@ -5,7 +5,7 @@ import { GuestLayout } from '@/components/layout/GuestLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, BedDouble, Clock, Baby, Sparkles, Plus, Check } from 'lucide-react';
+import { BedDouble, Clock, Baby, Sparkles, Plus, Check, Loader2, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 
 const defaultAddons = [
@@ -20,25 +20,97 @@ export default function GuestAddons() {
   const { user, signOut } = useAuth();
   const [selected, setSelected] = useState<string[]>([]);
   const [dbAddons, setDbAddons] = useState<any[]>([]);
+  const [paying, setPaying] = useState(false);
+  const [bookingId, setBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadAddons();
-  }, []);
+    loadBooking();
+  }, [user]);
 
   const loadAddons = async () => {
     const { data } = await supabase.from('add_ons').select('*').eq('is_active', true).order('sort_order');
     if (data && data.length > 0) setDbAddons(data);
   };
 
-  const addons = dbAddons.length > 0 
-    ? dbAddons.map(a => ({ id: a.id, name: a.name, desc: a.description || '', price: a.price, icon: ShoppingBag, unit: a.price_type === 'per_night' ? 'pr. nat' : 'engangsbeløb' }))
+  const loadBooking = async () => {
+    if (!user?.email) return;
+    const { data } = await supabase
+      .from('bookings')
+      .select('id')
+      .eq('guest_email', user.email)
+      .in('status', ['confirmed', 'pending'])
+      .order('check_in', { ascending: true })
+      .limit(1);
+    if (data?.[0]) setBookingId(data[0].id);
+  };
+
+  const addons = dbAddons.length > 0
+    ? dbAddons.map(a => ({
+        id: a.id,
+        name: a.name,
+        desc: a.description || '',
+        price: a.price / 100, // stored in øre
+        icon: ShoppingBag,
+        unit: a.price_type === 'per_night' ? 'pr. nat' : a.price_type === 'per_guest' ? 'pr. gæst' : 'engangsbeløb',
+      }))
     : defaultAddons;
 
   const toggle = (id: string) => {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
-  const totalPrice = addons.filter(a => selected.includes(a.id)).reduce((s, a) => s + a.price, 0);
+  const selectedAddons = addons.filter(a => selected.includes(a.id));
+  const totalPrice = selectedAddons.reduce((s, a) => s + a.price, 0);
+
+  const handleCheckout = async () => {
+    if (selectedAddons.length === 0) return;
+    setPaying(true);
+
+    try {
+      const items = selectedAddons.map(a => ({
+        name: a.name,
+        description: a.desc,
+        price: a.price,
+        quantity: 1,
+        itemType: 'addon',
+        referenceId: a.id,
+      }));
+
+      const { data, error } = await supabase.functions.invoke('create-addon-checkout', {
+        body: {
+          items,
+          bookingId,
+          userType: 'guest',
+          successUrl: `${window.location.origin}/guest/addons?payment=success`,
+          cancelUrl: `${window.location.origin}/guest/addons?payment=cancelled`,
+        },
+      });
+
+      if (error || !data?.url) {
+        throw new Error(error?.message || 'Kunne ikke oprette betaling');
+      }
+
+      window.location.href = data.url;
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      toast.error('Der opstod en fejl. Prøv venligst igen.');
+      setPaying(false);
+    }
+  };
+
+  // Check for payment result in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('payment');
+    if (paymentStatus === 'success') {
+      toast.success('Betaling gennemført! Dine tilkøb er bekræftet.');
+      window.history.replaceState({}, '', '/guest/addons');
+    } else if (paymentStatus === 'cancelled') {
+      toast.error('Betaling annulleret.');
+      window.history.replaceState({}, '', '/guest/addons');
+    }
+  }, []);
 
   return (
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
@@ -53,8 +125,8 @@ export default function GuestAddons() {
             const isSelected = selected.includes(addon.id);
             const Icon = addon.icon;
             return (
-              <Card 
-                key={addon.id} 
+              <Card
+                key={addon.id}
                 className={`cursor-pointer transition-all ${isSelected ? 'border-accent bg-accent/5' : 'hover:border-accent/20'}`}
                 onClick={() => toggle(addon.id)}
               >
@@ -86,8 +158,9 @@ export default function GuestAddons() {
                 <div className="text-sm font-semibold text-foreground">{selected.length} tilkøb valgt</div>
                 <div className="text-xs text-muted-foreground">Total: {totalPrice} kr</div>
               </div>
-              <Button variant="gold" onClick={() => toast.success('Tilkøb anmodet — vi bekræfter snarest')}>
-                Bekræft tilkøb
+              <Button variant="gold" onClick={handleCheckout} disabled={paying} className="gap-2">
+                {paying && <Loader2 className="h-4 w-4 animate-spin" />}
+                {paying ? 'Åbner betaling...' : 'Betal nu'}
               </Button>
             </CardContent>
           </Card>
