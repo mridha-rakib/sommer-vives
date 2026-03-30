@@ -2,7 +2,7 @@ import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, CalendarDays, DoorOpen, Info, ShoppingBag, MessageCircle, 
-  LifeBuoy, LogOut, Menu, X, Receipt, ChevronLeft
+  LifeBuoy, LogOut, Menu, X, CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ const navItems = [
   { name: 'Check-in', href: '/guest/checkin', icon: DoorOpen },
   { name: 'Husinformation', href: '/guest/house-info', icon: Info },
   { name: 'Tilkøb', href: '/guest/addons', icon: ShoppingBag },
+  { name: 'Betaling', href: '/guest/payment', icon: CreditCard },
   { name: 'Beskeder', href: '/guest/messages', icon: MessageCircle },
   { name: 'Support', href: '/guest/support', icon: LifeBuoy },
   { name: 'Check-out', href: '/guest/checkout', icon: LogOut },
@@ -41,7 +42,6 @@ export function GuestLayout({ children, bookingData, onLogout, guestEmail }: Gue
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border">
         <div className="max-w-5xl mx-auto flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-3">
@@ -69,7 +69,6 @@ export function GuestLayout({ children, bookingData, onLogout, guestEmail }: Gue
           </div>
         </div>
 
-        {/* Desktop nav */}
         <div className="hidden md:block border-t border-border/50">
           <div className="max-w-5xl mx-auto px-4">
             <nav className="flex items-center gap-1 overflow-x-auto py-1">
@@ -93,7 +92,6 @@ export function GuestLayout({ children, bookingData, onLogout, guestEmail }: Gue
         </div>
       </header>
 
-      {/* Mobile nav drawer */}
       {mobileNavOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setMobileNavOpen(false)} />
@@ -122,7 +120,6 @@ export function GuestLayout({ children, bookingData, onLogout, guestEmail }: Gue
         </>
       )}
 
-      {/* Content */}
       <main className="max-w-5xl mx-auto px-4 py-6 md:py-8">
         {children}
       </main>

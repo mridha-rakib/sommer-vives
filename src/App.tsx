@@ -11,7 +11,8 @@ import Auth from "./pages/Auth";
 import HowItWorks from "./pages/HowItWorks";
 import Pricing from "./pages/Pricing";
 import Contact from "./pages/Contact";
-// Rentals removed — redirects to /listings
+import About from "./pages/About";
+import FAQ from "./pages/FAQ";
 import PriceCalculator from "./pages/PriceCalculator";
 import Team from "./pages/Team";
 import ReferAHost from "./pages/ReferAHost";
@@ -20,6 +21,8 @@ import BookValuation from "./pages/BookValuation";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import AppDownload from "./pages/AppDownload";
+import Listings from "./pages/Listings";
+import ListingDetail from "./pages/ListingDetail";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
@@ -39,6 +42,7 @@ import OwnerSupport from "./pages/owner/OwnerSupport";
 import OwnerSettings from "./pages/owner/OwnerSettings";
 import OwnerPackages from "./pages/owner/OwnerPackages";
 import OwnerAgreement from "./pages/owner/OwnerAgreement";
+import OwnerAccount from "./pages/owner/OwnerAccount";
 
 // Admin pages
 import AdminAuth from "./pages/admin/AdminAuth";
@@ -67,6 +71,12 @@ import AdminTasks from "./pages/admin/AdminTasks";
 import AdminDocuments from "./pages/admin/AdminDocuments";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminStayContent from "./pages/admin/AdminStayContent";
+import AdminLeads from "./pages/admin/AdminLeads";
+import AdminAddOns from "./pages/admin/AdminAddOns";
+import AdminPayments from "./pages/admin/AdminPayments";
+import AdminServicePartners from "./pages/admin/AdminServicePartners";
+import AdminCMS from "./pages/admin/AdminCMS";
+import AdminAutomations from "./pages/admin/AdminAutomations";
 
 // Guest pages
 import GuestAuth from "./pages/guest/GuestAuth";
@@ -78,9 +88,8 @@ import GuestAddons from "./pages/guest/GuestAddons";
 import GuestMessages from "./pages/guest/GuestMessages";
 import GuestSupport from "./pages/guest/GuestSupport";
 import GuestCheckout from "./pages/guest/GuestCheckout";
+import GuestPayment from "./pages/guest/GuestPayment";
 
-import Listings from "./pages/Listings";
-import ListingDetail from "./pages/ListingDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -136,83 +145,96 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
+            {/* ─── Public Website ─── */}
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/listings" element={<Listings />} />
+            <Route path="/listing/:slug" element={<ListingDetail />} />
+            <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/rentals" element={<Navigate to="/listings" replace />} />
-            <Route path="/property/:id" element={<Navigate to="/listings" replace />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/kom-i-gang" element={<GetStarted />} />
+            <Route path="/book-vurdering" element={<BookValuation />} />
             <Route path="/beregn-lejeindtaegt" element={<PriceCalculator />} />
             <Route path="/team" element={<Team />} />
             <Route path="/refer-a-host" element={<ReferAHost />} />
-            <Route path="/kom-i-gang" element={<GetStarted />} />
-            <Route path="/book-vurdering" element={<BookValuation />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/app" element={<AppDownload />} />
-            <Route path="/listings" element={<Listings />} />
-            <Route path="/listing/:slug" element={<ListingDetail />} />
-            {/* Owner routes */}
+            {/* Legacy redirects */}
+            <Route path="/rentals" element={<Navigate to="/listings" replace />} />
+            <Route path="/property/:id" element={<Navigate to="/listings" replace />} />
+
+            {/* ─── Owner Experience ─── */}
             <Route path="/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
             <Route path="/owner/property" element={<ProtectedRoute><OwnerProperty /></ProtectedRoute>} />
             <Route path="/owner/bookings" element={<ProtectedRoute><OwnerBookings /></ProtectedRoute>} />
             <Route path="/owner/listings" element={<ProtectedRoute><OwnerListings /></ProtectedRoute>} />
-            <Route path="/owner/properties" element={<Navigate to="/owner/property" replace />} />
             <Route path="/owner/calendar" element={<ProtectedRoute><OwnerCalendar /></ProtectedRoute>} />
             <Route path="/owner/earnings" element={<ProtectedRoute><OwnerEarnings /></ProtectedRoute>} />
+            <Route path="/owner/packages" element={<ProtectedRoute><OwnerPackages /></ProtectedRoute>} />
             <Route path="/owner/guests" element={<ProtectedRoute><OwnerGuests /></ProtectedRoute>} />
             <Route path="/owner/messages" element={<ProtectedRoute><OwnerMessages /></ProtectedRoute>} />
-            <Route path="/owner/operations" element={<ProtectedRoute><OwnerOperations /></ProtectedRoute>} />
             <Route path="/owner/documents" element={<ProtectedRoute><OwnerDocuments /></ProtectedRoute>} />
+            <Route path="/owner/agreement" element={<ProtectedRoute><OwnerAgreement /></ProtectedRoute>} />
+            <Route path="/owner/payouts" element={<ProtectedRoute><OwnerPayouts /></ProtectedRoute>} />
+            <Route path="/owner/operations" element={<ProtectedRoute><OwnerOperations /></ProtectedRoute>} />
             <Route path="/owner/tasks" element={<ProtectedRoute><OwnerTasks /></ProtectedRoute>} />
             <Route path="/owner/support" element={<ProtectedRoute><OwnerSupport /></ProtectedRoute>} />
+            <Route path="/owner/account" element={<ProtectedRoute><OwnerAccount /></ProtectedRoute>} />
             <Route path="/owner/settings" element={<ProtectedRoute><OwnerSettings /></ProtectedRoute>} />
             <Route path="/owner/inquiries" element={<ProtectedRoute><OwnerInquiries /></ProtectedRoute>} />
-            <Route path="/owner/payouts" element={<ProtectedRoute><OwnerPayouts /></ProtectedRoute>} />
-            <Route path="/owner/packages" element={<ProtectedRoute><OwnerPackages /></ProtectedRoute>} />
-            <Route path="/owner/agreement" element={<ProtectedRoute><OwnerAgreement /></ProtectedRoute>} />
+            <Route path="/owner/properties" element={<Navigate to="/owner/property" replace />} />
 
-            {/* Admin routes */}
-            <Route path="/admin/auth" element={<AdminAuth />} />
-            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/owners" element={<ProtectedRoute requireAdmin><AdminOwners /></ProtectedRoute>} />
-            <Route path="/admin/properties" element={<Navigate to="/admin/listings" replace />} />
-            <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListingsNew /></ProtectedRoute>} />
-            <Route path="/admin/pricing" element={<ProtectedRoute requireAdmin><AdminPricing /></ProtectedRoute>} />
-            <Route path="/admin/calendar" element={<ProtectedRoute requireAdmin><AdminCalendarPage /></ProtectedRoute>} />
-            <Route path="/admin/emails" element={<ProtectedRoute requireAdmin><AdminEmailsPage /></ProtectedRoute>} />
-            <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
-            <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />
-            <Route path="/admin/guests" element={<ProtectedRoute requireAdmin><AdminGuests /></ProtectedRoute>} />
-            <Route path="/admin/payouts" element={<ProtectedRoute requireAdmin><AdminPayouts /></ProtectedRoute>} />
-            <Route path="/admin/audit-log" element={<ProtectedRoute requireAdmin><AdminAuditLog /></ProtectedRoute>} />
-            <Route path="/admin/optimizations" element={<ProtectedRoute requireAdmin><AdminOptimizations /></ProtectedRoute>} />
-            <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminChat /></ProtectedRoute>} />
-            <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
-            <Route path="/admin/pipeline" element={<ProtectedRoute requireAdmin><AdminPipeline /></ProtectedRoute>} />
-            <Route path="/admin/agreements" element={<ProtectedRoute requireAdmin><AdminAgreements /></ProtectedRoute>} />
-            <Route path="/admin/properties-mgmt" element={<ProtectedRoute requireAdmin><AdminPropertiesMgmt /></ProtectedRoute>} />
-            <Route path="/admin/keyboxes" element={<ProtectedRoute requireAdmin><AdminKeyboxes /></ProtectedRoute>} />
-            <Route path="/admin/support" element={<ProtectedRoute requireAdmin><AdminSupportTickets /></ProtectedRoute>} />
-            <Route path="/admin/cleaning" element={<ProtectedRoute requireAdmin><AdminCleaning /></ProtectedRoute>} />
-            <Route path="/admin/maintenance" element={<ProtectedRoute requireAdmin><AdminMaintenance /></ProtectedRoute>} />
-            <Route path="/admin/tasks" element={<ProtectedRoute requireAdmin><AdminTasks /></ProtectedRoute>} />
-            <Route path="/admin/documents" element={<ProtectedRoute requireAdmin><AdminDocuments /></ProtectedRoute>} />
-            <Route path="/admin/notifications" element={<ProtectedRoute requireAdmin><AdminNotifications /></ProtectedRoute>} />
-            <Route path="/admin/stay-content" element={<ProtectedRoute requireAdmin><AdminStayContent /></ProtectedRoute>} />
-
-            {/* Guest routes */}
+            {/* ─── Guest Experience ─── */}
             <Route path="/guest/auth" element={<GuestAuth />} />
             <Route path="/guest" element={<GuestProtectedRoute><GuestDashboard /></GuestProtectedRoute>} />
             <Route path="/guest/reservation" element={<GuestProtectedRoute><GuestReservation /></GuestProtectedRoute>} />
             <Route path="/guest/checkin" element={<GuestProtectedRoute><GuestCheckin /></GuestProtectedRoute>} />
             <Route path="/guest/house-info" element={<GuestProtectedRoute><GuestHouseInfo /></GuestProtectedRoute>} />
             <Route path="/guest/addons" element={<GuestProtectedRoute><GuestAddons /></GuestProtectedRoute>} />
+            <Route path="/guest/payment" element={<GuestProtectedRoute><GuestPayment /></GuestProtectedRoute>} />
             <Route path="/guest/messages" element={<GuestProtectedRoute><GuestMessages /></GuestProtectedRoute>} />
             <Route path="/guest/support" element={<GuestProtectedRoute><GuestSupport /></GuestProtectedRoute>} />
             <Route path="/guest/checkout" element={<GuestProtectedRoute><GuestCheckout /></GuestProtectedRoute>} />
+
+            {/* ─── Admin Panel ─── */}
+            <Route path="/admin/auth" element={<AdminAuth />} />
+            <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/leads" element={<ProtectedRoute requireAdmin><AdminLeads /></ProtectedRoute>} />
+            <Route path="/admin/owners" element={<ProtectedRoute requireAdmin><AdminOwners /></ProtectedRoute>} />
+            <Route path="/admin/guests" element={<ProtectedRoute requireAdmin><AdminGuests /></ProtectedRoute>} />
+            <Route path="/admin/properties-mgmt" element={<ProtectedRoute requireAdmin><AdminPropertiesMgmt /></ProtectedRoute>} />
+            <Route path="/admin/agreements" element={<ProtectedRoute requireAdmin><AdminAgreements /></ProtectedRoute>} />
+            <Route path="/admin/pipeline" element={<ProtectedRoute requireAdmin><AdminPipeline /></ProtectedRoute>} />
+            <Route path="/admin/tasks" element={<ProtectedRoute requireAdmin><AdminTasks /></ProtectedRoute>} />
+            <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />
+            <Route path="/admin/calendar" element={<ProtectedRoute requireAdmin><AdminCalendarPage /></ProtectedRoute>} />
+            <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListingsNew /></ProtectedRoute>} />
+            <Route path="/admin/pricing" element={<ProtectedRoute requireAdmin><AdminPricing /></ProtectedRoute>} />
+            <Route path="/admin/addons" element={<ProtectedRoute requireAdmin><AdminAddOns /></ProtectedRoute>} />
+            <Route path="/admin/payments" element={<ProtectedRoute requireAdmin><AdminPayments /></ProtectedRoute>} />
+            <Route path="/admin/payouts" element={<ProtectedRoute requireAdmin><AdminPayouts /></ProtectedRoute>} />
+            <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminChat /></ProtectedRoute>} />
+            <Route path="/admin/emails" element={<ProtectedRoute requireAdmin><AdminEmailsPage /></ProtectedRoute>} />
+            <Route path="/admin/support" element={<ProtectedRoute requireAdmin><AdminSupportTickets /></ProtectedRoute>} />
+            <Route path="/admin/service-partners" element={<ProtectedRoute requireAdmin><AdminServicePartners /></ProtectedRoute>} />
+            <Route path="/admin/cleaning" element={<ProtectedRoute requireAdmin><AdminCleaning /></ProtectedRoute>} />
+            <Route path="/admin/maintenance" element={<ProtectedRoute requireAdmin><AdminMaintenance /></ProtectedRoute>} />
+            <Route path="/admin/keyboxes" element={<ProtectedRoute requireAdmin><AdminKeyboxes /></ProtectedRoute>} />
+            <Route path="/admin/documents" element={<ProtectedRoute requireAdmin><AdminDocuments /></ProtectedRoute>} />
+            <Route path="/admin/stay-content" element={<ProtectedRoute requireAdmin><AdminStayContent /></ProtectedRoute>} />
+            <Route path="/admin/cms" element={<ProtectedRoute requireAdmin><AdminCMS /></ProtectedRoute>} />
+            <Route path="/admin/automations" element={<ProtectedRoute requireAdmin><AdminAutomations /></ProtectedRoute>} />
+            <Route path="/admin/notifications" element={<ProtectedRoute requireAdmin><AdminNotifications /></ProtectedRoute>} />
+            <Route path="/admin/audit-log" element={<ProtectedRoute requireAdmin><AdminAuditLog /></ProtectedRoute>} />
+            <Route path="/admin/optimizations" element={<ProtectedRoute requireAdmin><AdminOptimizations /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+            {/* Legacy redirects */}
+            <Route path="/admin/properties" element={<Navigate to="/admin/listings" replace />} />
+            <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
