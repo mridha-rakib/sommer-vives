@@ -444,6 +444,43 @@ function FlexVisual() {
   );
 }
 
+function CommissionVisual() {
+  return (
+    <div className="rounded-xl overflow-hidden border border-primary/12">
+      <div className="bg-gradient-to-r from-secondary via-secondary/80 to-secondary px-3.5 py-2 flex items-center justify-between border-b border-border/30">
+        <div className="flex items-center gap-2">
+          <SvMark size="md" />
+          <span className="text-[8px] font-medium text-muted-foreground/45">Kommission</span>
+        </div>
+        <span className="text-[9px] font-bold text-primary/55">Gennemsigtig model</span>
+      </div>
+      <div className="bg-secondary/40 px-3.5 py-3 space-y-2.5">
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col items-center">
+            <span className="text-[22px] font-display font-bold text-primary/75 leading-none">15%</span>
+            <span className="text-[7.5px] font-medium text-muted-foreground/40 mt-0.5">Ejer</span>
+          </div>
+          <div className="h-8 w-px bg-border/30" />
+          <div className="flex flex-col items-center">
+            <span className="text-[16px] font-display font-semibold text-muted-foreground/45 leading-none">5%</span>
+            <span className="text-[7.5px] font-medium text-muted-foreground/35 mt-0.5">Gæst</span>
+          </div>
+          <div className="ml-auto flex flex-col gap-1">
+            <div className="flex items-center gap-1">
+              <Check className="w-2.5 h-2.5 text-primary/45" strokeWidth={2} />
+              <span className="text-[8px] text-muted-foreground/45">Ingen skjulte gebyrer</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Check className="w-2.5 h-2.5 text-primary/45" strokeWidth={2} />
+              <span className="text-[8px] text-muted-foreground/45">Mere tilbage til dig</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════
    SERVICE DATA
    ═══════════════════════════════════════════ */
