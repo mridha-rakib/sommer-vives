@@ -162,6 +162,9 @@ export default function GuestDashboard() {
           ))}
         </div>
 
+        {/* App download prompt */}
+        <AppDownloadBanner variant="compact" context="guest" />
+
         {/* Address */}
         {property?.address && (
           <Card>
