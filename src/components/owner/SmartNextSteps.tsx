@@ -104,8 +104,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   if (!property?.description || property.description.length < 100) {
     allActions.push({
       id: 'improve-desc',
-      title: 'Forbedr din boligbeskrivelse',
-      description: 'En god beskrivelse øger konvertering med op til 30%.',
+      title: 'Styrk din boligbeskrivelse',
+      description: 'En velskrevet beskrivelse øger konverteringen med op til 30 %.',
       href: '/owner/property',
       icon: Sparkles,
       priority: 'low',
