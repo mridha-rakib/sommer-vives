@@ -11,10 +11,10 @@ const supportOptions = [
 ];
 
 const faqItems = [
-  { q: 'Hvornår får jeg min udbetaling?', a: 'Udbetalinger foretages 5 hverdage efter gæstens afrejse.' },
-  { q: 'Hvordan ændrer jeg mine priser?', a: 'Kontakt dit SommerVibes-team, så justerer vi priserne for dig.' },
-  { q: 'Hvad sker der ved skader?', a: 'SommerVibes har en skadespool der dækker mindre skader. Større skader håndteres via forsikring.' },
-  { q: 'Kan jeg blokere datoer?', a: 'Ja, gå til Kalender og marker de datoer du selv vil bruge boligen.' },
+  { q: 'Hvornår modtager jeg min udbetaling?', a: 'Vi overfører automatisk til din konto 5 hverdage efter gæstens afrejse.' },
+  { q: 'Hvordan tilpasser jeg mine priser?', a: 'Kontakt din rådgiver, så justerer vi sammen — du bestemmer altid.' },
+  { q: 'Hvad sker der, hvis der opstår en skade?', a: 'Vi har en skadespool til småskader. Større sager håndterer vi via forsikringen.' },
+  { q: 'Kan jeg blokere perioder til eget brug?', a: 'Selvfølgelig. Gå til din kalender og marker de perioder, du ønsker.' },
 ];
 
 export default function OwnerSupport() {

@@ -134,8 +134,8 @@ export default function OwnerTasks() {
                     <Rocket className="w-6 h-6 text-accent" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-foreground">Onboarding-fremskridt</div>
-                    <div className="text-xs text-muted-foreground">{completedCount} af {tasks.length} trin gennemført</div>
+                    <div className="text-sm font-semibold text-foreground">Din fremgang</div>
+                    <div className="text-xs text-muted-foreground">{completedCount} af {tasks.length} trin — du er godt på vej</div>
                   </div>
                 </div>
                 <div className="text-right">

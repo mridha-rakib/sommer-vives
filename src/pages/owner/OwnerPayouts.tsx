@@ -176,9 +176,9 @@ export default function OwnerPayouts() {
                 <Building className="w-5 h-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-medium text-foreground">Udbetalingsrytme</div>
+                <div className="text-sm font-medium text-foreground">Sådan fungerer udbetalinger</div>
                 <div className="text-xs text-muted-foreground">
-                  Udbetalinger foretages automatisk 5 hverdage efter gæstens afrejse til din registrerede bankkonto.
+                  Vi overfører automatisk til din konto 5 hverdage efter gæstens afrejse. Ingen opsætning nødvendig.
                 </div>
               </div>
               <Link to="/owner/settings">
