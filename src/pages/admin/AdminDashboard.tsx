@@ -1,118 +1,222 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { formatDKK } from '@/lib/status-badges';
+import { 
+  Home, Calendar, Users, TrendingUp, DollarSign, 
+  AlertCircle, CheckCircle, Clock, XCircle, ArrowUpRight,
+  Building2, UserCheck, Plus
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { Building, Users, MessageSquare, TrendingUp, Globe } from 'lucide-react';
+import { StatCard } from '@/components/admin/StatCard';
+import { BookingsTable } from '@/components/admin/BookingsTable';
+import { ActivityLog } from '@/components/admin/ActivityLog';
+import { useAdminStats } from '@/hooks/useAdminStats';
+import { supabase } from '@/integrations/supabase/client';
+import { Booking } from '@/types/admin';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { CreateBookingDialog } from '@/components/admin/CreateBookingDialog';
+import { CreatePropertyDialog } from '@/components/admin/CreatePropertyDialog';
+import { CreateGuestDialog } from '@/components/admin/CreateGuestDialog';
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    owners: 0,
-    properties: 0,
-    publishedListings: 0,
-    inquiries: 0,
-  });
-  const [loading, setLoading] = useState(true);
+  const { stats, loading: statsLoading, refresh: refreshStats } = useAdminStats();
+  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [propertyDialogOpen, setPropertyDialogOpen] = useState(false);
+  const [guestDialogOpen, setGuestDialogOpen] = useState(false);
+
+  const loadUpcomingBookings = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const { data } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        property:properties(id, title, case_number),
+        guest:guests(id, name, case_number)
+      `)
+      .gte('check_in', today)
+      .neq('status', 'cancelled')
+      .order('check_in', { ascending: true })
+      .limit(10);
+    
+    setUpcomingBookings((data as unknown as Booking[]) || []);
+    setBookingsLoading(false);
+  };
 
   useEffect(() => {
-    loadStats();
+    loadUpcomingBookings();
   }, []);
 
-  const loadStats = async () => {
-    // Count owners
-    const { count: ownerCount } = await supabase
-      .from('user_roles')
-      .select('*', { count: 'exact', head: true })
-      .eq('role', 'owner');
-
-    // Count properties
-    const { count: propCount } = await supabase
-      .from('properties')
-      .select('*', { count: 'exact', head: true });
-
-    // Count published
-    const { count: publishedCount } = await supabase
-      .from('properties')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'published');
-
-    // Count inquiries
-    const { count: inquiryCount } = await supabase
-      .from('inquiries')
-      .select('*', { count: 'exact', head: true });
-
-    setStats({
-      owners: ownerCount || 0,
-      properties: propCount || 0,
-      publishedListings: publishedCount || 0,
-      inquiries: inquiryCount || 0,
-    });
-    setLoading(false);
+  const handleDialogSuccess = () => {
+    refreshStats();
+    loadUpcomingBookings();
   };
+
+  const formatCurrency = formatDKK;
 
   return (
     <AdminLayout>
-      <div className="mb-8">
-        <h1 className="font-display text-3xl font-bold text-primary">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Overblik over platformen</p>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-              <Users className="w-5 h-5 text-accent" />
-            </div>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Overblik over dit sommerhusbureau</p>
           </div>
-          <div className="text-muted-foreground text-sm mb-1">Ejere</div>
-          <div className="font-display text-3xl font-bold text-primary">
-            {loading ? '...' : stats.owners}
-          </div>
-        </div>
-
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Building className="w-5 h-5 text-blue-600" />
-            </div>
-          </div>
-          <div className="text-muted-foreground text-sm mb-1">Sommerhuse</div>
-          <div className="font-display text-3xl font-bold text-primary">
-            {loading ? '...' : stats.properties}
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setGuestDialogOpen(true)}>
+              <Users className="h-4 w-4 mr-2" />
+              Ny gæst
+            </Button>
+            <Button variant="outline" onClick={() => setBookingDialogOpen(true)}>
+              <Calendar className="h-4 w-4 mr-2" />
+              Ny booking
+            </Button>
+            <Button onClick={() => setPropertyDialogOpen(true)}>
+              <Home className="h-4 w-4 mr-2" />
+              Ny bolig
+            </Button>
           </div>
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-              <Globe className="w-5 h-5 text-green-600" />
-            </div>
-          </div>
-          <div className="text-muted-foreground text-sm mb-1">Aktive annoncer</div>
-          <div className="font-display text-3xl font-bold text-accent">
-            {loading ? '...' : stats.publishedListings}
-          </div>
+        <CreateBookingDialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen} onSuccess={handleDialogSuccess} />
+        <CreatePropertyDialog open={propertyDialogOpen} onOpenChange={setPropertyDialogOpen} onSuccess={handleDialogSuccess} />
+        <CreateGuestDialog open={guestDialogOpen} onOpenChange={setGuestDialogOpen} onSuccess={handleDialogSuccess} />
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {statsLoading ? (
+            [...Array(6)].map((_, i) => (
+              <Card key={i} className="p-4">
+                <Skeleton className="h-4 w-20 mb-2" />
+                <Skeleton className="h-8 w-16" />
+              </Card>
+            ))
+          ) : stats && (
+            <>
+              <StatCard
+                title="Boliger"
+                value={stats.totalProperties}
+                subtitle={`${stats.activeProperties} aktive`}
+                icon={Building2}
+                variant="default"
+              />
+              <StatCard
+                title="Bookinger"
+                value={stats.totalBookings}
+                icon={Calendar}
+                variant="info"
+              />
+              <StatCard
+                title="Kommende (30d)"
+                value={stats.upcomingBookings}
+                icon={Clock}
+                variant="success"
+              />
+              <StatCard
+                title="Afholdte (30d)"
+                value={stats.pastBookings}
+                icon={CheckCircle}
+                variant="default"
+              />
+              <StatCard
+                title="Annullerede"
+                value={stats.cancelledBookings}
+                icon={XCircle}
+                variant="danger"
+              />
+              <StatCard
+                title="Ejere"
+                value={stats.totalOwners}
+                icon={UserCheck}
+                variant="default"
+              />
+            </>
+          )}
         </div>
 
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-purple-600" />
-            </div>
-          </div>
-          <div className="text-muted-foreground text-sm mb-1">Forespørgsler</div>
-          <div className="font-display text-3xl font-bold text-primary">
-            {loading ? '...' : stats.inquiries}
-          </div>
+        {/* Revenue Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {statsLoading ? (
+            [...Array(3)].map((_, i) => (
+              <Card key={i} className="p-4">
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-10 w-32" />
+              </Card>
+            ))
+          ) : stats && (
+            <>
+              <StatCard
+                title="Samlet omsætning"
+                value={formatCurrency(stats.totalRevenue)}
+                icon={TrendingUp}
+                variant="success"
+              />
+              <StatCard
+                title="Platform-indtjening"
+                value={formatCurrency(stats.platformEarnings)}
+                icon={DollarSign}
+                variant="info"
+              />
+              <StatCard
+                title="Skadespulje"
+                value={formatCurrency(stats.damagePoolTotal)}
+                subtitle="3% af platform-indtjening"
+                icon={AlertCircle}
+                variant="warning"
+              />
+            </>
+          )}
         </div>
-      </div>
 
-      {/* Recent Activity placeholder */}
-      <div className="bg-card rounded-xl border border-border">
-        <div className="p-6 border-b border-border">
-          <h2 className="font-display text-xl font-semibold text-primary">Seneste aktivitet</h2>
-        </div>
-        <div className="p-12 text-center text-muted-foreground">
-          Aktivitetslog kommer snart...
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Upcoming Bookings */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg font-semibold">Kommende bookinger</CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin/bookings">
+                    Se alle
+                    <ArrowUpRight className="h-4 w-4 ml-1" />
+                  </Link>
+                </Button>
+              </CardHeader>
+              <CardContent className="p-0">
+                {bookingsLoading ? (
+                  <div className="p-4 space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} className="h-12 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <BookingsTable bookings={upcomingBookings} compact />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Activity Log */}
+          <div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-lg font-semibold">Seneste aktivitet</CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin/audit-log">
+                    Se alle
+                    <ArrowUpRight className="h-4 w-4 ml-1" />
+                  </Link>
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <ActivityLog limit={10} />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AdminLayout>
