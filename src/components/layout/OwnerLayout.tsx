@@ -46,7 +46,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
             <Link to="/" className="flex items-center gap-2">
               <Home className="h-6 w-6 text-accent" />
               <span className="font-display text-xl font-semibold">
-                Sommerhus<span className="text-accent">Bureau</span>
+                Sommer<span className="text-accent">Vibes</span>
               </span>
             </Link>
             <button className="md:hidden text-background" onClick={() => setSidebarOpen(false)}>
