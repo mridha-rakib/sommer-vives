@@ -114,9 +114,19 @@ const App = () => (
             <Route path="/listing/:slug" element={<ListingDetail />} />
             {/* Owner routes */}
             <Route path="/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
+            <Route path="/owner/property" element={<ProtectedRoute><OwnerProperty /></ProtectedRoute>} />
+            <Route path="/owner/bookings" element={<ProtectedRoute><OwnerBookings /></ProtectedRoute>} />
             <Route path="/owner/listings" element={<ProtectedRoute><OwnerListings /></ProtectedRoute>} />
-            <Route path="/owner/properties" element={<Navigate to="/owner/listings" replace />} />
+            <Route path="/owner/properties" element={<Navigate to="/owner/property" replace />} />
             <Route path="/owner/calendar" element={<ProtectedRoute><OwnerCalendar /></ProtectedRoute>} />
+            <Route path="/owner/earnings" element={<ProtectedRoute><OwnerEarnings /></ProtectedRoute>} />
+            <Route path="/owner/guests" element={<ProtectedRoute><OwnerGuests /></ProtectedRoute>} />
+            <Route path="/owner/messages" element={<ProtectedRoute><OwnerMessages /></ProtectedRoute>} />
+            <Route path="/owner/operations" element={<ProtectedRoute><OwnerOperations /></ProtectedRoute>} />
+            <Route path="/owner/documents" element={<ProtectedRoute><OwnerDocuments /></ProtectedRoute>} />
+            <Route path="/owner/tasks" element={<ProtectedRoute><OwnerTasks /></ProtectedRoute>} />
+            <Route path="/owner/support" element={<ProtectedRoute><OwnerSupport /></ProtectedRoute>} />
+            <Route path="/owner/settings" element={<ProtectedRoute><OwnerSettings /></ProtectedRoute>} />
             <Route path="/owner/inquiries" element={<ProtectedRoute><OwnerInquiries /></ProtectedRoute>} />
             <Route path="/owner/payouts" element={<ProtectedRoute><OwnerPayouts /></ProtectedRoute>} />
             <Route path="/owner/packages" element={<ProtectedRoute><OwnerPackages /></ProtectedRoute>} />
