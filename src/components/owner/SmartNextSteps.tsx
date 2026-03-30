@@ -58,8 +58,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   if (onboarding && !onboarding.keybox_installed_at) {
     allActions.push({
       id: 'keybox',
-      title: 'Koordinér nøgleboks-installation',
-      description: 'Kontakt os for at aftale installation af nøgleboks.',
+      title: 'Aftal nøgleboks-installation',
+      description: 'Vi klarer installationen — du vælger bare et tidspunkt, der passer dig.',
       href: '/owner/support',
       icon: Key,
       priority: 'medium',
