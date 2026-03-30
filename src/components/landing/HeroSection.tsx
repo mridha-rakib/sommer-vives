@@ -37,19 +37,24 @@ export function HeroSection() {
   return (
     <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
 
-      {/* Video Background */}
+      {/* Background — gradient fallback + optional video */}
       <div className="absolute inset-0 z-0">
+        {/* Always-visible gradient fallback */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/10" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,hsl(var(--primary)/0.08),transparent_60%)]" />
         <video
           autoPlay
           loop
           muted
           playsInline
           onLoadedData={() => setVideoLoaded(true)}
-          className={`w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
         >
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background/85" />
+        {videoLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background/85" />
+        )}
       </div>
 
       {/* Main Content — always side by side */}
