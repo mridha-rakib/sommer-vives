@@ -390,31 +390,42 @@ function AdminVisual() {
   return (
     <div className="rounded-xl bg-secondary/40 border border-border/30 p-3 grid grid-cols-3 gap-1.5">
       {[
-        { icon: Calendar, label: 'Kalender' },
-        { icon: LayoutDashboard, label: 'Overblik' },
-        { icon: Settings, label: 'Drift' },
-      ].map(({ icon: Ic, label }) => (
-        <div key={label} className="flex flex-col items-center gap-1 py-1.5 rounded-lg bg-card border border-border/30">
-          <Ic className="w-3 h-3 text-primary/40" strokeWidth={1.3} />
-          <span className="text-[7.5px] font-medium text-muted-foreground/45">{label}</span>
-        </div>
-      ))}
+    <div className="rounded-xl bg-secondary/40 border border-border/30 p-3 space-y-2">
+      <div className="flex items-center gap-1.5 mb-1">
+        <SvMark />
+        <span className="text-[7.5px] text-muted-foreground/35 tracking-wide">Platform</span>
+      </div>
+      <div className="grid grid-cols-3 gap-1.5">
+        {[
+          { icon: Calendar, label: 'Kalender' },
+          { icon: LayoutDashboard, label: 'Overblik' },
+          { icon: Settings, label: 'Drift' },
+        ].map(({ icon: Ic, label }) => (
+          <div key={label} className="flex flex-col items-center gap-1 py-1.5 rounded-lg bg-card/60 border border-border/25">
+            <Ic className="w-3 h-3 text-primary/40" strokeWidth={1.3} />
+            <span className="text-[7.5px] font-medium text-muted-foreground/45">{label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
 function MarketingVisual() {
   return (
-    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3 flex items-center gap-2.5">
-      <div className="w-8 h-8 rounded-lg bg-primary/8 border border-primary/12 flex items-center justify-center flex-shrink-0">
+    <div className="rounded-xl bg-secondary/40 border border-border/30 p-3.5 flex items-center gap-3">
+      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/8 to-accent/5 border border-primary/10 flex items-center justify-center flex-shrink-0">
         <Eye className="w-3.5 h-3.5 text-primary/50" strokeWidth={1.3} />
       </div>
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-1">
-          <Star className="w-2.5 h-2.5 text-accent/50" strokeWidth={1.5} />
-          <span className="text-[8.5px] font-medium text-muted-foreground/55">Professionel præsentation</span>
+          <Star className="w-2.5 h-2.5 text-accent/45" strokeWidth={1.5} />
+          <span className="text-[8.5px] font-medium text-muted-foreground/50">Professionel præsentation</span>
         </div>
-        <span className="text-[8px] text-muted-foreground/40">Skarp tekst · Målrettet synlighed</span>
+        <div className="flex items-center gap-1">
+          <SvMark />
+          <span className="text-[7.5px] text-muted-foreground/35">Skarp tekst · Målrettet synlighed</span>
+        </div>
       </div>
     </div>
   );
@@ -422,10 +433,10 @@ function MarketingVisual() {
 
 function FlexVisual() {
   return (
-    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3 flex items-center gap-2">
+    <div className="rounded-xl bg-secondary/40 border border-border/30 p-3 flex items-center gap-2">
       {['Dit tempo', 'Dine valg', 'Din bolig'].map((label, i) => (
         <span key={label} className={`px-2 py-1 rounded-lg text-[8.5px] font-medium border ${
-          i === 0 ? 'bg-primary/8 border-primary/12 text-primary/60 font-semibold' : 'bg-card border-border/40 text-muted-foreground/50'
+          i === 0 ? 'bg-primary/8 border-primary/12 text-primary/55 font-semibold' : 'bg-card/60 border-border/25 text-muted-foreground/45'
         }`}>
           {label}
         </span>
