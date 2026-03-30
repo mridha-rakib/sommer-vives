@@ -61,6 +61,98 @@ export type Database = {
           },
         ]
       }
+      agreements: {
+        Row: {
+          accept_marketing: boolean | null
+          accept_privacy: boolean | null
+          accept_terms: boolean | null
+          binding_months: number
+          commission_percent: number
+          created_at: string
+          id: string
+          ip_address: string | null
+          notice_days: number
+          owner_address: string | null
+          owner_email: string | null
+          owner_id: string
+          owner_name: string | null
+          owner_phone: string | null
+          pdf_url: string | null
+          property_address: string | null
+          property_id: string | null
+          property_region: string | null
+          property_title: string | null
+          signature_date: string | null
+          signature_name: string | null
+          signed_at: string | null
+          status: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          accept_marketing?: boolean | null
+          accept_privacy?: boolean | null
+          accept_terms?: boolean | null
+          binding_months?: number
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          notice_days?: number
+          owner_address?: string | null
+          owner_email?: string | null
+          owner_id: string
+          owner_name?: string | null
+          owner_phone?: string | null
+          pdf_url?: string | null
+          property_address?: string | null
+          property_id?: string | null
+          property_region?: string | null
+          property_title?: string | null
+          signature_date?: string | null
+          signature_name?: string | null
+          signed_at?: string | null
+          status?: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          accept_marketing?: boolean | null
+          accept_privacy?: boolean | null
+          accept_terms?: boolean | null
+          binding_months?: number
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          notice_days?: number
+          owner_address?: string | null
+          owner_email?: string | null
+          owner_id?: string
+          owner_name?: string | null
+          owner_phone?: string | null
+          pdf_url?: string | null
+          property_address?: string | null
+          property_id?: string | null
+          property_region?: string | null
+          property_title?: string | null
+          signature_date?: string | null
+          signature_name?: string | null
+          signed_at?: string | null
+          status?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreements_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
