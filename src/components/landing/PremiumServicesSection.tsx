@@ -486,6 +486,7 @@ function CommissionVisual() {
    ═══════════════════════════════════════════ */
 
 const services: Service[] = [
+  // 1. SommerVibes BOOST
   {
     icon: Zap,
     title: 'SommerVibes BOOST',
@@ -496,6 +497,7 @@ const services: Service[] = [
     badge: 'Særligt hos SommerVibes',
     visual: BoostVisual,
   },
+  // 2. Kundedialog 24/7
   {
     icon: MessageCircle,
     title: 'Kundedialog 24/7',
@@ -506,6 +508,7 @@ const services: Service[] = [
     badge: 'Mindre arbejde for dig',
     visual: DialogVisual,
   },
+  // 3. Slutrengøring
   {
     icon: SparklesIcon,
     title: 'Slutrengøring',
@@ -516,16 +519,7 @@ const services: Service[] = [
     badge: 'Ekstra tryghed',
     visual: CleaningVisual,
   },
-  {
-    icon: QrCode,
-    title: 'Til-Leje-skilt med QR-kode',
-    short: 'Få lokal eksponering med et unikt SommerVibes-skilt direkte ved din bolig.',
-    long: 'Som en særlig SommerVibes-service tilbyder vi et unikt Til-Leje-skilt med QR-kode, der leder direkte til netop din boligannonce. Det giver ekstra synlighed over for forbipasserende, naboer, turister og potentielle gæster i området. En enkel, men effektiv måde at skabe mere opmærksomhed, flere henvendelser og stærkere lokal eksponering omkring din bolig.',
-    expandLabel: 'Derfor gør det en forskel',
-    signature: true,
-    badge: 'Mere synlighed',
-    visual: QrSignVisual,
-  },
+  // 4. Eksponering på alle store portaler
   {
     icon: Globe,
     title: 'Eksponering på alle store portaler',
@@ -536,16 +530,18 @@ const services: Service[] = [
     badge: 'Maksimal rækkevidde',
     visual: PortalsVisual,
   },
+  // 5. Til-Leje-skilt med QR-kode
   {
-    icon: TrendingUp,
-    title: 'Unikke muligheder for merindtjening',
-    short: 'Tjen mere på de tilvalg og ydelser, mange andre bureauer ikke lader dig få fuld værdi af.',
-    long: 'Hos SommerVibes får du adgang til fleksible indtægtsmuligheder, der kan løfte den samlede værdi af hver booking. Det kan være betaling for sengepakker, forbrug, tidlig check-in, sen check-out og andre relevante tilvalg. Det giver dig mulighed for at skræddersy din udlejning og hente ekstra værdi ud af de detaljer, som ofte gør en reel forskel på bundlinjen.',
-    expandLabel: 'Mere indtjening',
+    icon: QrCode,
+    title: 'Til-Leje-skilt med QR-kode',
+    short: 'Få lokal eksponering med et unikt SommerVibes-skilt direkte ved din bolig.',
+    long: 'Som en særlig SommerVibes-service tilbyder vi et unikt Til-Leje-skilt med QR-kode, der leder direkte til netop din boligannonce. Det giver ekstra synlighed over for forbipasserende, naboer, turister og potentielle gæster i området. En enkel, men effektiv måde at skabe mere opmærksomhed, flere henvendelser og stærkere lokal eksponering omkring din bolig.',
+    expandLabel: 'Derfor gør det en forskel',
     signature: true,
-    badge: 'Populær blandt ejere',
-    visual: RevenueVisual,
+    badge: 'Mere synlighed',
+    visual: QrSignVisual,
   },
+  // 6. Kun 15% kommission
   {
     icon: Percent,
     title: 'Kun 15% kommission',
@@ -556,15 +552,17 @@ const services: Service[] = [
     badge: 'Mere tilbage til dig',
     visual: CommissionVisual,
   },
+  // 7. Unikke muligheder for merindtjening
   {
-    icon: ShieldCheck,
-    title: 'Tryghedsgaranti',
-    short: 'Ekstra sikkerhed, hvis uheldet skulle være ude under et ophold.',
-    long: 'Skulle en gæst forårsage skade under et ophold, tilbyder vi via vores samarbejdspartner på udlejningsforsikring en løsning med selvrisiko på 3.000 kr. Vi anbefaler samtidig, at du også har en relevant udvidet udlejningsforsikring gennem dit eget forsikringsselskab, så du står bedst muligt dækket. Hos SommerVibes er tryghed ikke en sidebemærkning — det er en vigtig del af samarbejdet.',
-    expandLabel: 'Ekstra tryghed',
-    badge: 'Ro i maven',
-    visual: TryghedVisual,
+    icon: TrendingUp,
+    title: 'Unikke muligheder for merindtjening',
+    short: 'Tjen mere på de tilvalg og ydelser, mange andre bureauer ikke lader dig få fuld værdi af.',
+    long: 'Hos SommerVibes får du adgang til fleksible indtægtsmuligheder, der kan løfte den samlede værdi af hver booking. Det kan være betaling for sengepakker, forbrug, tidlig check-in, sen check-out og andre relevante tilvalg. Det giver dig mulighed for at skræddersy din udlejning og hente ekstra værdi ud af de detaljer, som ofte gør en reel forskel på bundlinjen.',
+    expandLabel: 'Mere indtjening',
+    badge: 'Populær blandt ejere',
+    visual: RevenueVisual,
   },
+  // 8. Nøgleservice
   {
     icon: KeyRound,
     title: 'Nøgleservice',
@@ -574,6 +572,7 @@ const services: Service[] = [
     badge: 'Nem drift',
     visual: NoegleVisual,
   },
+  // 9. Fri rådgiversupport
   {
     icon: HeadphonesIcon,
     title: 'Fri rådgiversupport',
@@ -583,6 +582,7 @@ const services: Service[] = [
     badge: 'Inkluderet service',
     visual: RaadgiverVisual,
   },
+  // 10. Service & reparation
   {
     icon: Wrench,
     title: 'Service & reparation',
@@ -591,14 +591,7 @@ const services: Service[] = [
     expandLabel: 'Fleksibel hjælp',
     visual: ServiceRepVisual,
   },
-  {
-    icon: LayoutDashboard,
-    title: 'Moderne administration',
-    short: 'Et enkelt setup med struktur, overblik og effektiv drift omkring din bolig.',
-    long: 'Vi arbejder moderne og effektivt med fokus på synlighed, struktur og høj udnyttelse af din bolig. Det betyder, at samarbejdet skal være let at forstå, let at følge med i og let at skabe resultater med. SommerVibes er bygget til husejere, der ønsker høj service uden tung administration eller unødigt bøvl.',
-    expandLabel: 'Mere overblik',
-    visual: AdminVisual,
-  },
+  // 11. Effektiv markedsføring
   {
     icon: Megaphone,
     title: 'Effektiv markedsføring',
@@ -607,6 +600,26 @@ const services: Service[] = [
     expandLabel: 'Flere relevante bookinger',
     visual: MarketingVisual,
   },
+  // 12. Moderne administration
+  {
+    icon: LayoutDashboard,
+    title: 'Moderne administration',
+    short: 'Et enkelt setup med struktur, overblik og effektiv drift omkring din bolig.',
+    long: 'Vi arbejder moderne og effektivt med fokus på synlighed, struktur og høj udnyttelse af din bolig. Det betyder, at samarbejdet skal være let at forstå, let at følge med i og let at skabe resultater med. SommerVibes er bygget til husejere, der ønsker høj service uden tung administration eller unødigt bøvl.',
+    expandLabel: 'Mere overblik',
+    visual: AdminVisual,
+  },
+  // 13. Tryghedsgaranti
+  {
+    icon: ShieldCheck,
+    title: 'Tryghedsgaranti',
+    short: 'Ekstra sikkerhed, hvis uheldet skulle være ude under et ophold.',
+    long: 'Skulle en gæst forårsage skade under et ophold, tilbyder vi via vores samarbejdspartner på udlejningsforsikring en løsning med selvrisiko på 3.000 kr. Vi anbefaler samtidig, at du også har en relevant udvidet udlejningsforsikring gennem dit eget forsikringsselskab, så du står bedst muligt dækket. Hos SommerVibes er tryghed ikke en sidebemærkning — det er en vigtig del af samarbejdet.',
+    expandLabel: 'Ekstra tryghed',
+    badge: 'Ro i maven',
+    visual: TryghedVisual,
+  },
+  // 14. Fuld fleksibilitet
   {
     icon: SlidersHorizontal,
     title: 'Fuld fleksibilitet',
