@@ -37,19 +37,24 @@ export function HeroSection() {
   return (
     <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
 
-      {/* Video Background */}
+      {/* Background — gradient fallback + optional video */}
       <div className="absolute inset-0 z-0">
+        {/* Always-visible gradient fallback */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/10" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,hsl(var(--primary)/0.08),transparent_60%)]" />
         <video
           autoPlay
           loop
           muted
           playsInline
           onLoadedData={() => setVideoLoaded(true)}
-          className={`w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
         >
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background/85" />
+        {videoLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background/85" />
+        )}
       </div>
 
       {/* Main Content — always side by side */}
@@ -184,14 +189,14 @@ export function HeroSection() {
               </motion.div>
             </div>
 
-            {/* Right — Advisor cutout (ALWAYS visible, scales per breakpoint) */}
+            {/* Right — Advisor cutout or decorative visual */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, delay: 0.8 }}
               className="relative flex-shrink-0 w-[38vw] sm:w-[34vw] md:w-[32vw] lg:w-[38vw] xl:w-[36vw] max-w-[520px] self-end -mr-6 sm:-mr-8 md:-mr-10 lg:-mr-16"
             >
-              {/* Shimmer glow behind person */}
+              {/* Shimmer glow */}
               <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[80%] h-[55%] rounded-full blur-[80px] sm:blur-[100px] animate-hero-shimmer" />
               <div className="absolute top-[25%] left-1/2 -translate-x-1/2 w-[50%] h-[40%] bg-accent/8 rounded-full blur-[50px] animate-hero-shimmer-slow" />
 
@@ -209,6 +214,7 @@ export function HeroSection() {
                   src="/images/advisor-cutout.png"
                   alt="Emil W. Klockmann — Udlejningschef"
                   className="w-full h-auto object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
 
