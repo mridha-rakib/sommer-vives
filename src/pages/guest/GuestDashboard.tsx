@@ -69,9 +69,9 @@ export default function GuestDashboard() {
       <GuestLayout guestEmail={user?.email} onLogout={signOut}>
         <div className="text-center py-20">
           <CalendarDays className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-          <h2 className="font-display text-xl font-semibold text-foreground mb-2">Ingen aktive bookinger</h2>
-          <p className="text-muted-foreground text-sm">Vi kunne ikke finde en booking tilknyttet din e-mail.</p>
-          <p className="text-muted-foreground text-xs mt-1">Kontakt support hvis du mener det er en fejl.</p>
+          <h2 className="font-display text-xl font-semibold text-foreground mb-2">Ingen aktive ophold</h2>
+          <p className="text-muted-foreground text-sm">Vi fandt ingen booking tilknyttet din e-mail.</p>
+          <p className="text-muted-foreground text-xs mt-1">Noget galt? Skriv til os, så finder vi en løsning.</p>
         </div>
       </GuestLayout>
     );

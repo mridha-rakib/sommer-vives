@@ -113,11 +113,10 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
     });
   }
 
-  // Calendar setup
   allActions.push({
     id: 'setup-calendar',
-    title: 'Bekræft din sæsonkalender',
-    description: 'Markér perioder hvor boligen er tilgængelig for udlejning.',
+    title: 'Sæt din kalender op',
+    description: 'Vælg hvilke perioder dit hus er tilgængeligt — resten styrer vi.',
     href: '/owner/calendar',
     icon: CalendarDays,
     priority: 'medium',

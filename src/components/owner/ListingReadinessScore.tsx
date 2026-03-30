@@ -58,7 +58,7 @@ export function ListingReadinessScore({ property, listings, className }: Listing
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="text-sm font-semibold text-foreground">Listing Readiness</div>
+            <div className="text-sm font-semibold text-foreground">Klarhedsscore</div>
             <div className="text-xs text-muted-foreground mt-0.5">{getScoreLabel()}</div>
           </div>
           <div className="relative w-16 h-16">

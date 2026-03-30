@@ -74,9 +74,9 @@ export default function GuestCheckin() {
           <CardContent className="p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
             <div>
-              <div className="text-sm font-semibold text-foreground">Nødkontakt</div>
+              <div className="text-sm font-semibold text-foreground">Brug for hjælp ved ankomst?</div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Akutte problemer ved ankomst? Ring til os på <strong className="text-foreground">+45 XX XX XX XX</strong> — vi er tilgængelige alle dage kl. 10-22.
+                Ring til os på <strong className="text-foreground">+45 XX XX XX XX</strong> — vi er tilgængelige alle dage kl. 10–22.
               </p>
             </div>
           </CardContent>
