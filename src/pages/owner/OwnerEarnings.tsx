@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Wallet, TrendingUp, ArrowDownRight, Receipt, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { EarningsChart } from '@/components/owner/EarningsChart';
 
 export default function OwnerEarnings() {
   const { user } = useAuth();
@@ -95,6 +96,9 @@ export default function OwnerEarnings() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Earnings Chart */}
+        <EarningsChart bookings={bookings} />
 
         {/* Booking income details */}
         <Card>
