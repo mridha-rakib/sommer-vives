@@ -22,10 +22,20 @@ import Terms from "./pages/Terms";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
+import OwnerProperty from "./pages/owner/OwnerProperty";
+import OwnerBookings from "./pages/owner/OwnerBookings";
 import OwnerListings from "./pages/owner/OwnerListings";
 import OwnerInquiries from "./pages/owner/OwnerInquiries";
 import OwnerPayouts from "./pages/owner/OwnerPayouts";
+import OwnerEarnings from "./pages/owner/OwnerEarnings";
 import OwnerCalendar from "./pages/owner/OwnerCalendar";
+import OwnerGuests from "./pages/owner/OwnerGuests";
+import OwnerMessages from "./pages/owner/OwnerMessages";
+import OwnerOperations from "./pages/owner/OwnerOperations";
+import OwnerDocuments from "./pages/owner/OwnerDocuments";
+import OwnerTasks from "./pages/owner/OwnerTasks";
+import OwnerSupport from "./pages/owner/OwnerSupport";
+import OwnerSettings from "./pages/owner/OwnerSettings";
 import OwnerPackages from "./pages/owner/OwnerPackages";
 import OwnerAgreement from "./pages/owner/OwnerAgreement";
 
