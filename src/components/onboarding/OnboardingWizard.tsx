@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AppPromptSheet } from '@/components/app/AppPromptSheet';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,6 +85,7 @@ export function OnboardingWizard() {
       paymentMethod: null,
     },
   });
+  const [showAppPrompt, setShowAppPrompt] = useState(false);
 
   const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
@@ -129,7 +131,8 @@ export function OnboardingWizard() {
       if (error) throw error;
 
       toast.success('Dit sommerhus er oprettet!');
-      navigate('/owner/properties');
+      setShowAppPrompt(true);
+      setTimeout(() => navigate('/owner/properties'), 3000);
     } catch (error) {
       console.error('Error creating property:', error);
       toast.error('Der opstod en fejl ved oprettelse');
@@ -504,6 +507,7 @@ export function OnboardingWizard() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <AppPromptSheet open={showAppPrompt} onOpenChange={setShowAppPrompt} context="onboarding-complete" />
       {renderStepIndicator()}
 
       <Card>

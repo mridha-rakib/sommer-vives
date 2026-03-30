@@ -10,6 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { AppDownloadBanner } from '@/components/app/AppDownloadBanner';
 import { format, differenceInDays, isFuture, isToday } from 'date-fns';
 import { da } from 'date-fns/locale';
 
@@ -272,6 +273,9 @@ export default function OwnerDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* App download banner */}
+          <AppDownloadBanner variant="compact" context="owner" className="mt-6" />
         </div>
       </div>
     </OwnerLayout>

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DoorOpen, Key, Car, Phone, MapPin, CheckCircle2, AlertTriangle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AppDownloadBanner } from '@/components/app/AppDownloadBanner';
 
 const checkinSteps = [
   { step: 1, title: 'Kør til adressen', desc: 'Brug GPS-koordinaterne eller adressen fra din reservation. Følg vejen hele vejen til huset.', icon: MapPin },
@@ -94,6 +95,9 @@ export default function GuestCheckin() {
             <Badge variant="outline" className="text-[10px]">Standard</Badge>
           </CardContent>
         </Card>
+
+        {/* App download */}
+        <AppDownloadBanner variant="inline" context="guest" />
       </div>
     </GuestLayout>
   );

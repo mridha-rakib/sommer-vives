@@ -19,6 +19,7 @@ import GetStarted from "./pages/GetStarted";
 import BookValuation from "./pages/BookValuation";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import AppDownload from "./pages/AppDownload";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
@@ -150,6 +151,7 @@ const App = () => (
             <Route path="/book-vurdering" element={<BookValuation />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/app" element={<AppDownload />} />
             <Route path="/listings" element={<Listings />} />
             <Route path="/listing/:slug" element={<ListingDetail />} />
             {/* Owner routes */}
