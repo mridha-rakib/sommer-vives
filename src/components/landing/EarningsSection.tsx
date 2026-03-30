@@ -123,7 +123,7 @@ export function EarningsSection() {
               </div>
 
               <p className="text-center text-muted-foreground text-sm mb-5">
-                Andre bureauer beholder disse indtægter. Hos SommerVibes er de <strong className="text-foreground">dine</strong>.
+                Hos de fleste bureauer forsvinder disse indtægter. Hos os tilfalder de <strong className="text-foreground">dig</strong>.
               </p>
               <div className="text-center">
                 <Link to="/kom-i-gang">

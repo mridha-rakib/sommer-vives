@@ -87,8 +87,8 @@ export function HeroSection() {
                 transition={{ duration: 0.6, delay: 0.6 }}
                 className="text-sm sm:text-lg md:text-xl text-foreground/75 mb-4 sm:mb-6 max-w-md leading-relaxed"
               >
-                Vi markedsfører, styrer gæstekontakt og rengøring.
-                Du får pengene — vi tager kun <strong className="text-primary">15%</strong>.
+                Vi tager os af markedsføring, gæstekontakt og drift.
+                Du beholder overblikket — og <strong className="text-primary">85% af indtægten</strong>.
               </motion.p>
 
               {/* Minimal revenue teaser — inline, transparent */}

@@ -7,23 +7,23 @@ import { ArrowRight } from 'lucide-react';
 const steps = [
   {
     number: '01',
-    title: 'Opret dit hus',
-    description: 'Del information og billeder af dit sommerhus. Det tager kun 5 minutter online.',
+    title: 'Del dit hus med os',
+    description: 'Opret din bolig online på fem minutter — eller ring, og vi guider dig igennem.',
   },
   {
     number: '02',
-    title: 'Vi vurderer & fotograferer',
-    description: 'Vi kigger dit hus igennem og sørger for professionelt indhold der skaber bookinger.',
+    title: 'Vi gør det præsentabelt',
+    description: 'Vi besøger dit hus, tager professionelle billeder og skriver en listing, der tiltrækker de rigtige gæster.',
   },
   {
     number: '03',
-    title: 'Vi markedsfører',
-    description: 'Dit hus vises på alle de største portaler og vores egne kanaler med optimal prissætning.',
+    title: 'Din bolig går live',
+    description: 'Vi publicerer på Airbnb, Booking.com og vores egne kanaler — og optimerer løbende for at skabe synlighed.',
   },
   {
     number: '04',
-    title: 'Du tjener',
-    description: 'Bookinger ruller ind. Gennemsigtige udbetalinger direkte til din konto.',
+    title: 'Du følger med fra sofaen',
+    description: 'Bookinger, gæstekontakt og drift håndteres af os. Du får overblik og udbetaling direkte til din konto.',
   },
 ];
 

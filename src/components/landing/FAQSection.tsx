@@ -42,7 +42,7 @@ export function FAQSection() {
               <span className="text-primary italic font-normal block">& svar</span>
             </h2>
             <p className="text-muted-foreground mt-4 leading-relaxed">
-              Find svar på de mest stillede spørgsmål om udlejning med SommerVibes.
+              Det skal være nemt at forstå, hvad du får — og hvad du ikke skal bekymre dig om.
             </p>
           </motion.div>
 

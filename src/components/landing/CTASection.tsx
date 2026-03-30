@@ -27,7 +27,7 @@ export function CTASection() {
           </Link>
         </div>
         <p className="mt-6 text-sm text-muted-foreground">
-          6 måneders binding • Ingen oprettelsesgebyr • Kun 15% kommission
+          6 måneders aftale · Gratis oprettelse · 15 % kommission — ingen overraskelser
         </p>
       </div>
     </section>

@@ -37,7 +37,7 @@ export function ContactExpertsSection() {
           >
             <Clock className="w-3.5 h-3.5 text-primary" />
             <span className="text-primary text-sm font-semibold">
-              Kun 8 ledige pladser i denne sæson
+              Vi optager et begrænset antal nye boliger pr. sæson
             </span>
           </motion.div>
 
