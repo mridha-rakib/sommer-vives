@@ -388,8 +388,6 @@ function ServiceRepVisual() {
 
 function AdminVisual() {
   return (
-    <div className="rounded-xl bg-secondary/40 border border-border/30 p-3 grid grid-cols-3 gap-1.5">
-      {[
     <div className="rounded-xl bg-secondary/40 border border-border/30 p-3 space-y-2">
       <div className="flex items-center gap-1.5 mb-1">
         <SvMark />
