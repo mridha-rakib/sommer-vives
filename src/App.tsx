@@ -97,6 +97,8 @@ const App = () => (
             <Route path="/refer-a-host" element={<ReferAHost />} />
             <Route path="/kom-i-gang" element={<GetStarted />} />
             <Route path="/book-vurdering" element={<BookValuation />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/listings" element={<Listings />} />
             <Route path="/listing/:slug" element={<ListingDetail />} />
             {/* Owner routes */}
