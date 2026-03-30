@@ -98,10 +98,10 @@ export default function OwnerDashboard() {
         {/* Welcome */}
         <div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Velkommen tilbage
+            Dit overblik
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Her er dit overblik for {format(new Date(), 'EEEE d. MMMM', { locale: da })}
+            {format(new Date(), 'EEEE d. MMMM', { locale: da })} — alt er samlet her
           </p>
         </div>
 
