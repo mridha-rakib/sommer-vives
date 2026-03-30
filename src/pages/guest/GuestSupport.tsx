@@ -49,8 +49,8 @@ export default function GuestSupport() {
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
       <div className="space-y-5">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Support</h1>
-          <p className="text-sm text-muted-foreground mt-1">Vi er her for dig — alle dage kl. 10–22</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Vi er her for dig</h1>
+          <p className="text-sm text-muted-foreground mt-1">Spørgsmål, hjælp eller bare gode tips — vi er klar alle dage kl. 10–22</p>
         </div>
 
         {/* Primary contact */}

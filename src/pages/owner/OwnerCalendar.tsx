@@ -186,9 +186,9 @@ export default function OwnerCalendar() {
     <OwnerLayout>
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Kalender</h1>
+          <h1 className="text-2xl font-bold text-primary">Din kalender</h1>
           <p className="text-muted-foreground">
-            Administrer tilgængelighed og se bookinger
+            Vælg hvornår dit hus er tilgængeligt — resten styrer vi
           </p>
         </div>
         <div className="flex items-center gap-4">

@@ -103,7 +103,7 @@ export default function OwnerEarnings() {
         {/* Booking income details */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Booking-niveau indtjening</CardTitle>
+            <CardTitle className="text-base">Indtjening pr. booking</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (

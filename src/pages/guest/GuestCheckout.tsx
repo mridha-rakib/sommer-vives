@@ -28,8 +28,8 @@ export default function GuestCheckout() {
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
       <div className="space-y-5">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Check-out</h1>
-          <p className="text-sm text-muted-foreground mt-1">Følg tjeklisten for en god afrejse</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Tid til afrejse</h1>
+          <p className="text-sm text-muted-foreground mt-1">Følg de simple trin herunder — rengøringen klarer vi</p>
         </div>
 
         {/* Time + progress */}

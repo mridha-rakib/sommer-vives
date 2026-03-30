@@ -47,8 +47,8 @@ export default function OwnerPayouts() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Udbetalinger</h1>
-          <p className="text-sm text-muted-foreground mt-1">Overblik over dine udbetalinger og betalingsoplysninger</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Dine udbetalinger</h1>
+          <p className="text-sm text-muted-foreground mt-1">Vi udbetaler automatisk efter hvert ophold — du kan følge det hele her</p>
         </div>
 
         {/* KPIs */}

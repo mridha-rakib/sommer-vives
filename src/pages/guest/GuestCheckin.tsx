@@ -52,8 +52,8 @@ export default function GuestCheckin() {
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
       <div className="space-y-5">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Ankomst & adgang</h1>
-          <p className="text-sm text-muted-foreground mt-1">Alt du behøver for en smidig ankomst</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Velkommen — din ankomstguide</h1>
+          <p className="text-sm text-muted-foreground mt-1">Alt er klar til dig. Følg guiden herunder, så er du hurtigt inde</p>
         </div>
 
         {/* Access code hero */}

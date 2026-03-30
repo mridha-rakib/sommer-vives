@@ -88,8 +88,8 @@ export default function OwnerMessages() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Beskeder</h1>
-          <p className="text-sm text-muted-foreground mt-1">Al din kommunikation samlet ét sted</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Din indbakke</h1>
+          <p className="text-sm text-muted-foreground mt-1">Dialog med dit team, gæster og automatiske opdateringer</p>
         </div>
 
         {/* Thread selector */}

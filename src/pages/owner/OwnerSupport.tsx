@@ -22,8 +22,8 @@ export default function OwnerSupport() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Support</h1>
-          <p className="text-sm text-muted-foreground mt-1">Vi er her for at hjælpe dig</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Har du brug for hjælp?</h1>
+          <p className="text-sm text-muted-foreground mt-1">Dit SommerVibes-team er altid klar — vi kender dit hus og dine behov</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-3">
