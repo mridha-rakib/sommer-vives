@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import {
   LayoutDashboard, Settings, Users, Wallet, LogOut, Menu, X, Shield, Calendar,
   UserCheck, Activity, MessageCircle, Mail, List, Wrench, FileText, Bell,
-  LifeBuoy, Briefcase, ClipboardList, Home, ChevronDown, ChevronRight,
-  Target, Building, BookOpen, Key, Sparkles
+  LifeBuoy, ClipboardList, ChevronDown, ChevronRight,
+  Target, Building, BookOpen, Key, Sparkles, CreditCard, ShoppingBag,
+  Handshake, Globe, Zap, Eye, FileSignature
 } from 'lucide-react';
 import { GlobalSearch } from '@/components/admin/GlobalSearch';
 import { cn } from '@/lib/utils';
@@ -26,7 +27,8 @@ const navSections: NavSection[] = [
     label: 'Overblik',
     items: [
       { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-      { name: 'Pipeline', href: '/admin/pipeline', icon: Target },
+      { name: 'Leads', href: '/admin/leads', icon: Target },
+      { name: 'Pipeline', href: '/admin/pipeline', icon: Eye },
       { name: 'Aktivitetslog', href: '/admin/audit-log', icon: Activity },
     ],
   },
@@ -34,8 +36,8 @@ const navSections: NavSection[] = [
     label: 'Ejere & Ejendomme',
     items: [
       { name: 'Ejere', href: '/admin/owners', icon: UserCheck },
-      { name: 'Ejendomme', href: '/admin/properties-mgmt', icon: Building },
-      { name: 'Aftaler', href: '/admin/agreements', icon: FileText },
+      { name: 'Boliger', href: '/admin/properties-mgmt', icon: Building },
+      { name: 'Aftaler', href: '/admin/agreements', icon: FileSignature },
       { name: 'Nøglebokse', href: '/admin/keyboxes', icon: Key },
     ],
   },
@@ -46,6 +48,7 @@ const navSections: NavSection[] = [
       { name: 'Priser & Sæsoner', href: '/admin/pricing', icon: Wallet },
       { name: 'Kalender', href: '/admin/calendar', icon: Calendar },
       { name: 'Stay-indhold', href: '/admin/stay-content', icon: BookOpen },
+      { name: 'Tilkøb', href: '/admin/addons', icon: ShoppingBag },
     ],
   },
   {
@@ -53,7 +56,7 @@ const navSections: NavSection[] = [
     items: [
       { name: 'Bookinger', href: '/admin/bookings', icon: Calendar },
       { name: 'Gæster', href: '/admin/guests', icon: Users },
-      { name: 'Forespørgsler', href: '/admin/inquiries', icon: MessageCircle },
+      { name: 'Opgaver', href: '/admin/tasks', icon: ClipboardList },
     ],
   },
   {
@@ -61,24 +64,32 @@ const navSections: NavSection[] = [
     items: [
       { name: 'Rengøring', href: '/admin/cleaning', icon: Sparkles },
       { name: 'Vedligeholdelse', href: '/admin/maintenance', icon: Wrench },
-      { name: 'Opgaver', href: '/admin/tasks', icon: ClipboardList },
+      { name: 'Servicepartnere', href: '/admin/service-partners', icon: Handshake },
       { name: 'Support-sager', href: '/admin/support', icon: LifeBuoy },
     ],
   },
   {
-    label: 'Økonomi & Kommunikation',
+    label: 'Økonomi',
     items: [
-      { name: 'Afregning', href: '/admin/payouts', icon: Wallet },
+      { name: 'Betalinger', href: '/admin/payments', icon: CreditCard },
+      { name: 'Udbetalinger', href: '/admin/payouts', icon: Wallet },
       { name: 'Dokumenter', href: '/admin/documents', icon: FileText },
+    ],
+  },
+  {
+    label: 'Kommunikation',
+    items: [
+      { name: 'Beskeder', href: '/admin/chat', icon: MessageCircle },
       { name: 'Emails', href: '/admin/emails', icon: Mail },
       { name: 'Notifikationer', href: '/admin/notifications', icon: Bell },
-      { name: 'Live Chat', href: '/admin/chat', icon: MessageCircle },
     ],
   },
   {
     label: 'System',
     items: [
-      { name: 'Optimeringer', href: '/admin/optimizations', icon: Briefcase },
+      { name: 'CMS / Webindhold', href: '/admin/cms', icon: Globe },
+      { name: 'Automations', href: '/admin/automations', icon: Zap },
+      { name: 'Optimeringer', href: '/admin/optimizations', icon: Sparkles },
       { name: 'Indstillinger', href: '/admin/settings', icon: Settings },
     ],
   },
@@ -115,7 +126,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       )}>
         <div className="flex-1 overflow-y-auto">
-          {/* Header */}
           <div className="p-4 flex items-center justify-between border-b border-slate-700/50">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
@@ -131,11 +141,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </button>
           </div>
 
-          {/* Navigation */}
           <div className="p-3 space-y-0.5">
             {navSections.map(section => {
               const isCollapsed = collapsedSections.includes(section.label);
-              const hasActive = section.items.some(i => isActive(i.href));
               return (
                 <div key={section.label}>
                   <button
@@ -176,7 +184,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </div>
         </div>
 
-        {/* User */}
         <div className="p-3 border-t border-slate-700/50">
           <div className="flex items-center gap-2.5 px-2 py-2">
             <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">

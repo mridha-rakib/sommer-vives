@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, LayoutDashboard, Building2, CalendarDays, Wallet, Users, MessageCircle, 
   Wrench, FileText, FileSignature, CheckSquare, LifeBuoy, Settings, LogOut, 
-  Menu, X, ChevronLeft, Bell, BookOpen
+  Menu, X, ChevronLeft, Bell, BookOpen, ShoppingBag, CreditCard, User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +18,7 @@ const navSections = [
   {
     label: 'Overblik',
     items: [
-      { name: 'Dashboard', href: '/owner', icon: LayoutDashboard },
+      { name: 'Oversigt', href: '/owner', icon: LayoutDashboard },
       { name: 'Min bolig', href: '/owner/property', icon: Building2 },
     ]
   },
@@ -34,6 +34,8 @@ const navSections = [
     label: 'Økonomi',
     items: [
       { name: 'Indtjening', href: '/owner/earnings', icon: Wallet },
+      { name: 'Udbetalinger', href: '/owner/payouts', icon: CreditCard },
+      { name: 'Tilkøb & services', href: '/owner/packages', icon: ShoppingBag },
     ]
   },
   {
@@ -57,9 +59,10 @@ const navSections = [
     ]
   },
   {
-    label: 'Hjælp',
+    label: 'Konto & hjælp',
     items: [
       { name: 'Support', href: '/owner/support', icon: LifeBuoy },
+      { name: 'Konto', href: '/owner/account', icon: User },
       { name: 'Indstillinger', href: '/owner/settings', icon: Settings },
     ]
   },
@@ -78,7 +81,6 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
@@ -86,13 +88,11 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
         />
       )}
 
-      {/* Sidebar */}
       <aside className={cn(
         'fixed md:sticky inset-y-0 left-0 z-50 flex flex-col bg-card border-r border-border transition-all duration-300',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         collapsed ? 'w-[68px]' : 'w-64'
       )} style={{ top: 0, height: '100vh' }}>
-        {/* Logo */}
         <div className={cn('flex items-center justify-between p-4 border-b border-border', collapsed && 'justify-center')}>
           {!collapsed && (
             <Link to="/" className="flex items-center gap-2">
@@ -120,7 +120,6 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
           </button>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-4">
           {navSections.map((section) => (
             <div key={section.label}>
@@ -145,9 +144,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
                     )}
                   >
                     <item.icon className={cn('w-[18px] h-[18px] shrink-0', isActive(item.href) && 'text-accent')} />
-                    {!collapsed && (
-                      <span className="truncate">{item.name}</span>
-                    )}
+                    {!collapsed && <span className="truncate">{item.name}</span>}
                     {!collapsed && 'badge' in item && (item as any).badge > 0 && (
                       <Badge variant="secondary" className="ml-auto text-[10px] h-5 min-w-5 px-1.5 bg-accent/20 text-accent border-0">
                         {(item as any).badge}
@@ -160,7 +157,6 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
           ))}
         </nav>
 
-        {/* User */}
         <div className={cn('border-t border-border p-3', collapsed && 'px-2')}>
           {!collapsed && (
             <div className="text-xs text-muted-foreground truncate mb-2 px-1">{user?.email}</div>
@@ -180,9 +176,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
         </div>
       </aside>
 
-      {/* Main */}
       <main className="flex-1 min-w-0 flex flex-col">
-        {/* Top bar */}
         <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
           <div className="flex items-center justify-between h-14 px-4 md:px-6">
             <div className="flex items-center gap-3">
