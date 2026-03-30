@@ -16,7 +16,7 @@ const steps = [
 
 const benefits = [
   { icon: Star, title: 'Personlig rådgiver', desc: 'Din egen kontaktperson' },
-  { icon: Shield, title: 'Ingen binding', desc: 'Opsig når som helst' },
+  { icon: Shield, title: '6 mdr. binding', desc: 'Tryghed for begge parter' },
   { icon: Zap, title: 'Hurtig opstart', desc: '1-2 uger til første booking' },
   { icon: Users, title: 'Dansk support', desc: '100% dansk team' },
 ];
