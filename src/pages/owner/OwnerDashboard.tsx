@@ -273,6 +273,9 @@ export default function OwnerDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* App download banner */}
+          <AppDownloadBanner variant="compact" context="owner" className="mt-6" />
         </div>
       </div>
     </OwnerLayout>

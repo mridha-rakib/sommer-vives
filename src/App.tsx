@@ -151,6 +151,7 @@ const App = () => (
             <Route path="/book-vurdering" element={<BookValuation />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/app" element={<AppDownload />} />
             <Route path="/listings" element={<Listings />} />
             <Route path="/listing/:slug" element={<ListingDetail />} />
             {/* Owner routes */}
