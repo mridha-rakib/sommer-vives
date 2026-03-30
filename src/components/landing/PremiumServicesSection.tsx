@@ -21,6 +21,14 @@ import {
   X,
   Sparkles,
   Check,
+  ArrowUpRight,
+  User,
+  Calendar,
+  Lock,
+  Wifi,
+  Eye,
+  Star,
+  Settings,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
@@ -36,66 +44,128 @@ interface Service {
   visual?: () => ReactNode;
 }
 
-/* ── Visual storytelling elements for signature cards ── */
+/* ═══════════════════════════════════════════
+   VISUAL STORYTELLING COMPONENTS
+   ═══════════════════════════════════════════ */
 
 function BoostVisual() {
   return (
-    <div className="flex flex-wrap gap-1.5 mt-1">
-      {['DK', 'DE', 'NL'].map((c) => (
-        <span key={c} className="px-2.5 py-1 rounded-lg bg-primary/8 border border-primary/12 text-[10px] font-bold tracking-widest text-primary/70">
-          {c}
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3.5 space-y-2.5">
+      {/* Market reach bar */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+          <div className="h-full w-[85%] rounded-full bg-gradient-to-r from-primary/60 to-primary/30" />
+        </div>
+        <span className="text-[9px] font-bold text-primary/70">+85%</span>
+      </div>
+      {/* Country + duration chips */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {['🇩🇰 DK', '🇩🇪 DE', '🇳🇱 NL'].map((c) => (
+          <span key={c} className="px-2 py-0.5 rounded-md bg-primary/8 border border-primary/12 text-[9px] font-semibold text-primary/70">
+            {c}
+          </span>
+        ))}
+        <span className="ml-auto px-2 py-0.5 rounded-md bg-accent/10 border border-accent/15 text-[9px] font-bold text-accent/80 flex items-center gap-1">
+          <Zap className="w-2.5 h-2.5" strokeWidth={2} />
+          4 uger gratis
         </span>
-      ))}
-      <span className="px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/15 text-[10px] font-bold text-accent/70 flex items-center gap-1">
-        <Zap className="w-2.5 h-2.5" strokeWidth={2} />
-        4 uger
-      </span>
+      </div>
+      {/* Subtle exposure line */}
+      <div className="flex items-center gap-1.5">
+        <ArrowUpRight className="w-3 h-3 text-primary/40" strokeWidth={1.5} />
+        <span className="text-[8.5px] font-medium text-muted-foreground/50">Målrettet eksponering fra dag 1</span>
+      </div>
     </div>
   );
 }
 
 function DialogVisual() {
   return (
-    <div className="flex items-center gap-2 mt-1">
-      <div className="flex -space-x-1">
-        {['Før', 'Under', 'Efter'].map((label) => (
-          <span key={label} className="px-2 py-0.5 rounded-md bg-secondary border border-border/40 text-[9px] font-semibold text-muted-foreground/70 first:ml-0">
-            {label}
-          </span>
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3.5 space-y-2">
+      {/* Timeline */}
+      <div className="flex items-center gap-1">
+        {[
+          { label: 'Før booking', active: true },
+          { label: 'Under ophold', active: true },
+          { label: 'Efter ophold', active: true },
+        ].map((step, i) => (
+          <div key={step.label} className="flex items-center gap-1 flex-1">
+            {i > 0 && <div className="w-full h-px bg-primary/15" />}
+            <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                step.active ? 'bg-primary/15 border border-primary/20' : 'bg-muted border border-border/40'
+              }`}>
+                <Check className="w-2.5 h-2.5 text-primary/60" strokeWidth={2} />
+              </div>
+              <span className="text-[7.5px] font-medium text-muted-foreground/50 whitespace-nowrap">{step.label}</span>
+            </div>
+          </div>
         ))}
       </div>
-      <span className="px-2 py-0.5 rounded-md bg-primary/8 border border-primary/12 text-[9px] font-bold text-primary/70">
-        24/7
-      </span>
+      {/* 24/7 badge */}
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center gap-1.5">
+          <MessageCircle className="w-3 h-3 text-primary/40" strokeWidth={1.5} />
+          <span className="text-[8.5px] font-medium text-muted-foreground/50">Altid tilgængelig</span>
+        </div>
+        <span className="px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/15 text-[10px] font-bold text-primary/70 tracking-wide">
+          24/7
+        </span>
+      </div>
     </div>
   );
 }
 
 function CleaningVisual() {
   return (
-    <div className="flex items-center gap-2 mt-1">
-      {['Rengøring', 'Tjek', 'Klar'].map((step, i) => (
-        <span key={step} className="flex items-center gap-1">
-          {i > 0 && <span className="w-3 h-px bg-border" />}
-          <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary border border-border/40 text-[9px] font-semibold text-muted-foreground/70">
-            <Check className="w-2.5 h-2.5 text-primary/50" strokeWidth={2} />
-            {step}
-          </span>
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3.5 space-y-2.5">
+      {/* Checklist */}
+      <div className="space-y-1.5">
+        {['Grundig rengøring', 'Sengelinned klar', 'Kvalitetstjek'].map((item) => (
+          <div key={item} className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-primary/10 border border-primary/15 flex items-center justify-center flex-shrink-0">
+              <Check className="w-2.5 h-2.5 text-primary/60" strokeWidth={2.5} />
+            </div>
+            <span className="text-[9px] font-medium text-muted-foreground/60">{item}</span>
+          </div>
+        ))}
+      </div>
+      {/* Status */}
+      <div className="flex items-center justify-between pt-0.5">
+        <span className="text-[8px] font-medium text-muted-foreground/40">Lokal samarbejdspartner</span>
+        <span className="px-2 py-0.5 rounded-md bg-primary/8 border border-primary/12 text-[9px] font-semibold text-primary/60 flex items-center gap-1">
+          <SparklesIcon className="w-2.5 h-2.5" strokeWidth={1.5} />
+          Klar til gæst
         </span>
-      ))}
+      </div>
     </div>
   );
 }
 
 function QrSignVisual() {
   return (
-    <div className="mt-1 w-fit rounded-xl border border-primary/15 bg-primary/5 p-2.5 flex items-center gap-3">
-      <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center">
-        <QrCode className="w-5 h-5 text-primary/60" strokeWidth={1.2} />
-      </div>
-      <div className="flex flex-col gap-0.5">
-        <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-primary/50">SommerVibes</span>
-        <span className="text-[10px] font-semibold text-foreground/70">Til Leje</span>
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3.5">
+      <div className="flex items-start gap-3">
+        {/* Mini sign mockup */}
+        <div className="w-16 rounded-lg bg-card border border-border p-2 flex flex-col items-center gap-1.5 flex-shrink-0">
+          <span className="text-[7px] font-bold tracking-[0.2em] uppercase text-primary/50">SommerVibes</span>
+          <div className="w-8 h-8 rounded bg-muted border border-border/60 flex items-center justify-center">
+            <QrCode className="w-5 h-5 text-primary/40" strokeWidth={1} />
+          </div>
+          <span className="text-[8px] font-bold text-foreground/60">Til Leje</span>
+        </div>
+        {/* Description */}
+        <div className="flex flex-col gap-1.5 pt-1">
+          <span className="text-[8.5px] font-medium text-muted-foreground/50">Direkte link til din annonce</span>
+          <div className="flex items-center gap-1.5">
+            <Eye className="w-3 h-3 text-primary/40" strokeWidth={1.5} />
+            <span className="text-[8.5px] font-medium text-muted-foreground/50">Lokal synlighed</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <User className="w-3 h-3 text-primary/40" strokeWidth={1.5} />
+            <span className="text-[8.5px] font-medium text-muted-foreground/50">Forbipasserende & naboer</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -103,39 +173,187 @@ function QrSignVisual() {
 
 function PortalsVisual() {
   return (
-    <div className="flex flex-wrap gap-1.5 mt-1">
-      {['Airbnb', 'Booking.com', 'Vrbo', 'SommerVibes.dk', 'Facebook', 'Instagram'].map((p) => (
-        <span key={p} className="px-2 py-0.5 rounded-md bg-secondary border border-border/40 text-[9px] font-semibold text-muted-foreground/60">
-          {p}
-        </span>
-      ))}
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3.5 space-y-2.5">
+      {/* Primary channels */}
+      <div className="flex gap-1.5 flex-wrap">
+        {['Airbnb', 'Booking.com', 'Vrbo'].map((p) => (
+          <span key={p} className="px-2 py-1 rounded-lg bg-card border border-border/50 text-[9px] font-semibold text-foreground/60 flex items-center gap-1">
+            <Globe className="w-2.5 h-2.5 text-primary/50" strokeWidth={1.5} />
+            {p}
+          </span>
+        ))}
+      </div>
+      {/* SommerVibes channels */}
+      <div className="flex gap-1.5 flex-wrap">
+        {['SommerVibes.dk', 'Facebook', 'Instagram'].map((p) => (
+          <span key={p} className="px-2 py-0.5 rounded-md bg-primary/6 border border-primary/10 text-[8.5px] font-medium text-primary/60">
+            {p}
+          </span>
+        ))}
+      </div>
+      {/* Reach indicator */}
+      <div className="flex items-center gap-1.5 pt-0.5">
+        <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+          <div className="h-full w-full rounded-full bg-gradient-to-r from-primary/40 via-primary/20 to-accent/20" />
+        </div>
+        <span className="text-[8px] font-bold text-primary/50">Fuld rækkevidde</span>
+      </div>
     </div>
   );
 }
 
 function RevenueVisual() {
   return (
-    <div className="flex flex-wrap gap-1.5 mt-1">
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3.5 space-y-2.5">
+      {/* Revenue chips */}
+      <div className="flex gap-1.5 flex-wrap">
+        {[
+          { label: 'Sengepakker', amount: '+450 kr' },
+          { label: 'Tidlig check-in', amount: '+350 kr' },
+          { label: 'Sen check-out', amount: '+350 kr' },
+        ].map((item) => (
+          <span key={item.label} className="px-2 py-1 rounded-lg bg-card border border-border/50 text-[8.5px] font-medium text-muted-foreground/60 flex items-center gap-1.5">
+            {item.label}
+            <span className="font-bold text-primary/70">{item.amount}</span>
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-1.5 flex-wrap">
+        {['El & vand', 'Varme', 'Ekstra tilvalg'].map((item) => (
+          <span key={item} className="px-2 py-0.5 rounded-md bg-accent/6 border border-accent/10 text-[8px] font-medium text-accent/60">
+            {item}
+          </span>
+        ))}
+      </div>
+      {/* Total hint */}
+      <div className="flex items-center justify-between pt-0.5">
+        <span className="text-[8px] text-muted-foreground/40">Per booking potentiale</span>
+        <span className="flex items-center gap-1 text-[9px] font-bold text-primary/60">
+          <TrendingUp className="w-3 h-3" strokeWidth={1.5} />
+          +15-30%
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function TryghedVisual() {
+  return (
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3 flex items-center gap-3">
+      <div className="w-10 h-10 rounded-xl bg-primary/8 border border-primary/12 flex items-center justify-center flex-shrink-0">
+        <ShieldCheck className="w-5 h-5 text-primary/50" strokeWidth={1.2} />
+      </div>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-1.5">
+          <Check className="w-3 h-3 text-primary/50" strokeWidth={2} />
+          <span className="text-[8.5px] font-medium text-muted-foreground/60">Udlejningsforsikring</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Check className="w-3 h-3 text-primary/50" strokeWidth={2} />
+          <span className="text-[8.5px] font-medium text-muted-foreground/60">3.000 kr. selvrisiko</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NoegleVisual() {
+  return (
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3 flex items-center gap-3">
+      <div className="w-10 h-10 rounded-xl bg-primary/8 border border-primary/12 flex items-center justify-center flex-shrink-0">
+        <Lock className="w-4 h-4 text-primary/50" strokeWidth={1.3} />
+      </div>
+      <div className="flex flex-col gap-1">
+        {['Gæster', 'Rengøring', 'Ejer'].map((who) => (
+          <div key={who} className="flex items-center gap-1.5">
+            <Wifi className="w-2.5 h-2.5 text-primary/40" strokeWidth={1.5} />
+            <span className="text-[8.5px] font-medium text-muted-foreground/55">{who}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RaadgiverVisual() {
+  return (
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3 flex items-center gap-3">
+      <div className="w-10 h-10 rounded-full bg-primary/8 border border-primary/12 flex items-center justify-center flex-shrink-0">
+        <User className="w-4 h-4 text-primary/50" strokeWidth={1.3} />
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <span className="text-[9px] font-semibold text-foreground/60">Din rådgiver</span>
+        <span className="text-[8px] text-muted-foreground/45">Direkte kontakt · Tæt sparring</span>
+      </div>
+    </div>
+  );
+}
+
+function ServiceRepVisual() {
+  return (
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3 flex items-center gap-2.5">
+      <div className="w-8 h-8 rounded-lg bg-primary/8 border border-primary/12 flex items-center justify-center flex-shrink-0">
+        <Wrench className="w-3.5 h-3.5 text-primary/50" strokeWidth={1.3} />
+      </div>
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span className="px-2 py-0.5 rounded-md bg-card border border-border/40 text-[8.5px] font-medium text-muted-foreground/55">Hurtig rekvirering</span>
+        <span className="px-2 py-0.5 rounded-md bg-card border border-border/40 text-[8.5px] font-medium text-muted-foreground/55">Koordinering</span>
+      </div>
+    </div>
+  );
+}
+
+function AdminVisual() {
+  return (
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3 grid grid-cols-3 gap-1.5">
       {[
-        { label: 'Sengepakker', highlight: true },
-        { label: 'Forbrug' },
-        { label: 'Tidlig check-in', highlight: true },
-        { label: 'Sen check-out' },
-      ].map((item) => (
-        <span
-          key={item.label}
-          className={`px-2 py-0.5 rounded-md text-[9px] font-semibold border ${
-            item.highlight
-              ? 'bg-accent/8 border-accent/15 text-accent/70'
-              : 'bg-secondary border-border/40 text-muted-foreground/60'
-          }`}
-        >
-          {item.label}
+        { icon: Calendar, label: 'Kalender' },
+        { icon: LayoutDashboard, label: 'Overblik' },
+        { icon: Settings, label: 'Drift' },
+      ].map(({ icon: Ic, label }) => (
+        <div key={label} className="flex flex-col items-center gap-1 py-1.5 rounded-lg bg-card border border-border/30">
+          <Ic className="w-3 h-3 text-primary/40" strokeWidth={1.3} />
+          <span className="text-[7.5px] font-medium text-muted-foreground/45">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MarketingVisual() {
+  return (
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3 flex items-center gap-2.5">
+      <div className="w-8 h-8 rounded-lg bg-primary/8 border border-primary/12 flex items-center justify-center flex-shrink-0">
+        <Eye className="w-3.5 h-3.5 text-primary/50" strokeWidth={1.3} />
+      </div>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-1">
+          <Star className="w-2.5 h-2.5 text-accent/50" strokeWidth={1.5} />
+          <span className="text-[8.5px] font-medium text-muted-foreground/55">Professionel præsentation</span>
+        </div>
+        <span className="text-[8px] text-muted-foreground/40">Skarp tekst · Målrettet synlighed</span>
+      </div>
+    </div>
+  );
+}
+
+function FlexVisual() {
+  return (
+    <div className="rounded-xl bg-secondary/60 border border-border/40 p-3 flex items-center gap-2">
+      {['Dit tempo', 'Dine valg', 'Din bolig'].map((label, i) => (
+        <span key={label} className={`px-2 py-1 rounded-lg text-[8.5px] font-medium border ${
+          i === 0 ? 'bg-primary/8 border-primary/12 text-primary/60 font-semibold' : 'bg-card border-border/40 text-muted-foreground/50'
+        }`}>
+          {label}
         </span>
       ))}
     </div>
   );
 }
+
+/* ═══════════════════════════════════════════
+   SERVICE DATA
+   ═══════════════════════════════════════════ */
 
 const services: Service[] = [
   {
@@ -205,6 +423,7 @@ const services: Service[] = [
     long: 'Skulle en gæst forårsage skade under et ophold, tilbyder vi via vores samarbejdspartner på udlejningsforsikring en løsning med selvrisiko på 3.000 kr. Vi anbefaler samtidig, at du også har en relevant udvidet udlejningsforsikring gennem dit eget forsikringsselskab, så du står bedst muligt dækket. Hos SommerVibes er tryghed ikke en sidebemærkning — det er en vigtig del af samarbejdet.',
     expandLabel: 'Ekstra tryghed',
     badge: 'Ro i maven',
+    visual: TryghedVisual,
   },
   {
     icon: KeyRound,
@@ -213,6 +432,7 @@ const services: Service[] = [
     long: 'Med vores elektroniske nøgleløsning gør vi adgangen til boligen enkel og smidig for alle relevante parter. Det gælder både gæster, rengøring, viceværter og dig som ejer. Vi håndterer koder og hjælper med, at løsningen fungerer i praksis, så du får mindre koordinering, bedre flow og en mere professionel drift omkring udlejningen.',
     expandLabel: 'Det betyder for dig',
     badge: 'Nem drift',
+    visual: NoegleVisual,
   },
   {
     icon: HeadphonesIcon,
@@ -221,6 +441,7 @@ const services: Service[] = [
     long: 'Hos SommerVibes står du ikke alene med spørgsmål om udlejning, drift, priser, booking eller optimering af din bolig. Du har løbende adgang til sparring og ærlig rådgivning fra en rådgiver, der kender samarbejdet og din bolig. Det skaber nærvær, overblik og tryghed i en hverdag, hvor det skal være nemt at komme videre.',
     expandLabel: 'Tæt sparring',
     badge: 'Inkluderet service',
+    visual: RaadgiverVisual,
   },
   {
     icon: Wrench,
@@ -228,6 +449,7 @@ const services: Service[] = [
     short: 'Hvis noget opstår under udlejningen, hjælper vi med at få det løst.',
     long: 'Hvis der opstår en akut situation under en udlejning, kan SommerVibes hjælpe med at rekvirere relevante håndværkere eller fagpersoner på dine vegne. Udgifter faktureres naturligvis direkte til dig, og du vælger selv, om du vil stå for vedligeholdelsen selv eller ønsker, at vi hjælper med koordineringen. Det giver dig fleksibilitet og gør det lettere at håndtere det uforudsete.',
     expandLabel: 'Fleksibel hjælp',
+    visual: ServiceRepVisual,
   },
   {
     icon: LayoutDashboard,
@@ -235,6 +457,7 @@ const services: Service[] = [
     short: 'Et enkelt setup med struktur, overblik og effektiv drift omkring din bolig.',
     long: 'Vi arbejder moderne og effektivt med fokus på synlighed, struktur og høj udnyttelse af din bolig. Det betyder, at samarbejdet skal være let at forstå, let at følge med i og let at skabe resultater med. SommerVibes er bygget til husejere, der ønsker høj service uden tung administration eller unødigt bøvl.',
     expandLabel: 'Mere overblik',
+    visual: AdminVisual,
   },
   {
     icon: Megaphone,
@@ -242,6 +465,7 @@ const services: Service[] = [
     short: 'Din bolig skal ikke bare online — den skal præsenteres stærkt og tiltrække de rigtige gæster.',
     long: 'Vi arbejder aktivt for at give din bolig en præsentation, der skaber interesse. Det handler om visuelt flot opsætning, skarp tekst og målrettet markedsføring, så boligen ikke blot er til stede, men også bliver valgt. Målet er at øge synlighed, tiltrække de rigtige gæster og styrke dine muligheder for flere bookinger.',
     expandLabel: 'Flere relevante bookinger',
+    visual: MarketingVisual,
   },
   {
     icon: SlidersHorizontal,
@@ -249,10 +473,14 @@ const services: Service[] = [
     short: 'Du bestemmer selv, hvor meget du vil udleje, og hvordan samarbejdet skal fungere.',
     long: 'Hos SommerVibes tilpasser vi samarbejdet til dig og din bolig — ikke omvendt. Du vælger selv, hvor meget du vil udleje, hvordan boligen skal drives, og hvilke løsninger du ønsker hjælp til. Det giver dig frihed, kontrol og en mere behagelig måde at udleje på, uden at du skal presses ind i en standardmodel.',
     expandLabel: 'På dine vilkår',
+    visual: FlexVisual,
   },
 ];
 
-/* ── Mobile bottom sheet ── */
+/* ═══════════════════════════════════════════
+   MOBILE BOTTOM SHEET
+   ═══════════════════════════════════════════ */
+
 function DetailSheet({ service, onClose }: { service: Service; onClose: () => void }) {
   return (
     <motion.div
@@ -305,7 +533,6 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           </p>
         )}
 
-        {/* Visual in sheet */}
         {service.visual && (
           <div className="mb-5">{service.visual()}</div>
         )}
@@ -318,7 +545,10 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
   );
 }
 
-/* ── Card ── */
+/* ═══════════════════════════════════════════
+   SERVICE CARD
+   ═══════════════════════════════════════════ */
+
 function ServiceCard({
   service,
   isExpanded,
@@ -339,12 +569,11 @@ function ServiceCard({
           : 'bg-card border-border/50'
       } hover:shadow-[0_8px_32px_-8px_hsl(var(--ring)/0.1)] hover:border-primary/20`}
     >
-      {/* Signature accent */}
       {service.signature && (
         <div className="h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       )}
 
-      <div className="p-7 md:p-8 flex flex-col gap-4 flex-1">
+      <div className="p-7 md:p-8 flex flex-col gap-3.5 flex-1">
         {/* Badge */}
         {service.badge && (
           <span className="inline-flex items-center gap-1.5 text-[9.5px] font-semibold tracking-[0.22em] uppercase text-primary/60">
@@ -363,13 +592,13 @@ function ServiceCard({
         </div>
 
         {/* Title */}
-        <h3 className="font-display text-[1.1rem] font-semibold text-foreground leading-snug mt-1">
+        <h3 className="font-display text-[1.1rem] font-semibold text-foreground leading-snug">
           {service.title}
         </h3>
 
-        {/* Visual storytelling element */}
+        {/* Visual storytelling */}
         {service.visual && (
-          <div className="py-1">{service.visual()}</div>
+          <div className="py-0.5">{service.visual()}</div>
         )}
 
         {/* Short text */}
@@ -377,7 +606,7 @@ function ServiceCard({
           {service.short}
         </p>
 
-        {/* Expanded content */}
+        {/* Expanded */}
         <AnimatePresence initial={false}>
           {isExpanded && (
             <motion.div
@@ -401,7 +630,7 @@ function ServiceCard({
           )}
         </AnimatePresence>
 
-        {/* CTA toggle */}
+        {/* CTA */}
         <button
           onClick={onToggle}
           className={`inline-flex items-center gap-2 text-[12.5px] font-semibold tracking-[0.02em] self-start mt-auto pt-2 transition-all duration-300 ${
@@ -421,7 +650,10 @@ function ServiceCard({
   );
 }
 
-/* ── Section ── */
+/* ═══════════════════════════════════════════
+   MAIN SECTION
+   ═══════════════════════════════════════════ */
+
 export function PremiumServicesSection() {
   const { ref, isInView } = useScrollReveal();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
