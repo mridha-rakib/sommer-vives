@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Camera, Plane, Sparkles, Package, Clock, Star, TrendingUp } from 'lucide-react';
+import { Check, Camera, Plane, Sparkles, Package, Clock, TrendingUp, Loader2, CreditCard, Shield } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
@@ -33,8 +33,9 @@ export default function OwnerPackages() {
   const [selectedPackage, setSelectedPackage] = useState<ServicePackage | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
+  const [paying, setPaying] = useState(false);
 
-  const { data: packages = [], isLoading: packagesLoading } = useQuery({
+  const { data: packages = [] } = useQuery({
     queryKey: ['service-packages'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -54,10 +55,7 @@ export default function OwnerPackages() {
     queryKey: ['owner-properties', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from('properties')
-        .select('id, title')
-        .eq('owner_id', user.id);
+      const { data, error } = await supabase.from('properties').select('id, title').eq('owner_id', user.id);
       if (error) throw error;
       return data as Property[];
     },
@@ -79,177 +77,212 @@ export default function OwnerPackages() {
     enabled: !!user?.id,
   });
 
-  const purchaseMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedPackage || !user?.id) throw new Error('Manglende data');
-      const { error } = await supabase.from('package_purchases').insert({
-        owner_id: user.id,
-        property_id: selectedProperty && selectedProperty !== 'all' ? selectedProperty : null,
-        package_id: selectedPackage.id,
-        amount: selectedPackage.price,
-        status: 'pending',
-        payment_status: selectedPackage.price === 0 ? 'paid' : 'pending',
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['package-purchases'] });
-      toast.success('Pakke tilføjet! Vi kontakter dig snarest.');
-      setIsPurchaseOpen(false);
-      setSelectedPackage(null);
-      setSelectedProperty('');
-    },
-    onError: () => {
-      toast.error('Kunne ikke bestille pakken. Prøv igen.');
-    },
-  });
-
-  const marketingPackages = packages.filter(p => p.category === 'marketing');
-  const photoPackages = packages.filter(p => p.category === 'photo');
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'marketing': return <TrendingUp className="w-5 h-5" />;
-      case 'photo': return <Camera className="w-5 h-5" />;
-      default: return <Package className="w-5 h-5" />;
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      pending: 'bg-accent/20 text-accent',
-      processing: 'bg-blue-100 text-blue-700',
-      completed: 'bg-green-100 text-green-700',
-      cancelled: 'bg-destructive/10 text-destructive',
-    };
-    const labels: Record<string, string> = {
-      pending: 'Afventer',
-      processing: 'Under behandling',
-      completed: 'Fuldført',
-      cancelled: 'Annulleret',
-    };
-    return (
-      <Badge className={styles[status] || styles.pending}>
-        {labels[status] || status}
-      </Badge>
-    );
-  };
-
   const handlePurchase = (pkg: ServicePackage) => {
     setSelectedPackage(pkg);
     setIsPurchaseOpen(true);
   };
 
+  const handleCheckout = async () => {
+    if (!selectedPackage || !user?.id) return;
+
+    if (selectedPackage.price === 0) {
+      // Free package — just insert
+      const { error } = await supabase.from('package_purchases').insert({
+        owner_id: user.id,
+        property_id: selectedProperty && selectedProperty !== 'all' ? selectedProperty : null,
+        package_id: selectedPackage.id,
+        amount: 0,
+        status: 'completed',
+        payment_status: 'paid',
+      });
+      if (error) {
+        toast.error('Kunne ikke aktivere pakken.');
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ['package-purchases'] });
+      toast.success('Pakken er aktiveret!');
+      setIsPurchaseOpen(false);
+      return;
+    }
+
+    setPaying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-addon-checkout', {
+        body: {
+          items: [{
+            name: selectedPackage.name,
+            description: selectedPackage.description || '',
+            price: selectedPackage.price,
+            quantity: 1,
+            itemType: 'service_package',
+            referenceId: selectedPackage.id,
+          }],
+          userType: 'owner',
+          successUrl: `${window.location.origin}/owner/packages?payment=success`,
+          cancelUrl: `${window.location.origin}/owner/packages?payment=cancelled`,
+        },
+      });
+
+      if (error || !data?.url) throw new Error('Checkout failed');
+
+      // Also create package_purchase record
+      await supabase.from('package_purchases').insert({
+        owner_id: user.id,
+        property_id: selectedProperty && selectedProperty !== 'all' ? selectedProperty : null,
+        package_id: selectedPackage.id,
+        amount: selectedPackage.price,
+        status: 'pending',
+        payment_status: 'pending',
+      });
+
+      window.location.href = data.url;
+    } catch {
+      toast.error('Kunne ikke oprette betaling. Prøv igen.');
+      setPaying(false);
+    }
+  };
+
+  // Payment result from URL
+  useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      toast.success('Betaling gennemført!');
+      window.history.replaceState({}, '', '/owner/packages');
+      queryClient.invalidateQueries({ queryKey: ['package-purchases'] });
+    } else if (params.get('payment') === 'cancelled') {
+      toast.error('Betaling annulleret.');
+      window.history.replaceState({}, '', '/owner/packages');
+    }
+  });
+
+  const marketingPackages = packages.filter(p => p.category === 'marketing');
+  const photoPackages = packages.filter(p => p.category === 'photo');
+  const otherPackages = packages.filter(p => !['marketing', 'photo'].includes(p.category));
+
+  const getCategoryIcon = (category: string, idx: number) => {
+    if (category === 'photo' && idx === 1) return <Plane className="w-5 h-5 text-accent" />;
+    if (category === 'photo') return <Camera className="w-5 h-5 text-accent" />;
+    if (category === 'marketing') return <TrendingUp className="w-5 h-5 text-accent" />;
+    return <Package className="w-5 h-5 text-accent" />;
+  };
+
+  const getStatusBadge = (status: string) => {
+    const map: Record<string, { className: string; label: string }> = {
+      pending: { className: 'bg-accent/20 text-accent', label: 'Afventer' },
+      processing: { className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', label: 'Under behandling' },
+      completed: { className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', label: 'Fuldført' },
+      cancelled: { className: 'bg-destructive/10 text-destructive', label: 'Annulleret' },
+    };
+    const s = map[status] || map.pending;
+    return <Badge className={s.className}>{s.label}</Badge>;
+  };
+
+  const PackageCard = ({ pkg, idx, highlighted }: { pkg: ServicePackage; idx: number; highlighted?: boolean }) => (
+    <Card className={`relative overflow-hidden transition-all hover:shadow-lg ${highlighted ? 'ring-2 ring-accent' : ''}`}>
+      {highlighted && (
+        <div className="absolute top-0 right-0 bg-accent text-primary text-xs font-bold px-3 py-1 rounded-bl-lg">
+          Populær
+        </div>
+      )}
+      <CardHeader>
+        <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-2">
+          {getCategoryIcon(pkg.category, idx)}
+        </div>
+        <CardTitle className="font-display">{pkg.name}</CardTitle>
+        <CardDescription>{pkg.description}</CardDescription>
+        <div className="pt-2">
+          {pkg.price === 0 ? (
+            <span className="text-2xl font-bold text-accent">Gratis</span>
+          ) : (
+            <>
+              <span className="text-2xl font-bold text-foreground">{pkg.price.toLocaleString('da-DK')}</span>
+              <span className="text-muted-foreground"> kr</span>
+            </>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-2 mb-6">
+          {pkg.features.map((feature, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm">
+              <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+        <Button
+          onClick={() => handlePurchase(pkg)}
+          className="w-full"
+          variant={highlighted ? 'gold' : 'outline'}
+        >
+          {pkg.price === 0 ? 'Aktiver gratis' : 'Bestil nu'}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <OwnerLayout>
       <div className="mb-8">
-        <h1 className="font-display text-3xl font-bold text-primary">Tilkøb & Pakker</h1>
+        <h1 className="font-display text-3xl font-bold text-foreground">Tilkøb & Services</h1>
         <p className="text-muted-foreground">Boost dit sommerhus med professionelle services</p>
       </div>
 
       <Tabs defaultValue="packages" className="space-y-6">
         <TabsList>
           <TabsTrigger value="packages">Tilgængelige pakker</TabsTrigger>
-          <TabsTrigger value="purchases">Mine køb</TabsTrigger>
+          <TabsTrigger value="purchases">Mine køb ({purchases.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="packages" className="space-y-8">
-          {/* Marketing Packages */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-accent" />
-              <h2 className="font-display text-xl font-semibold text-primary">Markedsføringspakker</h2>
+          {marketingPackages.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-accent" />
+                <h2 className="font-display text-xl font-semibold">Markedsføringspakker</h2>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {marketingPackages.map((pkg, idx) => (
+                  <PackageCard key={pkg.id} pkg={pkg} idx={idx} highlighted={idx === 1} />
+                ))}
+              </div>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {marketingPackages.map((pkg, idx) => (
-                <Card key={pkg.id} className={`relative overflow-hidden ${idx === 1 ? 'ring-2 ring-accent' : ''}`}>
-                  {idx === 1 && (
-                    <div className="absolute top-0 right-0 bg-accent text-primary text-xs font-bold px-3 py-1">
-                      Populær
-                    </div>
-                  )}
-                  <CardHeader>
-                    <CardTitle className="font-display">{pkg.name}</CardTitle>
-                    <CardDescription>{pkg.description}</CardDescription>
-                    <div className="pt-2">
-                      {pkg.price === 0 ? (
-                        <span className="text-2xl font-bold text-accent">Gratis</span>
-                      ) : (
-                        <>
-                          <span className="text-2xl font-bold text-primary">{pkg.price.toLocaleString('da-DK')}</span>
-                          <span className="text-muted-foreground"> kr</span>
-                        </>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 mb-6">
-                      {pkg.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button 
-                      onClick={() => handlePurchase(pkg)} 
-                      className="w-full"
-                      variant={idx === 1 ? 'gold' : 'default'}
-                    >
-                      {pkg.price === 0 ? 'Aktiver gratis' : 'Vælg pakke'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+          )}
 
-          {/* Photo Packages */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Camera className="w-5 h-5 text-accent" />
-              <h2 className="font-display text-xl font-semibold text-primary">Foto & Video</h2>
+          {photoPackages.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Camera className="w-5 h-5 text-accent" />
+                <h2 className="font-display text-xl font-semibold">Foto & Video</h2>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {photoPackages.map((pkg, idx) => (
+                  <PackageCard key={pkg.id} pkg={pkg} idx={idx} highlighted={idx === 2} />
+                ))}
+              </div>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {photoPackages.map((pkg, idx) => (
-                <Card key={pkg.id} className={`relative overflow-hidden ${idx === 2 ? 'ring-2 ring-accent' : ''}`}>
-                  {idx === 2 && (
-                    <div className="absolute top-0 right-0 bg-accent text-primary text-xs font-bold px-3 py-1">
-                      Bedste værdi
-                    </div>
-                  )}
-                  <CardHeader>
-                    <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-2">
-                      {idx === 1 ? <Plane className="w-5 h-5 text-accent" /> : <Camera className="w-5 h-5 text-accent" />}
-                    </div>
-                    <CardTitle className="font-display">{pkg.name}</CardTitle>
-                    <CardDescription>{pkg.description}</CardDescription>
-                    <div className="pt-2">
-                      <span className="text-2xl font-bold text-primary">{pkg.price.toLocaleString('da-DK')}</span>
-                      <span className="text-muted-foreground"> kr</span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2 mb-6">
-                      {pkg.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button 
-                      onClick={() => handlePurchase(pkg)} 
-                      className="w-full"
-                      variant={idx === 2 ? 'gold' : 'outline'}
-                    >
-                      Bestil nu
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+          )}
+
+          {otherPackages.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Package className="w-5 h-5 text-accent" />
+                <h2 className="font-display text-xl font-semibold">Øvrige services</h2>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                {otherPackages.map((pkg, idx) => (
+                  <PackageCard key={pkg.id} pkg={pkg} idx={idx} />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {packages.length === 0 && (
+            <div className="bg-card border border-border rounded-xl p-12 text-center">
+              <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground/40" />
+              <p className="text-muted-foreground">Ingen pakker tilgængelige lige nu.</p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="purchases">
@@ -293,37 +326,33 @@ export default function OwnerPackages() {
       </Tabs>
 
       {/* Purchase Dialog */}
-      <Dialog open={isPurchaseOpen} onOpenChange={setIsPurchaseOpen}>
+      <Dialog open={isPurchaseOpen} onOpenChange={(o) => { setIsPurchaseOpen(o); if (!o) setPaying(false); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bestil {selectedPackage?.name}</DialogTitle>
+            <DialogTitle>{selectedPackage?.price === 0 ? 'Aktiver' : 'Bestil'} {selectedPackage?.name}</DialogTitle>
             <DialogDescription>
-              {selectedPackage?.price === 0 
+              {selectedPackage?.price === 0
                 ? 'Aktiver denne gratis pakke for dit sommerhus.'
-                : 'Vælg hvilken ejendom pakken skal tilknyttes.'}
+                : 'Du bliver sendt til sikker betaling via Stripe.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             {properties.length > 0 && (
               <div>
                 <label className="text-sm font-medium mb-2 block">Vælg ejendom (valgfrit)</label>
                 <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Alle ejendomme" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Alle ejendomme" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Alle ejendomme</SelectItem>
                     {properties.map(property => (
-                      <SelectItem key={property.id} value={property.id}>
-                        {property.title}
-                      </SelectItem>
+                      <SelectItem key={property.id} value={property.id}>{property.title}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
-            
+
             <div className="bg-muted/50 rounded-lg p-4">
               <div className="flex justify-between items-center">
                 <span className="font-medium">{selectedPackage?.name}</span>
@@ -334,23 +363,18 @@ export default function OwnerPackages() {
             </div>
 
             {selectedPackage?.price !== 0 && (
-              <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Vi kontakter dig inden for 1-2 hverdage for at aftale næste skridt.
-              </p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Shield className="w-4 h-4" />
+                <span>Sikker betaling via Stripe. Vi opbevarer aldrig dine kortoplysninger.</span>
+              </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPurchaseOpen(false)}>
-              Annuller
-            </Button>
-            <Button 
-              variant="gold" 
-              onClick={() => purchaseMutation.mutate()}
-              disabled={purchaseMutation.isPending}
-            >
-              {purchaseMutation.isPending ? 'Bestiller...' : 'Bekræft bestilling'}
+            <Button variant="outline" onClick={() => setIsPurchaseOpen(false)}>Annuller</Button>
+            <Button variant="gold" onClick={handleCheckout} disabled={paying} className="gap-2">
+              {paying && <Loader2 className="h-4 w-4 animate-spin" />}
+              {paying ? 'Åbner betaling...' : selectedPackage?.price === 0 ? 'Aktiver gratis' : 'Betal nu'}
             </Button>
           </DialogFooter>
         </DialogContent>
