@@ -5,14 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   ArrowRight, ArrowLeft, Check, Home, MapPin, Users, Bed, Bath,
   Shield, FileSignature, Mail, Phone, Lock, Sparkles, Camera,
   Globe, MessageCircle, Wallet, Star, CheckCircle2, X, User,
-  Upload, Link2, Calendar, Key, Brush, Clock, Heart, Zap,
-  PenLine, Download, PhoneCall
+  Link2, Key, Brush, Clock, Heart, Zap,
+  PenLine, Download, PhoneCall, Eye, CalendarCheck, Headphones
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
@@ -22,63 +21,102 @@ import { motion, AnimatePresence } from 'framer-motion';
 // ─── Types ───────────────────────────────────────────────────
 
 interface OnboardingData {
-  // Step 2: Owner info
+  // Step 2: Account
+  email: string;
+  password: string;
+  passwordConfirm: string;
+  acceptTerms: boolean;
+  acceptPrivacy: boolean;
+  // Step 3: Owner
   ownerName: string;
   ownerPhone: string;
-  ownerEmail: string;
   ownerAddress: string;
-  ownerPostalCity: string;
+  ownerPostal: string;
+  ownerCity: string;
   preferredContact: string;
-  // Step 3: Property
+  // Step 4: Property
   propertyAddress: string;
   region: string;
   propertyType: string;
   capacity: number;
   bedrooms: number;
-  facilities: string[];
-  hasRentedBefore: string;
-  existingLink: string;
-  // Step 4: Situation
-  helpLevel: string;
-  startTime: string;
+  bathrooms: number;
   hasKeybox: string;
-  hasCleaning: string;
   hasExperience: string;
-  // Step 6+7
+  existingLink: string;
+  facilities: string[];
+  // Step 5: Rental
+  startTime: string;
+  helpLevel: string;
+  selfManage: string[];
+  hasCleaning: string;
+  propertyReady: string;
+  relevantServices: string[];
+  // Step 7: Sign
   acceptAgreement: boolean;
+  acceptMarketing: boolean;
   signatureName: string;
   signatureDate: string;
-  acceptTerms: boolean;
-  acceptPrivacy: boolean;
-  acceptMarketing: boolean;
-  // Account
-  password: string;
 }
 
-const REGIONS = [
-  'Nordjylland', 'Midtjylland', 'Syddanmark',
-  'Sjælland', 'Hovedstaden', 'Bornholm',
-];
-
-const PROPERTY_TYPES = [
-  'Sommerhus', 'Feriehus', 'Lejlighed', 'Villa', 'Poolhus', 'Luksushus',
-];
-
+const REGIONS = ['Nordjylland', 'Midtjylland', 'Syddanmark', 'Sjælland', 'Hovedstaden', 'Bornholm'];
+const PROPERTY_TYPES = ['Sommerhus', 'Feriehus', 'Lejlighed', 'Villa', 'Poolhus', 'Luksushus'];
 const FACILITIES = [
   'Pool', 'Spa / Jacuzzi', 'Sauna', 'Havudsigt', 'Pejs / Brændeovn',
   'Aktivitetsrum', 'Stor have', 'Grill / Udekøkken', 'Carport / Garage', 'Husdyr tilladt',
 ];
+const SERVICES = [
+  'Professionelle billeder', 'Gæstekommunikation', 'Rengøringskoordinering',
+  'Nøgleboks-opsætning', 'Portal-markedsføring', 'Kalendersynkronisering',
+];
+const SELF_MANAGE_OPTIONS = [
+  'Nøgleoverdragelse', 'Rengøring', 'Gæstekontakt', 'Kalender',
+];
 
 const STEPS = [
-  { label: 'Velkommen', icon: Heart },
+  { label: 'Start', icon: Heart },
+  { label: 'Opret profil', icon: Lock },
   { label: 'Dine oplysninger', icon: User },
   { label: 'Dit sommerhus', icon: Home },
-  { label: 'Din situation', icon: Zap },
-  { label: 'Fordele', icon: Sparkles },
-  { label: 'Aftale', icon: FileSignature },
-  { label: 'Signering', icon: PenLine },
+  { label: 'Din udlejning', icon: Zap },
+  { label: 'Samarbejdet', icon: Eye },
+  { label: 'Signer', icon: PenLine },
   { label: 'Klar', icon: CheckCircle2 },
 ];
+
+// ─── Helpers ─────────────────────────────────────────────────
+
+const RadioCards = ({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string; desc?: string }[] }) => (
+  <div className="space-y-2 mt-2">
+    {options.map(o => (
+      <button key={o.value} type="button" onClick={() => onChange(o.value)}
+        className={`w-full text-left p-3.5 rounded-xl border transition-all ${
+          value === o.value ? 'border-primary bg-primary/10' : 'border-border/30 hover:border-primary/20'
+        }`}>
+        <span className={`text-sm font-medium ${value === o.value ? 'text-primary' : 'text-foreground/80'}`}>{o.label}</span>
+        {o.desc && <p className="text-xs text-muted-foreground mt-0.5">{o.desc}</p>}
+      </button>
+    ))}
+  </div>
+);
+
+const ToggleChips = ({ options, selected, onToggle }: { options: string[]; selected: string[]; onToggle: (v: string) => void }) => (
+  <div className="grid grid-cols-2 gap-2 mt-2">
+    {options.map(f => (
+      <button key={f} type="button" onClick={() => onToggle(f)}
+        className={`flex items-center gap-2 p-2.5 rounded-xl border text-sm transition-all text-left ${
+          selected.includes(f) ? 'border-primary bg-primary/10 text-primary' : 'border-border/30 text-muted-foreground hover:border-primary/20'
+        }`}>
+        <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+          selected.includes(f) ? 'bg-primary border-primary' : 'border-border'
+        }`}>
+          {selected.includes(f) && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+        </div>
+        {f}
+      </button>
+    ))}
+  </div>
+);
 
 // ─── Component ───────────────────────────────────────────────
 
@@ -88,33 +126,29 @@ export default function GetStarted() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<OnboardingData>({
-    ownerName: '', ownerPhone: '', ownerEmail: '', ownerAddress: '', ownerPostalCity: '', preferredContact: 'email',
-    propertyAddress: '', region: '', propertyType: '', capacity: 6, bedrooms: 3, facilities: [],
-    hasRentedBefore: '', existingLink: '',
-    helpLevel: '', startTime: '', hasKeybox: '', hasCleaning: '', hasExperience: '',
-    acceptAgreement: false, signatureName: '', signatureDate: new Date().toISOString().split('T')[0],
-    acceptTerms: false, acceptPrivacy: false, acceptMarketing: false,
-    password: '',
+    email: '', password: '', passwordConfirm: '', acceptTerms: false, acceptPrivacy: false,
+    ownerName: '', ownerPhone: '', ownerAddress: '', ownerPostal: '', ownerCity: '', preferredContact: 'email',
+    propertyAddress: '', region: '', propertyType: '', capacity: 6, bedrooms: 3, bathrooms: 1,
+    hasKeybox: '', hasExperience: '', existingLink: '', facilities: [],
+    startTime: '', helpLevel: '', selfManage: [], hasCleaning: '', propertyReady: '', relevantServices: [],
+    acceptAgreement: false, acceptMarketing: false,
+    signatureName: '', signatureDate: new Date().toISOString().split('T')[0],
   });
 
   const update = useCallback((u: Partial<OnboardingData>) => setData(p => ({ ...p, ...u })), []);
-
-  const toggleFacility = (f: string) => {
-    setData(p => ({
-      ...p,
-      facilities: p.facilities.includes(f) ? p.facilities.filter(x => x !== f) : [...p.facilities, f],
-    }));
+  const toggleList = (key: 'facilities' | 'selfManage' | 'relevantServices', val: string) => {
+    setData(p => ({ ...p, [key]: p[key].includes(val) ? p[key].filter(x => x !== val) : [...p[key], val] }));
   };
 
   const canNext = (): boolean => {
     switch (step) {
       case 1: return true;
-      case 2: return !!(data.ownerName.trim() && data.ownerEmail.trim());
-      case 3: return !!(data.propertyAddress.trim() && data.region && data.propertyType);
-      case 4: return !!(data.helpLevel);
-      case 5: return true;
+      case 2: return user ? true : !!(data.email.trim() && data.password.length >= 6 && data.password === data.passwordConfirm && data.acceptTerms && data.acceptPrivacy);
+      case 3: return !!(data.ownerName.trim() && data.ownerPhone.trim());
+      case 4: return !!(data.propertyAddress.trim() && data.region && data.propertyType);
+      case 5: return !!(data.helpLevel);
       case 6: return true;
-      case 7: return data.acceptAgreement && data.acceptTerms && data.acceptPrivacy && data.signatureName.trim().length > 2;
+      case 7: return data.acceptAgreement && data.signatureName.trim().length > 2;
       default: return false;
     }
   };
@@ -124,12 +158,13 @@ export default function GetStarted() {
     try {
       let userId = user?.id;
 
+      // Create account if not logged in
       if (!user) {
         const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: data.ownerEmail,
+          email: data.email,
           password: data.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}/owner`,
             data: { full_name: data.ownerName },
           },
         });
@@ -138,27 +173,63 @@ export default function GetStarted() {
       }
 
       if (userId) {
-        // Update profile with phone
+        // Update profile
         await supabase.from('profiles').update({
           phone: data.ownerPhone,
           full_name: data.ownerName,
         }).eq('id', userId);
 
         // Create property
-        const { error } = await supabase.from('properties').insert({
+        const { data: propData, error: propError } = await supabase.from('properties').insert({
           owner_id: userId,
           title: `${data.propertyType} i ${data.region}`,
           address: data.propertyAddress,
           region: data.region,
           capacity: data.capacity,
           bedrooms: data.bedrooms,
+          bathrooms: data.bathrooms,
           amenities: data.facilities,
           status: 'draft',
+        }).select('id').single();
+        if (propError) throw propError;
+
+        // Create agreement
+        await supabase.from('agreements').insert({
+          owner_id: userId,
+          property_id: propData?.id || null,
+          owner_name: data.ownerName,
+          owner_email: data.email || user?.email,
+          owner_phone: data.ownerPhone,
+          owner_address: `${data.ownerAddress}, ${data.ownerPostal} ${data.ownerCity}`,
+          property_title: `${data.propertyType} i ${data.region}`,
+          property_address: data.propertyAddress,
+          property_region: data.region,
+          commission_percent: 15,
+          binding_months: 6,
+          notice_days: 30,
+          signature_name: data.signatureName,
+          signature_date: data.signatureDate,
+          signed_at: new Date().toISOString(),
+          accept_terms: data.acceptTerms,
+          accept_privacy: data.acceptPrivacy,
+          accept_marketing: data.acceptMarketing,
+          status: 'signed',
+          version: '1.2',
         });
-        if (error) throw error;
+
+        // Create onboarding record
+        await supabase.from('owner_onboarding').insert({
+          owner_id: userId,
+          status: 'agreement_signed',
+          current_step: 'property_setup',
+          lead_source: 'website_onboarding',
+          signup_started_at: new Date().toISOString(),
+          agreement_signed_at: new Date().toISOString(),
+        });
       }
 
       setStep(8);
+      toast.success('Velkommen til SommerVibes!');
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Der opstod en fejl');
@@ -169,10 +240,6 @@ export default function GetStarted() {
 
   const next = () => {
     if (step === 7) {
-      if (!user && data.password.length < 6) {
-        toast.error('Indtast en adgangskode (min. 6 tegn) for at oprette din konto');
-        return;
-      }
       handleSubmit();
     } else if (step < 8) {
       setStep(s => s + 1);
@@ -210,7 +277,7 @@ export default function GetStarted() {
     </div>
   );
 
-  // ─── Step 1: Welcome ────────────────────────────────────
+  // ─── Step 1: Start ──────────────────────────────────────
 
   const Step1 = () => (
     <div className="max-w-xl mx-auto text-center">
@@ -221,45 +288,108 @@ export default function GetStarted() {
         <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
           Velkommen til <span className="text-primary italic">SommerVibes</span>
         </h2>
-        <p className="text-muted-foreground text-lg leading-relaxed mb-8 max-w-md mx-auto">
+        <p className="text-muted-foreground text-lg leading-relaxed mb-3 max-w-md mx-auto">
           Du er kun få minutter fra at komme i gang med professionel udlejning af dit sommerhus.
+        </p>
+        <p className="text-muted-foreground/60 text-sm mb-10">
+          Det tager kun få minutter — og du er ikke forpligtet til noget, før du selv vælger det.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           {[
             { icon: Clock, text: 'Tager kun 5 min' },
-            { icon: Shield, text: 'Ingen forpligtelse endnu' },
+            { icon: Shield, text: 'Ingen forpligtelse' },
             { icon: Star, text: 'Gratis oprettelse' },
           ].map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + i * 0.1 }}
-              className="flex items-center gap-2.5 p-3 rounded-xl bg-card/50 border border-border/30"
-            >
+              className="flex items-center gap-2.5 p-3 rounded-xl bg-card/50 border border-border/30">
               <item.icon className="w-4 h-4 text-primary shrink-0" />
               <span className="text-sm text-foreground/80">{item.text}</span>
             </motion.div>
           ))}
         </div>
 
-        <p className="text-muted-foreground/60 text-xs">
-          Vi guider dig igennem — skridt for skridt
-        </p>
+        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 text-sm text-muted-foreground max-w-sm mx-auto">
+          <Headphones className="w-4 h-4 text-primary inline mr-2" />
+          Har du spørgsmål undervejs? Vi er klar til at hjælpe dig.
+        </div>
       </motion.div>
     </div>
   );
 
-  // ─── Step 2: Owner Info ─────────────────────────────────
+  // ─── Step 2: Create Account ─────────────────────────────
 
-  const Step2 = () => (
+  const Step2 = () => {
+    if (user) {
+      return (
+        <div className="max-w-md mx-auto text-center">
+          <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-7 h-7 text-accent" />
+          </div>
+          <h2 className="font-display text-2xl font-bold text-foreground mb-2">Du er allerede logget ind</h2>
+          <p className="text-muted-foreground text-sm mb-4">{user.email}</p>
+          <p className="text-muted-foreground/60 text-xs">Fortsæt til næste trin for at udfylde dine oplysninger.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="max-w-md mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">Opret din profil</h2>
+          <p className="text-muted-foreground text-sm">Din konto giver dig adgang til ejerdashboardet</p>
+        </div>
+        <Card className="border-border/40 bg-card/40 backdrop-blur-sm">
+          <CardContent className="p-5 md:p-7 space-y-5">
+            <div>
+              <Label className="text-foreground font-medium text-sm">E-mail *</Label>
+              <Input type="email" placeholder="din@email.dk" value={data.email}
+                onChange={e => update({ email: e.target.value })} className="mt-1.5 bg-background/50" />
+            </div>
+            <div>
+              <Label className="text-foreground font-medium text-sm">Adgangskode *</Label>
+              <Input type="password" placeholder="Minimum 6 tegn" value={data.password}
+                onChange={e => update({ password: e.target.value })} className="mt-1.5 bg-background/50" />
+            </div>
+            <div>
+              <Label className="text-foreground font-medium text-sm">Bekræft adgangskode *</Label>
+              <Input type="password" placeholder="Gentag adgangskode" value={data.passwordConfirm}
+                onChange={e => update({ passwordConfirm: e.target.value })} className="mt-1.5 bg-background/50" />
+              {data.passwordConfirm && data.password !== data.passwordConfirm && (
+                <p className="text-destructive text-xs mt-1">Adgangskoderne matcher ikke</p>
+              )}
+            </div>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-3">
+                <Checkbox id="terms" checked={data.acceptTerms}
+                  onCheckedChange={(c) => update({ acceptTerms: c === true })} className="mt-0.5" />
+                <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer leading-relaxed">
+                  Jeg accepterer <span className="text-primary underline" onClick={(e) => { e.preventDefault(); window.open('/terms', '_blank'); }}>handelsbetingelser</span> *
+                </label>
+              </div>
+              <div className="flex items-start gap-3">
+                <Checkbox id="privacy" checked={data.acceptPrivacy}
+                  onCheckedChange={(c) => update({ acceptPrivacy: c === true })} className="mt-0.5" />
+                <label htmlFor="privacy" className="text-sm text-muted-foreground cursor-pointer leading-relaxed">
+                  Jeg har læst <span className="text-primary underline" onClick={(e) => { e.preventDefault(); window.open('/privacy', '_blank'); }}>privatlivspolitikken</span> *
+                </label>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  // ─── Step 3: Owner Details ──────────────────────────────
+
+  const Step3 = () => (
     <div className="max-w-xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">Dine oplysninger</h2>
         <p className="text-muted-foreground text-sm">Så vi kan kontakte dig om dit sommerhus</p>
       </div>
-
       <Card className="border-border/40 bg-card/40 backdrop-blur-sm">
         <CardContent className="p-5 md:p-7 space-y-5">
           <div>
@@ -267,27 +397,27 @@ export default function GetStarted() {
             <Input placeholder="Anders Jensen" value={data.ownerName}
               onChange={e => update({ ownerName: e.target.value })} className="mt-1.5 bg-background/50" />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-foreground font-medium text-sm">Telefon</Label>
-              <Input type="tel" placeholder="+45 12 34 56 78" value={data.ownerPhone}
-                onChange={e => update({ ownerPhone: e.target.value })} className="mt-1.5 bg-background/50" />
-            </div>
-            <div>
-              <Label className="text-foreground font-medium text-sm">E-mail *</Label>
-              <Input type="email" placeholder="din@email.dk" value={data.ownerEmail}
-                onChange={e => update({ ownerEmail: e.target.value })} className="mt-1.5 bg-background/50" />
-            </div>
+          <div>
+            <Label className="text-foreground font-medium text-sm">Telefon *</Label>
+            <Input type="tel" placeholder="+45 12 34 56 78" value={data.ownerPhone}
+              onChange={e => update({ ownerPhone: e.target.value })} className="mt-1.5 bg-background/50" />
           </div>
           <div>
             <Label className="text-foreground font-medium text-sm">Adresse</Label>
             <Input placeholder="Din privatadresse" value={data.ownerAddress}
               onChange={e => update({ ownerAddress: e.target.value })} className="mt-1.5 bg-background/50" />
           </div>
-          <div>
-            <Label className="text-foreground font-medium text-sm">Postnr. / By</Label>
-            <Input placeholder="8000 Aarhus" value={data.ownerPostalCity}
-              onChange={e => update({ ownerPostalCity: e.target.value })} className="mt-1.5 bg-background/50" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-foreground font-medium text-sm">Postnr.</Label>
+              <Input placeholder="8000" value={data.ownerPostal}
+                onChange={e => update({ ownerPostal: e.target.value })} className="mt-1.5 bg-background/50" />
+            </div>
+            <div>
+              <Label className="text-foreground font-medium text-sm">By</Label>
+              <Input placeholder="Aarhus" value={data.ownerCity}
+                onChange={e => update({ ownerCity: e.target.value })} className="mt-1.5 bg-background/50" />
+            </div>
           </div>
           <div>
             <Label className="text-foreground font-medium text-sm mb-2 block">Foretrukken kontaktmetode</Label>
@@ -311,25 +441,24 @@ export default function GetStarted() {
     </div>
   );
 
-  // ─── Step 3: Property Info ──────────────────────────────
+  // ─── Step 4: Property Details ───────────────────────────
 
-  const Step3 = () => (
+  const Step4 = () => (
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">Dit sommerhus</h2>
-        <p className="text-muted-foreground text-sm">Fortæl os lidt om din bolig — du kan altid tilføje mere senere</p>
+        <p className="text-muted-foreground text-sm">Fortæl os om din bolig — du kan altid redigere senere</p>
       </div>
-
       <Card className="border-border/40 bg-card/40 backdrop-blur-sm">
         <CardContent className="p-5 md:p-7 space-y-5">
           <div>
-            <Label className="text-foreground font-medium text-sm">Adresse på boligen *</Label>
+            <Label className="text-foreground font-medium text-sm">Boligens adresse *</Label>
             <Input placeholder="Strandvejen 42, 6800 Varde" value={data.propertyAddress}
               onChange={e => update({ propertyAddress: e.target.value })} className="mt-1.5 bg-background/50" />
           </div>
 
           <div>
-            <Label className="text-foreground font-medium text-sm">Område / Region *</Label>
+            <Label className="text-foreground font-medium text-sm">Region / Område *</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
               {REGIONS.map(r => (
                 <button key={r} type="button" onClick={() => update({ region: r })}
@@ -343,7 +472,7 @@ export default function GetStarted() {
           </div>
 
           <div>
-            <Label className="text-foreground font-medium text-sm">Type bolig *</Label>
+            <Label className="text-foreground font-medium text-sm">Boligtype *</Label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
               {PROPERTY_TYPES.map(t => (
                 <button key={t} type="button" onClick={() => update({ propertyType: t })}
@@ -356,54 +485,52 @@ export default function GetStarted() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label className="text-foreground font-medium text-sm flex items-center gap-1.5">
-                <Users className="w-3 h-3 text-muted-foreground" /> Antal sovepladser
+                <Users className="w-3 h-3 text-muted-foreground" /> Sovepladser
               </Label>
               <Input type="number" min={1} max={20} value={data.capacity}
                 onChange={e => update({ capacity: parseInt(e.target.value) || 1 })} className="mt-1.5 bg-background/50" />
             </div>
             <div>
               <Label className="text-foreground font-medium text-sm flex items-center gap-1.5">
-                <Bed className="w-3 h-3 text-muted-foreground" /> Antal værelser
+                <Bed className="w-3 h-3 text-muted-foreground" /> Værelser
               </Label>
               <Input type="number" min={1} max={10} value={data.bedrooms}
                 onChange={e => update({ bedrooms: parseInt(e.target.value) || 1 })} className="mt-1.5 bg-background/50" />
+            </div>
+            <div>
+              <Label className="text-foreground font-medium text-sm flex items-center gap-1.5">
+                <Bath className="w-3 h-3 text-muted-foreground" /> Badeværelser
+              </Label>
+              <Input type="number" min={1} max={5} value={data.bathrooms}
+                onChange={e => update({ bathrooms: parseInt(e.target.value) || 1 })} className="mt-1.5 bg-background/50" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-foreground font-medium text-sm flex items-center gap-1.5">
+                <Key className="w-3 h-3 text-muted-foreground" /> Har du nøgleboks?
+              </Label>
+              <RadioCards value={data.hasKeybox} onChange={v => update({ hasKeybox: v })} options={[
+                { value: 'yes', label: 'Ja' }, { value: 'no', label: 'Nej' },
+              ]} />
+            </div>
+            <div>
+              <Label className="text-foreground font-medium text-sm flex items-center gap-1.5">
+                <Globe className="w-3 h-3 text-muted-foreground" /> Erfaring med udlejning?
+              </Label>
+              <RadioCards value={data.hasExperience} onChange={v => update({ hasExperience: v })} options={[
+                { value: 'yes', label: 'Ja' }, { value: 'no', label: 'Nej' },
+              ]} />
             </div>
           </div>
 
           <div>
             <Label className="text-foreground font-medium text-sm">Særlige faciliteter</Label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {FACILITIES.map(f => (
-                <button key={f} type="button" onClick={() => toggleFacility(f)}
-                  className={`flex items-center gap-2 p-2.5 rounded-xl border text-sm transition-all text-left ${
-                    data.facilities.includes(f) ? 'border-primary bg-primary/10 text-primary' : 'border-border/30 text-muted-foreground hover:border-primary/20'
-                  }`}>
-                  <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
-                    data.facilities.includes(f) ? 'bg-primary border-primary' : 'border-border'
-                  }`}>
-                    {data.facilities.includes(f) && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
-                  </div>
-                  {f}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-foreground font-medium text-sm">Har du udlejet før?</Label>
-            <RadioGroup value={data.hasRentedBefore} onValueChange={v => update({ hasRentedBefore: v })} className="flex gap-3 mt-2">
-              {['Ja', 'Nej', 'Lidt'].map(o => (
-                <label key={o} className={`px-4 py-2 rounded-xl border cursor-pointer transition-all text-sm ${
-                  data.hasRentedBefore === o ? 'border-primary bg-primary/10 text-primary' : 'border-border/40 text-muted-foreground'
-                }`}>
-                  <RadioGroupItem value={o} className="sr-only" />
-                  {o}
-                </label>
-              ))}
-            </RadioGroup>
+            <ToggleChips options={FACILITIES} selected={data.facilities} onToggle={(v) => toggleList('facilities', v)} />
           </div>
 
           <div>
@@ -419,120 +546,130 @@ export default function GetStarted() {
     </div>
   );
 
-  // ─── Step 4: Situation ──────────────────────────────────
+  // ─── Step 5: Rental Preferences ─────────────────────────
 
-  const RadioCards = ({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string; desc?: string }[] }) => (
-    <div className="space-y-2 mt-2">
-      {options.map(o => (
-        <button key={o.value} type="button" onClick={() => onChange(o.value)}
-          className={`w-full text-left p-3.5 rounded-xl border transition-all ${
-            value === o.value ? 'border-primary bg-primary/10' : 'border-border/30 hover:border-primary/20'
-          }`}>
-          <span className={`text-sm font-medium ${value === o.value ? 'text-primary' : 'text-foreground/80'}`}>{o.label}</span>
-          {o.desc && <p className="text-xs text-muted-foreground mt-0.5">{o.desc}</p>}
-        </button>
-      ))}
-    </div>
-  );
-
-  const Step4 = () => (
+  const Step5 = () => (
     <div className="max-w-xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">Din situation</h2>
-        <p className="text-muted-foreground text-sm">Så vi kan tilpasse vores service til dig</p>
+        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">Din udlejning</h2>
+        <p className="text-muted-foreground text-sm">Fortæl os lidt om dine ønsker og behov</p>
       </div>
-
       <Card className="border-border/40 bg-card/40 backdrop-blur-sm">
         <CardContent className="p-5 md:p-7 space-y-6">
-          <div>
-            <Label className="text-foreground font-medium text-sm">Hvor meget hjælp ønsker du? *</Label>
-            <RadioCards value={data.helpLevel} onChange={v => update({ helpLevel: v })} options={[
-              { value: 'full', label: 'Fuld hjælp — I klarer alt', desc: 'SommerVibes håndterer gæster, nøgler, rengøring og markedsføring' },
-              { value: 'partial', label: 'Delvis hjælp — Jeg vil selv stå for noget', desc: 'F.eks. nøgleoverdragelse eller rengøring selv' },
-              { value: 'unsure', label: 'Ikke sikker endnu — Lad os tale om det', desc: 'Vi ringer og finder den bedste løsning' },
-            ]} />
-          </div>
-
           <div>
             <Label className="text-foreground font-medium text-sm">Hvornår ønsker du at komme i gang?</Label>
             <RadioCards value={data.startTime} onChange={v => update({ startTime: v })} options={[
               { value: 'asap', label: 'Hurtigst muligt' },
               { value: '1-2months', label: 'Inden for 1-2 måneder' },
               { value: 'next-season', label: 'Til næste sæson' },
-              { value: 'exploring', label: 'Undersøger stadig mine muligheder' },
+              { value: 'exploring', label: 'Undersøger stadig' },
             ]} />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <Label className="text-foreground font-medium text-sm">Ønsker du fuld håndtering? *</Label>
+            <RadioCards value={data.helpLevel} onChange={v => update({ helpLevel: v })} options={[
+              { value: 'full', label: 'Ja — I klarer alt', desc: 'SommerVibes håndterer gæster, nøgler, rengøring og markedsføring' },
+              { value: 'partial', label: 'Delvis — Jeg vil selv stå for noget', desc: 'F.eks. nøgleoverdragelse eller rengøring' },
+              { value: 'unsure', label: 'Ikke sikker endnu', desc: 'Vi finder den bedste løsning sammen' },
+            ]} />
+          </div>
+
+          {data.helpLevel === 'partial' && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+              <Label className="text-foreground font-medium text-sm">Hvad vil du selv håndtere?</Label>
+              <ToggleChips options={SELF_MANAGE_OPTIONS} selected={data.selfManage} onToggle={(v) => toggleList('selfManage', v)} />
+            </motion.div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-foreground font-medium text-sm flex items-center gap-1.5">
-                <Key className="w-3 h-3 text-muted-foreground" /> Nøgleboks?
-              </Label>
-              <RadioCards value={data.hasKeybox} onChange={v => update({ hasKeybox: v })} options={[
-                { value: 'yes', label: 'Ja' }, { value: 'no', label: 'Nej' },
-              ]} />
-            </div>
-            <div>
-              <Label className="text-foreground font-medium text-sm flex items-center gap-1.5">
-                <Brush className="w-3 h-3 text-muted-foreground" /> Rengøringsaftale?
+                <Brush className="w-3 h-3 text-muted-foreground" /> Rengøringsløsning?
               </Label>
               <RadioCards value={data.hasCleaning} onChange={v => update({ hasCleaning: v })} options={[
-                { value: 'yes', label: 'Ja' }, { value: 'no', label: 'Nej' },
+                { value: 'yes', label: 'Ja, egen' }, { value: 'no', label: 'Nej, hjælp' },
               ]} />
             </div>
             <div>
               <Label className="text-foreground font-medium text-sm flex items-center gap-1.5">
-                <Globe className="w-3 h-3 text-muted-foreground" /> Portal-erfaring?
+                <CalendarCheck className="w-3 h-3 text-muted-foreground" /> Klar til udlejning?
               </Label>
-              <RadioCards value={data.hasExperience} onChange={v => update({ hasExperience: v })} options={[
-                { value: 'yes', label: 'Ja' }, { value: 'no', label: 'Nej' },
+              <RadioCards value={data.propertyReady} onChange={v => update({ propertyReady: v })} options={[
+                { value: 'yes', label: 'Ja' }, { value: 'no', label: 'Ikke endnu' },
               ]} />
             </div>
+          </div>
+
+          <div>
+            <Label className="text-foreground font-medium text-sm">Hvilke services er mest relevante?</Label>
+            <ToggleChips options={SERVICES} selected={data.relevantServices} onToggle={(v) => toggleList('relevantServices', v)} />
           </div>
         </CardContent>
       </Card>
     </div>
   );
 
-  // ─── Step 5: Benefits ───────────────────────────────────
+  // ─── Step 6: Agreement Review ───────────────────────────
 
-  const Step5 = () => {
-    const benefits = [
-      { icon: Globe, title: 'Eksponering på alle portaler', desc: 'Airbnb, Booking.com, VRBO og vores egne kanaler' },
-      { icon: Camera, title: 'Professionelt indhold', desc: 'Vi vejleder om billeder der skaber bookinger' },
-      { icon: MessageCircle, title: '24/7 gæstekommunikation', desc: 'Du slipper for al dialog med gæster' },
-      { icon: Shield, title: 'Rengøring & kvalitetssikring', desc: 'Koordineret slutrengøring og kontrol' },
-      { icon: Wallet, title: 'Gennemsigtige udbetalinger', desc: 'Månedlige overførsler direkte til din konto' },
-      { icon: Star, title: 'Skatteoptimering', desc: 'Adgang til det fulde bundfradrag på 50.200 kr.' },
+  const Step6 = () => {
+    const sections = [
+      { title: 'Hvad SommerVibes håndterer', icon: Sparkles, items: [
+        'Professionel markedsføring på Airbnb, Booking.com og egne kanaler',
+        'Komplet gæstekommunikation og support',
+        'Koordinering af rengøring og klargøring',
+        'Nøgleboks-opsætning og adgangsstyring',
+        'Prisoptimering og kalenderstyring',
+      ]},
+      { title: 'Hvad du selv kan håndtere', icon: User, items: [
+        'Vælg hvornår dit hus er tilgængeligt',
+        'Bloker datoer til eget brug',
+        'Følg bookinger og indtjening via dashboardet',
+        'Kommunikér direkte med gæster hvis ønsket',
+      ]},
+      { title: 'Økonomi & udbetaling', icon: Wallet, items: [
+        '15% kommission af gennemførte bookinger',
+        'Gæsten betaler 5% servicegebyr oveni',
+        'Gennemsigtige månedlige udbetalinger',
+        'Fuld økonomisk overblik i ejerdashboardet',
+      ]},
+      { title: 'Vilkår', icon: Shield, items: [
+        '6 måneders bindingsperiode',
+        'Herefter opsigelse med 30 dages varsel',
+        'GDPR-sikret behandling af alle data',
+        'Forsikringsdækning ved pludselige skader',
+      ]},
     ];
-
-    const personalised = data.helpLevel === 'full'
-      ? 'Du har valgt fuld hjælp — vi klarer alt fra A til Z, så du kan læne dig tilbage.'
-      : data.helpLevel === 'partial'
-      ? 'Du har valgt delvis hjælp — vi tilpasser servicen, så den passer præcis til dig.'
-      : 'Vi finder sammen den bedste løsning for dig og dit sommerhus.';
 
     return (
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
-            <span className="text-primary italic">SommerVibes</span> passer til dig
-          </h2>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto">{personalised}</p>
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">Gennemgå samarbejdet</h2>
+          <p className="text-muted-foreground text-sm">Her er det vigtigste om vores partnerskab — i klart sprog</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-3 mb-8">
-          {benefits.map((b, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: i * 0.06 }}
-              className="flex items-start gap-3 p-4 rounded-xl border border-border/30 bg-card/30">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <b.icon className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground text-sm">{b.title}</h3>
-                <p className="text-muted-foreground text-xs mt-0.5">{b.desc}</p>
-              </div>
+        <div className="space-y-4 mb-8">
+          {sections.map((section, si) => (
+            <motion.div key={si} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: si * 0.08 }}>
+              <Card className="border-border/30 bg-card/30">
+                <CardContent className="p-5">
+                  <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <section.icon className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    {section.title}
+                  </h3>
+                  <div className="space-y-2">
+                    {section.items.map((item, pi) => (
+                      <div key={pi} className="flex items-start gap-2.5">
+                        <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                        <p className="text-foreground/70 text-sm leading-relaxed">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </div>
@@ -549,85 +686,23 @@ export default function GetStarted() {
     );
   };
 
-  // ─── Step 6: Agreement Review ───────────────────────────
-
-  const AGREEMENT_SECTIONS = [
-    { title: 'Formidling', points: [
-      'SommerVibes formidler udlejning af dit sommerhus på dine vegne',
-      'Dit hus markedsføres på Airbnb, Booking.com, VRBO og vores egne kanaler',
-    ]},
-    { title: 'Kommission & betaling', points: [
-      'Kommission: 15% af gennemførte bookinger',
-      'Gæsten betaler et servicegebyr på 5% oveni',
-      'Du modtager månedlige udbetalinger med fuld gennemsigtighed',
-    ]},
-    { title: 'Service & drift', points: [
-      'SommerVibes koordinerer gæstekontakt, rengøring og markedsføring',
-      'Vi håndterer forsikring ved pludselige og uforudsete skader',
-      'Du bestemmer selv hvornår dit hus er tilgængeligt via ejerportalen',
-    ]},
-    { title: 'Vilkår', points: [
-      'Bindingsperiode: 6 måneder — herefter opsigelse med 30 dages varsel',
-      'Du kan til enhver tid blokere datoer til eget brug',
-      'Dine data behandles fortroligt iht. GDPR og vores privatlivspolitik',
-    ]},
-  ];
-
-  const Step6 = () => (
-    <div className="max-w-2xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">Gennemgå aftalen</h2>
-        <p className="text-muted-foreground text-sm">Her er det vigtigste i vores samarbejdsaftale — i klart sprog</p>
-      </div>
-
-      <div className="space-y-4">
-        {AGREEMENT_SECTIONS.map((section, si) => (
-          <motion.div key={si} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: si * 0.08 }}>
-            <Card className="border-border/30 bg-card/30">
-              <CardContent className="p-5">
-                <h3 className="font-display text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary text-[10px] font-bold">{si + 1}</span>
-                  </div>
-                  {section.title}
-                </h3>
-                <div className="space-y-2">
-                  {section.points.map((point, pi) => (
-                    <div key={pi} className="flex items-start gap-2.5">
-                      <Check className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
-                      <p className="text-foreground/70 text-sm leading-relaxed">{point}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      <p className="text-center text-muted-foreground/50 text-xs mt-6">
-        Du accepterer og signerer aftalen i næste trin
-      </p>
-    </div>
-  );
-
-  // ─── Step 7: Sign ───────────────────────────────────────
+  // ─── Step 7: Sign Agreement ─────────────────────────────
 
   const Step7 = () => (
     <div className="max-w-xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">Signer aftalen</h2>
-        <p className="text-muted-foreground text-sm">Bekræft din underskrift og opret din konto</p>
+        <p className="text-muted-foreground text-sm">Bekræft dit samarbejde med SommerVibes</p>
       </div>
 
       <Card className="border-border/40 bg-card/40 backdrop-blur-sm">
         <CardContent className="p-5 md:p-7 space-y-5">
-          {/* Summary */}
+          {/* Auto-filled summary */}
           <div className="p-4 rounded-xl bg-muted/20 border border-border/20 space-y-2">
             <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-2">Opsummering</p>
             {[
               ['Ejer', data.ownerName || '—'],
+              ['E-mail', data.email || user?.email || '—'],
               ['Bolig', `${data.propertyType || '—'} i ${data.region || '—'}`],
               ['Adresse', data.propertyAddress || '—'],
               ['Kommission', '15%'],
@@ -655,41 +730,13 @@ export default function GetStarted() {
               className="mt-1.5 bg-background/50" />
           </div>
 
-          {/* Account creation for non-logged-in users */}
-          {!user && (
-            <div className="border-t border-border/30 pt-5">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-3">Opret din konto</p>
-              <div>
-                <Label className="text-foreground font-medium text-sm flex items-center gap-1.5">
-                  <Lock className="w-3 h-3 text-muted-foreground" /> Adgangskode *
-                </Label>
-                <Input type="password" placeholder="Minimum 6 tegn" value={data.password}
-                  onChange={e => update({ password: e.target.value })} className="mt-1.5 bg-background/50" />
-              </div>
-            </div>
-          )}
-
-          {/* Consent checkboxes */}
+          {/* Consent */}
           <div className="space-y-3 pt-2">
             <div className="flex items-start gap-3 p-3 rounded-xl bg-primary/5 border border-primary/15">
               <Checkbox id="agreement" checked={data.acceptAgreement}
                 onCheckedChange={(c) => update({ acceptAgreement: c === true })} className="mt-0.5" />
               <label htmlFor="agreement" className="text-sm text-foreground/80 leading-relaxed cursor-pointer">
                 Jeg accepterer formidlingsaftalen med SommerVibes, herunder 15% kommission og 6 måneders binding. *
-              </label>
-            </div>
-            <div className="flex items-start gap-3">
-              <Checkbox id="terms" checked={data.acceptTerms}
-                onCheckedChange={(c) => update({ acceptTerms: c === true })} className="mt-0.5" />
-              <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer leading-relaxed">
-                Jeg accepterer <span className="text-primary underline cursor-pointer" onClick={() => window.open('/terms', '_blank')}>handelsbetingelser</span>. *
-              </label>
-            </div>
-            <div className="flex items-start gap-3">
-              <Checkbox id="privacy" checked={data.acceptPrivacy}
-                onCheckedChange={(c) => update({ acceptPrivacy: c === true })} className="mt-0.5" />
-              <label htmlFor="privacy" className="text-sm text-muted-foreground cursor-pointer leading-relaxed">
-                Jeg har læst og forstået <span className="text-primary underline cursor-pointer" onClick={() => window.open('/privacy', '_blank')}>privatlivspolitikken</span>. *
               </label>
             </div>
             <div className="flex items-start gap-3">
@@ -714,15 +761,15 @@ export default function GetStarted() {
     </div>
   );
 
-  // ─── Step 8: Success ────────────────────────────────────
+  // ─── Step 8: Confirmation ───────────────────────────────
 
   const Step8 = () => {
-    const nextSteps = [
-      { icon: Phone, title: 'Vi kontakter dig', desc: 'Inden for 24 timer ringer vi og aftaler det næste', time: '1-2 dage' },
+    const timeline = [
+      { icon: Phone, title: 'Vi kontakter dig', desc: 'Vi aftaler det næste og besvarer dine spørgsmål', time: '1-2 dage' },
       { icon: Home, title: 'Vi kommer forbi ejendommen', desc: 'Gennemgang af det praktiske — nøgleboks, fotos og klargøring', time: '3-7 dage' },
-      { icon: Globe, title: 'Din bolig går online', desc: 'Vi opretter og optimerer din annonce på alle portaler', time: '1-2 uger' },
-      { icon: Star, title: 'Adgang til ejerdashboard', desc: 'Følg bookinger, kalender og udbetalinger digitalt', time: 'Med det samme' },
-      { icon: Wallet, title: 'Du modtager udbetaling', desc: 'Gennemsigtige månedlige udbetalinger til din konto', time: 'Løbende' },
+      { icon: Camera, title: 'Vi klargør din annonce', desc: 'Professionelt indhold, tekster og prisoptimering', time: '1-2 uger' },
+      { icon: Globe, title: 'Adgang til dit dashboard', desc: 'Følg alt digitalt — bookinger, kalender og kommunikation', time: 'Med det samme' },
+      { icon: Star, title: 'Boligen går live', desc: 'Du kan begynde at modtage bookinger og indtjening', time: 'Når klar' },
     ];
 
     return (
@@ -732,9 +779,11 @@ export default function GetStarted() {
             <CheckCircle2 className="w-10 h-10 text-accent" />
           </div>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-            Du er i gang med <span className="text-primary italic">SommerVibes</span>
+            Velkommen til <span className="text-primary italic">SommerVibes</span>
           </h2>
-          <p className="text-muted-foreground text-lg mb-2">Tak for din tilmelding — vi glæder os til samarbejdet!</p>
+          <p className="text-muted-foreground text-lg mb-2">
+            Tak for din tilmelding, {data.ownerName.split(' ')[0] || 'ejer'} — vi glæder os til samarbejdet!
+          </p>
           {!user && (
             <p className="text-primary text-sm font-medium mb-8">
               Tjek din email for at bekræfte din konto ✉️
@@ -742,15 +791,16 @@ export default function GetStarted() {
           )}
         </motion.div>
 
+        {/* Visual timeline */}
         <div className="text-left mt-10 mb-10">
           <h3 className="font-display text-lg font-semibold text-foreground mb-6 text-center">Hvad sker der nu?</h3>
           <div className="space-y-0">
-            {nextSteps.map((s, i) => {
+            {timeline.map((s, i) => {
               const Icon = s.icon;
               return (
                 <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }} className="flex gap-4 relative">
-                  {i < nextSteps.length - 1 && (
+                  {i < timeline.length - 1 && (
                     <div className="absolute left-5 top-12 bottom-0 w-px bg-border/40" />
                   )}
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 z-10">
@@ -769,12 +819,16 @@ export default function GetStarted() {
           </div>
         </div>
 
+        {/* CTA buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button variant="gold" size="lg" className="gap-2 group" onClick={() => navigate('/owner')}>
             Gå til ejerdashboard <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Button variant="outline" size="lg" className="border-border text-muted-foreground gap-2" onClick={() => navigate('/book-vurdering')}>
             <PhoneCall className="w-4 h-4" /> Book opstartssamtale
+          </Button>
+          <Button variant="outline" size="lg" className="border-border text-muted-foreground gap-2" onClick={() => navigate('/app')}>
+            <Download className="w-4 h-4" /> Download app
           </Button>
         </div>
       </div>
@@ -788,7 +842,7 @@ export default function GetStarted() {
 
   const buttonLabel = () => {
     if (step === 1) return 'Kom i gang';
-    if (step === 7) return isSubmitting ? 'Opretter...' : 'Signer og opret konto';
+    if (step === 7) return isSubmitting ? 'Opretter...' : 'Signer og kom i gang';
     return 'Næste';
   };
 
@@ -809,7 +863,7 @@ export default function GetStarted() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto px-4 py-6 md:py-10">
-          {step < 8 && step > 1 && <StepIndicator />}
+          {step > 1 && step < 8 && <StepIndicator />}
           <AnimatePresence mode="wait">
             <motion.div key={step} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }}>
