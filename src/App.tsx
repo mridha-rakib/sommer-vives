@@ -62,6 +62,7 @@ import AdminChat from "./pages/admin/AdminChat";
 import AdminOptimizations from "./pages/admin/AdminOptimizations";
 import AdminPipeline from "./pages/admin/AdminPipeline";
 import AdminAgreements from "./pages/admin/AdminAgreements";
+import AdminTemplates from "./pages/admin/AdminTemplates";
 import AdminPropertiesMgmt from "./pages/admin/AdminPropertiesMgmt";
 import AdminKeyboxes from "./pages/admin/AdminKeyboxes";
 import AdminSupportTickets from "./pages/admin/AdminSupportTickets";
