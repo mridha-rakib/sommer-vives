@@ -17,6 +17,8 @@ import Team from "./pages/Team";
 import ReferAHost from "./pages/ReferAHost";
 import GetStarted from "./pages/GetStarted";
 import BookValuation from "./pages/BookValuation";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
