@@ -80,8 +80,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   } else if (!listing.is_active) {
     allActions.push({
       id: 'activate-listing',
-      title: 'Aktivér din listing',
-      description: 'Alt er klar — publicér din bolig og modtag bookinger.',
+      title: 'Publicér din bolig',
+      description: 'Alt ser godt ud — ét klik, og din bolig er klar til at modtage gæster.',
       href: '/owner/property',
       icon: Globe,
       priority: 'high',
