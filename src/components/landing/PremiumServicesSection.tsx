@@ -603,7 +603,7 @@ const services: Service[] = [
     icon: Megaphone,
     title: 'Effektiv markedsføring',
     short: 'Din bolig skal ikke bare online — den skal præsenteres stærkt og tiltrække de rigtige gæster.',
-    long: 'Vi arbejder aktivt for at give din bolig en præsentation, der skaber interesse. Det handler om visuelt flot opsætning, skarp tekst og målrettet markedsføring, så boligen ikke blot er til stede, men også bliver valgt. Målet er at øge synlighed, tiltrække de rigtige gæster og styrke dine muligheder for flere bookinger.',
+    long: 'Vi sørger for, at dit sommerhus præsenterer sig fra sin allerbedste side med professionelt indhold, visuelt flot opsætning og skarp tekst. Dertil arbejder vi aktivt med målrettet markedsføring, så boligen ikke blot er til stede på de rigtige kanaler, men også bliver valgt af de rigtige gæster. Målet er at øge synlighed, styrke præsentationen og skabe flere relevante bookinger.',
     expandLabel: 'Flere relevante bookinger',
     visual: MarketingVisual,
   },
