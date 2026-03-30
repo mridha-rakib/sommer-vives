@@ -97,6 +97,7 @@ export default function OwnerAgreement() {
     acceptAgreement: false, acceptTerms: false, acceptPrivacy: false, acceptMarketing: false,
   });
   const [signatureName, setSignatureName] = useState('');
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
 
   // Load profile & property data
   useEffect(() => {
