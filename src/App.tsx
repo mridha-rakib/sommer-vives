@@ -179,6 +179,17 @@ const App = () => (
             <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminChat /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
 
+            {/* Guest routes */}
+            <Route path="/guest/auth" element={<GuestAuth />} />
+            <Route path="/guest" element={<GuestProtectedRoute><GuestDashboard /></GuestProtectedRoute>} />
+            <Route path="/guest/reservation" element={<GuestProtectedRoute><GuestReservation /></GuestProtectedRoute>} />
+            <Route path="/guest/checkin" element={<GuestProtectedRoute><GuestCheckin /></GuestProtectedRoute>} />
+            <Route path="/guest/house-info" element={<GuestProtectedRoute><GuestHouseInfo /></GuestProtectedRoute>} />
+            <Route path="/guest/addons" element={<GuestProtectedRoute><GuestAddons /></GuestProtectedRoute>} />
+            <Route path="/guest/messages" element={<GuestProtectedRoute><GuestMessages /></GuestProtectedRoute>} />
+            <Route path="/guest/support" element={<GuestProtectedRoute><GuestSupport /></GuestProtectedRoute>} />
+            <Route path="/guest/checkout" element={<GuestProtectedRoute><GuestCheckout /></GuestProtectedRoute>} />
+
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
