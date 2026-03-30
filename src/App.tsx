@@ -46,9 +46,9 @@ import OwnerAccount from "./pages/owner/OwnerAccount";
 
 // Admin pages
 import AdminAuth from "./pages/admin/AdminAuth";
-import AdminDashboard from "./pages/admin/AdminDashboardNew";
-import AdminOwners from "./pages/admin/AdminOwnersNew";
-import AdminListingsNew from "./pages/admin/AdminListingsNew";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminOwners from "./pages/admin/AdminOwners";
+import AdminListings from "./pages/admin/AdminListings";
 import AdminPricing from "./pages/admin/AdminPricing";
 import AdminCalendarPage from "./pages/admin/AdminCalendarPage";
 import AdminEmailsPage from "./pages/admin/AdminEmailsPage";
