@@ -1,194 +1,116 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, ArrowLeft, Check, Camera, Video, Sparkles, Home, MapPin, Settings, CreditCard, Star, Zap } from 'lucide-react';
+import {
+  ArrowRight, ArrowLeft, Check, Home, MapPin, Users, Bed, Bath,
+  Shield, FileSignature, Mail, Phone, Lock, Sparkles, Camera,
+  Globe, MessageCircle, Wallet, Star, CheckCircle2, X
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// ─── Data ────────────────────────────────────────────────────
 
 interface OnboardingData {
-  // Step 1: Package selection
-  package: 'basic' | 'plus' | null;
-  // Step 2: Add-ons
-  addons: {
-    proPhotos: boolean;
-    proVideo: boolean;
-    premiumPlacement: boolean;
-  };
-  // Step 3: Property info
   title: string;
   address: string;
   region: string;
   capacity: number;
   bedrooms: number;
   bathrooms: number;
-  // Step 4: Account
   name: string;
   email: string;
   phone: string;
   password: string;
   acceptTerms: boolean;
+  acceptAgreement: boolean;
 }
 
 const REGIONS = [
-  'Nordjylland',
-  'Midtjylland',
-  'Syddanmark',
-  'Sjælland',
-  'Hovedstaden',
-  'Bornholm',
+  'Nordjylland', 'Midtjylland', 'Syddanmark',
+  'Sjælland', 'Hovedstaden', 'Bornholm',
 ];
 
-const PACKAGES = [
-  {
-    id: 'basic',
-    name: 'Basis udlejning',
-    price: 'Gratis',
-    commission: '15%',
-    description: 'Perfekt til at komme i gang',
-    features: [
-      'Annoncering på 3+ portaler',
-      'Personlig rådgiver',
-      'Booking-håndtering',
-      'Månedlige udbetalinger',
-    ],
-    popular: false,
-  },
-  {
-    id: 'plus',
-    name: 'Plus udlejning',
-    price: '299 kr./md.',
-    commission: '12%',
-    description: 'For den seriøse udlejer',
-    features: [
-      'Alt i Basis',
-      'Premium placering',
-      'Prioriteret support',
-      'Ugentlige udbetalinger',
-      'Detaljeret statistik',
-    ],
-    popular: true,
-  },
+const STEPS = [
+  { label: 'Dit hus', icon: Home },
+  { label: 'Service', icon: Sparkles },
+  { label: 'Aftale', icon: FileSignature },
+  { label: 'Konto', icon: Lock },
+  { label: 'Klar', icon: CheckCircle2 },
 ];
 
-const ADDONS = [
-  {
-    id: 'proPhotos',
-    name: 'Professionelle billeder & video',
-    price: '9.995 kr.',
-    priceNote: 'engangspris',
-    description: '15-20 professionelle billeder + drone-optagelser + 2-3 min. udlejningsvideo',
-    tag: 'ANBEFALET',
-  },
-  {
-    id: 'proVideo',
-    name: 'Kun udlejningsvideo',
-    price: '5.995 kr.',
-    priceNote: 'engangspris',
-    description: '2-3 minutters professionel udlejningsvideo med drone-optagelser',
-    tag: null,
-  },
-  {
-    id: 'premiumPlacement',
-    name: 'Premium placering i 3 mdr.',
-    price: '1.495 kr.',
-    priceNote: 'pr. måned',
-    description: 'Top-placering på alle portaler for maksimal synlighed',
-    tag: 'BOOST',
-  },
+const SERVICE_HIGHLIGHTS = [
+  { icon: Globe, title: 'Eksponering på alle portaler', desc: 'Airbnb, Booking.com, VRBO og vores egne kanaler' },
+  { icon: Camera, title: 'Professionelt indhold', desc: 'Vi vejleder og sørger for billeder der skaber bookinger' },
+  { icon: MessageCircle, title: 'Fuld gæstekommunikation', desc: '24/7 dialog med gæster — du slipper for alt besværet' },
+  { icon: Shield, title: 'Rengøring & kvalitetssikring', desc: 'Koordineret slutrengøring og løbende kvalitetskontrol' },
+  { icon: Wallet, title: 'Gennemsigtige udbetalinger', desc: 'Månedlige udbetalinger direkte til din konto' },
+  { icon: Star, title: 'Skatteoptimering', desc: 'Adgang til det fulde bundfradrag på 50.200 kr.' },
 ];
+
+const AGREEMENT_POINTS = [
+  'SommerVibes formidler udlejning af dit sommerhus på dine vegne',
+  'Kommission: 15% af gennemførte bookinger (gæst betaler 5% servicegebyr)',
+  'Bindingsperiode: 6 måneder — herefter opsigelse med 30 dages varsel',
+  'Du bestemmer selv hvornår dit hus er tilgængeligt via ejerportalen',
+  'SommerVibes koordinerer gæstekontakt, rengøring og markedsføring',
+  'Du modtager månedlige udbetalinger med fuld gennemsigtighed',
+  'Vi håndterer forsikring ved pludselige og uforudsete skader',
+  'Du kan til enhver tid blokere datoer til eget brug',
+];
+
+// ─── Component ───────────────────────────────────────────────
 
 export default function GetStarted() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<OnboardingData>({
-    package: null,
-    addons: {
-      proPhotos: false,
-      proVideo: false,
-      premiumPlacement: false,
-    },
-    title: '',
-    address: '',
-    region: '',
-    capacity: 4,
-    bedrooms: 2,
-    bathrooms: 1,
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    acceptTerms: false,
+    title: '', address: '', region: '', capacity: 4, bedrooms: 2, bathrooms: 1,
+    name: '', email: '', phone: '', password: '',
+    acceptTerms: false, acceptAgreement: false,
   });
 
-  const totalSteps = 4;
+  const update = useCallback((u: Partial<OnboardingData>) => setData(p => ({ ...p, ...u })), []);
 
-  const updateData = (updates: Partial<OnboardingData>) => {
-    setData(prev => ({ ...prev, ...updates }));
-  };
-
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(prev => prev + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
+  const canNext = (): boolean => {
+    switch (step) {
+      case 1: return !!(data.title.trim() && data.address.trim() && data.region);
+      case 2: return true;
+      case 3: return data.acceptAgreement;
+      case 4: return user ? true : !!(data.name.trim() && data.email.trim() && data.password.length >= 6 && data.acceptTerms);
+      default: return false;
     }
   };
 
   const handleSubmit = async () => {
-    if (!data.acceptTerms) {
-      toast.error('Du skal acceptere handelsbetingelserne');
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      // Sign up if not logged in
+      let userId = user?.id;
+
       if (!user) {
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: data.email,
           password: data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: data.name,
-            },
+            data: { full_name: data.name },
           },
         });
-
         if (authError) throw authError;
+        userId = authData.user?.id;
+      }
 
-        if (authData.user) {
-          // Create property
-          const { error: propertyError } = await supabase.from('properties').insert({
-            owner_id: authData.user.id,
-            title: data.title,
-            address: data.address,
-            region: data.region,
-            capacity: data.capacity,
-            bedrooms: data.bedrooms,
-            bathrooms: data.bathrooms,
-            status: 'draft',
-          });
-
-          if (propertyError) throw propertyError;
-        }
-      } else {
-        // Already logged in - just create property
-        const { error: propertyError } = await supabase.from('properties').insert({
-          owner_id: user.id,
+      if (userId) {
+        const { error } = await supabase.from('properties').insert({
+          owner_id: userId,
           title: data.title,
           address: data.address,
           region: data.region,
@@ -197,230 +119,106 @@ export default function GetStarted() {
           bathrooms: data.bathrooms,
           status: 'draft',
         });
-
-        if (propertyError) throw propertyError;
+        if (error) throw error;
       }
 
-      toast.success('Dit sommerhus er oprettet! Tjek din email for at bekræfte din konto.');
-      navigate('/owner/properties');
-    } catch (error: any) {
-      console.error('Error:', error);
-      toast.error(error.message || 'Der opstod en fejl');
+      setStep(5);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Der opstod en fejl');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1:
-        return data.package !== null;
-      case 2:
-        return true; // Add-ons are optional
-      case 3:
-        return data.title && data.address && data.region;
-      case 4:
-        return user || (data.name && data.email && data.password && data.acceptTerms);
-      default:
-        return true;
+  const next = () => {
+    if (step === 4) {
+      handleSubmit();
+    } else if (step < 5) {
+      setStep(s => s + 1);
     }
   };
 
-  const stepLabels = ['Vælg pakke', 'Vælg tilkøb', 'Dit sommerhus', user ? 'Bekræft' : 'Opret konto'];
+  // ─── Step Indicator ──────────────────────────────────────
 
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-center gap-0 mb-12">
-      {stepLabels.map((label, index) => (
-        <div key={index} className="flex items-center">
-          <div className="flex flex-col items-center">
-            <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold transition-all ${
-                index + 1 < currentStep
-                  ? 'bg-primary text-primary-foreground'
-                  : index + 1 === currentStep
-                  ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
-                  : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              {index + 1 < currentStep ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                index + 1
-              )}
-            </div>
-            <span className={`text-xs mt-2 ${
-              index + 1 <= currentStep ? 'text-primary font-medium' : 'text-muted-foreground'
-            }`}>
-              {label}
-            </span>
-          </div>
-          {index < stepLabels.length - 1 && (
-            <div className={`w-16 md:w-24 h-0.5 mx-2 ${
-              index + 1 < currentStep ? 'bg-primary' : 'bg-muted'
-            }`} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderStep1 = () => (
-    <div className="max-w-3xl mx-auto">
-      <div className="text-center mb-10">
-        <h2 className="font-display text-3xl font-semibold text-primary mb-3">Vælg din pakke</h2>
-        <p className="text-muted-foreground">Start med den pakke der passer til dine behov</p>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6">
-        {PACKAGES.map((pkg) => (
-          <button
-            key={pkg.id}
-            onClick={() => updateData({ package: pkg.id as 'basic' | 'plus' })}
-            className={`relative text-left p-6 rounded-2xl border-2 transition-all ${
-              data.package === pkg.id
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/50'
-            }`}
-          >
-            {pkg.popular && (
-              <div className="absolute -top-3 left-6 px-3 py-1 bg-accent text-primary text-xs font-semibold rounded-full">
-                MEST POPULÆR
-              </div>
-            )}
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                data.package === pkg.id ? 'border-primary bg-primary' : 'border-muted-foreground'
+  const StepIndicator = () => (
+    <div className="flex items-center justify-center gap-0 mb-10 md:mb-14">
+      {STEPS.map((s, i) => {
+        const Icon = s.icon;
+        const idx = i + 1;
+        const done = idx < step;
+        const active = idx === step;
+        return (
+          <div key={i} className="flex items-center">
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all ${
+                done ? 'bg-primary text-primary-foreground' :
+                active ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' :
+                'bg-muted/50 text-muted-foreground'
               }`}>
-                {data.package === pkg.id && <Check className="w-3 h-3 text-primary-foreground" />}
+                {done ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4 md:w-5 md:h-5" />}
               </div>
-              <h3 className="font-display text-xl font-semibold text-primary">{pkg.name}</h3>
+              <span className={`text-[10px] md:text-xs mt-2 font-medium ${
+                active ? 'text-primary' : done ? 'text-primary/70' : 'text-muted-foreground/60'
+              }`}>{s.label}</span>
             </div>
-
-            <div className="mb-4">
-              <span className="text-3xl font-bold text-accent">{pkg.price}</span>
-              <span className="text-muted-foreground ml-2">+ {pkg.commission} kommission</span>
-            </div>
-
-            <p className="text-muted-foreground mb-4">{pkg.description}</p>
-
-            <ul className="space-y-2">
-              {pkg.features.map((feature, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-accent" />
-                  <span className="text-muted-foreground">{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </button>
-        ))}
-      </div>
+            {i < STEPS.length - 1 && (
+              <div className={`w-8 md:w-16 lg:w-24 h-px mx-1.5 md:mx-3 ${done ? 'bg-primary/50' : 'bg-border/50'}`} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 
-  const renderStep2 = () => (
-    <div className="max-w-3xl mx-auto">
-      <div className="text-center mb-10">
-        <h2 className="font-display text-3xl font-semibold text-primary mb-3">Vælg tilkøb (valgfrit)</h2>
-        <p className="text-muted-foreground">Boost dit sommerhus med professionelt indhold</p>
-      </div>
+  // ─── Step 1: Property Info ───────────────────────────────
 
-      <div className="space-y-4">
-        {ADDONS.map((addon) => (
-          <button
-            key={addon.id}
-            onClick={() => updateData({
-              addons: {
-                ...data.addons,
-                [addon.id]: !data.addons[addon.id as keyof typeof data.addons],
-              },
-            })}
-            className={`w-full text-left p-6 rounded-2xl border-2 transition-all ${
-              data.addons[addon.id as keyof typeof data.addons]
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/50'
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-4">
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mt-0.5 ${
-                  data.addons[addon.id as keyof typeof data.addons] ? 'border-primary bg-primary' : 'border-muted-foreground'
-                }`}>
-                  {data.addons[addon.id as keyof typeof data.addons] && <Check className="w-3 h-3 text-primary-foreground" />}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-primary">{addon.name}</h3>
-                    {addon.tag && (
-                      <span className="px-2 py-0.5 bg-accent/20 text-accent text-xs font-medium rounded-full">
-                        {addon.tag}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground text-sm">{addon.description}</p>
-                </div>
-              </div>
-              <div className="text-right flex-shrink-0 ml-4">
-                <div className="text-xl font-bold text-accent">{addon.price}</div>
-                <div className="text-xs text-muted-foreground">{addon.priceNote}</div>
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      <p className="text-center text-sm text-muted-foreground mt-8">
-        Du kan altid tilkøbe disse pakker senere fra din ejerportal
-      </p>
-    </div>
-  );
-
-  const renderStep3 = () => (
+  const Step1 = () => (
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-10">
-        <h2 className="font-display text-3xl font-semibold text-primary mb-3">Dit sommerhus</h2>
-        <p className="text-muted-foreground">Fortæl os om dit sommerhus – det tager kun 2 minutter</p>
+        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">Fortæl os om dit sommerhus</h2>
+        <p className="text-muted-foreground">Det tager kun 2 minutter — du kan altid tilføje mere senere</p>
       </div>
 
-      <Card>
-        <CardContent className="p-8 space-y-6">
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <CardContent className="p-6 md:p-8 space-y-6">
           <div>
-            <Label htmlFor="title">Navn på sommerhus *</Label>
+            <Label htmlFor="title" className="text-foreground font-medium">Navn på dit sommerhus *</Label>
             <Input
               id="title"
               placeholder="F.eks. Hyggeligt sommerhus ved Kvie Sø"
               value={data.title}
-              onChange={e => updateData({ title: e.target.value })}
-              className="mt-2"
+              onChange={e => update({ title: e.target.value })}
+              className="mt-2 bg-background/50"
             />
           </div>
 
           <div>
-            <Label htmlFor="address">Adresse *</Label>
+            <Label htmlFor="address" className="text-foreground font-medium">Adresse *</Label>
             <Input
               id="address"
               placeholder="Søvej 28, 6800 Varde"
               value={data.address}
-              onChange={e => updateData({ address: e.target.value })}
-              className="mt-2"
+              onChange={e => update({ address: e.target.value })}
+              className="mt-2 bg-background/50"
             />
           </div>
 
           <div>
-            <Label>Region *</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
-              {REGIONS.map(region => (
+            <Label className="text-foreground font-medium">Region *</Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+              {REGIONS.map(r => (
                 <button
-                  key={region}
+                  key={r}
                   type="button"
-                  onClick={() => updateData({ region })}
-                  className={`p-3 rounded-lg border text-left text-sm transition-all ${
-                    data.region === region
+                  onClick={() => update({ region: r })}
+                  className={`p-3 rounded-xl border text-left text-sm transition-all ${
+                    data.region === r
                       ? 'border-primary bg-primary/10 text-primary font-medium'
-                      : 'border-border hover:border-primary/50'
+                      : 'border-border/50 hover:border-primary/30 text-muted-foreground'
                   }`}
                 >
-                  {region}
+                  <MapPin className="w-3.5 h-3.5 inline mr-1.5 opacity-60" />{r}
                 </button>
               ))}
             </div>
@@ -428,40 +226,28 @@ export default function GetStarted() {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="capacity">Antal gæster</Label>
-              <Input
-                id="capacity"
-                type="number"
-                min={1}
-                max={20}
-                value={data.capacity}
-                onChange={e => updateData({ capacity: parseInt(e.target.value) || 1 })}
-                className="mt-2"
-              />
+              <Label className="text-foreground font-medium flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-muted-foreground" /> Gæster
+              </Label>
+              <Input type="number" min={1} max={20} value={data.capacity}
+                onChange={e => update({ capacity: parseInt(e.target.value) || 1 })}
+                className="mt-2 bg-background/50" />
             </div>
             <div>
-              <Label htmlFor="bedrooms">Soveværelser</Label>
-              <Input
-                id="bedrooms"
-                type="number"
-                min={1}
-                max={10}
-                value={data.bedrooms}
-                onChange={e => updateData({ bedrooms: parseInt(e.target.value) || 1 })}
-                className="mt-2"
-              />
+              <Label className="text-foreground font-medium flex items-center gap-1.5">
+                <Bed className="w-3.5 h-3.5 text-muted-foreground" /> Soveværelser
+              </Label>
+              <Input type="number" min={1} max={10} value={data.bedrooms}
+                onChange={e => update({ bedrooms: parseInt(e.target.value) || 1 })}
+                className="mt-2 bg-background/50" />
             </div>
             <div>
-              <Label htmlFor="bathrooms">Badeværelser</Label>
-              <Input
-                id="bathrooms"
-                type="number"
-                min={1}
-                max={5}
-                value={data.bathrooms}
-                onChange={e => updateData({ bathrooms: parseInt(e.target.value) || 1 })}
-                className="mt-2"
-              />
+              <Label className="text-foreground font-medium flex items-center gap-1.5">
+                <Bath className="w-3.5 h-3.5 text-muted-foreground" /> Badeværelser
+              </Label>
+              <Input type="number" min={1} max={5} value={data.bathrooms}
+                onChange={e => update({ bathrooms: parseInt(e.target.value) || 1 })}
+                className="mt-2 bg-background/50" />
             </div>
           </div>
         </CardContent>
@@ -469,118 +255,208 @@ export default function GetStarted() {
     </div>
   );
 
-  const renderStep4 = () => (
+  // ─── Step 2: Service Overview ────────────────────────────
+
+  const Step2 = () => (
+    <div className="max-w-3xl mx-auto">
+      <div className="text-center mb-10">
+        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+          Det her får du med <span className="text-primary italic font-normal">SommerVibes</span>
+        </h2>
+        <p className="text-muted-foreground">Alt du behøver for en succesfuld udlejning — samlet ét sted</p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        {SERVICE_HIGHLIGHTS.map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className="flex items-start gap-4 p-5 rounded-2xl border border-border/40 bg-card/30 backdrop-blur-sm"
+            >
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Icon className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground text-sm mb-1">{s.title}</h3>
+                <p className="text-muted-foreground text-xs leading-relaxed">{s.desc}</p>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Pricing summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+        className="mt-8 p-6 rounded-2xl bg-primary/5 border border-primary/15 text-center"
+      >
+        <div className="flex items-baseline justify-center gap-2 mb-2">
+          <span className="font-display text-5xl font-bold text-primary">15%</span>
+          <span className="text-muted-foreground text-sm">kommission</span>
+        </div>
+        <p className="text-muted-foreground text-sm">Ingen oprettelsesgebyr · Ingen skjulte gebyrer · Du betaler kun ved bookinger</p>
+      </motion.div>
+    </div>
+  );
+
+  // ─── Step 3: Agreement ───────────────────────────────────
+
+  const Step3 = () => (
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-10">
-        <h2 className="font-display text-3xl font-semibold text-primary mb-3">
-          {user ? 'Bekræft og opret' : 'Opret din konto'}
+        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">Formidlingsaftale</h2>
+        <p className="text-muted-foreground">Gennemse og godkend betingelserne for vores samarbejde</p>
+      </div>
+
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <CardContent className="p-6 md:p-8">
+          {/* Agreement document */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-6">
+              <FileSignature className="w-5 h-5 text-primary" />
+              <h3 className="font-display text-lg font-semibold text-foreground">Aftalens hovedpunkter</h3>
+            </div>
+
+            <div className="space-y-4">
+              {AGREEMENT_POINTS.map((point, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: i * 0.06 }}
+                  className="flex items-start gap-3"
+                >
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Check className="w-3 h-3 text-primary" />
+                  </div>
+                  <p className="text-foreground/80 text-sm leading-relaxed">{point}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Signature area */}
+          <div className="border-t border-border/40 pt-6">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/15">
+              <Checkbox
+                id="agreement"
+                checked={data.acceptAgreement}
+                onCheckedChange={(checked) => update({ acceptAgreement: checked === true })}
+                className="mt-0.5"
+              />
+              <label htmlFor="agreement" className="text-sm text-foreground/80 leading-relaxed cursor-pointer">
+                Jeg har læst og accepterer formidlingsaftalen med SommerVibes. Jeg forstår at aftalen har en bindingsperiode på 6 måneder, og at SommerVibes tager 15% kommission af gennemførte bookinger.
+              </label>
+            </div>
+
+            {data.acceptAgreement && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mt-4 p-4 rounded-xl bg-accent/5 border border-accent/15 text-center"
+              >
+                <p className="text-accent text-sm font-medium">
+                  ✓ Aftale godkendt — {data.title ? `for "${data.title}"` : 'for dit sommerhus'}
+                </p>
+              </motion.div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // ─── Step 4: Account ─────────────────────────────────────
+
+  const Step4 = () => (
+    <div className="max-w-lg mx-auto">
+      <div className="text-center mb-10">
+        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+          {user ? 'Bekræft oprettelse' : 'Opret din konto'}
         </h2>
         <p className="text-muted-foreground">
-          {user ? 'Gennemse dine valg og opret dit sommerhus' : 'Sidste skridt – opret din konto'}
+          {user ? 'Alt er klar — opret dit sommerhus nu' : 'Sidste skridt — så er du i gang'}
         </p>
       </div>
 
-      <Card>
-        <CardContent className="p-8 space-y-6">
-          {!user && (
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+        <CardContent className="p-6 md:p-8 space-y-5">
+          {user ? (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Check className="w-8 h-8 text-primary" />
+              </div>
+              <p className="text-foreground font-medium mb-1">Logget ind som</p>
+              <p className="text-muted-foreground text-sm">{user.email}</p>
+            </div>
+          ) : (
             <>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Navn *</Label>
-                  <Input
-                    id="name"
-                    placeholder="Dit fulde navn"
-                    value={data.name}
-                    onChange={e => updateData({ name: e.target.value })}
-                    className="mt-2"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Telefon</Label>
-                  <Input
-                    id="phone"
-                    placeholder="+45 XX XX XX XX"
-                    value={data.phone}
-                    onChange={e => updateData({ phone: e.target.value })}
-                    className="mt-2"
-                  />
-                </div>
-              </div>
-
               <div>
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="din@email.dk"
-                  value={data.email}
-                  onChange={e => updateData({ email: e.target.value })}
-                  className="mt-2"
-                />
+                <Label htmlFor="name" className="text-foreground font-medium flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-muted-foreground" /> Fulde navn *
+                </Label>
+                <Input id="name" placeholder="Dit fulde navn" value={data.name}
+                  onChange={e => update({ name: e.target.value })} className="mt-2 bg-background/50" />
               </div>
-
               <div>
-                <Label htmlFor="password">Adgangskode *</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Mindst 6 tegn"
-                  value={data.password}
-                  onChange={e => updateData({ password: e.target.value })}
-                  className="mt-2"
-                />
+                <Label htmlFor="email" className="text-foreground font-medium flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-muted-foreground" /> Email *
+                </Label>
+                <Input id="email" type="email" placeholder="din@email.dk" value={data.email}
+                  onChange={e => update({ email: e.target.value })} className="mt-2 bg-background/50" />
               </div>
-
-              <div className="pt-4 border-t">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <Checkbox
-                    checked={data.acceptTerms}
-                    onCheckedChange={(checked) => updateData({ acceptTerms: !!checked })}
-                    className="mt-0.5"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    Jeg accepterer{' '}
-                    <a href="/terms" className="text-accent hover:underline">handelsbetingelserne</a>
-                    {' '}og{' '}
-                    <a href="/privacy" className="text-accent hover:underline">privatlivspolitikken</a>
-                  </span>
+              <div>
+                <Label htmlFor="phone" className="text-foreground font-medium flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-muted-foreground" /> Telefon
+                </Label>
+                <Input id="phone" type="tel" placeholder="+45 12 34 56 78" value={data.phone}
+                  onChange={e => update({ phone: e.target.value })} className="mt-2 bg-background/50" />
+              </div>
+              <div>
+                <Label htmlFor="password" className="text-foreground font-medium flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-muted-foreground" /> Adgangskode *
+                </Label>
+                <Input id="password" type="password" placeholder="Minimum 6 tegn" value={data.password}
+                  onChange={e => update({ password: e.target.value })} className="mt-2 bg-background/50" />
+              </div>
+              <div className="flex items-start gap-3 pt-2">
+                <Checkbox id="terms" checked={data.acceptTerms}
+                  onCheckedChange={(c) => update({ acceptTerms: c === true })} className="mt-0.5" />
+                <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer leading-relaxed">
+                  Jeg accepterer SommerVibes' <span className="text-primary underline">handelsbetingelser</span> og <span className="text-primary underline">privatlivspolitik</span>
                 </label>
               </div>
             </>
           )}
 
           {/* Summary */}
-          <div className="bg-muted/50 rounded-xl p-6 space-y-4">
-            <h3 className="font-semibold text-primary">Opsummering</h3>
-            
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Pakke</span>
-              <span className="font-medium text-primary">
-                {PACKAGES.find(p => p.id === data.package)?.name || '-'}
-              </span>
-            </div>
-
-            {(data.addons.proPhotos || data.addons.proVideo || data.addons.premiumPlacement) && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tilkøb</span>
-                <span className="font-medium text-primary">
-                  {[
-                    data.addons.proPhotos && 'Foto',
-                    data.addons.proVideo && 'Video',
-                    data.addons.premiumPlacement && 'Premium',
-                  ].filter(Boolean).join(', ')}
-                </span>
-              </div>
-            )}
-
+          <div className="border-t border-border/40 pt-5 mt-5 space-y-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-3">Opsummering</p>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Sommerhus</span>
-              <span className="font-medium text-primary">{data.title || '-'}</span>
+              <span className="text-foreground font-medium">{data.title || '—'}</span>
             </div>
-
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Beliggenhed</span>
-              <span className="font-medium text-primary">{data.region || '-'}</span>
+              <span className="text-muted-foreground">Region</span>
+              <span className="text-foreground font-medium">{data.region || '—'}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Kommission</span>
+              <span className="text-primary font-semibold">15%</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Binding</span>
+              <span className="text-foreground font-medium">6 måneder</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Aftale</span>
+              <span className="text-accent font-medium">✓ Godkendt</span>
             </div>
           </div>
         </CardContent>
@@ -588,55 +464,132 @@ export default function GetStarted() {
     </div>
   );
 
-  return (
-    <PublicLayout>
-      <section className="py-12 md:py-20 bg-muted/30 min-h-[calc(100vh-4rem)]">
-        <div className="container mx-auto px-4 md:px-8">
-          {renderStepIndicator()}
+  // ─── Step 5: Success ─────────────────────────────────────
 
-          <div className="mb-12">
-            {currentStep === 1 && renderStep1()}
-            {currentStep === 2 && renderStep2()}
-            {currentStep === 3 && renderStep3()}
-            {currentStep === 4 && renderStep4()}
+  const Step5 = () => {
+    const nextSteps = [
+      { icon: Camera, title: 'Vi kontakter dig', desc: 'Inden for 24 timer ringer vi og aftaler fotografering og gennemgang', time: '1-2 dage' },
+      { icon: Globe, title: 'Dit hus går online', desc: 'Vi opretter din annonce på alle de store portaler med optimeret indhold', time: '3-5 dage' },
+      { icon: Star, title: 'De første bookinger', desc: 'Gæster finder dit hus og sender forespørgsler — vi håndterer alt', time: '1-3 uger' },
+      { icon: Wallet, title: 'Du modtager udbetaling', desc: 'Gennemsigtige månedlige udbetalinger direkte til din konto', time: 'Løbende' },
+    ];
+
+    return (
+      <div className="max-w-2xl mx-auto text-center">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }}>
+          <div className="w-20 h-20 rounded-full bg-accent/10 border-2 border-accent/30 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-10 h-10 text-accent" />
           </div>
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+            Velkommen til <span className="text-primary italic">SommerVibes</span>
+          </h2>
+          <p className="text-muted-foreground text-lg mb-2">Dit sommerhus er oprettet — vi glæder os til samarbejdet!</p>
+          {!user && (
+            <p className="text-primary text-sm font-medium mb-8">
+              Tjek din email for at bekræfte din konto ✉️
+            </p>
+          )}
+        </motion.div>
 
-          {/* Navigation */}
-          <div className="flex items-center justify-between max-w-3xl mx-auto">
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              disabled={currentStep === 1}
-              className="gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Tilbage
-            </Button>
-
-            {currentStep < totalSteps ? (
-              <Button
-                variant="gold"
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="gap-2"
-              >
-                Næste
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button
-                variant="gold"
-                onClick={handleSubmit}
-                disabled={!canProceed() || isSubmitting}
-                className="gap-2"
-              >
-                {isSubmitting ? 'Opretter...' : 'Opret sommerhus'}
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            )}
+        {/* What happens next timeline */}
+        <div className="text-left mt-10 mb-10">
+          <h3 className="font-display text-lg font-semibold text-foreground mb-6 text-center">Hvad sker der nu?</h3>
+          <div className="space-y-0">
+            {nextSteps.map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 + i * 0.12 }}
+                  className="flex gap-4 relative"
+                >
+                  {/* Vertical line */}
+                  {i < nextSteps.length - 1 && (
+                    <div className="absolute left-5 top-12 bottom-0 w-px bg-border/50" />
+                  )}
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 z-10">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="pb-8">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-foreground text-sm">{s.title}</h4>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{s.time}</span>
+                    </div>
+                    <p className="text-muted-foreground text-sm">{s.desc}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
-      </section>
-    </PublicLayout>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button variant="gold" size="lg" className="gap-2 group" onClick={() => navigate('/owner')}>
+            Gå til ejerportalen <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Button>
+          <Button variant="outline" size="lg" className="border-border text-muted-foreground" onClick={() => navigate('/')}>
+            Tilbage til forsiden
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // ─── Render ──────────────────────────────────────────────
+
+  const stepComponents = [Step1, Step2, Step3, Step4, Step5];
+  const CurrentStep = stepComponents[step - 1];
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Top bar */}
+      <div className="border-b border-border/30 bg-card/50 backdrop-blur-sm px-4 py-4 shrink-0">
+        <div className="flex items-center justify-between max-w-5xl mx-auto">
+          <button onClick={() => navigate('/')} className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <X className="h-5 w-5" />
+            <span className="text-sm font-medium hidden sm:inline">Luk</span>
+          </button>
+          <span className="font-display text-lg font-bold text-primary">SommerVibes</span>
+          <div className="w-16" />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
+          {step < 5 && <StepIndicator />}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+            >
+              <CurrentStep />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Bottom nav */}
+      {step < 5 && (
+        <div className="border-t border-border/30 bg-card/50 backdrop-blur-sm px-4 py-4 shrink-0">
+          <div className="flex items-center justify-between max-w-5xl mx-auto">
+            <Button variant="outline" size="lg" onClick={() => setStep(s => s - 1)} disabled={step === 1}
+              className="gap-2 h-12 px-6 border-border/50">
+              <ArrowLeft className="h-4 w-4" /> Tilbage
+            </Button>
+            <Button variant="gold" size="lg" onClick={next} disabled={!canNext() || isSubmitting}
+              className="gap-2 h-12 px-8">
+              {step === 4 ? (isSubmitting ? 'Opretter...' : 'Opret mit sommerhus') : 'Næste'}
+              {step < 4 && <ArrowRight className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
