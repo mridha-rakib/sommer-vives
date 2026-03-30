@@ -20,11 +20,11 @@ export function ContactExpertsSection() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[0.95]">
-              Lad os snakke om{' '}
-              <span className="block text-primary italic font-normal mt-2">dit sommerhus</span>
+              Skal vi tage en{' '}
+              <span className="block text-primary italic font-normal mt-2">snak om dit hus?</span>
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-8 max-w-lg mx-auto">
-              Book et gratis og uforpligtende udlejningstjek — vi kører ud til dig.
+              Vi kommer gerne forbi til et uforpligtende besøg — og giver dig et ærligt bud på potentialet.
             </p>
           </motion.div>
 
