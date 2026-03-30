@@ -9,6 +9,8 @@ import {
   HeadphonesIcon,
   KeyRound,
   TrendingUp,
+  MessageCircle,
+  SparklesIcon,
   LayoutDashboard,
   Megaphone,
   Globe,
@@ -33,20 +35,34 @@ interface Service {
 
 const services: Service[] = [
   {
-    icon: QrCode,
-    title: 'Til-Leje-skilt med QR-kode',
-    short: 'Få et unikt SommerVibes-skilt ved boligen med QR-kode direkte til din annonce.',
-    long: 'Som en særlig SommerVibes-service tilbyder vi et unikt Til-Leje-skilt med QR-kode, som leder direkte til netop din boligannonce. Det giver ekstra synlighed over for forbipasserende, naboer, turister og potentielle gæster i området. En enkel, men effektiv måde at skabe mere opmærksomhed og flere henvendelser på.',
-    signature: true,
-    badge: 'Særligt hos SommerVibes',
-  },
-  {
     icon: Zap,
     title: 'SommerVibes BOOST',
     short: 'Gratis inkluderet i 4 uger ved opstart med ekstra eksponering i udvalgte markeder.',
     long: 'Når din bolig oprettes hos SommerVibes, inkluderer vi 4 ugers gratis BOOST-markedsføring. Her giver vi din bolig ekstra synlighed gennem målrettet eksponering mod relevante gæster i blandt andet Danmark, Tyskland og Holland. BOOST er en særlig SommerVibes-fordel, der er skabt for at give din bolig en stærk start. Efter opstartsperioden kan pakken altid genaktiveres, hvis du ønsker et nyt synlighedsboost.',
     signature: true,
     badge: 'Inkluderet service',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Kundedialog 24/7',
+    short: 'Vi håndterer dialogen med gæsterne før, under og efter opholdet — hele døgnet.',
+    long: 'Hos SommerVibes sørger vi for al kundedialog med gæsterne, så du slipper for den daglige kommunikation. Vi håndterer spørgsmål før booking, praktiske henvendelser op til ankomst, hjælp under opholdet samt opfølgning efter endt leje. Det giver både dig og gæsterne en tryg oplevelse, hvor der altid er adgang til hjælp, vejledning og hurtig respons — 24/7.',
+    badge: 'Inkluderet service',
+  },
+  {
+    icon: SparklesIcon,
+    title: 'Slutrengøring',
+    short: 'Vi sørger for slutrengøring, så dine gæster altid møder en ren og indbydende bolig.',
+    long: 'Hos SommerVibes tager vi os af slutrengøringen gennem vores lokale samarbejdspartnere, så gæsterne altid oplever en fyldestgørende rengøring ved ankomst. Det betyder, at boligen fremstår præsentabel, indbydende og klar til næste ophold — uden at du selv skal stå med det praktiske.',
+    badge: 'Inkluderet service',
+  },
+  {
+    icon: QrCode,
+    title: 'Til-Leje-skilt med QR-kode',
+    short: 'Få et unikt SommerVibes-skilt ved boligen med QR-kode direkte til din annonce.',
+    long: 'Som en særlig SommerVibes-service tilbyder vi et unikt Til-Leje-skilt med QR-kode, som leder direkte til netop din boligannonce. Det giver ekstra synlighed over for forbipasserende, naboer, turister og potentielle gæster i området. En enkel, men effektiv måde at skabe mere opmærksomhed og flere henvendelser på.',
+    signature: true,
+    badge: 'Særligt hos SommerVibes',
   },
   {
     icon: Globe,
@@ -65,17 +81,17 @@ const services: Service[] = [
     badge: 'Særligt hos SommerVibes',
   },
   {
-    icon: Megaphone,
-    title: 'Effektiv markedsføring',
-    short: 'Din bolig skal ikke bare online — den skal ses.',
-    long: 'Vi arbejder aktivt for at give din bolig stærk eksponering med visuelt flot præsentation, skarp tekst og målrettet markedsføring. Målet er ikke bare at være til stede, men at skabe interesse, klik og bookinger fra de rigtige gæster.',
-  },
-  {
     icon: ShieldCheck,
     title: 'Tryghedsgaranti',
     short: 'Ekstra ro i maven, hvis uheldet er ude.',
     long: 'Skulle en gæst forårsage skade under et ophold, tilbyder vi via vores samarbejdspartner på udlejningsforsikring en løsning med selvrisiko på 3.000 kr. Vi anbefaler samtidig altid, at du også har en relevant udvidet udlejningsforsikring gennem dit eget forsikringsselskab, så du står bedst muligt dækket. Hos SommerVibes er tryghed en vigtig del af samarbejdet.',
     badge: 'Inkluderet service',
+  },
+  {
+    icon: KeyRound,
+    title: 'Nøgleservice',
+    short: 'Smart adgang for dig, gæster og servicepersonale.',
+    long: 'Med vores elektroniske nøgleløsning kan vi sikre nem og fleksibel adgang til boligen for både dig, gæster, rengøring og eventuelle viceværter. Vi håndterer koder og sørger for, at løsningen fungerer i praksis, så adgangen bliver enkel og smidig for alle parter.',
   },
   {
     icon: HeadphonesIcon,
@@ -91,16 +107,16 @@ const services: Service[] = [
     long: 'Hvis der opstår en akut situation under en udlejning, kan SommerVibes hjælpe med at rekvirere relevante håndværkere eller fagpersoner på dine vegne. Udgifter faktureres naturligvis direkte til dig, og du vælger selv, om du ønsker at stå for vedligeholdelsen selv eller vil have os til at koordinere hjælpen. Vi har fokus på at skabe maksimal udlejning og sørge for gæsteflow — og samtidig gøre det nemt for dig, når uforudsete ting opstår.',
   },
   {
-    icon: KeyRound,
-    title: 'Nøgleservice',
-    short: 'Smart adgang for dig, gæster og servicepersonale.',
-    long: 'Med vores elektroniske nøgleløsning kan vi sikre nem og fleksibel adgang til boligen for både dig, gæster, rengøring og eventuelle viceværter. Vi håndterer koder og sørger for, at løsningen fungerer i praksis, så adgangen bliver enkel og smidig for alle parter.',
-  },
-  {
     icon: LayoutDashboard,
     title: 'Moderne administration',
     short: 'Et enkelt setup med overblik og effektiv drift.',
     long: 'Vi arbejder moderne og effektivt med fokus på synlighed, struktur og høj udnyttelse af din bolig. Du får en løsning, hvor det skal være let at samarbejde, let at følge med og let at skabe resultater. SommerVibes er bygget til husejere, der ønsker høj service uden tung administration.',
+  },
+  {
+    icon: Megaphone,
+    title: 'Effektiv markedsføring',
+    short: 'Din bolig skal ikke bare online — den skal ses.',
+    long: 'Vi arbejder aktivt for at give din bolig stærk eksponering med visuelt flot præsentation, skarp tekst og målrettet markedsføring. Målet er ikke bare at være til stede, men at skabe interesse, klik og bookinger fra de rigtige gæster.',
   },
   {
     icon: SlidersHorizontal,
