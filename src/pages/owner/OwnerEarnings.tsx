@@ -38,10 +38,10 @@ export default function OwnerEarnings() {
   const estimatedTax = totalOwnerPayout * 0.37;
 
   const kpis = [
-    { label: 'Brutto omsætning', value: totalGross, icon: TrendingUp, color: 'text-foreground', bg: 'bg-muted' },
-    { label: 'Din indtjening (85%)', value: totalOwnerPayout, icon: Wallet, color: 'text-accent', bg: 'bg-accent/10' },
-    { label: 'Kommission (15%)', value: totalCommission, icon: ArrowDownRight, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    { label: 'Udbetalt', value: completedPayouts, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { label: 'Samlet omsætning', value: totalGross, icon: TrendingUp, color: 'text-foreground', bg: 'bg-muted' },
+    { label: 'Din andel (85%)', value: totalOwnerPayout, icon: Wallet, color: 'text-accent', bg: 'bg-accent/10' },
+    { label: 'SommerVibes (15%)', value: totalCommission, icon: ArrowDownRight, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    { label: 'Udbetalt til dig', value: completedPayouts, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
   ];
 
   return (
