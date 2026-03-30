@@ -27,6 +27,7 @@ import OwnerInquiries from "./pages/owner/OwnerInquiries";
 import OwnerPayouts from "./pages/owner/OwnerPayouts";
 import OwnerCalendar from "./pages/owner/OwnerCalendar";
 import OwnerPackages from "./pages/owner/OwnerPackages";
+import OwnerAgreement from "./pages/owner/OwnerAgreement";
 
 // Admin pages
 import AdminAuth from "./pages/admin/AdminAuth";
