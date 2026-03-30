@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import {
@@ -20,6 +20,7 @@ import {
   ArrowRight,
   X,
   Sparkles,
+  Check,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
@@ -32,6 +33,108 @@ interface Service {
   expandLabel?: string;
   signature?: boolean;
   badge?: string;
+  visual?: () => ReactNode;
+}
+
+/* ── Visual storytelling elements for signature cards ── */
+
+function BoostVisual() {
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-1">
+      {['DK', 'DE', 'NL'].map((c) => (
+        <span key={c} className="px-2.5 py-1 rounded-lg bg-primary/8 border border-primary/12 text-[10px] font-bold tracking-widest text-primary/70">
+          {c}
+        </span>
+      ))}
+      <span className="px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/15 text-[10px] font-bold text-accent/70 flex items-center gap-1">
+        <Zap className="w-2.5 h-2.5" strokeWidth={2} />
+        4 uger
+      </span>
+    </div>
+  );
+}
+
+function DialogVisual() {
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      <div className="flex -space-x-1">
+        {['Før', 'Under', 'Efter'].map((label) => (
+          <span key={label} className="px-2 py-0.5 rounded-md bg-secondary border border-border/40 text-[9px] font-semibold text-muted-foreground/70 first:ml-0">
+            {label}
+          </span>
+        ))}
+      </div>
+      <span className="px-2 py-0.5 rounded-md bg-primary/8 border border-primary/12 text-[9px] font-bold text-primary/70">
+        24/7
+      </span>
+    </div>
+  );
+}
+
+function CleaningVisual() {
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      {['Rengøring', 'Tjek', 'Klar'].map((step, i) => (
+        <span key={step} className="flex items-center gap-1">
+          {i > 0 && <span className="w-3 h-px bg-border" />}
+          <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary border border-border/40 text-[9px] font-semibold text-muted-foreground/70">
+            <Check className="w-2.5 h-2.5 text-primary/50" strokeWidth={2} />
+            {step}
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function QrSignVisual() {
+  return (
+    <div className="mt-1 w-fit rounded-xl border border-primary/15 bg-primary/5 p-2.5 flex items-center gap-3">
+      <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center">
+        <QrCode className="w-5 h-5 text-primary/60" strokeWidth={1.2} />
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <span className="text-[9px] font-bold tracking-[0.15em] uppercase text-primary/50">SommerVibes</span>
+        <span className="text-[10px] font-semibold text-foreground/70">Til Leje</span>
+      </div>
+    </div>
+  );
+}
+
+function PortalsVisual() {
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-1">
+      {['Airbnb', 'Booking.com', 'Vrbo', 'SommerVibes.dk', 'Facebook', 'Instagram'].map((p) => (
+        <span key={p} className="px-2 py-0.5 rounded-md bg-secondary border border-border/40 text-[9px] font-semibold text-muted-foreground/60">
+          {p}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function RevenueVisual() {
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-1">
+      {[
+        { label: 'Sengepakker', highlight: true },
+        { label: 'Forbrug' },
+        { label: 'Tidlig check-in', highlight: true },
+        { label: 'Sen check-out' },
+      ].map((item) => (
+        <span
+          key={item.label}
+          className={`px-2 py-0.5 rounded-md text-[9px] font-semibold border ${
+            item.highlight
+              ? 'bg-accent/8 border-accent/15 text-accent/70'
+              : 'bg-secondary border-border/40 text-muted-foreground/60'
+          }`}
+        >
+          {item.label}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 const services: Service[] = [
@@ -43,6 +146,7 @@ const services: Service[] = [
     expandLabel: 'Hvad du får med',
     signature: true,
     badge: 'Særligt hos SommerVibes',
+    visual: BoostVisual,
   },
   {
     icon: MessageCircle,
@@ -52,6 +156,7 @@ const services: Service[] = [
     expandLabel: 'Mindre arbejde for dig',
     signature: true,
     badge: 'Mindre arbejde for dig',
+    visual: DialogVisual,
   },
   {
     icon: SparklesIcon,
@@ -61,6 +166,7 @@ const services: Service[] = [
     expandLabel: 'Det betyder for dig',
     signature: true,
     badge: 'Ekstra tryghed',
+    visual: CleaningVisual,
   },
   {
     icon: QrCode,
@@ -70,6 +176,7 @@ const services: Service[] = [
     expandLabel: 'Derfor gør det en forskel',
     signature: true,
     badge: 'Mere synlighed',
+    visual: QrSignVisual,
   },
   {
     icon: Globe,
@@ -79,6 +186,7 @@ const services: Service[] = [
     expandLabel: 'Hvad du får med',
     signature: true,
     badge: 'Maksimal rækkevidde',
+    visual: PortalsVisual,
   },
   {
     icon: TrendingUp,
@@ -88,6 +196,7 @@ const services: Service[] = [
     expandLabel: 'Mere indtjening',
     signature: true,
     badge: 'Populær blandt ejere',
+    visual: RevenueVisual,
   },
   {
     icon: ShieldCheck,
@@ -171,7 +280,6 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           <X className="w-4 h-4 text-foreground" strokeWidth={1.5} />
         </button>
 
-        {/* Badge */}
         {service.badge && (
           <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase text-primary/70 mb-4">
             <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
@@ -179,10 +287,9 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           </span>
         )}
 
-        {/* Icon */}
-        <div className={`w-13 h-13 w-[52px] h-[52px] rounded-2xl flex items-center justify-center mb-5 ${
+        <div className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center mb-5 ${
           service.signature
-            ? 'bg-primary/12 border border-primary/20 shadow-[0_0_20px_-4px_hsl(var(--ring)/0.08)]'
+            ? 'bg-primary/12 border border-primary/20'
             : 'bg-secondary border border-border/50'
         }`}>
           <service.icon className="w-5 h-5 text-primary" strokeWidth={1.4} />
@@ -192,11 +299,15 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           {service.title}
         </h3>
 
-        {/* Expand label as intro */}
         {service.expandLabel && (
           <p className="text-[11px] font-semibold tracking-[0.15em] uppercase text-primary/50 mb-4">
             {service.expandLabel}
           </p>
+        )}
+
+        {/* Visual in sheet */}
+        {service.visual && (
+          <div className="mb-5">{service.visual()}</div>
         )}
 
         <p className="text-[14px] leading-[1.85] text-muted-foreground">
@@ -228,7 +339,7 @@ function ServiceCard({
           : 'bg-card border-border/50'
       } hover:shadow-[0_8px_32px_-8px_hsl(var(--ring)/0.1)] hover:border-primary/20`}
     >
-      {/* Signature accent line */}
+      {/* Signature accent */}
       {service.signature && (
         <div className="h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       )}
@@ -256,6 +367,11 @@ function ServiceCard({
           {service.title}
         </h3>
 
+        {/* Visual storytelling element */}
+        {service.visual && (
+          <div className="py-1">{service.visual()}</div>
+        )}
+
         {/* Short text */}
         <p className="text-[13.5px] leading-[1.7] text-muted-foreground flex-1">
           {service.short}
@@ -272,7 +388,6 @@ function ServiceCard({
               className="overflow-hidden"
             >
               <div className="pt-5 mt-2 border-t border-border/40">
-                {/* Expand label */}
                 {service.expandLabel && (
                   <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-primary/45 mb-3">
                     {service.expandLabel}
