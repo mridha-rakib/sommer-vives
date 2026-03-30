@@ -547,6 +547,16 @@ const services: Service[] = [
     visual: RevenueVisual,
   },
   {
+    icon: Percent,
+    title: 'Kun 15% kommission',
+    short: 'Behold mere af din indtjening med en enkel og gennemsigtig model.',
+    long: 'Hos SommerVibes betaler du kun 15% kommission. Der er ingen skjulte overraskelser, og modellen er skabt for at give dig højere udbytte af din udlejning. Samtidig betaler gæsterne kun 5% i servicegebyr, hvilket gør løsningen attraktiv for begge parter.',
+    expandLabel: 'Hvad det betyder for dig',
+    signature: true,
+    badge: 'Mere tilbage til dig',
+    visual: CommissionVisual,
+  },
+  {
     icon: ShieldCheck,
     title: 'Tryghedsgaranti',
     short: 'Ekstra sikkerhed, hvis uheldet skulle være ude under et ophold.',
