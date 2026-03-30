@@ -8,6 +8,7 @@ import { CalendarDays, MapPin, Users, Clock, ChevronRight, LifeBuoy, DoorOpen, S
 import { format, differenceInDays, isFuture } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
+import { AppDownloadBanner } from '@/components/app/AppDownloadBanner';
 
 export default function GuestDashboard() {
   const { user, signOut } = useAuth();
