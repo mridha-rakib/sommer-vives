@@ -1,5 +1,6 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { HeroSection } from '@/components/landing/HeroSection';
+import { PremiumServicesSection } from '@/components/landing/PremiumServicesSection';
 import { ValuePropsSection } from '@/components/landing/ValuePropsSection';
 import { ExitIntentPopup } from '@/components/landing/ExitIntentPopup';
 import { EarningsSection } from '@/components/landing/EarningsSection';
