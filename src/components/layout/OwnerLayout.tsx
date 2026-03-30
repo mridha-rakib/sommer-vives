@@ -201,9 +201,11 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
           </div>
         </header>
 
-        <div className="flex-1 p-4 md:p-6 lg:p-8">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 pb-24 md:pb-8">
           {children}
         </div>
+
+        <OwnerBottomNav />
       </main>
     </div>
   );
