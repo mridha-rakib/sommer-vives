@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { AppDownloadBanner } from '@/components/app/AppDownloadBanner';
 
 const checkinSteps = [
-  { step: 1, title: 'Kør til adressen', desc: 'Brug GPS-koordinaterne eller adressen fra din reservation. Følg vejen hele vejen til huset.', icon: MapPin },
-  { step: 2, title: 'Find nøgleboksen', desc: 'Nøgleboksen sidder typisk ved hoveddøren eller carport. Se billedet i din velkomstbesked.', icon: Key },
-  { step: 3, title: 'Indtast adgangskoden', desc: 'Din personlige kode sendes 24 timer før ankomst via SMS og e-mail.', icon: DoorOpen },
-  { step: 4, title: 'Velkommen hjem', desc: 'Lås dig ind, tænd for varme/el og gør dig det hyggeligt. WiFi-koden finder du indendørs.', icon: CheckCircle2 },
+  { step: 1, title: 'Find vej til huset', desc: 'Brug adressen fra din reservation. Vi sender et kort med vejledning dagen før.', icon: MapPin },
+  { step: 2, title: 'Find nøgleboksen', desc: 'Den sidder typisk ved hoveddøren eller carporten. Se billedet i din velkomstbesked.', icon: Key },
+  { step: 3, title: 'Brug din personlige kode', desc: 'Du modtager koden via SMS og e-mail 24 timer inden ankomst.', icon: DoorOpen },
+  { step: 4, title: 'Gør dig det hjemligt', desc: 'Tænd for varme, find WiFi-koden indendørs — og nyd din ferie.', icon: CheckCircle2 },
 ];
 
 export default function GuestCheckin() {
@@ -20,8 +20,8 @@ export default function GuestCheckin() {
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Check-in</h1>
-          <p className="text-sm text-muted-foreground mt-1">Alt du skal vide om ankomst og adgang</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Ankomst & adgang</h1>
+          <p className="text-sm text-muted-foreground mt-1">Her er alt, du skal vide inden du ankommer</p>
         </div>
 
         {/* Access code card */}
@@ -64,7 +64,7 @@ export default function GuestCheckin() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Der er gratis parkering direkte ved huset. Du kan parkere op til 2 biler i indkørslen.
+              Der er gratis parkering direkte ved huset — plads til op til 2 biler i indkørslen.
             </p>
           </CardContent>
         </Card>
@@ -74,9 +74,9 @@ export default function GuestCheckin() {
           <CardContent className="p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
             <div>
-              <div className="text-sm font-semibold text-foreground">Nødkontakt</div>
+              <div className="text-sm font-semibold text-foreground">Brug for hjælp ved ankomst?</div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Akutte problemer ved ankomst? Ring til os på <strong className="text-foreground">+45 XX XX XX XX</strong> — vi er tilgængelige alle dage kl. 10-22.
+                Ring til os på <strong className="text-foreground">+45 XX XX XX XX</strong> — vi er tilgængelige alle dage kl. 10–22.
               </p>
             </div>
           </CardContent>

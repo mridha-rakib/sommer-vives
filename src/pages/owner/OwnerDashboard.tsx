@@ -87,9 +87,9 @@ export default function OwnerDashboard() {
 
   const kpiCards = [
     { label: 'Kommende bookinger', value: stats.upcomingBookings, icon: CalendarDays, href: '/owner/bookings' },
-    { label: 'Forventet udbetaling', value: `${stats.pendingPayouts.toLocaleString('da-DK')} kr`, icon: Wallet, href: '/owner/earnings' },
-    { label: 'Total indtjening', value: `${stats.totalEarnings.toLocaleString('da-DK')} kr`, icon: TrendingUp, href: '/owner/earnings' },
-    { label: 'Opgaver', value: stats.pendingTasks, icon: CheckSquare, href: '/owner/tasks' },
+    { label: 'Afventer udbetaling', value: `${stats.pendingPayouts.toLocaleString('da-DK')} kr`, icon: Wallet, href: '/owner/earnings' },
+    { label: 'Samlet indtjening', value: `${stats.totalEarnings.toLocaleString('da-DK')} kr`, icon: TrendingUp, href: '/owner/earnings' },
+    { label: 'Åbne opgaver', value: stats.pendingTasks, icon: CheckSquare, href: '/owner/tasks' },
   ];
 
   return (
@@ -98,10 +98,10 @@ export default function OwnerDashboard() {
         {/* Welcome */}
         <div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Velkommen tilbage
+            Dit overblik
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Her er dit overblik for {format(new Date(), 'EEEE d. MMMM', { locale: da })}
+            {format(new Date(), 'EEEE d. MMMM', { locale: da })} — alt er samlet her
           </p>
         </div>
 

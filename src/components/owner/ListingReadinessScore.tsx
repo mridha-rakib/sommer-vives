@@ -23,17 +23,17 @@ export function ListingReadinessScore({ property, listings, className }: Listing
   const listing = listings?.[0];
 
   const items: ReadinessItem[] = [
-    { label: 'Boligoplysninger udfyldt', done: !!(property?.title && property?.address && property?.region), icon: FileText, weight: 15 },
-    { label: 'Beskrivelse tilføjet', done: !!(property?.description && property.description.length > 50), icon: FileText, weight: 10 },
-    { label: 'Kapacitet & soveværelser', done: !!(property?.capacity > 0 && property?.bedrooms > 0), icon: BedDouble, weight: 10 },
-    { label: 'Faciliteter markeret', done: !!(property?.amenities && property.amenities.length >= 3), icon: Wifi, weight: 10 },
-    { label: 'Husregler oprettet', done: !!(property?.house_rules && property.house_rules.length > 20), icon: Star, weight: 5 },
-    { label: 'Billeder uploadet', done: !!(property?.images && property.images.length >= 5), icon: Image, weight: 15 },
+    { label: 'Grundoplysninger udfyldt', done: !!(property?.title && property?.address && property?.region), icon: FileText, weight: 15 },
+    { label: 'Beskrivelse skrevet', done: !!(property?.description && property.description.length > 50), icon: FileText, weight: 10 },
+    { label: 'Kapacitet og værelser angivet', done: !!(property?.capacity > 0 && property?.bedrooms > 0), icon: BedDouble, weight: 10 },
+    { label: 'Faciliteter tilføjet', done: !!(property?.amenities && property.amenities.length >= 3), icon: Wifi, weight: 10 },
+    { label: 'Husregler formuleret', done: !!(property?.house_rules && property.house_rules.length > 20), icon: Star, weight: 5 },
+    { label: 'Billeder uploadet (min. 5)', done: !!(property?.images && property.images.length >= 5), icon: Image, weight: 15 },
     { label: 'Listing oprettet', done: !!listing, icon: Globe, weight: 10 },
-    { label: 'Priser konfigureret', done: !!(listing?.base_price_per_night > 0), icon: Star, weight: 10 },
-    { label: 'Hero-billede valgt', done: !!(listing?.hero_image), icon: Camera, weight: 5 },
-    { label: 'Nøgleboks info', done: false, icon: Key, weight: 5 },
-    { label: 'Video-guide tilføjet', done: false, icon: Video, weight: 5 },
+    { label: 'Priser sat', done: !!(listing?.base_price_per_night > 0), icon: Star, weight: 10 },
+    { label: 'Hovedbillede valgt', done: !!(listing?.hero_image), icon: Camera, weight: 5 },
+    { label: 'Nøgleboks-info delt', done: false, icon: Key, weight: 5 },
+    { label: 'Videoguide tilføjet', done: false, icon: Video, weight: 5 },
   ];
 
   const totalWeight = items.reduce((s, i) => s + i.weight, 0);
@@ -47,10 +47,10 @@ export function ListingReadinessScore({ property, listings, className }: Listing
   };
 
   const getScoreLabel = () => {
-    if (score >= 90) return 'Næsten klar!';
-    if (score >= 70) return 'God fremgang';
-    if (score >= 40) return 'Godt startet';
-    return 'Kom i gang';
+    if (score >= 90) return 'Næsten klar til udlejning';
+    if (score >= 70) return 'Godt på vej';
+    if (score >= 40) return 'Fint startet';
+    return 'Lad os komme i gang';
   };
 
   return (
@@ -58,7 +58,7 @@ export function ListingReadinessScore({ property, listings, className }: Listing
       <CardContent className="p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="text-sm font-semibold text-foreground">Listing Readiness</div>
+            <div className="text-sm font-semibold text-foreground">Klarhedsscore</div>
             <div className="text-xs text-muted-foreground mt-0.5">{getScoreLabel()}</div>
           </div>
           <div className="relative w-16 h-16">

@@ -55,43 +55,43 @@ export default function OwnerTasks() {
 
   const tasks: SmartTask[] = [
     {
-      id: 'profile', label: 'Udfyld dine oplysninger', description: 'Navn, telefon og adresse',
+      id: 'profile', label: 'Udfyld dine oplysninger', description: 'Navn, telefon og adresse — så vi kan kontakte dig',
       icon: Star, done: !!property, href: '/owner/settings', category: 'setup', priority: 1,
     },
     {
-      id: 'property', label: 'Tilføj boliginformation', description: 'Adresse, kapacitet og faciliteter',
+      id: 'property', label: 'Fortæl os om dit hus', description: 'Adresse, kapacitet og faciliteter',
       icon: BedDouble, done: !!(property?.title && property?.address), href: '/owner/property', category: 'setup', priority: 2,
     },
     {
-      id: 'agreement', label: 'Underskriv formidlingsaftale', description: 'Digital signering — tager 2 min',
+      id: 'agreement', label: 'Underskriv din aftale', description: 'Digital signering — det tager under 2 minutter',
       icon: FileSignature, done: agreement?.status === 'signed', href: '/owner/agreement', category: 'setup', priority: 3,
     },
     {
-      id: 'bank', label: 'Tilføj bankoplysninger', description: 'Reg.nr og kontonummer til udbetalinger',
+      id: 'bank', label: 'Tilføj betalingsoplysninger', description: 'Reg.nr og kontonummer, så vi kan udbetale til dig',
       icon: CreditCard, done: false, href: '/owner/settings', category: 'setup', priority: 4,
     },
     {
-      id: 'photos', label: 'Upload billeder af boligen', description: `${property?.images?.length || 0} af min. 5 billeder`,
+      id: 'photos', label: 'Tilføj billeder af dit hus', description: `${property?.images?.length || 0} af min. 5 — gode billeder gør den største forskel`,
       icon: Camera, done: !!(property?.images && property.images.length >= 5), href: '/owner/property', category: 'listing', priority: 5,
     },
     {
-      id: 'description', label: 'Godkend listing-tekst', description: 'Vi skriver — du godkender',
+      id: 'description', label: 'Godkend listingteksten', description: 'Vi skriver et udkast — du gennemser og godkender',
       icon: Upload, done: !!(listing?.description && listing.description.length > 100), href: '/owner/property', category: 'listing', priority: 6,
     },
     {
-      id: 'calendar', label: 'Bekræft sæsonkalender', description: 'Tilgængelige perioder og minsteantalnætter',
+      id: 'calendar', label: 'Sæt din kalender op', description: 'Vælg tilgængelige perioder og evt. minimumsnætter',
       icon: CalendarDays, done: false, href: '/owner/calendar', category: 'operations', priority: 7,
     },
     {
-      id: 'keybox', label: 'Koordinér nøgleboks', description: 'Vi installerer — du bekræfter placering',
+      id: 'keybox', label: 'Aftal nøgleboks-installation', description: 'Vi klarer selve installationen — du vælger tidspunktet',
       icon: Key, done: !!onboarding?.keybox_installed_at, href: '/owner/support', category: 'operations', priority: 8,
     },
     {
-      id: 'wifi', label: 'Del WiFi-oplysninger', description: 'Netværksnavn og adgangskode til gæster',
+      id: 'wifi', label: 'Del WiFi-oplysninger', description: 'Netværksnavn og kode, så gæsterne er online med det samme',
       icon: Wifi, done: false, href: '/owner/property', category: 'operations', priority: 9,
     },
     {
-      id: 'publish', label: 'Gå live og modtag bookinger', description: 'Din listing publiceres på alle portaler',
+      id: 'publish', label: 'Gå live', description: 'Din bolig publiceres på alle portaler — klar til den første booking',
       icon: Globe, done: !!listing?.is_active, href: '/owner/property', category: 'operations', priority: 10,
     },
   ];
@@ -120,8 +120,8 @@ export default function OwnerTasks() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Opgaver</h1>
-          <p className="text-sm text-muted-foreground mt-1">Din vej fra oprettelse til første booking</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Din klargøring</h1>
+          <p className="text-sm text-muted-foreground mt-1">Vi guider dig hele vejen — fra oprettelse til første gæst</p>
         </div>
 
         {/* Progress header */}

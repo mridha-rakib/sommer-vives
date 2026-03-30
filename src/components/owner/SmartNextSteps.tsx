@@ -34,8 +34,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   if (!agreement || agreement.status !== 'signed') {
     allActions.push({
       id: 'sign-agreement',
-      title: 'Underskriv formidlingsaftale',
-      description: 'Vi kan først publicere din bolig når aftalen er underskrevet.',
+      title: 'Underskriv din aftale',
+      description: 'Aftalen er klar — signér digitalt, så vi kan gøre din bolig klar til udlejning.',
       href: '/owner/agreement',
       icon: FileSignature,
       priority: 'high',
@@ -46,8 +46,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   if (!property?.images || property.images.length < 5) {
     allActions.push({
       id: 'upload-photos',
-      title: 'Upload billeder af boligen',
-      description: `${property?.images?.length || 0}/5 billeder — flere billeder giver flere bookinger.`,
+      title: 'Tilføj billeder af dit hus',
+      description: `${property?.images?.length || 0} af 5 — gode billeder er det vigtigste for flere bookinger.`,
       href: '/owner/property',
       icon: Camera,
       priority: 'high',
@@ -58,8 +58,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   if (onboarding && !onboarding.keybox_installed_at) {
     allActions.push({
       id: 'keybox',
-      title: 'Koordinér nøgleboks-installation',
-      description: 'Kontakt os for at aftale installation af nøgleboks.',
+      title: 'Aftal nøgleboks-installation',
+      description: 'Vi klarer installationen — du vælger bare et tidspunkt, der passer dig.',
       href: '/owner/support',
       icon: Key,
       priority: 'medium',
@@ -71,7 +71,7 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
     allActions.push({
       id: 'create-listing',
       title: 'Opret din listing',
-      description: 'Din listing er din bolig som gæsterne ser den.',
+      description: 'Listingen er det, gæsterne ser. Vi hjælper med tekst og billeder.',
       href: '/owner/property',
       icon: Globe,
       priority: 'high',
@@ -80,8 +80,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   } else if (!listing.is_active) {
     allActions.push({
       id: 'activate-listing',
-      title: 'Aktivér din listing',
-      description: 'Alt er klar — publicér din bolig og modtag bookinger.',
+      title: 'Publicér din bolig',
+      description: 'Alt ser godt ud — ét klik, og din bolig er klar til at modtage gæster.',
       href: '/owner/property',
       icon: Globe,
       priority: 'high',
@@ -104,8 +104,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   if (!property?.description || property.description.length < 100) {
     allActions.push({
       id: 'improve-desc',
-      title: 'Forbedr din boligbeskrivelse',
-      description: 'En god beskrivelse øger konvertering med op til 30%.',
+      title: 'Styrk din boligbeskrivelse',
+      description: 'En velskrevet beskrivelse øger konverteringen med op til 30 %.',
       href: '/owner/property',
       icon: Sparkles,
       priority: 'low',
@@ -113,11 +113,10 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
     });
   }
 
-  // Calendar setup
   allActions.push({
     id: 'setup-calendar',
-    title: 'Bekræft din sæsonkalender',
-    description: 'Markér perioder hvor boligen er tilgængelig for udlejning.',
+    title: 'Sæt din kalender op',
+    description: 'Vælg hvilke perioder dit hus er tilgængeligt — resten styrer vi.',
     href: '/owner/calendar',
     icon: CalendarDays,
     priority: 'medium',

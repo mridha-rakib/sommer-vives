@@ -18,14 +18,14 @@ interface PropertyActivationTimelineProps {
 }
 
 const STEPS: TimelineStep[] = [
-  { key: 'lead_created_at', label: 'Interesse registreret', icon: UserPlus },
+  { key: 'lead_created_at', label: 'Interesse modtaget', icon: UserPlus },
   { key: 'signup_started_at', label: 'Profil oprettet', icon: UserPlus },
-  { key: 'onboarding_completed_at', label: 'Onboarding afsluttet', icon: Building2 },
+  { key: 'onboarding_completed_at', label: 'Oplysninger modtaget', icon: Building2 },
   { key: 'agreement_signed_at', label: 'Aftale underskrevet', icon: FileSignature },
-  { key: 'property_visit_scheduled_at', label: 'Besøg aftalt', icon: Building2 },
-  { key: 'keybox_installed_at', label: 'Nøgleboks installeret', icon: KeyRound },
-  { key: 'listing_approved_at', label: 'Listing godkendt', icon: Camera },
-  { key: 'listing_published_at', label: 'Listing publiceret', icon: Globe },
+  { key: 'property_visit_scheduled_at', label: 'Besøg planlagt', icon: Building2 },
+  { key: 'keybox_installed_at', label: 'Nøgleboks på plads', icon: KeyRound },
+  { key: 'listing_approved_at', label: 'Listing klar', icon: Camera },
+  { key: 'listing_published_at', label: 'Din bolig er live', icon: Globe },
 ];
 
 export function PropertyActivationTimeline({ onboarding, className }: PropertyActivationTimelineProps) {

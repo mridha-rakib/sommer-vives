@@ -14,30 +14,30 @@ interface AppPromptSheetProps {
 
 const contextContent = {
   'onboarding-complete': {
-    title: 'Du er klar! 🎉',
-    subtitle: 'Download appen og følg dit sommerhus fra lommen.',
+    title: 'Du er godt i gang 🎉',
+    subtitle: 'Følg dit sommerhus direkte fra lommen — bookinger, beskeder og indtjening.',
     features: [
-      { icon: Bell, label: 'Push-notifikationer ved nye bookinger' },
-      { icon: BarChart3, label: 'Følg din indtjening i realtid' },
-      { icon: Star, label: 'Se gæstevurderinger med det samme' },
+      { icon: Bell, label: 'Besked med det samme ved nye bookinger' },
+      { icon: BarChart3, label: 'Hold øje med din indtjening i realtid' },
+      { icon: Star, label: 'Se gæsternes vurderinger først' },
     ],
   },
   'booking-confirmed': {
-    title: 'Booking bekræftet! ✅',
+    title: 'Booking bekræftet ✅',
     subtitle: 'Hent appen for den bedste oplevelse under dit ophold.',
     features: [
-      { icon: DoorOpen, label: 'Check-in guide og adgangskode' },
-      { icon: ShoppingBag, label: 'Tilkøb ekstra direkte i appen' },
-      { icon: LifeBuoy, label: 'Hurtig adgang til support' },
+      { icon: DoorOpen, label: 'Ankomstguide og adgangskode samlet ét sted' },
+      { icon: ShoppingBag, label: 'Tilkøb ekstra services med ét tryk' },
+      { icon: LifeBuoy, label: 'Direkte kontakt til os, hvis du har brug for hjælp' },
     ],
   },
   'pre-arrival': {
-    title: 'Snart tid til ferie! 🏖️',
-    subtitle: 'Alt du behøver under opholdet – samlet i én app.',
+    title: 'Snart tid til ferie 🏖️',
+    subtitle: 'Alt du behøver under opholdet — samlet og klar i appen.',
     features: [
       { icon: DoorOpen, label: 'Ankomstguide og nøglekode' },
-      { icon: ShoppingBag, label: 'Bestil ekstra services' },
-      { icon: LifeBuoy, label: '24/7 support under opholdet' },
+      { icon: ShoppingBag, label: 'Bestil ekstra til dit ophold' },
+      { icon: LifeBuoy, label: 'Hjælp og support hele døgnet' },
     ],
   },
 };

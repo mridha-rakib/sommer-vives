@@ -48,10 +48,10 @@ export function EarningsSection() {
           className="text-center mb-10"
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
-            Hvad kan du <span className="text-primary italic font-normal">tjene?</span>
+            Hvad kan dit hus <span className="text-primary italic font-normal">reelt tjene?</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-sm md:text-base">
-            Udforsk din ekstra indtjening og se hvad du beholder efter skat.
+            Se dit fulde indtjeningspotentiale — inklusiv de tilvalg, andre bureauer beholder selv.
           </p>
         </motion.div>
 
@@ -123,7 +123,7 @@ export function EarningsSection() {
               </div>
 
               <p className="text-center text-muted-foreground text-sm mb-5">
-                Andre bureauer beholder disse indtægter. Hos SommerVibes er de <strong className="text-foreground">dine</strong>.
+                Hos de fleste bureauer forsvinder disse indtægter. Hos os tilfalder de <strong className="text-foreground">dig</strong>.
               </p>
               <div className="text-center">
                 <Link to="/kom-i-gang">
