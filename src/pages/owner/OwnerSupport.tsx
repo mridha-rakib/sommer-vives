@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { MessageCircle, Phone, HelpCircle, AlertTriangle, BookOpen, Mail } from 'lucide-react';
 
 const supportOptions = [
-  { icon: MessageCircle, label: 'Chat med os', desc: 'Skriv direkte til dit SommerVibes-team', action: 'Åbn chat', primary: true },
-  { icon: Phone, label: 'Book opkald', desc: 'Vi ringer dig op på et tidspunkt der passer dig', action: 'Vælg tid', primary: false },
+  { icon: MessageCircle, label: 'Skriv til os', desc: 'Direkte besked til dit personlige SommerVibes-team', action: 'Start samtale', primary: true },
+  { icon: Phone, label: 'Book et opkald', desc: 'Vi ringer dig op, når det passer dig bedst', action: 'Vælg tid', primary: false },
   { icon: Mail, label: 'Send e-mail', desc: 'support@sommervibes.dk', action: 'Skriv e-mail', primary: false },
-  { icon: AlertTriangle, label: 'Rapportér problem', desc: 'Noget der haster? Rapportér det her', action: 'Rapportér', primary: false },
+  { icon: AlertTriangle, label: 'Noget haster?', desc: 'Rapportér et akut problem — vi reagerer hurtigt', action: 'Rapportér nu', primary: false },
 ];
 
 const faqItems = [
