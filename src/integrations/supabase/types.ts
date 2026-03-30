@@ -250,6 +250,51 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_rules: {
+        Row: {
+          action_config: Json
+          action_type: string
+          created_at: string
+          delay_minutes: number | null
+          id: string
+          is_active: boolean
+          last_triggered_at: string | null
+          name: string
+          trigger_count: number
+          trigger_event: string
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          action_config?: Json
+          action_type?: string
+          created_at?: string
+          delay_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          name: string
+          trigger_count?: number
+          trigger_event: string
+          trigger_type?: string
+          updated_at?: string
+        }
+        Update: {
+          action_config?: Json
+          action_type?: string
+          created_at?: string
+          delay_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          name?: string
+          trigger_count?: number
+          trigger_event?: string
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       availability_blocks: {
         Row: {
           block_type: string | null
@@ -646,6 +691,39 @@ export type Database = {
           property_id?: string
           scheduled_date?: string
           status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cms_content: {
+        Row: {
+          content_key: string
+          content_value: Json
+          created_at: string
+          id: string
+          is_published: boolean
+          section: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          content_key: string
+          content_value?: Json
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          section: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          content_key?: string
+          content_value?: Json
+          created_at?: string
+          id?: string
+          is_published?: boolean
+          section?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
@@ -1177,6 +1255,60 @@ export type Database = {
           notes?: string | null
           photo_url?: string | null
           property_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          assigned_to: string | null
+          converted_owner_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          next_step: string | null
+          next_step_date: string | null
+          notes: string | null
+          phone: string | null
+          property_type: string | null
+          region: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          converted_owner_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          next_step?: string | null
+          next_step_date?: string | null
+          notes?: string | null
+          phone?: string | null
+          property_type?: string | null
+          region?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          converted_owner_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          next_step?: string | null
+          next_step_date?: string | null
+          notes?: string | null
+          phone?: string | null
+          property_type?: string | null
+          region?: string | null
+          source?: string
           status?: string
           updated_at?: string
         }
@@ -2299,6 +2431,48 @@ export type Database = {
           name?: string
           price?: number
           sort_order?: number | null
+        }
+        Relationships: []
+      }
+      service_partners: {
+        Row: {
+          assigned_properties: string[] | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          partner_type: string
+          phone: string | null
+          region: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_properties?: string[] | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          partner_type?: string
+          phone?: string | null
+          region?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_properties?: string[] | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          partner_type?: string
+          phone?: string | null
+          region?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
