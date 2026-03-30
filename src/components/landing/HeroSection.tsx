@@ -66,7 +66,7 @@ export function HeroSection() {
               >
                 <span className="inline-flex items-center gap-2 bg-primary/15 backdrop-blur-sm border border-primary/25 rounded-full px-3 sm:px-4 py-1 sm:py-1.5 text-primary font-body text-[10px] sm:text-xs font-semibold tracking-[0.2em] uppercase">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  Danmarks mest fleksible bureau
+                  Moderne udlejning af sommerhuse
                 </span>
               </motion.div>
 
