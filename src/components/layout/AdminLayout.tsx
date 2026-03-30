@@ -38,6 +38,7 @@ const navSections: NavSection[] = [
       { name: 'Ejere', href: '/admin/owners', icon: UserCheck },
       { name: 'Boliger', href: '/admin/properties-mgmt', icon: Building },
       { name: 'Aftaler', href: '/admin/agreements', icon: FileSignature },
+      { name: 'Aftaleskabeloner', href: '/admin/templates', icon: FileSignature },
       { name: 'Nøglebokse', href: '/admin/keyboxes', icon: Key },
     ],
   },
