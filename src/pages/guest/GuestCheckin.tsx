@@ -20,8 +20,8 @@ export default function GuestCheckin() {
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Check-in</h1>
-          <p className="text-sm text-muted-foreground mt-1">Alt du skal vide om ankomst og adgang</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Ankomst & adgang</h1>
+          <p className="text-sm text-muted-foreground mt-1">Her er alt, du skal vide inden du ankommer</p>
         </div>
 
         {/* Access code card */}
