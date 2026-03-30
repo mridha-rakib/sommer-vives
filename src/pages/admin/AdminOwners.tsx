@@ -206,7 +206,7 @@ export default function AdminOwners() {
           <Card>
             <CardContent className="p-4">
               <div className="text-sm text-muted-foreground">Total udbetalt</div>
-              <div className="text-2xl font-bold text-emerald-600">
+              <div className="text-2xl font-bold text-accent">
                 {formatCurrency(owners.reduce((sum, o) => sum + (o.total_earnings || 0), 0))}
               </div>
             </CardContent>
