@@ -457,6 +457,7 @@ export type Database = {
           service_fee: number | null
           source_channel: Database["public"]["Enums"]["source_channel"] | null
           status: Database["public"]["Enums"]["booking_status"] | null
+          stay_status: string | null
           stripe_session_id: string | null
           total_amount: number
           updated_at: string | null
@@ -489,6 +490,7 @@ export type Database = {
           service_fee?: number | null
           source_channel?: Database["public"]["Enums"]["source_channel"] | null
           status?: Database["public"]["Enums"]["booking_status"] | null
+          stay_status?: string | null
           stripe_session_id?: string | null
           total_amount: number
           updated_at?: string | null
@@ -521,6 +523,7 @@ export type Database = {
           service_fee?: number | null
           source_channel?: Database["public"]["Enums"]["source_channel"] | null
           status?: Database["public"]["Enums"]["booking_status"] | null
+          stay_status?: string | null
           stripe_session_id?: string | null
           total_amount?: number
           updated_at?: string | null
@@ -559,6 +562,7 @@ export type Database = {
           sender_id: string | null
           sender_name: string | null
           sender_type: string
+          thread_id: string | null
           thread_type: string
         }
         Insert: {
@@ -570,6 +574,7 @@ export type Database = {
           sender_id?: string | null
           sender_name?: string | null
           sender_type: string
+          thread_id?: string | null
           thread_type: string
         }
         Update: {
@@ -581,6 +586,7 @@ export type Database = {
           sender_id?: string | null
           sender_name?: string | null
           sender_type?: string
+          thread_id?: string | null
           thread_type?: string
         }
         Relationships: [
@@ -589,6 +595,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
             referencedColumns: ["id"]
           },
         ]
@@ -1058,6 +1071,66 @@ export type Database = {
           },
         ]
       }
+      guest_stays: {
+        Row: {
+          booking_id: string
+          checkin_completed_at: string | null
+          checkin_notes: string | null
+          checkout_completed_at: string | null
+          checkout_notes: string | null
+          created_at: string
+          guest_id: string | null
+          guest_rating: number | null
+          host_rating: number | null
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          checkin_completed_at?: string | null
+          checkin_notes?: string | null
+          checkout_completed_at?: string | null
+          checkout_notes?: string | null
+          created_at?: string
+          guest_id?: string | null
+          guest_rating?: number | null
+          host_rating?: number | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          checkin_completed_at?: string | null
+          checkin_notes?: string | null
+          checkout_completed_at?: string | null
+          checkout_notes?: string | null
+          created_at?: string
+          guest_id?: string | null
+          guest_rating?: number | null
+          host_rating?: number | null
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_stays_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_stays_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guests: {
         Row: {
           case_number: string | null
@@ -1361,6 +1434,53 @@ export type Database = {
           },
         ]
       }
+      listing_distribution: {
+        Row: {
+          channel: string
+          created_at: string
+          external_id: string | null
+          external_url: string | null
+          id: string
+          is_active: boolean
+          last_synced_at: string | null
+          listing_id: string
+          sync_status: string
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          external_id?: string | null
+          external_url?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          listing_id: string
+          sync_status?: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          external_id?: string | null
+          external_url?: string | null
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          listing_id?: string
+          sync_status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_distribution_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_relationships: {
         Row: {
           combo_discount_percent: number | null
@@ -1649,6 +1769,70 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      message_threads: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          guest_id: string | null
+          id: string
+          last_message_at: string | null
+          owner_id: string | null
+          property_id: string | null
+          status: string
+          subject: string | null
+          thread_type: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          guest_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          owner_id?: string | null
+          property_id?: string | null
+          status?: string
+          subject?: string | null
+          thread_type?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          guest_id?: string | null
+          id?: string
+          last_message_at?: string | null
+          owner_id?: string | null
+          property_id?: string | null
+          status?: string
+          subject?: string | null
+          thread_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_preferences: {
         Row: {
@@ -2241,6 +2425,7 @@ export type Database = {
           price_per_night: number | null
           price_per_week: number | null
           region: string
+          setup_status: string
           status: string | null
           title: string
           updated_at: string
@@ -2262,6 +2447,7 @@ export type Database = {
           price_per_night?: number | null
           price_per_week?: number | null
           region: string
+          setup_status?: string
           status?: string | null
           title: string
           updated_at?: string
@@ -2283,11 +2469,56 @@ export type Database = {
           price_per_night?: number | null
           price_per_week?: number | null
           region?: string
+          setup_status?: string
           status?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      property_media: {
+        Row: {
+          created_at: string
+          id: string
+          is_hero: boolean
+          label: string | null
+          media_type: string
+          owner_id: string
+          property_id: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_hero?: boolean
+          label?: string | null
+          media_type?: string
+          owner_id: string
+          property_id: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_hero?: boolean
+          label?: string | null
+          media_type?: string
+          owner_id?: string
+          property_id?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_media_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       property_pricing: {
         Row: {
@@ -2660,6 +2891,13 @@ export type Database = {
       }
     }
     Enums: {
+      agreement_status:
+        | "draft"
+        | "generated"
+        | "sent"
+        | "viewed"
+        | "signed"
+        | "archived"
       booking_status:
         | "pending"
         | "confirmed"
@@ -2667,6 +2905,38 @@ export type Database = {
         | "completed"
         | "cancelled"
       commission_type: "platform" | "sales_meeting"
+      guest_stay_status:
+        | "upcoming"
+        | "arrival_ready"
+        | "in_stay"
+        | "checkout_pending"
+        | "completed"
+      onboarding_status:
+        | "lead"
+        | "account_created"
+        | "owner_info_complete"
+        | "property_info_complete"
+        | "agreement_ready"
+        | "agreement_signed"
+        | "activated"
+        | "setup_in_progress"
+        | "listing_review"
+        | "live"
+      payment_status_enum:
+        | "pending"
+        | "paid"
+        | "failed"
+        | "refunded"
+        | "partially_paid"
+      property_setup_status:
+        | "new"
+        | "awaiting_visit"
+        | "visit_booked"
+        | "content_pending"
+        | "media_pending"
+        | "review_pending"
+        | "ready_to_publish"
+        | "live"
       source_channel: "direct" | "airbnb" | "booking_com" | "vrbo" | "other"
       user_role:
         | "owner"
@@ -2804,6 +3074,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agreement_status: [
+        "draft",
+        "generated",
+        "sent",
+        "viewed",
+        "signed",
+        "archived",
+      ],
       booking_status: [
         "pending",
         "confirmed",
@@ -2812,6 +3090,42 @@ export const Constants = {
         "cancelled",
       ],
       commission_type: ["platform", "sales_meeting"],
+      guest_stay_status: [
+        "upcoming",
+        "arrival_ready",
+        "in_stay",
+        "checkout_pending",
+        "completed",
+      ],
+      onboarding_status: [
+        "lead",
+        "account_created",
+        "owner_info_complete",
+        "property_info_complete",
+        "agreement_ready",
+        "agreement_signed",
+        "activated",
+        "setup_in_progress",
+        "listing_review",
+        "live",
+      ],
+      payment_status_enum: [
+        "pending",
+        "paid",
+        "failed",
+        "refunded",
+        "partially_paid",
+      ],
+      property_setup_status: [
+        "new",
+        "awaiting_visit",
+        "visit_booked",
+        "content_pending",
+        "media_pending",
+        "review_pending",
+        "ready_to_publish",
+        "live",
+      ],
       source_channel: ["direct", "airbnb", "booking_com", "vrbo", "other"],
       user_role: [
         "owner",
