@@ -71,7 +71,7 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
     allActions.push({
       id: 'create-listing',
       title: 'Opret din listing',
-      description: 'Din listing er din bolig som gæsterne ser den.',
+      description: 'Listingen er det, gæsterne ser. Vi hjælper med tekst og billeder.',
       href: '/owner/property',
       icon: Globe,
       priority: 'high',
