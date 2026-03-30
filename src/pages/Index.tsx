@@ -1,5 +1,6 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { HeroSection } from '@/components/landing/HeroSection';
+import { PremiumServicesSection } from '@/components/landing/PremiumServicesSection';
 import { ValuePropsSection } from '@/components/landing/ValuePropsSection';
 import { ExitIntentPopup } from '@/components/landing/ExitIntentPopup';
 import { EarningsSection } from '@/components/landing/EarningsSection';
@@ -16,7 +17,9 @@ const Index = () => {
       <ExitIntentPopup />
       {/* 1. Hero — full viewport + stats + channel marquee */}
       <HeroSection />
-      {/* 2. Value props — interactive tabs (cream) */}
+      {/* 2. Premium services carousel (warm beige) */}
+      <PremiumServicesSection />
+      {/* 3. Value props — interactive tabs (cream) */}
       <ValuePropsSection />
       {/* 3. Earnings — revenue + tax calc tabs (dark) */}
       <EarningsSection />
