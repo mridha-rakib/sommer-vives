@@ -1,73 +1,138 @@
+import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { supabase } from '@/integrations/supabase/client';
 import { GuestLayout } from '@/components/layout/GuestLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LifeBuoy, Phone, MessageCircle, AlertTriangle, HelpCircle, Mail } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { LifeBuoy, Phone, MessageCircle, AlertTriangle, HelpCircle, Mail, ChevronDown, ChevronUp, Send, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const faqItems = [
-  { q: 'Hvordan finder jeg adgangskoden?', a: 'Den sendes via SMS og e-mail 24 timer inden ankomst.' },
-  { q: 'Hvad gør jeg ved strømsvigt?', a: 'Tjek eltavlen i bryggers. Kontakt os hvis problemet fortsætter.' },
+  { q: 'Hvordan finder jeg adgangskoden?', a: 'Den sendes via SMS og e-mail 24 timer inden ankomst. Tjek også din spam-mappe.' },
+  { q: 'Hvad gør jeg ved strømsvigt?', a: 'Tjek eltavlen i bryggers. Kontakt os, hvis problemet fortsætter.' },
   { q: 'Kan jeg forlænge mit ophold?', a: 'Kontakt os hurtigst muligt, så tjekker vi tilgængeligheden.' },
   { q: 'Hvem kontakter jeg ved skader?', a: 'Ring til os med det samme. Vi koordinerer alt med ejeren.' },
+  { q: 'Er rengøring inkluderet?', a: 'Ja, slutrengøring er inkluderet. Du skal blot følge check-out tjeklisten.' },
+  { q: 'Kan jeg bestille sengelinned?', a: 'Ja, under "Tilkøb" kan du bestille sengelinned, håndklæder og meget mere.' },
 ];
 
 export default function GuestSupport() {
   const { user, signOut } = useAuth();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [showReport, setShowReport] = useState(false);
+  const [subject, setSubject] = useState('');
+  const [desc, setDesc] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const submitTicket = async () => {
+    if (!subject.trim()) return;
+    setSubmitting(true);
+    await supabase.from('support_tickets').insert({
+      requester_id: user?.id,
+      requester_email: user?.email,
+      requester_type: 'guest',
+      subject: subject.trim(),
+      description: desc.trim() || null,
+      category: 'general',
+      priority: 'normal',
+    });
+    setSubmitting(false);
+    setSubmitted(true);
+    toast.success('Sagen er oprettet — vi vender tilbage hurtigst muligt');
+  };
 
   return (
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Support</h1>
           <p className="text-sm text-muted-foreground mt-1">Vi er her for dig — alle dage kl. 10–22</p>
         </div>
 
         {/* Primary contact */}
-        <Card className="border-accent/20 bg-accent/5">
+        <Card className="border-accent/30 bg-gradient-to-r from-accent/5 to-accent/10">
           <CardContent className="p-5 flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
               <LifeBuoy className="w-6 h-6 text-accent" />
             </div>
             <div className="flex-1">
-              <div className="text-sm font-semibold text-foreground mb-1">24/7 Gæstesupport</div>
+              <div className="text-sm font-semibold text-foreground mb-1">Gæstesupport</div>
               <p className="text-xs text-muted-foreground mb-3">
                 Chat, ring eller skriv til os. Vi hjælper med alt fra check-in til lokale tips.
               </p>
               <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="gold" className="text-xs">
-                  <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
-                  Start chat
-                </Button>
-                <Button size="sm" variant="outline" className="text-xs">
-                  <Phone className="w-3.5 h-3.5 mr-1.5" />
-                  Ring til os
-                </Button>
+                <Link to="/guest/messages">
+                  <Button size="sm" variant="gold" className="text-xs">
+                    <MessageCircle className="w-3.5 h-3.5 mr-1.5" />Start chat
+                  </Button>
+                </Link>
+                <a href="tel:+4500000000">
+                  <Button size="sm" variant="outline" className="text-xs">
+                    <Phone className="w-3.5 h-3.5 mr-1.5" />Ring til os
+                  </Button>
+                </a>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Other options */}
-        <div className="grid md:grid-cols-2 gap-3">
-          <Card className="hover:border-accent/20 transition-colors cursor-pointer">
-            <CardContent className="p-4 flex items-start gap-3">
-              <Mail className="w-5 h-5 text-muted-foreground mt-0.5" />
-              <div>
-                <div className="text-sm font-semibold text-foreground">E-mail support</div>
-                <div className="text-xs text-muted-foreground">support@sommervibes.dk</div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="hover:border-destructive/20 transition-colors cursor-pointer border-destructive/10">
-            <CardContent className="p-4 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
-              <div>
-                <div className="text-sm font-semibold text-foreground">Rapportér akut problem</div>
-                <div className="text-xs text-muted-foreground">Vandskade, indbrud eller ulykke</div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Contact options */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <a href="mailto:support@sommervibes.dk">
+            <Card className="h-full hover:border-accent/20 transition-colors">
+              <CardContent className="p-4 flex items-start gap-3">
+                <Mail className="w-5 h-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <div className="text-sm font-semibold text-foreground">E-mail</div>
+                  <div className="text-[11px] text-muted-foreground">support@sommervibes.dk</div>
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+          <button onClick={() => setShowReport(true)} className="text-left">
+            <Card className="h-full hover:border-destructive/20 transition-colors border-destructive/10">
+              <CardContent className="p-4 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Rapportér problem</div>
+                  <div className="text-[11px] text-muted-foreground">Skade, fejl eller akut</div>
+                </div>
+              </CardContent>
+            </Card>
+          </button>
         </div>
+
+        {/* Report issue form */}
+        {showReport && !submitted && (
+          <Card className="border-destructive/20">
+            <CardContent className="p-5 space-y-3">
+              <div className="text-sm font-semibold text-foreground">Rapportér et problem</div>
+              <Input placeholder="Hvad handler det om?" value={subject} onChange={e => setSubject(e.target.value)} />
+              <Textarea placeholder="Beskriv problemet kort..." value={desc} onChange={e => setDesc(e.target.value)} rows={3} />
+              <div className="flex gap-2">
+                <Button onClick={submitTicket} disabled={submitting || !subject.trim()} variant="gold" size="sm" className="text-xs">
+                  <Send className="w-3.5 h-3.5 mr-1.5" />{submitting ? 'Sender...' : 'Send'}
+                </Button>
+                <Button onClick={() => setShowReport(false)} variant="ghost" size="sm" className="text-xs">Annuller</Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {submitted && (
+          <Card className="border-emerald-400/20 bg-emerald-400/5">
+            <CardContent className="p-5 flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <div>
+                <div className="text-sm font-semibold text-foreground">Sagen er oprettet</div>
+                <p className="text-xs text-muted-foreground">Vi vender tilbage hurtigst muligt</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* FAQ */}
         <Card>
@@ -76,12 +141,21 @@ export default function GuestSupport() {
               <HelpCircle className="w-4 h-4 text-accent" />
               <span className="text-sm font-semibold text-foreground">Ofte stillede spørgsmål</span>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-1">
               {faqItems.map((faq, i) => (
-                <div key={i} className="p-3 rounded-lg bg-muted/30">
-                  <div className="text-sm font-medium text-foreground mb-1">{faq.q}</div>
-                  <p className="text-xs text-muted-foreground">{faq.a}</p>
-                </div>
+                <button
+                  key={i}
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full text-left p-3 rounded-lg hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">{faq.q}</span>
+                    {openFaq === i ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                  </div>
+                  {openFaq === i && (
+                    <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{faq.a}</p>
+                  )}
+                </button>
               ))}
             </div>
           </CardContent>
