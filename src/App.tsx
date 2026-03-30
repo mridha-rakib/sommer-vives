@@ -55,6 +55,17 @@ import AdminPayouts from "./pages/admin/AdminPayouts";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminChat from "./pages/admin/AdminChat";
 import AdminOptimizations from "./pages/admin/AdminOptimizations";
+import AdminPipeline from "./pages/admin/AdminPipeline";
+import AdminAgreements from "./pages/admin/AdminAgreements";
+import AdminPropertiesMgmt from "./pages/admin/AdminPropertiesMgmt";
+import AdminKeyboxes from "./pages/admin/AdminKeyboxes";
+import AdminSupportTickets from "./pages/admin/AdminSupportTickets";
+import AdminCleaning from "./pages/admin/AdminCleaning";
+import AdminMaintenance from "./pages/admin/AdminMaintenance";
+import AdminTasks from "./pages/admin/AdminTasks";
+import AdminDocuments from "./pages/admin/AdminDocuments";
+import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminStayContent from "./pages/admin/AdminStayContent";
 
 // Guest pages
 import GuestAuth from "./pages/guest/GuestAuth";
@@ -178,6 +189,17 @@ const App = () => (
             <Route path="/admin/optimizations" element={<ProtectedRoute requireAdmin><AdminOptimizations /></ProtectedRoute>} />
             <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminChat /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/pipeline" element={<ProtectedRoute requireAdmin><AdminPipeline /></ProtectedRoute>} />
+            <Route path="/admin/agreements" element={<ProtectedRoute requireAdmin><AdminAgreements /></ProtectedRoute>} />
+            <Route path="/admin/properties-mgmt" element={<ProtectedRoute requireAdmin><AdminPropertiesMgmt /></ProtectedRoute>} />
+            <Route path="/admin/keyboxes" element={<ProtectedRoute requireAdmin><AdminKeyboxes /></ProtectedRoute>} />
+            <Route path="/admin/support" element={<ProtectedRoute requireAdmin><AdminSupportTickets /></ProtectedRoute>} />
+            <Route path="/admin/cleaning" element={<ProtectedRoute requireAdmin><AdminCleaning /></ProtectedRoute>} />
+            <Route path="/admin/maintenance" element={<ProtectedRoute requireAdmin><AdminMaintenance /></ProtectedRoute>} />
+            <Route path="/admin/tasks" element={<ProtectedRoute requireAdmin><AdminTasks /></ProtectedRoute>} />
+            <Route path="/admin/documents" element={<ProtectedRoute requireAdmin><AdminDocuments /></ProtectedRoute>} />
+            <Route path="/admin/notifications" element={<ProtectedRoute requireAdmin><AdminNotifications /></ProtectedRoute>} />
+            <Route path="/admin/stay-content" element={<ProtectedRoute requireAdmin><AdminStayContent /></ProtectedRoute>} />
 
             {/* Guest routes */}
             <Route path="/guest/auth" element={<GuestAuth />} />
