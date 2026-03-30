@@ -64,7 +64,7 @@ export default function GuestCheckin() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Der er gratis parkering direkte ved huset. Du kan parkere op til 2 biler i indkørslen.
+              Der er gratis parkering direkte ved huset — plads til op til 2 biler i indkørslen.
             </p>
           </CardContent>
         </Card>
