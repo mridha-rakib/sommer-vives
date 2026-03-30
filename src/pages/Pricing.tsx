@@ -19,7 +19,7 @@ const included = [
 const comparison = [
   { feature: 'Kommission', us: '15%', others: '18-25%' },
   { feature: 'Gæstegebyr', us: '5%', others: '12-18%' },
-  { feature: 'Binding', us: 'Ingen', others: '6-12 mdr.' },
+  { feature: 'Binding', us: '6 mdr.', others: '12-24 mdr.' },
   { feature: 'Oprettelse', us: 'Gratis', others: '0-5.000 kr.' },
   { feature: 'Personlig rådgiver', us: '✓', others: '✗' },
   { feature: 'Bundfradrag', us: '50.200 kr.', others: 'Varierer' },
