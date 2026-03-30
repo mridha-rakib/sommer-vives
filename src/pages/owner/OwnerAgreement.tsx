@@ -15,6 +15,7 @@ import {
   CheckCircle2, Clock, ChevronDown, ChevronUp, Phone, Globe,
   Star, Wallet, Home, Calendar, PenLine, Lock, Eye
 } from 'lucide-react';
+import { SignatureCanvas } from '@/components/agreement/SignatureCanvas';
 
 // ─── Agreement content ──────────────────────────────────────
 
