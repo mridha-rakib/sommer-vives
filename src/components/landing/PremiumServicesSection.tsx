@@ -9,6 +9,8 @@ import {
   HeadphonesIcon,
   KeyRound,
   TrendingUp,
+  MessageCircle,
+  SparklesIcon,
   LayoutDashboard,
   Megaphone,
   Globe,
