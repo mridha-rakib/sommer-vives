@@ -194,7 +194,7 @@ export default function OwnerAgreement() {
     }
   };
 
-  const canSign = consent.acceptAgreement && consent.acceptTerms && consent.acceptPrivacy && signatureName.trim().length > 2;
+  const canSign = consent.acceptAgreement && consent.acceptTerms && consent.acceptPrivacy && signatureName.trim().length > 2 && signatureDataUrl !== null;
 
   if (loading) {
     return (
