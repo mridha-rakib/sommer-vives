@@ -131,7 +131,8 @@ export function OnboardingWizard() {
       if (error) throw error;
 
       toast.success('Dit sommerhus er oprettet!');
-      navigate('/owner/properties');
+      setShowAppPrompt(true);
+      setTimeout(() => navigate('/owner/properties'), 3000);
     } catch (error) {
       console.error('Error creating property:', error);
       toast.error('Der opstod en fejl ved oprettelse');
