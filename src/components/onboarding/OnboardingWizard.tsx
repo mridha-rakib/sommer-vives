@@ -85,6 +85,7 @@ export function OnboardingWizard() {
       paymentMethod: null,
     },
   });
+  const [showAppPrompt, setShowAppPrompt] = useState(false);
 
   const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
