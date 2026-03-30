@@ -95,6 +95,9 @@ export default function GuestCheckin() {
             <Badge variant="outline" className="text-[10px]">Standard</Badge>
           </CardContent>
         </Card>
+
+        {/* App download */}
+        <AppDownloadBanner variant="inline" context="guest" />
       </div>
     </GuestLayout>
   );
