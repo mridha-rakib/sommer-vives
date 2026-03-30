@@ -214,7 +214,7 @@ const App = () => (
             <Route path="/admin/tasks" element={<ProtectedRoute requireAdmin><AdminTasks /></ProtectedRoute>} />
             <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />
             <Route path="/admin/calendar" element={<ProtectedRoute requireAdmin><AdminCalendarPage /></ProtectedRoute>} />
-            <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListingsNew /></ProtectedRoute>} />
+            <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><<Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListings /></ProtectedRoute>} /> /></ProtectedRoute>} />
             <Route path="/admin/pricing" element={<ProtectedRoute requireAdmin><AdminPricing /></ProtectedRoute>} />
             <Route path="/admin/addons" element={<ProtectedRoute requireAdmin><AdminAddOns /></ProtectedRoute>} />
             <Route path="/admin/payments" element={<ProtectedRoute requireAdmin><AdminPayments /></ProtectedRoute>} />
