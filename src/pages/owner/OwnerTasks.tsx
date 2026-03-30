@@ -120,8 +120,8 @@ export default function OwnerTasks() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Opgaver</h1>
-          <p className="text-sm text-muted-foreground mt-1">Din vej fra oprettelse til første booking</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Din klargøring</h1>
+          <p className="text-sm text-muted-foreground mt-1">Vi guider dig hele vejen — fra oprettelse til første gæst</p>
         </div>
 
         {/* Progress header */}
