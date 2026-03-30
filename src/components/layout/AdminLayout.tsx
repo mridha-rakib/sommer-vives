@@ -2,151 +2,213 @@ import { ReactNode, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Settings, Users, Wallet, LogOut, Menu, X, Shield, Calendar, UserCheck, Activity, MessageCircle, Tag, Mail, List } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  LayoutDashboard, Settings, Users, Wallet, LogOut, Menu, X, Shield, Calendar,
+  UserCheck, Activity, MessageCircle, Mail, List, Wrench, FileText, Bell,
+  LifeBuoy, Briefcase, ClipboardList, Home, ChevronDown, ChevronRight,
+  Target, Building, BookOpen, Key, Sparkles
+} from 'lucide-react';
 import { GlobalSearch } from '@/components/admin/GlobalSearch';
+import { cn } from '@/lib/utils';
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
-import { Calculator } from 'lucide-react';
+interface NavSection {
+  label: string;
+  items: { name: string; href: string; icon: any; badge?: string }[];
+}
 
-const navItems = [
-  { name: 'Dashboard', href: '/admin', icon: Home },
-  { name: 'Bookinger', href: '/admin/bookings', icon: Calendar },
-  { name: 'Listings', href: '/admin/listings', icon: List },
-  { name: 'Priser & Sæsoner', href: '/admin/pricing', icon: Tag },
-  { name: 'Kalender', href: '/admin/calendar', icon: Calendar },
-  { name: 'Gæster', href: '/admin/guests', icon: Users },
-  { name: 'Ejere', href: '/admin/owners', icon: UserCheck },
-  { name: 'Afregning', href: '/admin/payouts', icon: Wallet },
-  { name: 'Emails', href: '/admin/emails', icon: Mail },
-  { name: 'Live Chat', href: '/admin/chat', icon: MessageCircle },
-  { name: 'Optimeringer', href: '/admin/optimizations', icon: Calculator },
-  { name: 'Aktivitetslog', href: '/admin/audit-log', icon: Activity },
-  { name: 'Indstillinger', href: '/admin/settings', icon: Settings },
+const navSections: NavSection[] = [
+  {
+    label: 'Overblik',
+    items: [
+      { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+      { name: 'Pipeline', href: '/admin/pipeline', icon: Target },
+      { name: 'Aktivitetslog', href: '/admin/audit-log', icon: Activity },
+    ],
+  },
+  {
+    label: 'Ejere & Ejendomme',
+    items: [
+      { name: 'Ejere', href: '/admin/owners', icon: UserCheck },
+      { name: 'Ejendomme', href: '/admin/properties-mgmt', icon: Building },
+      { name: 'Aftaler', href: '/admin/agreements', icon: FileText },
+      { name: 'Nøglebokse', href: '/admin/keyboxes', icon: Key },
+    ],
+  },
+  {
+    label: 'Listings & Indhold',
+    items: [
+      { name: 'Listings', href: '/admin/listings', icon: List },
+      { name: 'Priser & Sæsoner', href: '/admin/pricing', icon: Wallet },
+      { name: 'Kalender', href: '/admin/calendar', icon: Calendar },
+      { name: 'Stay-indhold', href: '/admin/stay-content', icon: BookOpen },
+    ],
+  },
+  {
+    label: 'Bookinger & Gæster',
+    items: [
+      { name: 'Bookinger', href: '/admin/bookings', icon: Calendar },
+      { name: 'Gæster', href: '/admin/guests', icon: Users },
+      { name: 'Forespørgsler', href: '/admin/inquiries', icon: MessageCircle },
+    ],
+  },
+  {
+    label: 'Drift & Service',
+    items: [
+      { name: 'Rengøring', href: '/admin/cleaning', icon: Sparkles },
+      { name: 'Vedligeholdelse', href: '/admin/maintenance', icon: Wrench },
+      { name: 'Opgaver', href: '/admin/tasks', icon: ClipboardList },
+      { name: 'Support-sager', href: '/admin/support', icon: LifeBuoy },
+    ],
+  },
+  {
+    label: 'Økonomi & Kommunikation',
+    items: [
+      { name: 'Afregning', href: '/admin/payouts', icon: Wallet },
+      { name: 'Dokumenter', href: '/admin/documents', icon: FileText },
+      { name: 'Emails', href: '/admin/emails', icon: Mail },
+      { name: 'Notifikationer', href: '/admin/notifications', icon: Bell },
+      { name: 'Live Chat', href: '/admin/chat', icon: MessageCircle },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { name: 'Optimeringer', href: '/admin/optimizations', icon: Briefcase },
+      { name: 'Indstillinger', href: '/admin/settings', icon: Settings },
+    ],
+  },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
 
   const isActive = (href: string) => {
     if (href === '/admin') return location.pathname === '/admin';
     return location.pathname.startsWith(href);
   };
 
+  const toggleSection = (label: string) => {
+    setCollapsedSections(prev =>
+      prev.includes(label) ? prev.filter(s => s !== label) : [...prev, label]
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-slate-900 to-slate-800 text-white transition-transform flex flex-col shadow-2xl`}>
-        <div className="p-6 flex-1">
+      <aside className={cn(
+        'fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transition-transform flex flex-col',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      )}>
+        <div className="flex-1 overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
-                <Shield className="h-5 w-5 text-white" />
+          <div className="p-4 flex items-center justify-between border-b border-slate-700/50">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-red-400" />
               </div>
               <div>
-                <span className="font-display text-lg font-bold block">
-                  Admin Portal
-                </span>
-                <span className="text-xs text-slate-400">SommerVibes</span>
+                <span className="font-display text-sm font-bold block leading-tight">Admin Portal</span>
+                <span className="text-[10px] text-slate-500">SommerVibes</span>
               </div>
             </div>
             <button className="md:hidden text-white p-1" onClick={() => setSidebarOpen(false)}>
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Staff badge */}
-          <div className="mb-8 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-              <span className="text-xs font-medium text-red-400 uppercase tracking-wider">Staff Only</span>
-            </div>
-            <p className="text-xs text-slate-400 mt-1">Administrer platformen</p>
-          </div>
-
           {/* Navigation */}
-          <nav className="space-y-1">
-            {navItems.map(item => (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive(item.href)
-                    ? 'bg-white/10 text-white shadow-lg border border-white/10'
-                    : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                <item.icon className={`w-5 h-5 ${isActive(item.href) ? 'text-red-400' : ''}`} />
-                <span className="font-medium">{item.name}</span>
-              </Link>
-            ))}
-          </nav>
+          <div className="p-3 space-y-0.5">
+            {navSections.map(section => {
+              const isCollapsed = collapsedSections.includes(section.label);
+              const hasActive = section.items.some(i => isActive(i.href));
+              return (
+                <div key={section.label}>
+                  <button
+                    onClick={() => toggleSection(section.label)}
+                    className="w-full flex items-center justify-between px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    {section.label}
+                    {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </button>
+                  {!isCollapsed && (
+                    <div className="space-y-0.5 mb-2">
+                      {section.items.map(item => (
+                        <Link
+                          key={item.href}
+                          to={item.href}
+                          onClick={() => setSidebarOpen(false)}
+                          className={cn(
+                            'flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-all',
+                            isActive(item.href)
+                              ? 'bg-white/10 text-white font-medium'
+                              : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                          )}
+                        >
+                          <item.icon className={cn('w-4 h-4', isActive(item.href) && 'text-red-400')} />
+                          <span className="flex-1">{item.name}</span>
+                          {item.badge && (
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-red-400/30 text-red-400 bg-red-400/10">
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* User section */}
-        <div className="p-6 border-t border-slate-700/50">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
-              <span className="text-sm font-bold text-white">
-                {user?.email?.charAt(0).toUpperCase()}
-              </span>
+        {/* User */}
+        <div className="p-3 border-t border-slate-700/50">
+          <div className="flex items-center gap-2.5 px-2 py-2">
+            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">
+              {user?.email?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-white truncate">{user?.email}</div>
-              <div className="text-xs text-slate-400">Administrator</div>
+              <div className="text-xs font-medium text-white truncate">{user?.email}</div>
+              <div className="text-[10px] text-slate-500">Administrator</div>
             </div>
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-slate-500 hover:text-white hover:bg-slate-700/50 p-1.5 h-auto">
+              <LogOut className="w-3.5 h-3.5" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            onClick={signOut}
-            className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-700/50"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Log ud
-          </Button>
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 min-w-0 flex flex-col">
-        {/* Top bar */}
         <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setSidebarOpen(true)} 
-                className="md:hidden p-2 hover:bg-slate-100 rounded-lg"
-              >
+          <div className="flex items-center justify-between px-4 md:px-6 h-12">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setSidebarOpen(true)} className="md:hidden p-1.5 hover:bg-slate-100 rounded-lg">
                 <Menu className="w-5 h-5 text-slate-600" />
               </button>
               <div className="hidden md:block">
                 <GlobalSearch />
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Link to="/" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
-                ← Tilbage til website
-              </Link>
-            </div>
+            <Link to="/" className="text-xs text-slate-500 hover:text-slate-700">← Website</Link>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 p-6 md:p-8">
+        <main className="flex-1 p-4 md:p-6">
           {children}
         </main>
       </div>
