@@ -17,7 +17,9 @@ const Index = () => {
       <ExitIntentPopup />
       {/* 1. Hero — full viewport + stats + channel marquee */}
       <HeroSection />
-      {/* 2. Value props — interactive tabs (cream) */}
+      {/* 2. Premium services carousel (warm beige) */}
+      <PremiumServicesSection />
+      {/* 3. Value props — interactive tabs (cream) */}
       <ValuePropsSection />
       {/* 3. Earnings — revenue + tax calc tabs (dark) */}
       <EarningsSection />
