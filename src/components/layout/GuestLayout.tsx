@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { GuestBottomNav } from '@/components/app/GuestBottomNav';
 
 interface GuestLayoutProps {
   children: ReactNode;
@@ -120,9 +121,11 @@ export function GuestLayout({ children, bookingData, onLogout, guestEmail }: Gue
         </>
       )}
 
-      <main className="max-w-5xl mx-auto px-4 py-6 md:py-8">
+      <main className="max-w-5xl mx-auto px-4 py-6 md:py-8 pb-24 md:pb-8">
         {children}
       </main>
+
+      <GuestBottomNav />
     </div>
   );
 }

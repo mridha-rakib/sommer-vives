@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   Smartphone, Apple, Bell, BarChart3, CalendarDays, DoorOpen, ShoppingBag, 
-  LifeBuoy, Star, Shield, Zap, ArrowLeft, Home
+  LifeBuoy, Star, Shield, Zap, ArrowLeft, Home, ArrowDown, Share, Plus, CheckCircle2
 } from 'lucide-react';
+import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 
 const ownerFeatures = [
   { icon: BarChart3, title: 'Indtjening i realtid', desc: 'Følg bookinger og udbetalinger direkte' },
@@ -25,9 +26,10 @@ const guestFeatures = [
 ];
 
 export default function AppDownload() {
+  const { canInstall, install, isIOS, isInstalled } = useInstallPrompt();
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border">
         <div className="max-w-5xl mx-auto flex items-center justify-between h-14 px-4">
           <Link to="/" className="flex items-center gap-2">
@@ -60,23 +62,66 @@ export default function AppDownload() {
             Alt samlet ét sted, elegant og nemt.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button className="bg-foreground text-background hover:bg-foreground/90 gap-3 h-14 px-8 rounded-2xl text-base">
-              <Apple className="w-6 h-6" />
-              <div className="text-left">
-                <div className="text-[10px] leading-none opacity-70">Download i</div>
-                <div className="text-base font-semibold leading-tight">App Store</div>
-              </div>
+          {isInstalled ? (
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-500/10 text-emerald-600 font-semibold">
+              <CheckCircle2 className="w-5 h-5" />
+              App er installeret!
+            </div>
+          ) : canInstall ? (
+            <Button 
+              onClick={() => install()} 
+              className="bg-accent text-accent-foreground hover:bg-accent/90 gap-3 h-14 px-10 rounded-2xl text-lg"
+            >
+              <ArrowDown className="w-6 h-6" />
+              Installér SommerVibes
             </Button>
-            <Button className="bg-foreground text-background hover:bg-foreground/90 gap-3 h-14 px-8 rounded-2xl text-base">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302-2.302 2.302-2.698-2.302 2.698-2.302zM5.864 2.658L16.8 8.99l-2.302 2.302-8.635-8.635z"/></svg>
-              <div className="text-left">
-                <div className="text-[10px] leading-none opacity-70">Hent den i</div>
-                <div className="text-base font-semibold leading-tight">Google Play</div>
-              </div>
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground/60 mt-4">Gratis · iOS 15+ · Android 10+</p>
+          ) : isIOS ? (
+            <div className="max-w-sm mx-auto">
+              <Card className="border-accent/20 bg-accent/5">
+                <CardContent className="p-6">
+                  <p className="text-sm font-semibold text-foreground mb-4">Installér på iPhone / iPad:</p>
+                  <div className="space-y-3 text-left">
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <div className="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center shrink-0">
+                        <Share className="w-4 h-4 text-accent" />
+                      </div>
+                      <span>Tryk på <strong className="text-foreground">Del</strong>-knappen i Safari</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <div className="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center shrink-0">
+                        <Plus className="w-4 h-4 text-accent" />
+                      </div>
+                      <span>Vælg <strong className="text-foreground">"Føj til hjemmeskærm"</strong></span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <div className="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-4 h-4 text-accent" />
+                      </div>
+                      <span>Appen er klar!</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button className="bg-foreground text-background hover:bg-foreground/90 gap-3 h-14 px-8 rounded-2xl text-base">
+                <Apple className="w-6 h-6" />
+                <div className="text-left">
+                  <div className="text-[10px] leading-none opacity-70">Download i</div>
+                  <div className="text-base font-semibold leading-tight">App Store</div>
+                </div>
+              </Button>
+              <Button className="bg-foreground text-background hover:bg-foreground/90 gap-3 h-14 px-8 rounded-2xl text-base">
+                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302-2.302 2.302-2.698-2.302 2.698-2.302zM5.864 2.658L16.8 8.99l-2.302 2.302-8.635-8.635z"/></svg>
+                <div className="text-left">
+                  <div className="text-[10px] leading-none opacity-70">Hent den i</div>
+                  <div className="text-base font-semibold leading-tight">Google Play</div>
+                </div>
+              </Button>
+            </div>
+          )}
+          {!isInstalled && <p className="text-xs text-muted-foreground/60 mt-4">Gratis · iOS 15+ · Android 10+</p>}
         </div>
 
         {/* Owner features */}
@@ -132,12 +177,16 @@ export default function AppDownload() {
               <h3 className="font-display text-lg font-bold text-foreground mb-2">Har du allerede appen?</h3>
               <p className="text-sm text-muted-foreground mb-6">Åbn direkte i SommerVibes-appen</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl h-11 px-6">
-                  Åbn ejerportal i appen
-                </Button>
-                <Button variant="outline" className="rounded-xl h-11 px-6 border-accent/30 text-accent hover:bg-accent/10">
-                  Åbn gæsteportal i appen
-                </Button>
+                <Link to="/owner">
+                  <Button className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl h-11 px-6">
+                    Åbn ejerportal
+                  </Button>
+                </Link>
+                <Link to="/guest">
+                  <Button variant="outline" className="rounded-xl h-11 px-6 border-accent/30 text-accent hover:bg-accent/10">
+                    Åbn gæsteportal
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

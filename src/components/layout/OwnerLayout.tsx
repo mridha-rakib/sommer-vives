@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { OwnerBottomNav } from '@/components/app/OwnerBottomNav';
 
 interface OwnerLayoutProps {
   children: ReactNode;
@@ -200,9 +201,11 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
           </div>
         </header>
 
-        <div className="flex-1 p-4 md:p-6 lg:p-8">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 pb-24 md:pb-8">
           {children}
         </div>
+
+        <OwnerBottomNav />
       </main>
     </div>
   );
