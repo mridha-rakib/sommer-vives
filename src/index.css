@@ -252,3 +252,22 @@
     display: none;
   }
 }
+
+/* Safe area for mobile bottom nav */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Standalone app tweaks */
+@media all and (display-mode: standalone) {
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior-y: contain;
+  }
+  
+  /* Prevent pull-to-refresh */
+  html {
+    overscroll-behavior-y: contain;
+  }
+}
