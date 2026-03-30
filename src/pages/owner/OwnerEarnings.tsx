@@ -48,8 +48,8 @@ export default function OwnerEarnings() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Indtjening</h1>
-          <p className="text-sm text-muted-foreground mt-1">Overblik over din økonomi og udbetalinger</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Din indtjening</h1>
+          <p className="text-sm text-muted-foreground mt-1">Her kan du følge, hvad dit sommerhus tjener — i dit tempo</p>
         </div>
 
         {/* KPIs */}
