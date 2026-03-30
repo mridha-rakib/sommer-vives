@@ -9,7 +9,7 @@ const included = [
   'Annoncering på de største portaler',
   'Professionel rengøringskoordinering',
   'Fuld gæstekommunikation',
-  'Ingen binding eller oprettelsesgebyr',
+  '6 måneders binding — tryghed for begge parter',
   'Personlig ejerportal med overblik',
   'Professionel fotovejledning',
   'Adgang til bundfradrag (50.200 kr.)',
