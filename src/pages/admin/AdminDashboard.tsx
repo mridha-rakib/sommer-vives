@@ -54,13 +54,7 @@ export default function AdminDashboard() {
     loadUpcomingBookings();
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('da-DK', { 
-      style: 'currency', 
-      currency: 'DKK',
-      maximumFractionDigits: 0 
-    }).format(value);
-  };
+  const formatCurrency = formatDKK;
 
   return (
     <AdminLayout>
