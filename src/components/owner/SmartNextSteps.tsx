@@ -46,8 +46,8 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
   if (!property?.images || property.images.length < 5) {
     allActions.push({
       id: 'upload-photos',
-      title: 'Upload billeder af boligen',
-      description: `${property?.images?.length || 0}/5 billeder — flere billeder giver flere bookinger.`,
+      title: 'Tilføj billeder af dit hus',
+      description: `${property?.images?.length || 0} af 5 — gode billeder er det vigtigste for flere bookinger.`,
       href: '/owner/property',
       icon: Camera,
       priority: 'high',
