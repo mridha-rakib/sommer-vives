@@ -2,14 +2,12 @@ import { ReactNode } from 'react';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, List, MessageSquare, Wallet, LogOut, Menu, X, Calendar } from 'lucide-react';
+import { Home, List, MessageSquare, Wallet, LogOut, Menu, X, Calendar, FileSignature, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 
 interface OwnerLayoutProps {
   children: ReactNode;
 }
-
-import { ShoppingBag } from 'lucide-react';
 
 const navItems = [
   { name: 'Overblik', href: '/owner', icon: Home },
@@ -17,6 +15,7 @@ const navItems = [
   { name: 'Kalender', href: '/owner/calendar', icon: Calendar },
   { name: 'Forespørgsler', href: '/owner/inquiries', icon: MessageSquare },
   { name: 'Udbetalinger', href: '/owner/payouts', icon: Wallet },
+  { name: 'Aftale', href: '/owner/agreement', icon: FileSignature },
   { name: 'Tilkøb', href: '/owner/packages', icon: ShoppingBag },
 ];
 
