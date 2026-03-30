@@ -139,7 +139,7 @@ export function AutomatedUpdatesFeed({ bookings, className }: AutomatedUpdatesFe
 
         <div className="mt-3 p-2 rounded-lg bg-accent/5 border border-accent/10">
           <p className="text-[10px] text-accent text-center font-medium">
-            ⚡ SommerVibes automatiserer rengøring, gæstekommunikation og kanalstyring
+            ⚡ Rengøring, gæstekommunikation og kanalstyring — det klarer vi automatisk
           </p>
         </div>
       </CardContent>

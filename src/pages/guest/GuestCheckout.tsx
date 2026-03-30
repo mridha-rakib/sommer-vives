@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Circle, Key, Trash2, Clock, Sparkles, ThermometerSun, DoorClosed, Refrigerator } from 'lucide-react';
 
 const checkoutItems = [
-  { id: 'dishes', label: 'Kør opvaskemaskinen', desc: 'Tøm og kør en sidste omgang', icon: Refrigerator },
-  { id: 'fridge', label: 'Tøm køleskabet', desc: 'Fjern al mad og rengør hylderne' },
-  { id: 'trash', label: 'Bær affald ud', desc: 'Sortér og stil ved containerne', icon: Trash2 },
-  { id: 'windows', label: 'Luk vinduer og døre', desc: 'Tjek alle rum — lås hoveddøren' },
-  { id: 'heat', label: 'Sluk varme og lys', desc: 'Sæt termostaten ned til 15°C', icon: ThermometerSun },
-  { id: 'key', label: 'Læg nøgle i nøgleboks', desc: 'Luk nøgleboksen ordentligt', icon: Key },
+  { id: 'dishes', label: 'Kør opvaskemaskinen', desc: 'Start en omgang, så vi klarer resten', icon: Refrigerator },
+  { id: 'fridge', label: 'Tøm køleskabet', desc: 'Tag madvarer med — rengør gerne hylderne' },
+  { id: 'trash', label: 'Bær affald ud', desc: 'Sortér efter skiltning og stil ved containerne', icon: Trash2 },
+  { id: 'windows', label: 'Luk vinduer og døre', desc: 'Tjek alle rum og lås hoveddøren på vej ud' },
+  { id: 'heat', label: 'Skru ned for varme og lys', desc: 'Sæt termostaten til ca. 15°C', icon: ThermometerSun },
+  { id: 'key', label: 'Læg nøgle i nøgleboksen', desc: 'Sørg for at den lukker ordentligt', icon: Key },
 ];
 
 export default function GuestCheckout() {
@@ -28,8 +28,8 @@ export default function GuestCheckout() {
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
       <div className="space-y-5">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Check-out</h1>
-          <p className="text-sm text-muted-foreground mt-1">Følg tjeklisten for en god afrejse</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Tid til afrejse</h1>
+          <p className="text-sm text-muted-foreground mt-1">Følg de simple trin herunder — rengøringen klarer vi</p>
         </div>
 
         {/* Time + progress */}

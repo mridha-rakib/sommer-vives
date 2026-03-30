@@ -116,8 +116,8 @@ export default function GuestAddons() {
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Tilkøb</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gør dit ophold endnu bedre med ekstra services</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Skræddersy dit ophold</h1>
+          <p className="text-sm text-muted-foreground mt-1">Tilføj det, der gør din ferie endnu bedre — nemt og hurtigt</p>
         </div>
 
         <div className="space-y-2">

@@ -127,11 +127,10 @@ export function OperationalPulse({ stats, property, className }: OperationalPuls
             );
           })}
         </div>
-
         {allOk && (
           <div className="mt-3 p-2.5 rounded-lg bg-emerald-400/5 border border-emerald-400/10 text-center">
             <p className="text-[11px] text-emerald-400 font-medium">
-              SommerVibes håndterer alt det operationelle — du kan slappe af 🌴
+              Alt kører som det skal — vi holder øje, så du kan slappe af 🌴
             </p>
           </div>
         )}

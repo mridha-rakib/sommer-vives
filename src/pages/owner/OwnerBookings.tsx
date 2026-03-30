@@ -53,8 +53,8 @@ export default function OwnerBookings() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Bookinger</h1>
-          <p className="text-sm text-muted-foreground mt-1">Alle dine bookinger samlet ét sted</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Dine bookinger</h1>
+          <p className="text-sm text-muted-foreground mt-1">Vi håndterer gæstekontakten — du følger med herfra</p>
         </div>
 
         {/* Filters */}

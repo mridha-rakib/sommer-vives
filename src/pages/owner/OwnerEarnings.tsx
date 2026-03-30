@@ -38,18 +38,18 @@ export default function OwnerEarnings() {
   const estimatedTax = totalOwnerPayout * 0.37;
 
   const kpis = [
-    { label: 'Brutto omsætning', value: totalGross, icon: TrendingUp, color: 'text-foreground', bg: 'bg-muted' },
-    { label: 'Din indtjening (85%)', value: totalOwnerPayout, icon: Wallet, color: 'text-accent', bg: 'bg-accent/10' },
-    { label: 'Kommission (15%)', value: totalCommission, icon: ArrowDownRight, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    { label: 'Udbetalt', value: completedPayouts, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { label: 'Samlet omsætning', value: totalGross, icon: TrendingUp, color: 'text-foreground', bg: 'bg-muted' },
+    { label: 'Din andel (85%)', value: totalOwnerPayout, icon: Wallet, color: 'text-accent', bg: 'bg-accent/10' },
+    { label: 'SommerVibes (15%)', value: totalCommission, icon: ArrowDownRight, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    { label: 'Udbetalt til dig', value: completedPayouts, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
   ];
 
   return (
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Indtjening</h1>
-          <p className="text-sm text-muted-foreground mt-1">Overblik over din økonomi og udbetalinger</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Din indtjening</h1>
+          <p className="text-sm text-muted-foreground mt-1">Her kan du følge, hvad dit sommerhus tjener — i dit tempo</p>
         </div>
 
         {/* KPIs */}
@@ -103,7 +103,7 @@ export default function OwnerEarnings() {
         {/* Booking income details */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Booking-niveau indtjening</CardTitle>
+            <CardTitle className="text-base">Indtjening pr. booking</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (

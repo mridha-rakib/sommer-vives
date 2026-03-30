@@ -59,8 +59,8 @@ export default function OwnerDocuments() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Dokumenter</h1>
-          <p className="text-sm text-muted-foreground mt-1">Alle dine dokumenter, aftaler og kvitteringer samlet ét sted</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Dit arkiv</h1>
+          <p className="text-sm text-muted-foreground mt-1">Aftaler, fakturaer og filer — altid tilgængeligt, når du har brug for dem</p>
         </div>
 
         {/* Category summary */}

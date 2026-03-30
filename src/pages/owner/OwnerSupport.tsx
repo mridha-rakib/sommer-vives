@@ -4,17 +4,17 @@ import { Button } from '@/components/ui/button';
 import { MessageCircle, Phone, HelpCircle, AlertTriangle, BookOpen, Mail } from 'lucide-react';
 
 const supportOptions = [
-  { icon: MessageCircle, label: 'Chat med os', desc: 'Skriv direkte til dit SommerVibes-team', action: 'Åbn chat', primary: true },
-  { icon: Phone, label: 'Book opkald', desc: 'Vi ringer dig op på et tidspunkt der passer dig', action: 'Vælg tid', primary: false },
+  { icon: MessageCircle, label: 'Skriv til os', desc: 'Direkte besked til dit personlige SommerVibes-team', action: 'Start samtale', primary: true },
+  { icon: Phone, label: 'Book et opkald', desc: 'Vi ringer dig op, når det passer dig bedst', action: 'Vælg tid', primary: false },
   { icon: Mail, label: 'Send e-mail', desc: 'support@sommervibes.dk', action: 'Skriv e-mail', primary: false },
-  { icon: AlertTriangle, label: 'Rapportér problem', desc: 'Noget der haster? Rapportér det her', action: 'Rapportér', primary: false },
+  { icon: AlertTriangle, label: 'Noget haster?', desc: 'Rapportér et akut problem — vi reagerer hurtigt', action: 'Rapportér nu', primary: false },
 ];
 
 const faqItems = [
-  { q: 'Hvornår får jeg min udbetaling?', a: 'Udbetalinger foretages 5 hverdage efter gæstens afrejse.' },
-  { q: 'Hvordan ændrer jeg mine priser?', a: 'Kontakt dit SommerVibes-team, så justerer vi priserne for dig.' },
-  { q: 'Hvad sker der ved skader?', a: 'SommerVibes har en skadespool der dækker mindre skader. Større skader håndteres via forsikring.' },
-  { q: 'Kan jeg blokere datoer?', a: 'Ja, gå til Kalender og marker de datoer du selv vil bruge boligen.' },
+  { q: 'Hvornår modtager jeg min udbetaling?', a: 'Vi overfører automatisk til din konto 5 hverdage efter gæstens afrejse.' },
+  { q: 'Hvordan tilpasser jeg mine priser?', a: 'Kontakt din rådgiver, så justerer vi sammen — du bestemmer altid.' },
+  { q: 'Hvad sker der, hvis der opstår en skade?', a: 'Vi har en skadespool til småskader. Større sager håndterer vi via forsikringen.' },
+  { q: 'Kan jeg blokere perioder til eget brug?', a: 'Selvfølgelig. Gå til din kalender og marker de perioder, du ønsker.' },
 ];
 
 export default function OwnerSupport() {
@@ -22,8 +22,8 @@ export default function OwnerSupport() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Support</h1>
-          <p className="text-sm text-muted-foreground mt-1">Vi er her for at hjælpe dig</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Har du brug for hjælp?</h1>
+          <p className="text-sm text-muted-foreground mt-1">Dit SommerVibes-team er altid klar — vi kender dit hus og dine behov</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-3">
