@@ -110,14 +110,8 @@ const services: Service[] = [
   },
 ];
 
-/* ── Mobile detail sheet ── */
-function DetailSheet({
-  service,
-  onClose,
-}: {
-  service: Service;
-  onClose: () => void;
-}) {
+/* ── Mobile bottom sheet ── */
+function DetailSheet({ service, onClose }: { service: Service; onClose: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -127,50 +121,40 @@ function DetailSheet({
       className="fixed inset-0 z-50 flex items-end justify-center"
       onClick={onClose}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-
-      {/* Sheet */}
+      <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
       <motion.div
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ duration: 0.38, ease: [0.32, 0.72, 0, 1] }}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg rounded-t-3xl bg-[hsl(40,28%,96%)] p-6 pb-10 max-h-[85vh] overflow-y-auto"
+        className="relative w-full max-w-lg rounded-t-2xl bg-card border-t border-border p-6 pb-10 max-h-[85vh] overflow-y-auto"
       >
-        {/* Handle */}
-        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-[hsl(35,15%,80%)]" />
-
-        {/* Close */}
+        <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-border" />
         <button
           onClick={onClose}
-          className="absolute right-5 top-5 w-8 h-8 rounded-full bg-[hsl(35,20%,90%)] flex items-center justify-center"
+          className="absolute right-5 top-5 w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-muted transition-colors"
         >
-          <X className="w-4 h-4 text-[hsl(var(--warm-foreground))]" strokeWidth={1.5} />
+          <X className="w-4 h-4 text-foreground" strokeWidth={1.5} />
         </button>
 
-        {/* Icon */}
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 ${
-          service.signature
-            ? 'bg-gradient-to-br from-[hsl(38,45%,88%)] to-[hsl(38,35%,80%)]'
-            : 'bg-[hsl(35,22%,90%)]'
+          service.signature ? 'bg-accent/20 border border-accent/30' : 'bg-secondary'
         }`}>
-          <service.icon className="w-5 h-5 text-[hsl(var(--gold-dark))]" strokeWidth={1.5} />
+          <service.icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
         </div>
 
         {service.badge && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.15em] uppercase text-[hsl(var(--gold-dark))] mb-3">
-            <Sparkles className="w-3 h-3" strokeWidth={1.5} />
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase text-primary/80 mb-3">
+            <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
             {service.badge}
           </span>
         )}
 
-        <h3 className="font-display text-xl font-bold text-[hsl(var(--warm-foreground))] mb-4 leading-snug">
+        <h3 className="font-display text-xl font-bold text-foreground mb-4 leading-snug">
           {service.title}
         </h3>
-
-        <p className="text-sm leading-[1.75] text-[hsl(var(--warm-foreground))]/75">
+        <p className="text-sm leading-[1.8] text-muted-foreground">
           {service.long}
         </p>
       </motion.div>
@@ -178,12 +162,11 @@ function DetailSheet({
   );
 }
 
-/* ── Desktop card ── */
+/* ── Card ── */
 function ServiceCard({
   service,
   isExpanded,
   onToggle,
-  index,
 }: {
   service: Service;
   isExpanded: boolean;
@@ -195,15 +178,15 @@ function ServiceCard({
   return (
     <motion.div
       layout="position"
-      className={`group rounded-[1.25rem] p-7 md:p-8 flex flex-col gap-4 h-full select-none transition-all duration-500 ${
+      className={`group rounded-2xl p-7 md:p-8 flex flex-col gap-4 h-full select-none transition-all duration-500 border ${
         service.signature
-          ? 'bg-gradient-to-b from-[hsl(40,30%,97%)] to-[hsl(38,28%,94%)] border border-[hsl(38,30%,82%)] shadow-[0_2px_20px_-4px_hsla(38,40%,50%,0.1)]'
-          : 'bg-[hsl(40,28%,97%)] border border-[hsl(35,18%,89%)]'
-      } hover:shadow-[0_12px_40px_-12px_hsla(35,30%,40%,0.12)] hover:border-[hsl(35,22%,82%)]`}
+          ? 'bg-card border-accent/20 shadow-[0_2px_16px_-4px_hsla(38,50%,42%,0.08)]'
+          : 'bg-card border-border/60'
+      } hover:shadow-elevated/10 hover:border-border`}
     >
       {/* Badge */}
       {service.badge && (
-        <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.18em] uppercase text-[hsl(var(--gold-dark))]/80 mb-0">
+        <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.2em] uppercase text-primary/70">
           <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
           {service.badge}
         </span>
@@ -212,23 +195,23 @@ function ServiceCard({
       {/* Icon */}
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors duration-300 ${
         service.signature
-          ? 'bg-gradient-to-br from-[hsl(38,40%,87%)] to-[hsl(38,32%,80%)]'
-          : 'bg-[hsl(35,20%,91%)] group-hover:bg-[hsl(35,22%,88%)]'
+          ? 'bg-primary/10 border border-primary/15'
+          : 'bg-secondary group-hover:bg-muted'
       }`}>
-        <Icon className="w-[18px] h-[18px] text-[hsl(var(--gold-dark))]" strokeWidth={1.4} />
+        <Icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.4} />
       </div>
 
       {/* Title */}
-      <h3 className="font-display text-[1.05rem] font-semibold text-[hsl(var(--warm-foreground))] leading-snug mt-1">
+      <h3 className="font-display text-[1.05rem] font-semibold text-foreground leading-snug mt-1">
         {service.title}
       </h3>
 
-      {/* Short description */}
-      <p className="text-[13.5px] leading-[1.7] text-[hsl(var(--warm-foreground))]/65 flex-1">
+      {/* Short text */}
+      <p className="text-[13.5px] leading-[1.7] text-muted-foreground flex-1">
         {service.short}
       </p>
 
-      {/* Expanded content — desktop inline */}
+      {/* Expand content */}
       <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
@@ -238,8 +221,8 @@ function ServiceCard({
             transition={{ duration: 0.4, ease: [0.25, 0.8, 0.25, 1] }}
             className="overflow-hidden"
           >
-            <div className="pt-4 mt-1 border-t border-[hsl(35,18%,87%)]">
-              <p className="text-[13.5px] leading-[1.8] text-[hsl(var(--warm-foreground))]/60">
+            <div className="pt-4 mt-1 border-t border-border/50">
+              <p className="text-[13.5px] leading-[1.85] text-muted-foreground/80">
                 {service.long}
               </p>
             </div>
@@ -247,10 +230,10 @@ function ServiceCard({
         )}
       </AnimatePresence>
 
-      {/* Read more toggle */}
+      {/* Toggle */}
       <button
         onClick={onToggle}
-        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[hsl(var(--gold-dark))] hover:text-[hsl(var(--gold))] transition-colors duration-200 self-start mt-auto pt-1"
+        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary hover:text-accent transition-colors duration-200 self-start mt-auto pt-1"
       >
         <span>{isExpanded ? 'Luk' : 'Læs mere'}</span>
         <ArrowRight
@@ -262,7 +245,7 @@ function ServiceCard({
   );
 }
 
-/* ── Main section ── */
+/* ── Section ── */
 export function PremiumServicesSection() {
   const { ref, isInView } = useScrollReveal();
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -274,9 +257,8 @@ export function PremiumServicesSection() {
     if (!scrollRef.current) return;
     const card = scrollRef.current.querySelector<HTMLElement>(':scope > div');
     const cardWidth = card?.offsetWidth ?? 370;
-    const gap = 24;
     scrollRef.current.scrollBy({
-      left: dir === 'left' ? -(cardWidth + gap) : cardWidth + gap,
+      left: dir === 'left' ? -(cardWidth + 24) : cardWidth + 24,
       behavior: 'smooth',
     });
   }, []);
@@ -290,20 +272,8 @@ export function PremiumServicesSection() {
   };
 
   return (
-    <section
-      ref={ref}
-      className="py-24 md:py-32 overflow-hidden relative"
-      style={{ background: 'linear-gradient(180deg, hsl(37, 26%, 92%) 0%, hsl(38, 22%, 90%) 100%)' }}
-    >
-      {/* Subtle grain texture via CSS */}
-      <div
-        className="absolute inset-0 opacity-[0.025] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      <div className="container mx-auto px-4 md:px-8 relative">
+    <section ref={ref} className="py-24 md:py-32 overflow-hidden bg-muted/30">
+      <div className="container mx-auto px-4 md:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 28 }}
@@ -311,16 +281,14 @@ export function PremiumServicesSection() {
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-2xl mb-16 md:mb-20"
         >
-          <span className="text-[11px] font-body font-semibold tracking-[0.3em] uppercase text-[hsl(var(--gold-dark))]/80 block mb-5">
+          <span className="text-primary font-body text-[11px] font-semibold tracking-[0.3em] uppercase block mb-4">
             SommerVibes Fordele
           </span>
-          <h2 className="font-display text-[1.75rem] sm:text-[2rem] md:text-[2.5rem] lg:text-[2.85rem] font-bold text-[hsl(var(--warm-foreground))] leading-[1.12] mb-6">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-foreground leading-[1.12] mb-6">
             Ekstraordinær service{' '}
-            <span className="italic font-normal text-[hsl(var(--gold-dark))]">
-              hos SommerVibes
-            </span>
+            <span className="text-primary italic font-normal">hos SommerVibes</span>
           </h2>
-          <p className="text-[15px] md:text-base leading-[1.75] text-[hsl(var(--warm-foreground))]/65 max-w-lg">
+          <p className="text-[15px] md:text-base leading-[1.75] text-muted-foreground max-w-lg">
             Vi gør mere end bare at udleje dit sommerhus. Hos SommerVibes får du eksponering, fleksibilitet og services, der er skabt til at øge både tryghed og indtjening.
           </p>
         </motion.div>
@@ -332,36 +300,31 @@ export function PremiumServicesSection() {
           transition={{ duration: 0.8, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
           className="relative"
         >
-          {/* Desktop arrows */}
           {!isMobile && (
             <>
               <button
                 onClick={() => scroll('left')}
-                className="absolute -left-5 top-[45%] -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-[hsl(40,28%,96%)] border border-[hsl(35,18%,84%)] shadow-[0_2px_12px_-2px_hsla(35,20%,40%,0.1)] flex items-center justify-center hover:bg-white hover:border-[hsl(35,22%,78%)] transition-all duration-200"
+                className="absolute -left-5 top-[45%] -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-card border border-border shadow-soft flex items-center justify-center hover:bg-secondary transition-all duration-200"
                 aria-label="Forrige"
               >
-                <ChevronLeft className="w-4 h-4 text-[hsl(var(--warm-foreground))]/70" strokeWidth={1.5} />
+                <ChevronLeft className="w-4 h-4 text-foreground/60" strokeWidth={1.5} />
               </button>
               <button
                 onClick={() => scroll('right')}
-                className="absolute -right-5 top-[45%] -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-[hsl(40,28%,96%)] border border-[hsl(35,18%,84%)] shadow-[0_2px_12px_-2px_hsla(35,20%,40%,0.1)] flex items-center justify-center hover:bg-white hover:border-[hsl(35,22%,78%)] transition-all duration-200"
+                className="absolute -right-5 top-[45%] -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-card border border-border shadow-soft flex items-center justify-center hover:bg-secondary transition-all duration-200"
                 aria-label="Næste"
               >
-                <ChevronRight className="w-4 h-4 text-[hsl(var(--warm-foreground))]/70" strokeWidth={1.5} />
+                <ChevronRight className="w-4 h-4 text-foreground/60" strokeWidth={1.5} />
               </button>
             </>
           )}
 
-          {/* Cards track */}
           <div
             ref={scrollRef}
             className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 -mb-4"
           >
             {services.map((s, i) => (
-              <div
-                key={i}
-                className="snap-start flex-shrink-0 w-[82vw] sm:w-[320px] md:w-[340px] lg:w-[370px]"
-              >
+              <div key={i} className="snap-start flex-shrink-0 w-[82vw] sm:w-[320px] md:w-[340px] lg:w-[370px]">
                 <ServiceCard
                   service={s}
                   isExpanded={expandedIndex === i}
@@ -380,24 +343,15 @@ export function PremiumServicesSection() {
           transition={{ duration: 0.7, delay: 0.3 }}
           className="mt-16 md:mt-20 text-center"
         >
-          <Link
-            to="/contact"
-            className="inline-flex items-center gap-2.5 px-9 py-4 rounded-xl font-body text-[13px] font-semibold tracking-[0.04em] transition-all duration-300 bg-[hsl(var(--gold-dark))] text-[hsl(40,40%,97%)] hover:bg-[hsl(var(--gold))] shadow-[0_4px_24px_-6px_hsla(38,50%,35%,0.3)] hover:shadow-[0_8px_36px_-6px_hsla(38,50%,35%,0.4)]"
-          >
+          <Link to="/contact" className="btn-gold inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-sm">
             Bliv kontaktet i dag
             <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
           </Link>
         </motion.div>
       </div>
 
-      {/* Mobile bottom sheet */}
       <AnimatePresence>
-        {sheetService && (
-          <DetailSheet
-            service={sheetService}
-            onClose={() => setSheetService(null)}
-          />
-        )}
+        {sheetService && <DetailSheet service={sheetService} onClose={() => setSheetService(null)} />}
       </AnimatePresence>
     </section>
   );
