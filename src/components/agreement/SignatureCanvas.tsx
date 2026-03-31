@@ -66,12 +66,12 @@ export function SignatureCanvas({ onSignatureChange, className }: SignatureCanva
     const pos = getPos(e);
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
-    setIsDrawing(true);
+    isDrawingRef.current = true;
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    if (!isDrawing) return;
+    if (!isDrawingRef.current) return;
     const ctx = getCtx();
     if (!ctx) return;
     const pos = getPos(e);
@@ -80,8 +80,8 @@ export function SignatureCanvas({ onSignatureChange, className }: SignatureCanva
   };
 
   const stopDrawing = () => {
-    if (!isDrawing) return;
-    setIsDrawing(false);
+    if (!isDrawingRef.current) return;
+    isDrawingRef.current = false;
     setHasSignature(true);
     const canvas = canvasRef.current;
     if (canvas) {
