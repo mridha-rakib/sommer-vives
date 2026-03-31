@@ -10,7 +10,7 @@ interface SignatureCanvasProps {
 
 export function SignatureCanvas({ onSignatureChange, className }: SignatureCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const isDrawingRef = useRef(false);
   const [hasSignature, setHasSignature] = useState(false);
 
   const getCtx = useCallback(() => {
@@ -66,12 +66,12 @@ export function SignatureCanvas({ onSignatureChange, className }: SignatureCanva
     const pos = getPos(e);
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
-    setIsDrawing(true);
+    isDrawingRef.current = true;
   };
 
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
-    if (!isDrawing) return;
+    if (!isDrawingRef.current) return;
     const ctx = getCtx();
     if (!ctx) return;
     const pos = getPos(e);
@@ -80,8 +80,8 @@ export function SignatureCanvas({ onSignatureChange, className }: SignatureCanva
   };
 
   const stopDrawing = () => {
-    if (!isDrawing) return;
-    setIsDrawing(false);
+    if (!isDrawingRef.current) return;
+    isDrawingRef.current = false;
     setHasSignature(true);
     const canvas = canvasRef.current;
     if (canvas) {
