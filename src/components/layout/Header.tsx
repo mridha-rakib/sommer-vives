@@ -148,19 +148,42 @@ export function Header() {
               </DropdownMenu>
             ) : (
               <>
-                <Link to="/auth">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`rounded-full text-[13px] ${
-                      transparent
-                        ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    Ejer Login
-                  </Button>
-                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`rounded-full ${
+                        transparent
+                          ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <User className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 rounded-xl border-border/50 shadow-elevated">
+                    <DropdownMenuItem asChild className="rounded-lg">
+                      <Link to="/auth" className="flex items-center gap-2">
+                        <ChevronRight className="h-3 w-3" />
+                        Ejer Login
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="rounded-lg">
+                      <Link to="/guest/auth" className="flex items-center gap-2">
+                        <ChevronRight className="h-3 w-3" />
+                        Gæste Login
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild className="rounded-lg">
+                      <Link to="/admin/auth" className="flex items-center gap-2">
+                        <ChevronRight className="h-3 w-3" />
+                        Admin Login
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Link to="/kom-i-gang">
                   <Button variant="gold" size="sm" className="rounded-full text-[13px] px-5 shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">
                     Udlej dit hus
@@ -234,6 +257,12 @@ export function Header() {
                     <>
                       <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="outline" className="w-full rounded-xl">Ejer Login</Button>
+                      </Link>
+                      <Link to="/guest/auth" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full rounded-xl">Gæste Login</Button>
+                      </Link>
+                      <Link to="/admin/auth" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="ghost" className="w-full rounded-xl text-muted-foreground">Admin Login</Button>
                       </Link>
                       <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">Udlej dit hus</Button>
