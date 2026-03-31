@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null;
   roles: UserRole[];
   loading: boolean;
+  rolesLoaded: boolean;
   signIn: (email: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
   signInWithPassword: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rolesLoaded, setRolesLoaded] = useState(false);
 
   const fetchUserRoles = async (userId: string) => {
     const { data, error } = await supabase
@@ -46,13 +48,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          setRolesLoaded(false);
           setTimeout(() => {
-            fetchUserRoles(session.user.id).then(setRoles);
+            fetchUserRoles(session.user.id).then(fetchedRoles => {
+              setRoles(fetchedRoles);
+              setRolesLoaded(true);
+              setLoading(false);
+            });
           }, 0);
         } else {
           setRoles([]);
+          setRolesLoaded(true);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
@@ -61,9 +69,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchUserRoles(session.user.id).then(setRoles);
+        fetchUserRoles(session.user.id).then(fetchedRoles => {
+          setRoles(fetchedRoles);
+          setRolesLoaded(true);
+          setLoading(false);
+        });
+      } else {
+        setRolesLoaded(true);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -73,9 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: redirectUrl,
-      },
+      options: { emailRedirectTo: redirectUrl },
     });
     return { error: error as Error | null };
   };
@@ -87,19 +99,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-        },
+        data: { full_name: fullName },
       },
     });
     return { error: error as Error | null };
   };
 
   const signInWithPassword = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error as Error | null };
   };
 
@@ -108,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setRoles([]);
+    setRolesLoaded(true);
   };
 
   const isAdmin = roles.includes('admin');
@@ -115,16 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{
-      user,
-      session,
-      roles,
-      loading,
-      signIn,
-      signUp,
-      signInWithPassword,
-      signOut,
-      isAdmin,
-      isOwner,
+      user, session, roles, loading, rolesLoaded,
+      signIn, signUp, signInWithPassword, signOut,
+      isAdmin, isOwner,
     }}>
       {children}
     </AuthContext.Provider>

@@ -96,9 +96,9 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, rolesLoaded } = useAuth();
   
-  if (loading) {
+  if (loading || (user && !rolesLoaded)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -110,11 +110,11 @@ function ProtectedRoute({ children, requireAdmin = false }: { children: React.Re
   }
   
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to={requireAdmin ? "/admin/auth" : "/auth"} replace />;
   }
   
   if (requireAdmin && !isAdmin) {
-    return <Navigate to="/owner" replace />;
+    return <Navigate to="/admin/auth" replace />;
   }
   
   return <>{children}</>;
