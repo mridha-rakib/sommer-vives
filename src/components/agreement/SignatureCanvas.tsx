@@ -10,7 +10,7 @@ interface SignatureCanvasProps {
 
 export function SignatureCanvas({ onSignatureChange, className }: SignatureCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const isDrawingRef = useRef(false);
   const [hasSignature, setHasSignature] = useState(false);
 
   const getCtx = useCallback(() => {
