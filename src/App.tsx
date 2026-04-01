@@ -14,7 +14,7 @@ import Pricing from "./pages/Pricing";
 import About from "./pages/About";
 import FAQ from "./pages/FAQ";
 import PriceCalculator from "./pages/PriceCalculator";
-import Team from "./pages/Team";
+// Team import removed — redirects to /about
 import ReferAHost from "./pages/ReferAHost";
 import GetStarted from "./pages/GetStarted";
 import BookValuation from "./pages/BookValuation";
