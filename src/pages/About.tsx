@@ -1,5 +1,6 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
+import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, Phone, Mail, Clock, Play, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -539,6 +540,12 @@ function FinalCTA() {
 /* ═══════════════════════════════════════════════════
    PAGE
    ═══════════════════════════════════════════════════ */
+const aboutFAQs = [
+  { q: 'Hvem taler jeg med?', a: 'Du taler direkte med Emil eller en af vores rådgivere. Ingen callcentre, ingen ventetid.' },
+  { q: 'Er det uforpligtende at kontakte jer?', a: 'Ja, altid. En første samtale er helt uforpligtende — vi vil bare gerne høre om dit hus.' },
+  { q: 'Kan jeg ringe direkte?', a: 'Ja. Du kan ringe til os i åbningstiden, eller skrive en mail, så vender vi tilbage hurtigt.' },
+];
+
 export default function About() {
   return (
     <PublicLayout>
@@ -549,6 +556,12 @@ export default function About() {
       <ValuesSection />
       <TrustSection />
       <ContactSection />
+      <ContextualFAQ
+        eyebrow="Inden du ringer"
+        heading="Kort & godt"
+        items={aboutFAQs}
+        className="py-16 md:py-20"
+      />
       <FinalCTA />
     </PublicLayout>
   );

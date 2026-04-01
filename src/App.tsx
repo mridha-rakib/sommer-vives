@@ -12,7 +12,7 @@ import HowItWorks from "./pages/HowItWorks";
 import Pricing from "./pages/Pricing";
 // Contact and Team now redirect to About
 import About from "./pages/About";
-import FAQ from "./pages/FAQ";
+// FAQ page removed — content distributed contextually
 import PriceCalculator from "./pages/PriceCalculator";
 // Team import removed — redirects to /about
 import ReferAHost from "./pages/ReferAHost";
@@ -154,7 +154,7 @@ const App = () => (
             <Route path="/listing/:slug" element={<ListingDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Navigate to="/about#kontakt" replace />} />
-            <Route path="/faq" element={<FAQ />} />
+            <Route path="/faq" element={<Navigate to="/#faq" replace />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/kom-i-gang" element={<GetStarted />} />
             <Route path="/book-vurdering" element={<BookValuation />} />

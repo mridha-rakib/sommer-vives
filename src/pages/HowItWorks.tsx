@@ -5,6 +5,14 @@ import { ClipboardList, Camera, Home, Calendar, Banknote, ArrowRight, Check, Sta
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import heroHouse from '@/assets/hero-house.jpg';
+import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
+
+const howFAQs = [
+  { q: 'Hvor hurtigt kan vi komme i gang?', a: 'De fleste husejere er klar til første booking inden for 1–2 uger efter oprettelse.' },
+  { q: 'Skal jeg selv stå for noget?', a: 'Meget lidt. Vi håndterer annoncering, gæstekommunikation og koordinering af rengøring. Du blokerer bare de perioder, du selv bruger huset.' },
+  { q: 'Kommer I forbi huset?', a: 'Ja, hvis det er relevant. Vi kan arrangere besøg i forbindelse med fotografering eller keybox-opsætning.' },
+  { q: 'Hvad sker der efter jeg har oprettet mig?', a: 'En personlig rådgiver tager kontakt inden for 24 timer og guider dig igennem næste skridt — billeder, tekst og publicering.' },
+];
 
 const steps = [
   { number: '01', icon: ClipboardList, title: 'Opret dit sommerhus', description: 'Udfyld vores simple formular med info om dit sommerhus. Det tager kun 5 minutter.' },
@@ -220,6 +228,11 @@ export default function HowItWorks() {
       </section>
 
       <StepsSection />
+      <ContextualFAQ
+        eyebrow="Har du spørgsmål?"
+        heading="Det, husejere typisk undrer sig over"
+        items={howFAQs}
+      />
       <WhySection />
 
       {/* CTA */}
