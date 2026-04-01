@@ -8,9 +8,9 @@ import heroHouse from '@/assets/hero-house.jpg';
 import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
 
 const howFAQs = [
-  { q: 'Hvor hurtigt kan vi komme i gang?', a: 'De fleste husejere er klar til første booking inden for 1–2 uger efter oprettelse.' },
-  { q: 'Skal jeg selv stå for noget?', a: 'Meget lidt. Vi håndterer annoncering, gæstekommunikation og koordinering af rengøring. Du blokerer bare de perioder, du selv bruger huset.' },
-  { q: 'Kommer I forbi huset?', a: 'Ja, hvis det er relevant. Vi kan arrangere besøg i forbindelse med fotografering eller keybox-opsætning.' },
+  { q: 'Hvor hurtigt kan mit hus komme live?', a: 'De fleste husejere er klar til første booking inden for 1–2 uger efter oprettelse.' },
+  { q: 'Kommer I fysisk forbi ejendommen?', a: 'Ja, hvis det er relevant. Vi kan arrangere besøg i forbindelse med fotografering eller keybox-opsætning.' },
+  { q: 'Hvad skal jeg selv have klar?', a: 'Meget lidt. Vi hjælper dig hele vejen. Du skal blot have adgang til huset og en god idé om, hvornår det er ledigt.' },
   { q: 'Hvad sker der efter jeg har oprettet mig?', a: 'En personlig rådgiver tager kontakt inden for 24 timer og guider dig igennem næste skridt — billeder, tekst og publicering.' },
 ];
 
