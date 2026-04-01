@@ -194,6 +194,29 @@ export default function Pricing() {
         heading="Hvad ejere typisk spørger om"
         items={pricingFAQs}
       />
+      {/* Dual CTA */}
+      <section className="py-20 md:py-28 bg-background">
+        <div className="container mx-auto px-4 text-center max-w-xl">
+          <h2 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-4">
+            Klar til at høre mere?
+          </h2>
+          <p className="text-muted-foreground mb-8">
+            Kom i gang med det samme — eller book en uforpligtende snak først.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link to="/kom-i-gang">
+              <Button variant="gold" size="lg" className="gap-2 group">
+                Udlej dit hus <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link to="/book-vurdering">
+              <Button variant="outline" size="lg" className="border-accent/40 text-accent hover:bg-accent/10">
+                Book gratis udlejningstjek
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
     </PublicLayout>
   );
 }
