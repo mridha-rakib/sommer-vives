@@ -153,7 +153,7 @@ const App = () => (
             <Route path="/listings" element={<Listings />} />
             <Route path="/listing/:slug" element={<ListingDetail />} />
             <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+            <Route path="/contact" element={<Navigate to="/about#kontakt" replace />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/kom-i-gang" element={<GetStarted />} />
