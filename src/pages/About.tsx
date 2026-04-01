@@ -1,5 +1,6 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
+import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Check, Phone, Mail, Clock, Play, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
