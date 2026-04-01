@@ -12,7 +12,7 @@ import HowItWorks from "./pages/HowItWorks";
 import Pricing from "./pages/Pricing";
 // Contact and Team now redirect to About
 import About from "./pages/About";
-import FAQ from "./pages/FAQ";
+// FAQ page removed — content distributed contextually
 import PriceCalculator from "./pages/PriceCalculator";
 // Team import removed — redirects to /about
 import ReferAHost from "./pages/ReferAHost";
