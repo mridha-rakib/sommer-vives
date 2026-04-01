@@ -8,16 +8,18 @@ import { useRef, useState, useEffect } from 'react';
 import emilPortrait from '@/assets/emil-portrait.jpg';
 import heroHouse from '@/assets/hero-house.jpg';
 
+const ease = [0.25, 0.1, 0.25, 1] as const;
+
 const fade = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.9, delay, ease: [0.25, 0.1, 0.25, 1] },
+  transition: { duration: 0.9, delay, ease: ease as unknown as [number, number, number, number] },
 });
 
 const reveal = (isInView: boolean, delay = 0) => ({
   initial: { opacity: 0, y: 24 },
   animate: isInView ? { opacity: 1, y: 0 } : {},
-  transition: { duration: 0.8, delay, ease: [0.25, 0.1, 0.25, 1] },
+  transition: { duration: 0.8, delay, ease: ease as unknown as [number, number, number, number] },
 });
 
 /* ═══════════════════════════════════════════════════
