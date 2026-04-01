@@ -2,6 +2,14 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Check, ArrowRight, X } from 'lucide-react';
+import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
+
+const pricingFAQs = [
+  { q: 'Er der skjulte gebyrer?', a: 'Nej. Du betaler kun 15 % kommission af gennemførte bookinger. Ingen oprettelsesgebyr, ingen månedlige udgifter, ingen overraskelser.' },
+  { q: 'Betaler jeg noget ved opstart?', a: 'Nej — oprettelse og onboarding er helt gratis. Du betaler først, når du tjener penge.' },
+  { q: 'Hvornår får jeg min udbetaling?', a: 'Din udbetaling overføres kort efter gæstens check-in. Du kan altid følge med i din ejerportal.' },
+  { q: 'Hvad betyder 6 måneders binding?', a: 'Vi investerer tid i professionelle billeder, listingopsætning og markedsføring fra dag ét. Aftalen sikrer, at vi begge får det bedste ud af samarbejdet. Herefter er du fri til at opsige.' },
+];
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
