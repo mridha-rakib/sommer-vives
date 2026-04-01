@@ -30,9 +30,9 @@ export function Footer() {
           <div>
             <h4 className="font-display text-lg font-semibold mb-4">Om os</h4>
             <ul className="space-y-2">
-              <li><Link to="/team" className="text-sm text-foreground/70 hover:text-primary transition-colors">Mød teamet</Link></li>
-              <li><Link to="/contact" className="text-sm text-foreground/70 hover:text-primary transition-colors">Kontakt os</Link></li>
-              <li><Link to="/#faq" className="text-sm text-foreground/70 hover:text-primary transition-colors">FAQ</Link></li>
+              <li><Link to="/about" className="text-sm text-foreground/70 hover:text-primary transition-colors">Vores historie</Link></li>
+              <li><Link to="/about#kontakt" className="text-sm text-foreground/70 hover:text-primary transition-colors">Kontakt os</Link></li>
+              <li><Link to="/faq" className="text-sm text-foreground/70 hover:text-primary transition-colors">FAQ</Link></li>
             </ul>
           </div>
 

@@ -38,7 +38,6 @@ export function Header() {
     { name: 'Priser', href: '/pricing' },
     { name: 'Sommerhuse', href: '/listings' },
     { name: 'Om os', href: '/about' },
-    { name: 'Kontakt', href: '/contact' },
     { name: 'FAQ', href: '/faq' },
   ];
 

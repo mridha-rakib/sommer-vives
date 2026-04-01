@@ -10,11 +10,11 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import HowItWorks from "./pages/HowItWorks";
 import Pricing from "./pages/Pricing";
-import Contact from "./pages/Contact";
+// Contact and Team now redirect to About
 import About from "./pages/About";
 import FAQ from "./pages/FAQ";
 import PriceCalculator from "./pages/PriceCalculator";
-import Team from "./pages/Team";
+// Team import removed — redirects to /about
 import ReferAHost from "./pages/ReferAHost";
 import GetStarted from "./pages/GetStarted";
 import BookValuation from "./pages/BookValuation";
@@ -153,13 +153,13 @@ const App = () => (
             <Route path="/listings" element={<Listings />} />
             <Route path="/listing/:slug" element={<ListingDetail />} />
             <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+            <Route path="/contact" element={<Navigate to="/about#kontakt" replace />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/kom-i-gang" element={<GetStarted />} />
             <Route path="/book-vurdering" element={<BookValuation />} />
             <Route path="/beregn-lejeindtaegt" element={<PriceCalculator />} />
-            <Route path="/team" element={<Team />} />
+            <Route path="/team" element={<Navigate to="/about" replace />} />
             <Route path="/refer-a-host" element={<ReferAHost />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
