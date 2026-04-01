@@ -216,7 +216,7 @@ function StorySection() {
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={{ duration: 1, ease: "easeInOut" }}
             className="lg:col-span-5 relative"
           >
             <div className="rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] ring-1 ring-white/[0.04]">
@@ -237,7 +237,7 @@ function StorySection() {
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 1, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
+            transition={{ duration: 1, delay: 0.15, ease: "easeInOut" }}
             className="lg:col-span-7"
           >
             <span className="text-accent/70 font-body text-[11px] font-semibold tracking-[0.35em] uppercase block mb-5">Vores historie</span>
@@ -525,7 +525,7 @@ function FinalCTA() {
           initial={{ opacity: 0, y: 25 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
+          transition={{ duration: 0.9, ease: "easeInOut" }}
         >
           <h2 className="font-display text-[1.8rem] md:text-[2.4rem] font-bold text-primary leading-[1.15] mb-6">
             Lad os tage en uforpligtende snak
