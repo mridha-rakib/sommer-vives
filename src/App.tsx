@@ -154,7 +154,7 @@ const App = () => (
             <Route path="/listing/:slug" element={<ListingDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Navigate to="/about#kontakt" replace />} />
-            <Route path="/faq" element={<FAQ />} />
+            <Route path="/faq" element={<Navigate to="/#faq" replace />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/kom-i-gang" element={<GetStarted />} />
             <Route path="/book-vurdering" element={<BookValuation />} />
