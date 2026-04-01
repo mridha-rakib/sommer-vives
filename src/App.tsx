@@ -159,7 +159,7 @@ const App = () => (
             <Route path="/kom-i-gang" element={<GetStarted />} />
             <Route path="/book-vurdering" element={<BookValuation />} />
             <Route path="/beregn-lejeindtaegt" element={<PriceCalculator />} />
-            <Route path="/team" element={<Team />} />
+            <Route path="/team" element={<Navigate to="/about" replace />} />
             <Route path="/refer-a-host" element={<ReferAHost />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
