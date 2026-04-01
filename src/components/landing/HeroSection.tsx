@@ -172,18 +172,17 @@ export function HeroSection() {
               >
                 <Link to="/kom-i-gang">
                   <Button variant="gold" size="xl" className="gap-2 sm:gap-3 text-sm sm:text-base group w-full sm:w-auto">
-                    Udlej dit hus nu
+                    Udlej dit hus
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
-                <Link to="/book-vurdering" className="hidden sm:block">
+                <Link to="/book-vurdering">
                   <Button
                     variant="outline"
                     size="xl"
-                    className="border-primary/40 text-primary hover:bg-primary/10 text-base gap-2 w-full sm:w-auto"
+                    className="border-primary/40 text-primary hover:bg-primary/10 text-sm sm:text-base gap-2 w-full sm:w-auto"
                   >
-                    <Play className="w-4 h-4" />
-                    Gratis udlejningstjek
+                    Book gratis udlejningstjek
                   </Button>
                 </Link>
               </motion.div>

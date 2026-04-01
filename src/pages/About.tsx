@@ -520,14 +520,14 @@ function FinalCTA() {
             Vi vil gerne høre om dit hus — og fortælle, hvad SommerVibes kan gøre for dig.
           </p>
           <div className="flex flex-col sm:flex-row gap-3.5 justify-center">
-            <a href="#kontakt">
-              <Button variant="gold" size="lg" className="gap-2.5 group px-9 h-12 text-[14px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.35)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.45)] transition-shadow duration-500">
-                Kontakt os <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-              </Button>
-            </a>
             <Link to="/kom-i-gang">
+              <Button variant="gold" size="lg" className="gap-2.5 group px-9 h-12 text-[14px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.35)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.45)] transition-shadow duration-500">
+                Udlej dit hus <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+              </Button>
+            </Link>
+            <Link to="/book-vurdering">
               <Button variant="outline" size="lg" className="border-accent/20 text-accent/90 hover:bg-accent/[0.06] hover:border-accent/30 px-9 h-12 text-[14px] font-medium transition-all duration-300">
-                Udlej dit hus
+                Book gratis udlejningstjek
               </Button>
             </Link>
           </div>

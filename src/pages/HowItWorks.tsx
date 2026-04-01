@@ -246,12 +246,12 @@ export default function HowItWorks() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/kom-i-gang">
                 <Button variant="gold" size="lg" className="gap-2 group">
-                  Opret dit sommerhus <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  Udlej dit hus <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
-              <Link to="/beregn-lejeindtaegt">
+              <Link to="/book-vurdering">
                 <Button variant="outline" size="lg" className="border-accent/40 text-accent hover:bg-accent/10">
-                  Beregn din indtjening
+                  Book gratis udlejningstjek
                 </Button>
               </Link>
             </div>
