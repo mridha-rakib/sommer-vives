@@ -228,6 +228,11 @@ export default function HowItWorks() {
       </section>
 
       <StepsSection />
+      <ContextualFAQ
+        eyebrow="Har du spørgsmål?"
+        heading="Det, husejere typisk undrer sig over"
+        items={howFAQs}
+      />
       <WhySection />
 
       {/* CTA */}

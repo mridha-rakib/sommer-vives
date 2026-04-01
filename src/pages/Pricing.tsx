@@ -189,6 +189,11 @@ export default function Pricing() {
         </div>
       </section>
       <PricingContent />
+      <ContextualFAQ
+        eyebrow="Prisrelaterede spørgsmål"
+        heading="Hvad ejere typisk spørger om"
+        items={pricingFAQs}
+      />
     </PublicLayout>
   );
 }
