@@ -10,7 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import HowItWorks from "./pages/HowItWorks";
 import Pricing from "./pages/Pricing";
-import Contact from "./pages/Contact";
+// Contact and Team now redirect to About
 import About from "./pages/About";
 import FAQ from "./pages/FAQ";
 import PriceCalculator from "./pages/PriceCalculator";
