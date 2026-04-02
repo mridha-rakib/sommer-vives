@@ -1,9 +1,8 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { HeroSection } from '@/components/landing/HeroSection';
-import { EarningsSection } from '@/components/landing/EarningsSection';
 import { PremiumServicesSection } from '@/components/landing/PremiumServicesSection';
 import { ExitIntentPopup } from '@/components/landing/ExitIntentPopup';
-import { PropertyTypesSection } from '@/components/landing/PropertyTypesSection';
+import { EarningsSection } from '@/components/landing/EarningsSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
@@ -23,9 +22,8 @@ const Index = () => {
     <PublicLayout>
       <ExitIntentPopup />
       <HeroSection />
-      <EarningsSection />
       <PremiumServicesSection />
-      <PropertyTypesSection />
+      <EarningsSection />
       <HowItWorksSection />
       <TestimonialsSection />
       <div id="faq">
