@@ -1130,7 +1130,7 @@ export default function AdminSagDetail() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-foreground">{sd.title}</p>
-                          <p className="text-[11px] text-muted-foreground">{isAftale ? 'Aftale' : 'Standard dokument'} · {format(new Date(sd.created_at), 'd. MMM yyyy', { locale: da })}</p>
+                          <p className="text-[11px] text-muted-foreground">{isAftale ? 'Aftale' : isRapport ? 'Statusrapport' : 'Standard dokument'} · {format(new Date(sd.created_at), 'd. MMM yyyy', { locale: da })}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
