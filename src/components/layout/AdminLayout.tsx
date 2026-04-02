@@ -225,12 +225,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         {/* User */}
         <div className="p-3 border-t border-border/30">
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/20">
-            <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-              {user?.email?.charAt(0).toUpperCase()}
-            </div>
+            <img src={emilAvatar} alt="Emil W. Klockmann" className="w-8 h-8 rounded-full object-cover border border-primary/20" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">{user?.email}</p>
-              <p className="text-[10px] text-muted-foreground">Administrator</p>
+              <p className="text-xs font-medium text-foreground truncate">Emil W. Klockmann</p>
+              <p className="text-[10px] text-muted-foreground">Udlejningschef</p>
             </div>
             <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-foreground p-1.5 h-auto rounded-lg">
               <LogOut className="w-3.5 h-3.5" />
