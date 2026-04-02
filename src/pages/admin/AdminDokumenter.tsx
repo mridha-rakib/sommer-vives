@@ -416,6 +416,93 @@ export default function AdminDokumenter() {
             })}
           </div>
         )}
+        </>)}
+
+        {/* ═══════ TEMPLATES TAB ═══════ */}
+        {pageTab === 'templates' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Aftale-skabeloner</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Skabeloner til formidlingsaftaler med dynamiske felter</p>
+              </div>
+              <Button size="sm" className="gap-1.5 rounded-xl" onClick={openNewTemplate}>
+                <Plus className="h-3.5 w-3.5" />Ny skabelon
+              </Button>
+            </div>
+
+            {templates.length === 0 ? (
+              <div className="rounded-xl border border-border/40 bg-card/40 p-16 text-center">
+                <Copy className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm font-medium text-muted-foreground">Ingen skabeloner endnu</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Opret din første aftale-skabelon</p>
+                <Button size="sm" variant="outline" className="mt-4 rounded-xl gap-1.5" onClick={openNewTemplate}>
+                  <Plus className="h-3.5 w-3.5" />Opret skabelon
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {templates.map(t => (
+                  <div key={t.id} className="flex items-center gap-4 rounded-xl border border-border/40 bg-card/60 hover:bg-card/80 transition-all px-4 py-3 group">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                      <FileSignature className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{t.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] text-muted-foreground">v{t.version}</span>
+                        <span className="text-muted-foreground/30">·</span>
+                        <StatusChip label={t.is_active ? 'Aktiv' : 'Inaktiv'} variant={t.is_active ? 'success' : 'muted'} dot size="sm" />
+                        <span className="text-muted-foreground/30">·</span>
+                        <span className="text-[11px] text-muted-foreground">{new Date(t.updated_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg" onClick={() => openEditTemplate(t)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg text-destructive" onClick={() => deleteTemplate(t.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Template editor sheet */}
+            <Sheet open={!!editingTemplate} onOpenChange={open => !open && setEditingTemplate(null)}>
+              <SheetContent className="sm:max-w-lg bg-card border-border/50 overflow-y-auto">
+                <SheetHeader className="pb-4 border-b border-border/30">
+                  <SheetTitle>{editingTemplate === 'new' ? 'Ny skabelon' : 'Rediger skabelon'}</SheetTitle>
+                </SheetHeader>
+                <div className="py-5 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Skabelonnavn</Label>
+                    <Input value={templateForm.name} onChange={e => setTemplateForm(f => ({ ...f, name: e.target.value }))} placeholder="Standard formidlingsaftale" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Version</Label>
+                    <Input value={templateForm.version} onChange={e => setTemplateForm(f => ({ ...f, version: e.target.value }))} placeholder="1.0" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Aftaletekst</Label>
+                    <p className="text-[11px] text-muted-foreground">Brug placeholders som {"{{owner_name}}"}, {"{{property_address}}"}, {"{{commission_rate}}"}, {"{{binding_months}}"}</p>
+                    <Textarea value={templateForm.body_text} onChange={e => setTemplateForm(f => ({ ...f, body_text: e.target.value }))} rows={12} placeholder="Mellem {{owner_name}} (herefter &quot;Udlejer&quot;) og SommerDrøm ApS..." />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Label className="text-sm">Aktiv</Label>
+                    <input type="checkbox" checked={templateForm.is_active} onChange={e => setTemplateForm(f => ({ ...f, is_active: e.target.checked }))} className="rounded" />
+                  </div>
+                  <div className="flex gap-2 pt-3">
+                    <Button onClick={saveTemplate} className="flex-1 rounded-xl">Gem skabelon</Button>
+                    <Button variant="outline" onClick={() => setEditingTemplate(null)} className="rounded-xl">Annuller</Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        )}
       </div>
 
       {/* ── Detail drawer ── */}
