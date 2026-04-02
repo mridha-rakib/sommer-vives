@@ -108,9 +108,29 @@ export function ListingsOverview({ onEdit, onCreate }: Props) {
           <h1 className="font-display text-2xl font-bold text-foreground">Listings</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{listings.length} sommerhuse registreret</p>
         </div>
-        <Button onClick={onCreate} className="gap-2">
-          <Plus className="h-4 w-4" /> Opret ny listing
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-muted rounded-lg p-0.5">
+            <Button
+              variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="h-8 px-3 gap-1.5"
+              onClick={() => setViewMode('table')}
+            >
+              <LayoutList className="h-3.5 w-3.5" /> Liste
+            </Button>
+            <Button
+              variant={viewMode === 'board' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="h-8 px-3 gap-1.5"
+              onClick={() => setViewMode('board')}
+            >
+              <Columns3 className="h-3.5 w-3.5" /> Pipeline
+            </Button>
+          </div>
+          <Button onClick={onCreate} className="gap-2">
+            <Plus className="h-4 w-4" /> Opret ny listing
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
