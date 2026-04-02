@@ -1751,12 +1751,25 @@ export type Database = {
         Row: {
           about_area: string | null
           about_property: string | null
+          access_arrival: string | null
+          access_code: string | null
+          access_intro: string | null
+          access_parking: string | null
+          access_smart_lock: string | null
+          access_title: string | null
           address: string | null
           amenities: string[] | null
+          amenities_button_text: string | null
+          area_attractions: Json | null
+          area_distances: Json | null
+          area_image: string | null
+          area_title: string | null
           base_price_per_night: number
           bathrooms: number | null
+          bedroom_cards: Json | null
           bedroom_images: Json
           bedrooms: number | null
+          bring_yourself_items: string[] | null
           channel_airbnb_checkin_notes: string | null
           channel_airbnb_description: string | null
           channel_airbnb_highlights: string[] | null
@@ -1785,6 +1798,19 @@ export type Database = {
           city: string | null
           cleaning_fee: number | null
           combo_hero_images: string[] | null
+          comfort_blocks: Json | null
+          comfort_intro: string | null
+          comfort_title: string | null
+          contact_button_text: string | null
+          contact_cta_primary: string | null
+          contact_cta_secondary: string | null
+          contact_email: string | null
+          contact_image: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          contact_role: string | null
+          contact_text: string | null
+          contact_title: string | null
           country: string | null
           created_at: string
           currency: string
@@ -1794,17 +1820,40 @@ export type Database = {
           external_listing_id: string | null
           external_property_id: string | null
           extra_sections: Json
+          extras_intro: string | null
+          extras_pricing_notes: string | null
+          extras_title: string | null
+          extras_upsell_items: string[] | null
           facilities: Json
           floor_plan_images: string[] | null
+          floorplan_button_text: string | null
           getting_around: string | null
+          hero_booking_cta: string | null
+          hero_booking_subtext: string | null
+          hero_clickbait_title: string | null
+          hero_extra_note: string | null
+          hero_hook_description: string | null
           hero_image: string | null
+          hero_rarity_badge: string | null
+          hero_rating: number | null
+          hero_review_count: number | null
+          highlighted_amenities: string[] | null
           highlights: string[] | null
           house_rules: string | null
           id: string
           image_captions: Json | null
+          image_channel_visibility: Json | null
           image_labels: Json | null
           images: string[] | null
+          included_intro: string | null
+          included_items: string[] | null
+          included_title: string | null
+          internal_notes: string | null
           internal_status: string | null
+          intro_features: Json | null
+          intro_paragraph_1: string | null
+          intro_paragraph_2: string | null
+          intro_title: string | null
           is_active: boolean
           last_sync_at: string | null
           latitude: number | null
@@ -1820,19 +1869,34 @@ export type Database = {
           name: string
           owner_id: string
           practical_info: string | null
+          property_bullets: string[] | null
           property_type: string | null
           published_at: string | null
+          purchasable_items: string[] | null
           readiness_score: number | null
           region: string | null
+          reviews_badges: string[] | null
+          reviews_count: number | null
+          reviews_entries: Json | null
+          reviews_rating: number | null
+          reviews_title: string | null
           revision_history: Json | null
+          seo_description: string | null
+          seo_image: string | null
+          seo_title: string | null
           slug: string
           sort_order: number
           sqm: number | null
+          sticky_bar_cta: string | null
+          sticky_bar_logo: string | null
+          sticky_bar_payment_icons: string[] | null
+          sticky_bar_price_label: string | null
           sync_error_message: string | null
           sync_status: string | null
           tagline: string | null
           teaser: string | null
           updated_at: string
+          video_button_text: string | null
           video_url: string | null
           video_url_de: string | null
           video_url_en: string | null
@@ -1841,12 +1905,25 @@ export type Database = {
         Insert: {
           about_area?: string | null
           about_property?: string | null
+          access_arrival?: string | null
+          access_code?: string | null
+          access_intro?: string | null
+          access_parking?: string | null
+          access_smart_lock?: string | null
+          access_title?: string | null
           address?: string | null
           amenities?: string[] | null
+          amenities_button_text?: string | null
+          area_attractions?: Json | null
+          area_distances?: Json | null
+          area_image?: string | null
+          area_title?: string | null
           base_price_per_night?: number
           bathrooms?: number | null
+          bedroom_cards?: Json | null
           bedroom_images?: Json
           bedrooms?: number | null
+          bring_yourself_items?: string[] | null
           channel_airbnb_checkin_notes?: string | null
           channel_airbnb_description?: string | null
           channel_airbnb_highlights?: string[] | null
@@ -1875,6 +1952,19 @@ export type Database = {
           city?: string | null
           cleaning_fee?: number | null
           combo_hero_images?: string[] | null
+          comfort_blocks?: Json | null
+          comfort_intro?: string | null
+          comfort_title?: string | null
+          contact_button_text?: string | null
+          contact_cta_primary?: string | null
+          contact_cta_secondary?: string | null
+          contact_email?: string | null
+          contact_image?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
+          contact_text?: string | null
+          contact_title?: string | null
           country?: string | null
           created_at?: string
           currency?: string
@@ -1884,17 +1974,40 @@ export type Database = {
           external_listing_id?: string | null
           external_property_id?: string | null
           extra_sections?: Json
+          extras_intro?: string | null
+          extras_pricing_notes?: string | null
+          extras_title?: string | null
+          extras_upsell_items?: string[] | null
           facilities?: Json
           floor_plan_images?: string[] | null
+          floorplan_button_text?: string | null
           getting_around?: string | null
+          hero_booking_cta?: string | null
+          hero_booking_subtext?: string | null
+          hero_clickbait_title?: string | null
+          hero_extra_note?: string | null
+          hero_hook_description?: string | null
           hero_image?: string | null
+          hero_rarity_badge?: string | null
+          hero_rating?: number | null
+          hero_review_count?: number | null
+          highlighted_amenities?: string[] | null
           highlights?: string[] | null
           house_rules?: string | null
           id?: string
           image_captions?: Json | null
+          image_channel_visibility?: Json | null
           image_labels?: Json | null
           images?: string[] | null
+          included_intro?: string | null
+          included_items?: string[] | null
+          included_title?: string | null
+          internal_notes?: string | null
           internal_status?: string | null
+          intro_features?: Json | null
+          intro_paragraph_1?: string | null
+          intro_paragraph_2?: string | null
+          intro_title?: string | null
           is_active?: boolean
           last_sync_at?: string | null
           latitude?: number | null
@@ -1910,19 +2023,34 @@ export type Database = {
           name: string
           owner_id: string
           practical_info?: string | null
+          property_bullets?: string[] | null
           property_type?: string | null
           published_at?: string | null
+          purchasable_items?: string[] | null
           readiness_score?: number | null
           region?: string | null
+          reviews_badges?: string[] | null
+          reviews_count?: number | null
+          reviews_entries?: Json | null
+          reviews_rating?: number | null
+          reviews_title?: string | null
           revision_history?: Json | null
+          seo_description?: string | null
+          seo_image?: string | null
+          seo_title?: string | null
           slug: string
           sort_order?: number
           sqm?: number | null
+          sticky_bar_cta?: string | null
+          sticky_bar_logo?: string | null
+          sticky_bar_payment_icons?: string[] | null
+          sticky_bar_price_label?: string | null
           sync_error_message?: string | null
           sync_status?: string | null
           tagline?: string | null
           teaser?: string | null
           updated_at?: string
+          video_button_text?: string | null
           video_url?: string | null
           video_url_de?: string | null
           video_url_en?: string | null
@@ -1931,12 +2059,25 @@ export type Database = {
         Update: {
           about_area?: string | null
           about_property?: string | null
+          access_arrival?: string | null
+          access_code?: string | null
+          access_intro?: string | null
+          access_parking?: string | null
+          access_smart_lock?: string | null
+          access_title?: string | null
           address?: string | null
           amenities?: string[] | null
+          amenities_button_text?: string | null
+          area_attractions?: Json | null
+          area_distances?: Json | null
+          area_image?: string | null
+          area_title?: string | null
           base_price_per_night?: number
           bathrooms?: number | null
+          bedroom_cards?: Json | null
           bedroom_images?: Json
           bedrooms?: number | null
+          bring_yourself_items?: string[] | null
           channel_airbnb_checkin_notes?: string | null
           channel_airbnb_description?: string | null
           channel_airbnb_highlights?: string[] | null
@@ -1965,6 +2106,19 @@ export type Database = {
           city?: string | null
           cleaning_fee?: number | null
           combo_hero_images?: string[] | null
+          comfort_blocks?: Json | null
+          comfort_intro?: string | null
+          comfort_title?: string | null
+          contact_button_text?: string | null
+          contact_cta_primary?: string | null
+          contact_cta_secondary?: string | null
+          contact_email?: string | null
+          contact_image?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
+          contact_text?: string | null
+          contact_title?: string | null
           country?: string | null
           created_at?: string
           currency?: string
@@ -1974,17 +2128,40 @@ export type Database = {
           external_listing_id?: string | null
           external_property_id?: string | null
           extra_sections?: Json
+          extras_intro?: string | null
+          extras_pricing_notes?: string | null
+          extras_title?: string | null
+          extras_upsell_items?: string[] | null
           facilities?: Json
           floor_plan_images?: string[] | null
+          floorplan_button_text?: string | null
           getting_around?: string | null
+          hero_booking_cta?: string | null
+          hero_booking_subtext?: string | null
+          hero_clickbait_title?: string | null
+          hero_extra_note?: string | null
+          hero_hook_description?: string | null
           hero_image?: string | null
+          hero_rarity_badge?: string | null
+          hero_rating?: number | null
+          hero_review_count?: number | null
+          highlighted_amenities?: string[] | null
           highlights?: string[] | null
           house_rules?: string | null
           id?: string
           image_captions?: Json | null
+          image_channel_visibility?: Json | null
           image_labels?: Json | null
           images?: string[] | null
+          included_intro?: string | null
+          included_items?: string[] | null
+          included_title?: string | null
+          internal_notes?: string | null
           internal_status?: string | null
+          intro_features?: Json | null
+          intro_paragraph_1?: string | null
+          intro_paragraph_2?: string | null
+          intro_title?: string | null
           is_active?: boolean
           last_sync_at?: string | null
           latitude?: number | null
@@ -2000,19 +2177,34 @@ export type Database = {
           name?: string
           owner_id?: string
           practical_info?: string | null
+          property_bullets?: string[] | null
           property_type?: string | null
           published_at?: string | null
+          purchasable_items?: string[] | null
           readiness_score?: number | null
           region?: string | null
+          reviews_badges?: string[] | null
+          reviews_count?: number | null
+          reviews_entries?: Json | null
+          reviews_rating?: number | null
+          reviews_title?: string | null
           revision_history?: Json | null
+          seo_description?: string | null
+          seo_image?: string | null
+          seo_title?: string | null
           slug?: string
           sort_order?: number
           sqm?: number | null
+          sticky_bar_cta?: string | null
+          sticky_bar_logo?: string | null
+          sticky_bar_payment_icons?: string[] | null
+          sticky_bar_price_label?: string | null
           sync_error_message?: string | null
           sync_status?: string | null
           tagline?: string | null
           teaser?: string | null
           updated_at?: string
+          video_button_text?: string | null
           video_url?: string | null
           video_url_de?: string | null
           video_url_en?: string | null
