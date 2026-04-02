@@ -39,7 +39,7 @@ const translations: AllTranslations = {
     'hero.advisorTitle': 'Udlejningschef',
     'hero.trustpilot': 'Fremragende på Trustpilot',
     'hero.danish': 'Dansk virksomhed',
-    'hero.noBinding': 'Ingen binding',
+    'hero.noBinding': 'Fleksibel aftale',
     'hero.guarantee': 'Tryghedsgaranti inkl.',
     'hero.support': 'Dansk kundeservice',
 
@@ -248,7 +248,7 @@ const translations: AllTranslations = {
     'hero.advisorTitle': 'Rental Manager',
     'hero.trustpilot': 'Excellent on Trustpilot',
     'hero.danish': 'Danish company',
-    'hero.noBinding': 'No lock-in',
+    'hero.noBinding': 'Flexible agreement',
     'hero.guarantee': 'Safety guarantee incl.',
     'hero.support': 'Danish customer service',
 
@@ -457,7 +457,7 @@ const translations: AllTranslations = {
     'hero.advisorTitle': 'Vermietungsleiter',
     'hero.trustpilot': 'Hervorragend auf Trustpilot',
     'hero.danish': 'Dänisches Unternehmen',
-    'hero.noBinding': 'Keine Bindung',
+    'hero.noBinding': 'Flexible Vereinbarung',
     'hero.guarantee': 'Sicherheitsgarantie inkl.',
     'hero.support': 'Dänischer Kundenservice',
 
@@ -666,7 +666,7 @@ const translations: AllTranslations = {
     'hero.advisorTitle': 'Verhuurmanager',
     'hero.trustpilot': 'Uitstekend op Trustpilot',
     'hero.danish': 'Deens bedrijf',
-    'hero.noBinding': 'Geen bindung',
+    'hero.noBinding': 'Flexibele overeenkomst',
     'hero.guarantee': 'Veiligheidsgarantie incl.',
     'hero.support': 'Deense klantenservice',
 
