@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ProfilePopover } from '@/components/admin/ProfilePopover';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Eye, MoreHorizontal, MessageSquare, Edit, XCircle } from 'lucide-react';
