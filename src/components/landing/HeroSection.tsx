@@ -11,7 +11,7 @@ const trustPoints = [
 ];
 
 
-const channels = ['Airbnb', 'Booking.com', 'VRBO', 'Feriepartner', 'Google', 'Facebook', 'Instagram'];
+
 
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
