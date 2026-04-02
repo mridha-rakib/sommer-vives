@@ -58,6 +58,15 @@ interface ListingData {
   image_labels: { url: string; label: string }[] | null;
   location_map_image: string | null;
   location_mood_image: string | null;
+  tagline: string | null;
+  long_description: string | null;
+  about_property: string | null;
+  about_area: string | null;
+  highlights: string[] | null;
+  sqm: number | null;
+  property_type: string | null;
+  checkin_info: string | null;
+  checkout_info: string | null;
 }
 
 // ─── Icon Maps ──────────────────────────────────────────
