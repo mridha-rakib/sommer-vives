@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, LogOut, Menu, X, Calendar,
-  MessageSquare, ListChecks, Target, Users, FolderOpen,
+  MessageSquare, ListChecks, Target, Users, FolderOpen, Inbox,
   FileText, Wallet, ChevronDown, Search,
   UserCheck, User, ExternalLink
 } from 'lucide-react';
@@ -40,6 +40,7 @@ const navSections: { label?: string; items: NavItem[] }[] = [
     label: 'Pipeline',
     items: [
       { name: 'Leads', href: '/admin/leads', icon: Target },
+      { name: 'Modtagelse', href: '/admin/modtagelse', icon: Inbox },
       { name: 'Sager', href: '/admin/sager', icon: FolderOpen },
       {
         name: 'CRM', href: '/admin/crm', icon: Users,
