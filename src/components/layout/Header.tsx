@@ -36,7 +36,7 @@ export function Header() {
   const navigation = [
     { name: 'Sådan virker det', href: '/#saadan-virker-det' },
     { name: 'Sommerhuse', href: '/listings' },
-    { name: 'Priser', href: '/pricing' },
+    { name: 'Priser', href: '/#priser' },
     { name: 'Om os', href: '/about' },
   ];
 
