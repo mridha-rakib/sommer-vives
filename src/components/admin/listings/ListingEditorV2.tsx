@@ -117,6 +117,68 @@ function calcReadiness(f: Partial<ListingFull>): { score: number; missing: strin
   return { score: Math.round((passed.length / checks.length) * 100), missing, passed };
 }
 
+type ChannelReadinessResult = { score: number; missing: { field: string; tab: string; action: string }[]; passed: string[] };
+
+function calcChannelReadiness(f: Partial<ListingFull>, channel: 'airbnb' | 'booking' | 'vrbo'): ChannelReadinessResult {
+  const shared: [string, boolean, string, string][] = [
+    ['Hero-billede', !!f.hero_image, 'indhold', 'Upload et hero-billede'],
+    ['Min. 3 galleri-billeder', (f.images?.length || 0) >= 3, 'indhold', 'Tilføj flere billeder'],
+    ['Adresse', !!f.address, 'grunddata', 'Udfyld adressen'],
+    ['Gæstekapacitet', (f.max_guests || 0) > 0, 'grunddata', 'Angiv max gæster'],
+    ['Soveværelser', (f.bedrooms || 0) > 0, 'grunddata', 'Angiv antal soveværelser'],
+    ['Basispris', (f.base_price_per_night || 0) > 0, 'priser', 'Sæt en basispris'],
+    ['Check-in tid', !!f.check_in_time, 'grunddata', 'Angiv check-in tid'],
+    ['Check-out tid', !!f.check_out_time, 'grunddata', 'Angiv check-out tid'],
+    ['Faciliteter (3+)', (f.amenities?.length || 0) >= 3, 'grunddata', 'Tilføj faciliteter'],
+  ];
+
+  const channelChecks: Record<string, [string, boolean, string, string][]> = {
+    airbnb: [
+      ['Airbnb-titel', !!(f.channel_airbnb_title && f.channel_airbnb_title.length >= 5), 'kanaler', 'Skriv en Airbnb-titel'],
+      ['Airbnb-beskrivelse', !!(f.channel_airbnb_description && f.channel_airbnb_description.length >= 20), 'kanaler', 'Skriv en Airbnb-beskrivelse'],
+      ['Airbnb-husregler', !!(f.channel_airbnb_house_rules && f.channel_airbnb_house_rules.length > 5), 'kanaler', 'Tilføj husregler til Airbnb'],
+      ['Airbnb-highlights', (f.channel_airbnb_highlights?.length || 0) >= 2, 'kanaler', 'Tilføj mindst 2 highlights'],
+      ['Airbnb check-in noter', !!(f.channel_airbnb_checkin_notes && f.channel_airbnb_checkin_notes.length > 5), 'kanaler', 'Beskriv check-in procedure'],
+    ],
+    booking: [
+      ['Booking.com-titel', !!(f.channel_booking_title && f.channel_booking_title.length >= 5), 'kanaler', 'Skriv en Booking.com-titel'],
+      ['Booking.com-beskrivelse', !!(f.channel_booking_description && f.channel_booking_description.length >= 20), 'kanaler', 'Skriv en beskrivelse'],
+      ['Værelseopsætning', !!(f.channel_booking_room_setup && f.channel_booking_room_setup.length > 3), 'kanaler', 'Beskriv værelserne'],
+      ['Politikker', !!(f.channel_booking_policies && f.channel_booking_policies.length > 5), 'kanaler', 'Tilføj aflysningspolitik'],
+      ['Check-in/out info', !!(f.channel_booking_checkin_checkout && f.channel_booking_checkin_checkout.length > 5), 'kanaler', 'Udfyld check-in/out info'],
+    ],
+    vrbo: [
+      ['Vrbo-titel', !!(f.channel_vrbo_title && f.channel_vrbo_title.length >= 5), 'kanaler', 'Skriv en Vrbo-titel'],
+      ['Vrbo-beskrivelse', !!(f.channel_vrbo_description && f.channel_vrbo_description.length >= 20), 'kanaler', 'Skriv en Vrbo-beskrivelse'],
+      ['Vrbo-highlights', (f.channel_vrbo_highlights?.length || 0) >= 2, 'kanaler', 'Tilføj mindst 2 highlights'],
+      ['Vrbo-regler', !!(f.channel_vrbo_rules && f.channel_vrbo_rules.length > 5), 'kanaler', 'Tilføj husregler til Vrbo'],
+    ],
+  };
+
+  const all = [...shared, ...channelChecks[channel]];
+  const passed = all.filter(([, ok]) => ok).map(([name]) => name);
+  const missing = all.filter(([, ok]) => !ok).map(([name, , tab, action]) => ({ field: name, tab, action }));
+  return { score: Math.round((passed.length / all.length) * 100), missing, passed };
+}
+
+function ReadinessRing({ score, size = 48, strokeWidth = 3 }: { score: number; size?: number; strokeWidth?: number }) {
+  const r = (size - strokeWidth) / 2;
+  const c = 2 * Math.PI * r;
+  const color = score >= 80 ? 'hsl(142, 71%, 45%)' : score >= 50 ? 'hsl(38, 92%, 50%)' : 'hsl(0, 84%, 60%)';
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="-rotate-90" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth={strokeWidth} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth}
+          strokeDasharray={`${(score / 100) * c} ${c}`} strokeLinecap="round" />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-xs font-bold text-foreground">{score}%</span>
+      </div>
+    </div>
+  );
+}
+
 export function ListingEditorV2({ listingId, onBack }: Props) {
   const { toast } = useToast();
   const [listing, setListing] = useState<ListingFull | null>(null);
