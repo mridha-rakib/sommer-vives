@@ -1,7 +1,7 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Phone, Mail, Clock, Play, RotateCcw, ChevronDown } from 'lucide-react';
+import { ArrowRight, Check, Phone, Mail, Clock, Play, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useRef, useState, useEffect } from 'react';
@@ -27,74 +27,158 @@ const reveal = (isInView: boolean, delay = 0) => ({
 });
 
 /* ═══════════════════════════════════════════════════
-   1. HERO — Founder-led media moment
+   1. HERO — Brand-led with cinematic video
    ═══════════════════════════════════════════════════ */
 function HeroSection() {
-  return (
-    <section className="relative min-h-[88vh] flex items-center bg-background text-foreground overflow-hidden">
-      <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-accent/[0.02] blur-[120px] pointer-events-none" />
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasEnded, setHasEnded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-      <div className="container mx-auto px-5 md:px-10 py-32 md:py-0">
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center max-w-[1140px] mx-auto">
-          {/* Copy */}
-          <motion.div {...fade()} className="lg:col-span-6 relative z-10">
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const onEnd = () => setHasEnded(true);
+    const onLoaded = () => setIsLoaded(true);
+    v.addEventListener('ended', onEnd);
+    v.addEventListener('loadeddata', onLoaded);
+    return () => {
+      v.removeEventListener('ended', onEnd);
+      v.removeEventListener('loadeddata', onLoaded);
+    };
+  }, []);
+
+  const replay = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play();
+      setHasEnded(false);
+    }
+  };
+
+  return (
+    <section className="relative bg-background text-foreground overflow-hidden">
+      <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-accent/[0.02] blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-accent/[0.015] blur-[100px] pointer-events-none" />
+
+      <div className="container mx-auto px-5 md:px-10 pt-28 md:pt-36 pb-10 md:pb-14">
+        <div className="max-w-[1140px] mx-auto">
+          {/* Headline + CTAs */}
+          <div className="text-center mb-12 md:mb-16">
             <motion.span
-              {...fade(0.1)}
-              className="inline-block text-accent/50 font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-6"
+              {...fade(0.05)}
+              className="inline-block text-accent/50 font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-5"
             >
               Om SommerVibes
             </motion.span>
 
             <motion.h1
-              {...fade(0.2)}
-              className="font-display text-[2.2rem] sm:text-[2.8rem] md:text-[3.2rem] lg:text-[3.5rem] font-bold leading-[1.05] tracking-[-0.015em] mb-6"
+              {...fade(0.15)}
+              className="font-display text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[3.8rem] font-bold leading-[1.05] tracking-[-0.02em] mb-6"
             >
-              Mød Emil
-              <span className="block text-accent italic font-normal mt-1 text-[0.85em]">— og historien bag SommerVibes</span>
+              Vi bygger fremtidens
+              <br />
+              <span className="text-accent italic font-normal">sommerhusbureau</span>
             </motion.h1>
 
             <motion.p
-              {...fade(0.35)}
-              className="text-[15px] md:text-[16px] text-muted-foreground/85 leading-[1.8] mb-10 max-w-[420px]"
+              {...fade(0.3)}
+              className="text-[15px] md:text-[16px] text-muted-foreground/80 leading-[1.8] mb-9 max-w-[520px] mx-auto"
             >
-              Grundlægger, udlejningschef og din faste kontaktperson. Emil byggede SommerVibes med én ambition: at give husejere en bedre, mere personlig oplevelse.
+              SommerVibes er et moderne, grundlægger-drevet bureau — mere personligt end de store, mere digitalt, mere gennemsigtigt. Bygget for husejere, der fortjener en bedre oplevelse.
             </motion.p>
 
-            <motion.div {...fade(0.5)} className="flex flex-col sm:flex-row gap-3">
-              <a href="#kontakt">
-                <Button variant="gold" size="lg" className="gap-2.5 group px-8 h-11 text-[13.5px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.3)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.4)] transition-shadow duration-500">
-                  Kontakt Emil <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+            <motion.div {...fade(0.45)} className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link to="/kom-i-gang">
+                <Button variant="gold" size="lg" className="gap-2.5 group px-8 h-12 text-[13.5px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.3)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.4)] transition-shadow duration-500">
+                  Udlej dit hus <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
                 </Button>
-              </a>
+              </Link>
               <Link to="/book-vurdering">
-                <Button variant="outline" size="lg" className="border-accent/20 text-accent/80 hover:bg-accent/[0.05] hover:border-accent/30 px-8 h-11 text-[13.5px] font-medium transition-all duration-300">
+                <Button variant="outline" size="lg" className="border-accent/20 text-accent/80 hover:bg-accent/[0.05] hover:border-accent/30 px-8 h-12 text-[13.5px] font-medium transition-all duration-300">
                   Book gratis udlejningstjek
                 </Button>
               </Link>
             </motion.div>
+          </div>
+
+          {/* Video block */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.1, delay: 0.4, ease: "easeOut" }}
+            className="max-w-[900px] mx-auto"
+          >
+            <div className="relative rounded-[1.25rem] overflow-hidden bg-card/60 ring-1 ring-white/[0.04] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
+              {/* Poster overlay before loaded */}
+              <AnimatePresence>
+                {!isLoaded && (
+                  <motion.div
+                    key="poster"
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 z-10 bg-background flex items-center justify-center"
+                  >
+                    <div className="text-center">
+                      <div className="w-14 h-14 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3 animate-pulse">
+                        <Play className="w-5 h-5 text-accent/50 ml-0.5" />
+                      </div>
+                      <p className="text-accent/40 text-[11px] font-medium tracking-[0.2em] uppercase">Indlæser video</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <video
+                ref={videoRef}
+                src="/videos/ewk-2.mp4"
+                playsInline
+                autoPlay
+                muted
+                preload="auto"
+                className="w-full aspect-video object-cover"
+              />
+
+              {/* Replay button */}
+              <AnimatePresence>
+                {hasEnded && (
+                  <motion.button
+                    key="replay"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    onClick={replay}
+                    className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-card/80 backdrop-blur-md ring-1 ring-white/[0.08] flex items-center justify-center cursor-pointer hover:scale-105 hover:ring-accent/20 transition-all duration-300"
+                    title="Se igen"
+                  >
+                    <RotateCcw className="w-4 h-4 text-accent/70" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.div>
 
-          {/* Portrait */}
+          {/* Founder trust strip below video */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.1, delay: 0.3, ease: "easeOut" }}
-            className="lg:col-span-6 flex justify-center lg:justify-end"
+            transition={{ duration: 0.9, delay: 0.7, ease: "easeOut" }}
+            className="max-w-[900px] mx-auto mt-8 md:mt-10"
           >
-            <div className="relative w-full max-w-[480px]">
-              <div className="absolute -inset-6 bg-accent/[0.03] rounded-[2rem] blur-3xl pointer-events-none" />
-              <div className="relative rounded-[1.5rem] overflow-hidden shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)] ring-1 ring-white/[0.04]">
-                <img
-                  src={emilPortrait}
-                  alt="Emil Weng Klockmann — Grundlægger af SommerVibes"
-                  className="w-full aspect-[4/5] object-cover object-top"
-                />
-                <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
-                <div className="absolute bottom-6 left-7 right-7">
-                  <p className="font-display font-semibold text-foreground text-[15px] tracking-[-0.01em]">Emil Weng Klockmann</p>
-                  <p className="text-[11px] text-accent/60 font-medium mt-0.5 tracking-wide">Grundlægger & Udlejningschef</p>
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-8 bg-card/40 rounded-2xl ring-1 ring-white/[0.03] p-6 md:p-8">
+              <div className="flex items-center gap-4 flex-shrink-0">
+                <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-accent/15 shadow-lg flex-shrink-0">
+                  <img src={emilPortrait} alt="Emil Weng Klockmann" className="w-full h-full object-cover object-top" />
+                </div>
+                <div>
+                  <p className="font-display font-semibold text-foreground text-[14px] tracking-[-0.01em]">Emil Weng Klockmann</p>
+                  <p className="text-[11px] text-accent/55 font-medium tracking-wide">Grundlægger & Udlejningschef</p>
                 </div>
               </div>
+              <div className="h-px md:h-8 w-full md:w-px bg-border/20 flex-shrink-0" />
+              <p className="text-muted-foreground/70 text-[13.5px] leading-[1.7] flex-1">
+                Uddannet ejendomsmægler og selv sommerhus-ejer. Emil grundlagde SommerVibes med én ambition: at give husejere en bedre, mere personlig og mere gennemsigtig oplevelse.
+              </p>
             </div>
           </motion.div>
         </div>
@@ -104,86 +188,7 @@ function HeroSection() {
 }
 
 /* ═══════════════════════════════════════════════════
-   2. VIDEO — Cinematic founder film
-   ═══════════════════════════════════════════════════ */
-function VideoSection() {
-  const { ref, isInView } = useScrollReveal();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [hasEnded, setHasEnded] = useState(false);
-
-  const play = () => { videoRef.current?.play(); setIsPlaying(true); setHasEnded(false); };
-  const replay = () => {
-    if (videoRef.current) { videoRef.current.currentTime = 0; videoRef.current.play(); setIsPlaying(true); setHasEnded(false); }
-  };
-
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const onEnd = () => { setIsPlaying(false); setHasEnded(true); };
-    v.addEventListener('ended', onEnd);
-    return () => v.removeEventListener('ended', onEnd);
-  }, []);
-
-  return (
-    <section ref={ref} className="py-16 md:py-24 bg-background relative">
-      <div className="container mx-auto px-5 md:px-10 max-w-[920px]">
-        <motion.div
-          {...reveal(isInView)}
-          className="relative rounded-[1.25rem] overflow-hidden bg-card/60 ring-1 ring-white/[0.04] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]"
-        >
-          <video
-            ref={videoRef}
-            src="/video/emil-intro.mp4"
-            poster={emilPortrait}
-            playsInline
-            preload="metadata"
-            className="w-full aspect-[16/9] object-contain bg-background"
-          />
-
-          <AnimatePresence>
-            {!isPlaying && !hasEnded && (
-              <motion.button
-                key="play"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                onClick={play}
-                className="absolute inset-0 flex items-center justify-center bg-background/30 group cursor-pointer"
-              >
-                <div className="relative">
-                  <div className="absolute -inset-5 rounded-full bg-accent/8 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                  <div className="relative w-16 h-16 md:w-[72px] md:h-[72px] rounded-full bg-accent/90 flex items-center justify-center shadow-[0_10px_50px_-10px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300">
-                    <Play className="w-5 h-5 md:w-6 md:h-6 text-primary fill-primary ml-0.5" />
-                  </div>
-                </div>
-              </motion.button>
-            )}
-
-            {hasEnded && (
-              <motion.button
-                key="replay"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                onClick={replay}
-                className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-card/80 backdrop-blur-md ring-1 ring-white/[0.08] flex items-center justify-center cursor-pointer hover:scale-105 hover:ring-accent/20 transition-all duration-300"
-                title="Se igen"
-              >
-                <RotateCcw className="w-4 h-4 text-accent/70" />
-              </motion.button>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   3. STORY — One strong editorial block
+   2. STORY — One strong editorial block
    ═══════════════════════════════════════════════════ */
 function StorySection() {
   const { ref, isInView } = useScrollReveal();
@@ -254,7 +259,7 @@ function StorySection() {
 }
 
 /* ═══════════════════════════════════════════════════
-   4. FOUNDER + TRUST — Combined, compact
+   3. FOUNDER + TRUST — Combined, compact
    ═══════════════════════════════════════════════════ */
 function FounderTrustSection() {
   const { ref, isInView } = useScrollReveal();
@@ -350,7 +355,7 @@ function FounderTrustSection() {
 }
 
 /* ═══════════════════════════════════════════════════
-   5. BRAND DNA — Compact strip
+   4. BRAND DNA — Compact strip
    ═══════════════════════════════════════════════════ */
 function BrandDNA() {
   const { ref, isInView } = useScrollReveal();
@@ -382,7 +387,7 @@ function BrandDNA() {
 }
 
 /* ═══════════════════════════════════════════════════
-   6. CONTACT + FAQ + CTA — Tight closing sequence
+   5. CONTACT + FAQ + CTA — Tight closing sequence
    ═══════════════════════════════════════════════════ */
 function ContactCloseSection() {
   const { ref, isInView } = useScrollReveal();
@@ -486,7 +491,6 @@ export default function About() {
   return (
     <PublicLayout>
       <HeroSection />
-      <VideoSection />
       <StorySection />
       <FounderTrustSection />
       <BrandDNA />
