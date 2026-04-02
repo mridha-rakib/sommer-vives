@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, X, Plus, Check, Image, MapPin, Type, DollarSign, Settings, Sparkles } from 'lucide-react';
+import { ArrowLeft, Loader2, X, Plus, Check, Image, MapPin, Type, DollarSign, Settings, Sparkles, AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
 
 /* ─── types ─── */
 interface ContentFields {
@@ -380,36 +380,119 @@ export function ListingEditor({ listing, onBack }: Props) {
       )}
 
       {/* ─── 6. Klargøring ─── */}
-      {activeSection === 5 && (
-        <Section title="Klargøring" icon={Settings}>
-          <Row>
-            <Field label="Check-in tid">
-              <Input type="time" value={form.check_in_time} onChange={e => updateField('check_in_time', e.target.value)} />
-            </Field>
-            <Field label="Check-out tid">
-              <Input type="time" value={form.check_out_time} onChange={e => updateField('check_out_time', e.target.value)} />
-            </Field>
-          </Row>
-          <Field label="Check-in instruktioner" hint="Hvad gæsten skal vide ved ankomst">
-            <Textarea value={form.checkin_info} onChange={e => updateField('checkin_info', e.target.value)}
-              rows={3} placeholder="Nøgleboksen sidder til venstre for hoveddøren. Koden er…" />
-          </Field>
-          <Field label="Check-out instruktioner" hint="Hvad gæsten skal gøre ved afrejse">
-            <Textarea value={form.checkout_info} onChange={e => updateField('checkout_info', e.target.value)}
-              rows={3} placeholder="Tøm køleskab, start opvaskemaskine, lås hoveddør…" />
-          </Field>
-          <div className="pt-2 border-t border-border space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Slug</span>
-              <span className="font-mono text-xs text-foreground">{listing.slug}</span>
+      {activeSection === 5 && (() => {
+        const checks: { label: string; ok: boolean; fix: string; section: number }[] = [
+          { label: 'Titel', ok: !!form.name.trim(), fix: 'Tilføj en titel', section: 0 },
+          { label: 'Adresse', ok: !!form.address.trim(), fix: 'Tilføj adresse', section: 0 },
+          { label: 'Region', ok: !!form.region.trim(), fix: 'Angiv region', section: 0 },
+          { label: 'Kapacitet', ok: form.max_guests >= 1, fix: 'Sæt antal gæster', section: 0 },
+          { label: 'Beskrivelse', ok: form.description.trim().length >= 20, fix: 'Skriv en beskrivelse (min. 20 tegn)', section: 1 },
+          { label: 'Husregler', ok: !!form.house_rules.trim(), fix: 'Tilføj husregler', section: 1 },
+          { label: 'Praktisk info', ok: !!form.practical_info.trim(), fix: 'Tilføj praktisk info (WiFi, parkering…)', section: 1 },
+          { label: 'Hero-billede', ok: !!form.hero_image.trim(), fix: 'Vælg et hovedbillede', section: 2 },
+          { label: 'Min. 5 billeder', ok: form.images.filter(i => i.trim()).length >= 5, fix: `Mangler ${Math.max(0, 5 - form.images.filter(i => i.trim()).length)} billeder`, section: 2 },
+          { label: 'Faciliteter', ok: form.amenities.length >= 3, fix: `Tilføj ${Math.max(0, 3 - form.amenities.length)} flere faciliteter`, section: 3 },
+          { label: 'Pris pr. nat', ok: form.base_price_per_night > 0, fix: 'Sæt en pris per nat', section: 4 },
+          { label: 'Rengøringsgebyr', ok: form.cleaning_fee > 0, fix: 'Angiv rengøringsgebyr', section: 4 },
+          { label: 'Check-in tid', ok: !!form.check_in_time, fix: 'Sæt check-in tidspunkt', section: 5 },
+          { label: 'Check-out tid', ok: !!form.check_out_time, fix: 'Sæt check-out tidspunkt', section: 5 },
+          { label: 'Check-in info', ok: !!form.checkin_info.trim(), fix: 'Beskriv ankomst-procedure', section: 5 },
+        ];
+        const passed = checks.filter(c => c.ok).length;
+        const score = Math.round((passed / checks.length) * 100);
+        const missing = checks.filter(c => !c.ok);
+        const circumference = 2 * Math.PI * 40;
+        const offset = circumference - (score / 100) * circumference;
+
+        return (
+          <Section title="Klargøring" icon={Settings}>
+            {/* Score */}
+            <div className="flex items-center gap-5 pb-4 border-b border-border">
+              <div className="relative w-20 h-20 shrink-0">
+                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="7" className="text-muted/30" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="7"
+                    strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+                    className={score >= 80 ? 'text-primary' : score >= 50 ? 'text-accent-foreground' : 'text-destructive'} />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-lg font-bold text-foreground">{score}%</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {score === 100 ? 'Klar til publicering! 🎉' : score >= 80 ? 'Næsten klar' : score >= 50 ? 'Halvvejs — fortsæt!' : 'Mangler grunddata'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{passed} af {checks.length} felter udfyldt</p>
+              </div>
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Listing ID</span>
-              <span className="font-mono text-[10px] text-foreground">{listing.id}</span>
+
+            {/* Missing items */}
+            {missing.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mangler</p>
+                {missing.map(item => (
+                  <button key={item.label} onClick={() => setActiveSection(item.section)}
+                    className="w-full flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-left hover:bg-muted/50 transition-colors group">
+                    <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">{item.fix}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Completed items */}
+            {passed > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Udfyldt</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {checks.filter(c => c.ok).map(item => (
+                    <span key={item.label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                      <CheckCircle2 className="h-3 w-3" /> {item.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Check-in/out fields inline */}
+            <div className="pt-3 border-t border-border space-y-4">
+              <Row>
+                <Field label="Check-in tid">
+                  <Input type="time" value={form.check_in_time} onChange={e => updateField('check_in_time', e.target.value)} />
+                </Field>
+                <Field label="Check-out tid">
+                  <Input type="time" value={form.check_out_time} onChange={e => updateField('check_out_time', e.target.value)} />
+                </Field>
+              </Row>
+              <Field label="Check-in instruktioner" hint="Hvad gæsten skal vide ved ankomst">
+                <Textarea value={form.checkin_info} onChange={e => updateField('checkin_info', e.target.value)}
+                  rows={3} placeholder="Nøgleboksen sidder til venstre for hoveddøren. Koden er…" />
+              </Field>
+              <Field label="Check-out instruktioner" hint="Hvad gæsten skal gøre ved afrejse">
+                <Textarea value={form.checkout_info} onChange={e => updateField('checkout_info', e.target.value)}
+                  rows={3} placeholder="Tøm køleskab, start opvaskemaskine, lås hoveddør…" />
+              </Field>
             </div>
-          </div>
-        </Section>
-      )}
+
+            {/* Meta */}
+            <div className="pt-2 border-t border-border space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Slug</span>
+                <span className="font-mono text-xs text-foreground">{listing.slug}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Listing ID</span>
+                <span className="font-mono text-[10px] text-foreground">{listing.id}</span>
+              </div>
+            </div>
+          </Section>
+        );
+      })()}
 
       {/* ─── bottom bar ─── */}
       <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur border-t border-border p-3 flex items-center justify-between z-50">
