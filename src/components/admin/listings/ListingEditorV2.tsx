@@ -613,34 +613,20 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
 
           {/* ── FACILITETER ── */}
           {subTab === 'faciliteter' && (
-            <Section title="Faciliteter & Udstyr" description="Vælg fra listen eller tilføj egne">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {AMENITIES_PRESETS.map(a => {
-                  const sel = (listing.amenities || []).includes(a);
-                  return (
-                    <button key={a} onClick={() => { if (sel) update('amenities', (listing.amenities || []).filter(x => x !== a)); else update('amenities', [...(listing.amenities || []), a]); }}
-                      className={`px-3 py-2.5 rounded-lg border text-sm text-left transition-all ${sel ? 'bg-primary/10 border-primary/30 text-primary font-medium' : 'bg-card border-border text-muted-foreground hover:border-primary/20'}`}>
-                      <CheckCircle2 className={`h-3.5 w-3.5 inline mr-1.5 ${sel ? 'text-primary' : 'text-muted-foreground/30'}`} />{a}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="border-t border-border pt-4 mt-4">
-                <p className="text-xs text-muted-foreground mb-2">Egne faciliteter:</p>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {(listing.amenities || []).filter(a => !AMENITIES_PRESETS.includes(a)).map(a => (
-                    <Badge key={a} variant="secondary" className="gap-1 text-xs">{a}
-                      <button onClick={() => update('amenities', (listing.amenities || []).filter(x => x !== a))} className="ml-1 hover:text-destructive"><X className="h-3 w-3" /></button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2 max-w-sm">
-                  <Input value={newAmenity} onChange={e => setNewAmenity(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (newAmenity.trim() && !(listing.amenities || []).includes(newAmenity.trim())) { update('amenities', [...(listing.amenities || []), newAmenity.trim()]); setNewAmenity(''); } } }}
-                    placeholder="Tilføj egen facilitet..." />
-                  <Button variant="outline" size="sm" onClick={() => { if (newAmenity.trim() && !(listing.amenities || []).includes(newAmenity.trim())) { update('amenities', [...(listing.amenities || []), newAmenity.trim()]); setNewAmenity(''); } }}><Plus className="h-4 w-4" /></Button>
-                </div>
-              </div>
+            <AdminFacilities
+              facilities={((listing as any).facilities as FacilityCategory[]) || []}
+              onChange={f => update('facilities' as any, f)}
+            />
+          )}
+
+          {/* ── SEKTIONER ── */}
+          {subTab === 'sektioner' && (
+            <Section title="Ekstra sektioner" description="Tilføj ekstra indholdsblokke med billeder til din listing">
+              <AdminSectionEditor
+                sections={((listing as any).extra_sections as ExtraSection[]) || []}
+                onChange={s => update('extra_sections' as any, s)}
+                listingSlug={listing.slug}
+              />
             </Section>
           )}
 
