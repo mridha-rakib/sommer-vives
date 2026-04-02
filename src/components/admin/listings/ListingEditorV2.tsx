@@ -914,12 +914,16 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         <ListingStaffTab listingId={listing.id} />
       )}
 
+      {/* ═══════════════════════ DOKUMENTER TAB ═══════════════════════ */}
+      {topTab === 'dokumenter' && listing && (
+        <ListingDocumentsTab listingId={listing.id} ownerId={listing.owner_id} />
+      )}
+
       {/* ═══════════════════════ PLACEHOLDER TABS ═══════════════════════ */}
-      {['tilkoeb', 'dokumenter', 'opgaver', 'noter'].includes(topTab) && (
+      {['tilkoeb', 'opgaver', 'noter'].includes(topTab) && (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
             {topTab === 'tilkoeb' && <ShoppingBag className="h-7 w-7" />}
-            {topTab === 'dokumenter' && <FileText className="h-7 w-7" />}
             {topTab === 'opgaver' && <ClipboardCheck className="h-7 w-7" />}
             {topTab === 'noter' && <StickyNote className="h-7 w-7" />}
           </div>
