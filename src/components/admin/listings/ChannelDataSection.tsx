@@ -2,50 +2,41 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { StatusChip } from '@/components/admin/ui/StatusChip';
 import { cn } from '@/lib/utils';
 import {
-  RefreshCw, CheckCircle2, AlertTriangle, Info, Shield, Pen,
-  ChevronDown, ChevronUp, Sparkles, ArrowRight, CircleAlert, Lightbulb,
-  Copy, Check, ExternalLink, Eye, EyeOff
+  mapAmenitiesToChannel, getChannelImageOrder, validateChannel, getChannelFields,
+  type ChannelKey, type ValidationResult, type ChannelFieldMapping,
+} from '@/lib/channel-mapping';
+import {
+  RefreshCw, CheckCircle2, AlertTriangle, Shield, Pen, Sparkles, CircleAlert,
+  Copy, Check, Eye, EyeOff, ImageIcon, Puzzle, ChevronDown, ChevronUp, ArrowRight,
 } from 'lucide-react';
 
 // ── Types ──
 type FieldStatus = 'autofilled' | 'needs_approval' | 'missing' | 'platform_specific' | 'manual_override';
 
 interface ChannelField {
-  key: string;
-  label: string;
-  type: 'text' | 'textarea' | 'tags';
-  hint?: string;
-  maxLength?: number;
-  minLength?: number;
-  rows?: number;
-  masterSource?: string;
-  platformSpecific?: boolean;
-  required?: boolean;
+  key: string; label: string; type: 'text' | 'textarea' | 'tags';
+  hint?: string; maxLength?: number; minLength?: number; rows?: number;
+  masterSource?: string; platformSpecific?: boolean; required?: boolean;
   getMasterValue: () => string | string[] | null;
 }
 
 interface ChannelDataSectionProps {
-  channelName: string;
-  channelKey: 'airbnb' | 'booking' | 'vrbo';
-  emoji: string;
-  fields: ChannelField[];
-  listing: Record<string, any>;
+  channelName: string; channelKey: ChannelKey; emoji: string;
+  fields: ChannelField[]; listing: Record<string, any>;
   onUpdate: (key: string, value: any) => void;
-  onAiFill?: () => void;
-  aiFilling?: boolean;
-  readinessScore: number;
-  readinessPassed: string[];
+  onAiFill?: () => void; aiFilling?: boolean;
+  readinessScore: number; readinessPassed: string[];
   readinessMissing: { field: string }[];
+  onNavigateToStep?: (step: string) => void;
 }
 
-// ── Readiness Ring (compact) ──
+// ── Readiness Ring ──
 function ChannelReadinessRing({ score, size = 56 }: { score: number; size?: number }) {
-  const strokeWidth = 3;
-  const r = (size - strokeWidth) / 2;
-  const c = 2 * Math.PI * r;
+  const strokeWidth = 3, r = (size - strokeWidth) / 2, c = 2 * Math.PI * r;
   const color = score >= 80 ? 'hsl(142, 71%, 45%)' : score >= 50 ? 'hsl(38, 92%, 50%)' : 'hsl(0, 84%, 60%)';
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -61,7 +52,6 @@ function ChannelReadinessRing({ score, size = 56 }: { score: number; size?: numb
   );
 }
 
-// ── Channel header info ──
 const CHANNEL_INFO: Record<string, { color: string; desc: string }> = {
   airbnb: { color: 'hsl(353, 77%, 56%)', desc: 'Airbnb-optimeret titel, beskrivelse og highlights' },
   booking: { color: 'hsl(220, 80%, 50%)', desc: 'Booking.com-format med værelsesopsætning og politikker' },
@@ -70,15 +60,37 @@ const CHANNEL_INFO: Record<string, { color: string; desc: string }> = {
 
 export function ChannelDataSection({
   channelName, channelKey, emoji, fields, listing, onUpdate,
-  onAiFill, aiFilling, readinessScore, readinessPassed, readinessMissing,
+  onAiFill, aiFilling, readinessScore, readinessPassed, readinessMissing, onNavigateToStep,
 }: ChannelDataSectionProps) {
   const [overrides, setOverrides] = useState<Set<string>>(new Set());
   const [autofilledFields, setAutofilledFields] = useState<Set<string>>(new Set());
   const [pendingApproval, setPendingApproval] = useState<Set<string>>(new Set());
   const [approved, setApproved] = useState(!!listing[`channel_${channelKey}_ready`]);
   const [editingField, setEditingField] = useState<string | null>(null);
+  const [showAmenities, setShowAmenities] = useState(false);
+  const [showMedia, setShowMedia] = useState(false);
 
   const info = CHANNEL_INFO[channelKey] || CHANNEL_INFO.airbnb;
+
+  // ── Amenity mapping ──
+  const amenityMapping = useMemo(() => {
+    return mapAmenitiesToChannel(listing.amenities || [], channelKey);
+  }, [listing.amenities, channelKey]);
+
+  // ── Media ordering ──
+  const mediaOrder = useMemo(() => {
+    return getChannelImageOrder(
+      listing.images || [], listing.hero_image, listing.image_labels, channelKey
+    );
+  }, [listing.images, listing.hero_image, listing.image_labels, channelKey]);
+
+  // ── Validation ──
+  const validations = useMemo(() => {
+    return validateChannel(listing, channelKey);
+  }, [listing, channelKey]);
+
+  const errors = validations.filter(v => v.status === 'error');
+  const warnings = validations.filter(v => v.status === 'warning');
 
   const getFieldStatus = (field: ChannelField): FieldStatus => {
     const channelValue = listing[field.key];
@@ -137,18 +149,14 @@ export function ChannelDataSection({
   };
 
   const missingFields = fields.filter(f => getFieldStatus(f) === 'missing' || getFieldStatus(f) === 'platform_specific');
-  const filledFields = fields.filter(f => getFieldStatus(f) !== 'missing' && getFieldStatus(f) !== 'platform_specific');
 
   return (
     <div className="space-y-5">
-      {/* ═══ HERO SUMMARY CARD ═══ */}
+      {/* ═══ HERO SUMMARY ═══ */}
       <div className="rounded-2xl border border-border/40 bg-card overflow-hidden">
         <div className="p-6">
           <div className="flex items-start gap-5">
-            {/* Readiness ring */}
             <ChannelReadinessRing score={readinessScore} />
-
-            {/* Summary */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xl">{emoji}</span>
@@ -156,8 +164,6 @@ export function ChannelDataSection({
                 {approved && <StatusChip label="Godkendt" variant="success" dot size="sm" />}
               </div>
               <p className="text-xs text-muted-foreground mb-3">{info.desc}</p>
-
-              {/* Coverage bar */}
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-2 rounded-full bg-muted/30 overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-500"
@@ -174,8 +180,6 @@ export function ChannelDataSection({
                 <span className="text-xs text-muted-foreground font-medium tabular-nums">{stats.filled}/{stats.total} felter</span>
               </div>
             </div>
-
-            {/* Actions */}
             <div className="flex flex-col gap-2 shrink-0">
               <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8 rounded-xl" onClick={handleAutoFill}>
                 <RefreshCw className="h-3 w-3" /> Auto-udfyld
@@ -189,7 +193,7 @@ export function ChannelDataSection({
           </div>
         </div>
 
-        {/* Approval banner */}
+        {/* Pending approval */}
         {stats.pending > 0 && (
           <div className="px-6 py-3 border-t border-amber-500/15 bg-amber-500/5 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -202,7 +206,7 @@ export function ChannelDataSection({
           </div>
         )}
 
-        {/* All ready banner */}
+        {/* All ready */}
         {stats.missing === 0 && readinessScore >= 80 && stats.pending === 0 && (
           <div className="px-6 py-3 border-t border-emerald-500/15 bg-emerald-500/5 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -211,12 +215,156 @@ export function ChannelDataSection({
         )}
       </div>
 
-      {/* ═══ MISSING FIELDS - COMPACT ACTION LIST ═══ */}
-      {missingFields.length > 0 && (
+      {/* ═══ VALIDATION PANEL ═══ */}
+      {(errors.length > 0 || warnings.length > 0) && (
         <div className="rounded-2xl border border-destructive/20 bg-destructive/[0.03] overflow-hidden">
           <div className="px-5 py-3 flex items-center gap-2 border-b border-destructive/10">
             <CircleAlert className="h-4 w-4 text-destructive" />
             <span className="text-sm font-semibold text-foreground">Mangler før klar</span>
+            <span className="ml-auto text-[10px] font-bold tabular-nums rounded-full bg-destructive/10 text-destructive px-2 py-0.5">
+              {errors.length + warnings.length}
+            </span>
+          </div>
+          <div className="divide-y divide-border/20">
+            {errors.map((v, i) => (
+              <div key={`e-${i}`} className="px-5 py-3 flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-medium text-foreground">{v.label}</span>
+                  <span className="text-[10px] text-muted-foreground ml-2">{v.message}</span>
+                </div>
+                {onNavigateToStep && v.tab && (
+                  <Button size="sm" variant="ghost" className="text-[10px] h-6 px-2 gap-1 rounded-lg text-primary"
+                    onClick={() => onNavigateToStep(v.tab)}>
+                    <ArrowRight className="h-2.5 w-2.5" /> Gå til
+                  </Button>
+                )}
+              </div>
+            ))}
+            {warnings.map((v, i) => (
+              <div key={`w-${i}`} className="px-5 py-3 flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-medium text-foreground">{v.label}</span>
+                  <span className="text-[10px] text-muted-foreground ml-2">{v.message}</span>
+                </div>
+                {onNavigateToStep && v.tab && (
+                  <Button size="sm" variant="ghost" className="text-[10px] h-6 px-2 gap-1 rounded-lg text-muted-foreground"
+                    onClick={() => onNavigateToStep(v.tab)}>
+                    <ArrowRight className="h-2.5 w-2.5" /> Gå til
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ AMENITY MAPPING ═══ */}
+      <div className="rounded-2xl border border-border/30 bg-card/80 overflow-hidden">
+        <button className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-muted/20 transition-colors"
+          onClick={() => setShowAmenities(!showAmenities)}>
+          <Puzzle className="h-4 w-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground flex-1">Facilitetsmapping</span>
+          <Badge variant="outline" className="text-[10px] font-mono">
+            {amenityMapping.mapped.length} mapped · {amenityMapping.unmapped.length} unmapped
+          </Badge>
+          {showAmenities ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+        </button>
+        {showAmenities && (
+          <div className="px-5 pb-4 space-y-3 border-t border-border/20 pt-3">
+            {amenityMapping.mapped.length > 0 && (
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Mapped til {channelName}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {amenityMapping.mapped.map(a => (
+                    <span key={a} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-[10px] font-medium text-emerald-600">
+                      <Check className="h-2.5 w-2.5" /> {a}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {amenityMapping.unmapped.length > 0 && (
+              <div>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Ikke mapped (interne)</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {amenityMapping.unmapped.map(a => (
+                    <span key={a} className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted/50 text-[10px] font-medium text-muted-foreground">
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(listing.amenities || []).length === 0 && (
+              <div className="text-xs text-muted-foreground/60 italic flex items-center gap-2">
+                <AlertTriangle className="h-3.5 w-3.5" /> Ingen faciliteter tilføjet i master-listen endnu
+                {onNavigateToStep && (
+                  <Button size="sm" variant="ghost" className="text-[10px] h-6 px-2 gap-1 rounded-lg text-primary"
+                    onClick={() => onNavigateToStep('amenities')}>
+                    Tilføj faciliteter <ArrowRight className="h-2.5 w-2.5" />
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ═══ MEDIA MAPPING ═══ */}
+      <div className="rounded-2xl border border-border/30 bg-card/80 overflow-hidden">
+        <button className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-muted/20 transition-colors"
+          onClick={() => setShowMedia(!showMedia)}>
+          <ImageIcon className="h-4 w-4 text-primary" />
+          <span className="text-sm font-semibold text-foreground flex-1">Billedrækkefølge</span>
+          <Badge variant="outline" className="text-[10px] font-mono">
+            {mediaOrder.length} billeder
+          </Badge>
+          {showMedia ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+        </button>
+        {showMedia && (
+          <div className="px-5 pb-4 border-t border-border/20 pt-3">
+            {mediaOrder.length > 0 ? (
+              <div className="grid grid-cols-6 gap-2">
+                {mediaOrder.slice(0, 12).map((img, i) => (
+                  <div key={img} className="relative group">
+                    <img src={img} alt="" className={cn(
+                      'w-full aspect-square object-cover rounded-lg',
+                      i === 0 && 'ring-2 ring-primary ring-offset-1'
+                    )} />
+                    <span className="absolute top-1 left-1 text-[8px] font-bold bg-black/60 text-white rounded px-1">
+                      {i + 1}
+                    </span>
+                    {i === 0 && (
+                      <span className="absolute bottom-1 left-1 text-[7px] font-bold bg-primary text-primary-foreground rounded px-1">
+                        HERO
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {mediaOrder.length > 12 && (
+                  <div className="w-full aspect-square rounded-lg bg-muted/30 flex items-center justify-center text-xs text-muted-foreground font-medium">
+                    +{mediaOrder.length - 12}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground/60 italic">Ingen billeder uploadet endnu</p>
+            )}
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Rækkefølgen er optimeret til {channelName}: hero først, derefter kategoriseret efter platformens prioritering.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* ═══ MISSING FIELDS ═══ */}
+      {missingFields.length > 0 && (
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/[0.03] overflow-hidden">
+          <div className="px-5 py-3 flex items-center gap-2 border-b border-destructive/10">
+            <CircleAlert className="h-4 w-4 text-destructive" />
+            <span className="text-sm font-semibold text-foreground">Manglende kanalfelter</span>
             <span className="ml-auto text-[10px] font-bold tabular-nums rounded-full bg-destructive/10 text-destructive px-2 py-0.5">
               {missingFields.length}
             </span>
@@ -260,7 +408,7 @@ export function ChannelDataSection({
         </div>
       )}
 
-      {/* ═══ FIELD REVIEW CARDS ═══ */}
+      {/* ═══ FIELD REVIEW ═══ */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1">
           <Eye className="h-3.5 w-3.5 text-muted-foreground" />
@@ -278,56 +426,44 @@ export function ChannelDataSection({
             <div key={field.key}
               className={cn(
                 'rounded-xl border transition-all',
-                isEditing
-                  ? 'border-primary/30 bg-primary/[0.02] shadow-sm'
-                  : isPending
-                    ? 'border-amber-500/25 bg-amber-500/[0.02]'
-                    : !hasValue
-                      ? 'border-destructive/15 bg-destructive/[0.02]'
-                      : 'border-border/30 bg-card/50'
-              )}
-            >
-              {/* Field header row */}
+                isEditing ? 'border-primary/30 bg-primary/[0.02] shadow-sm'
+                  : isPending ? 'border-amber-500/25 bg-amber-500/[0.02]'
+                  : !hasValue ? 'border-destructive/15 bg-destructive/[0.02]'
+                  : 'border-border/30 bg-card/50'
+              )}>
               <div className="px-4 py-3 flex items-center gap-3">
-                {/* Status icon */}
                 <div className={cn(
                   'w-6 h-6 rounded-lg flex items-center justify-center shrink-0',
-                  status === 'autofilled' || status === 'manual_override'
-                    ? 'bg-emerald-500/10'
-                    : status === 'needs_approval'
-                      ? 'bg-amber-500/10'
-                      : 'bg-destructive/10'
+                  status === 'autofilled' || status === 'manual_override' ? 'bg-emerald-500/10'
+                    : status === 'needs_approval' ? 'bg-amber-500/10' : 'bg-destructive/10'
                 )}>
                   {status === 'autofilled' || status === 'manual_override'
                     ? <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                     : status === 'needs_approval'
                       ? <Shield className="h-3 w-3 text-amber-500" />
-                      : <CircleAlert className="h-3 w-3 text-destructive" />
-                  }
+                      : <CircleAlert className="h-3 w-3 text-destructive" />}
                 </div>
-
-                {/* Label & source */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-foreground">{field.label}</span>
                     {field.maxLength && hasValue && !Array.isArray(value) && (
-                      <span className="text-[9px] text-muted-foreground tabular-nums">{value.length}/{field.maxLength}</span>
+                      <span className={cn(
+                        'text-[9px] tabular-nums',
+                        value.length > field.maxLength ? 'text-destructive font-bold' : 'text-muted-foreground'
+                      )}>{value.length}/{field.maxLength}</span>
+                    )}
+                    {field.minLength && hasValue && !Array.isArray(value) && value.length < field.minLength && (
+                      <span className="text-[9px] text-amber-500 tabular-nums">Min {field.minLength} tegn</span>
                     )}
                   </div>
                   {field.masterSource && !isEditing && (
                     <span className="text-[10px] text-muted-foreground/60">Kilde: {field.masterSource}</span>
                   )}
                 </div>
-
-                {/* Actions */}
                 <div className="flex items-center gap-1 shrink-0">
                   {isPending && (
                     <Button size="sm" variant="ghost" className="text-[10px] h-6 px-2 gap-1 rounded-lg text-amber-600 hover:bg-amber-500/10"
-                      onClick={() => {
-                        const next = new Set(pendingApproval);
-                        next.delete(field.key);
-                        setPendingApproval(next);
-                      }}>
+                      onClick={() => { const next = new Set(pendingApproval); next.delete(field.key); setPendingApproval(next); }}>
                       <Check className="h-2.5 w-2.5" /> Godkend
                     </Button>
                   )}
@@ -340,15 +476,12 @@ export function ChannelDataSection({
                 </div>
               </div>
 
-              {/* Preview value (when not editing) */}
               {!isEditing && hasValue && (
                 <div className="px-4 pb-3 -mt-1">
                   {field.type === 'tags' && Array.isArray(value) ? (
                     <div className="flex flex-wrap gap-1.5">
                       {value.map((tag: string, i: number) => (
-                        <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted/50 text-[10px] font-medium text-foreground">
-                          {tag}
-                        </span>
+                        <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted/50 text-[10px] font-medium text-foreground">{tag}</span>
                       ))}
                     </div>
                   ) : (
@@ -357,7 +490,6 @@ export function ChannelDataSection({
                 </div>
               )}
 
-              {/* Empty state */}
               {!isEditing && !hasValue && (
                 <div className="px-4 pb-3 -mt-1">
                   <p className="text-[11px] text-muted-foreground/50 italic">
@@ -366,37 +498,23 @@ export function ChannelDataSection({
                 </div>
               )}
 
-              {/* Edit mode */}
               {isEditing && (
                 <div className="px-4 pb-4 space-y-2">
                   {field.type === 'text' && (
-                    <Input
-                      value={value || ''}
-                      onChange={e => handleFieldChange(field, e.target.value)}
-                      placeholder={field.hint || ''}
-                      maxLength={field.maxLength}
-                      className="h-9 text-sm rounded-xl bg-background/60 border-border/40"
-                      autoFocus
-                    />
+                    <Input value={value || ''} onChange={e => handleFieldChange(field, e.target.value)}
+                      placeholder={field.hint || ''} maxLength={field.maxLength}
+                      className="h-9 text-sm rounded-xl bg-background/60 border-border/40" autoFocus />
                   )}
                   {field.type === 'textarea' && (
-                    <Textarea
-                      value={value || ''}
-                      onChange={e => handleFieldChange(field, e.target.value)}
-                      rows={field.rows || 3}
-                      placeholder={field.hint || ''}
-                      className="text-sm rounded-xl bg-background/60 border-border/40"
-                      autoFocus
-                    />
+                    <Textarea value={value || ''} onChange={e => handleFieldChange(field, e.target.value)}
+                      rows={field.rows || 3} placeholder={field.hint || ''}
+                      className="text-sm rounded-xl bg-background/60 border-border/40" autoFocus />
                   )}
                   {field.type === 'tags' && (
-                    <Input
-                      value={(Array.isArray(value) ? value : []).join(', ')}
+                    <Input value={(Array.isArray(value) ? value : []).join(', ')}
                       onChange={e => handleFieldChange(field, e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean))}
                       placeholder={field.hint || 'Komma-separeret'}
-                      className="h-9 text-sm rounded-xl bg-background/60 border-border/40"
-                      autoFocus
-                    />
+                      className="h-9 text-sm rounded-xl bg-background/60 border-border/40" autoFocus />
                   )}
                   {field.hint && <p className="text-[10px] text-muted-foreground/60">{field.hint}</p>}
                 </div>
@@ -406,15 +524,14 @@ export function ChannelDataSection({
         })}
       </div>
 
-      {/* ═══ BOTTOM APPROVE BAR ═══ */}
+      {/* ═══ APPROVE BAR ═══ */}
       {!approved && stats.filled > 0 && (
         <div className="rounded-2xl border border-border/30 bg-card/80 p-4 flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-foreground">Godkend {channelName}-data</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">Markér kanaldata som gennemgået og klar til distribution</p>
           </div>
-          <Button size="sm" className="gap-1.5 rounded-xl text-xs" onClick={handleApproveAll}
-            disabled={stats.missing > 0}>
+          <Button size="sm" className="gap-1.5 rounded-xl text-xs" onClick={handleApproveAll} disabled={errors.length > 0}>
             <CheckCircle2 className="h-3.5 w-3.5" /> Godkend og markér klar
           </Button>
         </div>

@@ -32,6 +32,7 @@ import { StudioPreview } from './studio/StudioPreview';
 // Existing components
 import { ListingCalendarPricing } from './ListingCalendarPricing';
 import { ChannelDataSection } from './ChannelDataSection';
+import { getChannelFields, calcChannelScore, type ChannelKey } from '@/lib/channel-mapping';
 import { ListingActorsTab } from './ListingActorsTab';
 import { ListingStaffTab } from './ListingStaffTab';
 import { ListingDocumentsTab } from './ListingDocumentsTab';
@@ -1442,18 +1443,18 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                 <div className="mb-6">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Kanal-review</p>
                   <h1 className="font-display text-xl font-bold text-foreground">Airbnb</h1>
-                  <p className="text-xs text-muted-foreground mt-1">Gennemgå og godkend auto-genereret indhold</p>
+                  <p className="text-xs text-muted-foreground mt-1">Gennemgå og godkend auto-genereret indhold fra SommerVibes master</p>
                 </div>
                 <ChannelDataSection channelName="Airbnb" channelKey="airbnb" emoji="🏠" listing={listing}
                   onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('airbnb')} aiFilling={airbnbPreparing}
                   readinessScore={channelReadiness.airbnb.score} readinessPassed={channelReadiness.airbnb.passed} readinessMissing={channelReadiness.airbnb.missing}
-                  fields={[
-                    { key: 'channel_airbnb_title', label: 'Airbnb-titel', type: 'text', maxLength: 50, hint: 'Clickbait-titel optimeret til Airbnb', masterSource: 'Navn / Tagline', getMasterValue: () => listing.tagline || listing.description || listing.name },
-                    { key: 'channel_airbnb_highlights', label: 'Airbnb-highlights', type: 'tags', hint: 'Top-oplevelser', masterSource: 'Highlights', getMasterValue: () => listing.highlights },
-                    { key: 'channel_airbnb_description', label: 'Airbnb-beskrivelse', type: 'textarea', rows: 5, hint: 'Detaljeret beskrivelse', masterSource: 'Lang beskrivelse', getMasterValue: () => [listing.long_description, listing.about_property, listing.about_area].filter(Boolean).join('\n\n') || listing.description },
-                    { key: 'channel_airbnb_house_rules', label: 'Airbnb-husregler', type: 'textarea', rows: 3, masterSource: 'Husregler', getMasterValue: () => listing.house_rules },
-                    { key: 'channel_airbnb_checkin_notes', label: 'Check-in noter', type: 'textarea', rows: 3, masterSource: 'Check-in info', getMasterValue: () => listing.checkin_info, platformSpecific: !listing.checkin_info },
-                  ]} />
+                  onNavigateToStep={setCurrentStep}
+                  fields={getChannelFields('airbnb').map(f => ({
+                    key: f.channelField, label: f.label, type: f.type,
+                    maxLength: f.maxLength, minLength: f.minLength, rows: f.rows,
+                    hint: f.hint, masterSource: f.masterSource, platformSpecific: f.platformSpecific,
+                    required: f.required, getMasterValue: () => f.getMasterValue(listing),
+                  }))} />
               </>
             )}
 
@@ -1462,17 +1463,18 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                 <div className="mb-6">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Kanal-review</p>
                   <h1 className="font-display text-xl font-bold text-foreground">Booking.com</h1>
+                  <p className="text-xs text-muted-foreground mt-1">Gennemgå og godkend auto-genereret indhold fra SommerVibes master</p>
                 </div>
                 <ChannelDataSection channelName="Booking.com" channelKey="booking" emoji="🅱️" listing={listing}
                   onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('booking')} aiFilling={channelPreparing}
                   readinessScore={channelReadiness.booking.score} readinessPassed={channelReadiness.booking.passed} readinessMissing={channelReadiness.booking.missing}
-                  fields={[
-                    { key: 'channel_booking_title', label: 'Booking.com-titel', type: 'text', masterSource: 'Navn', getMasterValue: () => listing.name },
-                    { key: 'channel_booking_description', label: 'Booking.com-beskrivelse', type: 'textarea', rows: 5, masterSource: 'Lang beskrivelse', getMasterValue: () => [listing.long_description, listing.about_property].filter(Boolean).join('\n\n') || listing.description },
-                    { key: 'channel_booking_room_setup', label: 'Værelseopsætning', type: 'textarea', rows: 3, platformSpecific: true, getMasterValue: () => listing.bedrooms ? `${listing.bedrooms} soveværelse(r), ${listing.bathrooms || 1} badeværelse(r), max ${listing.max_guests} gæster` : null },
-                    { key: 'channel_booking_policies', label: 'Politikker', type: 'textarea', rows: 3, platformSpecific: true, getMasterValue: () => listing.deposit ? `Depositum: ${listing.deposit} DKK` : null },
-                    { key: 'channel_booking_checkin_checkout', label: 'Check-in / Check-out', type: 'textarea', rows: 3, masterSource: 'Check-in/out tider', getMasterValue: () => { const p: string[] = []; if (listing.check_in_time) p.push(`Check-in: fra kl. ${listing.check_in_time}`); if (listing.check_out_time) p.push(`Check-out: senest kl. ${listing.check_out_time}`); if (listing.checkin_info) p.push(listing.checkin_info); return p.length ? p.join('\n') : null; } },
-                  ]} />
+                  onNavigateToStep={setCurrentStep}
+                  fields={getChannelFields('booking').map(f => ({
+                    key: f.channelField, label: f.label, type: f.type,
+                    maxLength: f.maxLength, minLength: f.minLength, rows: f.rows,
+                    hint: f.hint, masterSource: f.masterSource, platformSpecific: f.platformSpecific,
+                    required: f.required, getMasterValue: () => f.getMasterValue(listing),
+                  }))} />
               </>
             )}
 
@@ -1481,16 +1483,18 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                 <div className="mb-6">
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Kanal-review</p>
                   <h1 className="font-display text-xl font-bold text-foreground">Vrbo</h1>
+                  <p className="text-xs text-muted-foreground mt-1">Gennemgå og godkend auto-genereret indhold fra SommerVibes master</p>
                 </div>
                 <ChannelDataSection channelName="Vrbo" channelKey="vrbo" emoji="🏡" listing={listing}
                   onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('vrbo')} aiFilling={channelPreparing}
                   readinessScore={channelReadiness.vrbo.score} readinessPassed={channelReadiness.vrbo.passed} readinessMissing={channelReadiness.vrbo.missing}
-                  fields={[
-                    { key: 'channel_vrbo_title', label: 'Vrbo-titel', type: 'text', masterSource: 'Navn / Tagline', getMasterValue: () => listing.tagline || listing.name },
-                    { key: 'channel_vrbo_highlights', label: 'Vrbo-highlights', type: 'tags', masterSource: 'Highlights', getMasterValue: () => listing.highlights },
-                    { key: 'channel_vrbo_description', label: 'Vrbo-beskrivelse', type: 'textarea', rows: 5, masterSource: 'Lang beskrivelse', getMasterValue: () => [listing.long_description, listing.about_area].filter(Boolean).join('\n\n') || listing.description },
-                    { key: 'channel_vrbo_rules', label: 'Vrbo-regler', type: 'textarea', rows: 3, masterSource: 'Husregler', getMasterValue: () => listing.house_rules },
-                  ]} />
+                  onNavigateToStep={setCurrentStep}
+                  fields={getChannelFields('vrbo').map(f => ({
+                    key: f.channelField, label: f.label, type: f.type,
+                    maxLength: f.maxLength, minLength: f.minLength, rows: f.rows,
+                    hint: f.hint, masterSource: f.masterSource, platformSpecific: f.platformSpecific,
+                    required: f.required, getMasterValue: () => f.getMasterValue(listing),
+                  }))} />
               </>
             )}
 
