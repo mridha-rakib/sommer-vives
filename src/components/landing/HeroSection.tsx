@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Play, CheckCircle2, TrendingUp, Zap, BedDouble, Clock, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
+import { ArrowRight, Play, CheckCircle2 } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useState, useRef } from 'react';
 
 const trustPoints = [
   'Fast kontaktperson der kender dit hus',
@@ -10,29 +10,15 @@ const trustPoints = [
   '6 måneders aftale — vi investerer i samarbejdet',
 ];
 
-const revenueItems = [
-  { icon: Zap, label: 'El, vand & varme', pct: '+8%' },
-  { icon: BedDouble, label: 'Sengepakker & tillæg', pct: '+5%' },
-  { icon: Clock, label: 'Fleksibel check-in/out', pct: '+4%' },
-  { icon: Sparkles, label: 'Rengøring & service', pct: '+3%' },
-];
 
 const channels = ['Airbnb', 'Booking.com', 'VRBO', 'Feriepartner', 'Google', 'Facebook', 'Instagram'];
 
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [activeItem, setActiveItem] = useState(0);
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const swooshY = useTransform(scrollYProgress, [0, 1], [0, -120]);
   const swooshRotate = useTransform(scrollYProgress, [0, 1], [0, -3]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveItem((prev) => (prev + 1) % revenueItems.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
@@ -96,57 +82,8 @@ export function HeroSection() {
                 Du beholder overblikket — og <strong className="text-primary">85% af indtægten</strong>.
               </motion.p>
 
-              {/* Minimal revenue teaser — inline, transparent */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                className="mb-5 sm:mb-7 max-w-md"
-              >
-                <div className="flex items-center gap-2 mb-2.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-[9px] sm:text-[10px] font-bold text-primary/80 tracking-[0.15em] uppercase">
-                    +20% merindtjening kun hos os
-                  </span>
-                </div>
-                <div className="flex gap-1">
-                  {revenueItems.map((item, i) => {
-                    const Icon = item.icon;
-                    const isActive = activeItem === i;
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => setActiveItem(i)}
-                        className={`flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-all duration-500 ${
-                          isActive
-                            ? 'bg-primary/10 border border-primary/20'
-                            : 'bg-transparent border border-transparent hover:bg-foreground/5'
-                        }`}
-                      >
-                        <Icon className={`w-3.5 h-3.5 transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                        <span className={`font-display text-xs sm:text-sm font-bold transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/70'}`}>
-                          {item.pct}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {/* Active label */}
-                <div className="h-5 mt-1.5 relative overflow-hidden">
-                  <AnimatePresence mode="wait">
-                    <motion.p
-                      key={activeItem}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-[10px] sm:text-xs text-foreground/50 font-medium text-center absolute inset-x-0"
-                    >
-                      {revenueItems[activeItem].label}
-                    </motion.p>
-                  </AnimatePresence>
-                </div>
-              </motion.div>
+
+
 
               {/* Trust bullets — hidden on very small screens */}
               <motion.div
