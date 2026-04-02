@@ -4,7 +4,7 @@ export type StatusVariant = 'default' | 'success' | 'warning' | 'danger' | 'info
 
 export interface StatusChipProps {
   label: string;
-  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'muted';
+  variant?: StatusVariant;
   size?: 'sm' | 'md';
   dot?: boolean;
   className?: string;

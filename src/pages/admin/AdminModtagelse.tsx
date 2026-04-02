@@ -207,7 +207,7 @@ export default function AdminModtagelse() {
             {[0,1,2,3,4].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon={Inbox} title="Ingen modtagelser" subtitle="Der er ingen elementer der matcher dine filtre." className="py-16" />
+          <EmptyState icon={Inbox} title="Ingen modtagelser" className="py-16" />
         ) : (
           <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/30 overflow-hidden">
             {filtered.map(item => {
