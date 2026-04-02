@@ -32,6 +32,11 @@ interface ListingFull {
   channel_airbnb_ready: boolean | null; channel_booking_ready: boolean | null; channel_vrbo_ready: boolean | null;
   channel_airbnb_title: string | null; channel_booking_title: string | null; channel_vrbo_title: string | null;
   channel_airbnb_description: string | null; channel_booking_description: string | null; channel_vrbo_description: string | null;
+  channel_airbnb_highlights: string[] | null; channel_airbnb_image_order: string[] | null;
+  channel_airbnb_house_rules: string | null; channel_airbnb_checkin_notes: string | null;
+  channel_booking_room_setup: string | null; channel_booking_facilities_mapping: Record<string, any> | null;
+  channel_booking_policies: string | null; channel_booking_checkin_checkout: string | null;
+  channel_vrbo_highlights: string[] | null; channel_vrbo_rules: string | null; channel_vrbo_photo_order: string[] | null;
   readiness_score: number | null; internal_status: string | null;
   checkin_info: string | null; checkout_info: string | null;
   image_captions: Record<string, string> | null;
@@ -1199,32 +1204,70 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
             </DialogContent>
           </Dialog>
 
-          {/* Editable channel content sections */}
-          <div className="space-y-5">
-            <Section title="Airbnb-indhold" description="Rediger titel og beskrivelse til Airbnb">
-              <Field label="Airbnb-titel" hint="Max 50 tegn for bedste visning">
-                <Input value={listing.channel_airbnb_title || ''} onChange={e => update('channel_airbnb_title', e.target.value)} placeholder="Titel optimeret til Airbnb" maxLength={50} />
+          {/* ── Airbnb Content ── */}
+          <Section title="🏠 Airbnb-indhold" description="Alle felter der sendes til Airbnb. Rediger manuelt eller lad AI generere.">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Airbnb-titel" hint="Max 50 tegn">
+                <Input value={listing.channel_airbnb_title || ''} onChange={e => update('channel_airbnb_title', e.target.value)} placeholder="Charming Beachfront Summer House" maxLength={50} />
                 <div className="text-[10px] text-muted-foreground text-right">{(listing.channel_airbnb_title || '').length}/50</div>
               </Field>
-              <Field label="Airbnb-beskrivelse">
-                <Textarea value={listing.channel_airbnb_description || ''} onChange={e => update('channel_airbnb_description', e.target.value)} rows={4} placeholder="Beskrivelse optimeret til Airbnb" />
+              <Field label="Airbnb-highlights" hint="Komma-separeret liste">
+                <Input value={(listing.channel_airbnb_highlights || []).join(', ')} onChange={e => update('channel_airbnb_highlights' as any, e.target.value.split(',').map(s => s.trim()).filter(Boolean))} placeholder="Havudsigt, Sauna, Privat strand" />
               </Field>
-            </Section>
+            </div>
+            <Field label="Airbnb-beskrivelse">
+              <Textarea value={listing.channel_airbnb_description || ''} onChange={e => update('channel_airbnb_description', e.target.value)} rows={4} placeholder="Beskrivelse optimeret til Airbnb-gæster..." />
+            </Field>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Airbnb-husregler" hint="Regler specifikt til Airbnb">
+                <Textarea value={listing.channel_airbnb_house_rules || ''} onChange={e => update('channel_airbnb_house_rules' as any, e.target.value)} rows={3} placeholder="Ingen fester, røgfrit..." />
+              </Field>
+              <Field label="Airbnb check-in noter" hint="Instruktioner til gæster">
+                <Textarea value={listing.channel_airbnb_checkin_notes || ''} onChange={e => update('channel_airbnb_checkin_notes' as any, e.target.value)} rows={3} placeholder="Nøgleboks ved hoveddøren..." />
+              </Field>
+            </div>
+          </Section>
 
-            {(['booking', 'vrbo'] as const).map(ch => {
-              const label = ch === 'booking' ? 'Booking.com' : 'Vrbo';
-              return (
-                <Section key={ch} title={`${label}-indhold`} description={`Rediger titel og beskrivelse til ${label}`}>
-                  <Field label={`${label}-titel`}>
-                    <Input value={(listing as any)[`channel_${ch}_title`] || ''} onChange={e => update(`channel_${ch}_title` as any, e.target.value)} placeholder={`Titel optimeret til ${label}`} />
-                  </Field>
-                  <Field label={`${label}-beskrivelse`}>
-                    <Textarea value={(listing as any)[`channel_${ch}_description`] || ''} onChange={e => update(`channel_${ch}_description` as any, e.target.value)} rows={3} placeholder={`Beskrivelse optimeret til ${label}`} />
-                  </Field>
-                </Section>
-              );
-            })}
-          </div>
+          {/* ── Booking.com Content ── */}
+          <Section title="🅱️ Booking.com-indhold" description="Felter tilpasset Booking.com's format og krav.">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Booking.com-titel">
+                <Input value={listing.channel_booking_title || ''} onChange={e => update('channel_booking_title', e.target.value)} placeholder="Titel til Booking.com" />
+              </Field>
+              <Field label="Værelseopsætning" hint="Beskrivelse af rum-typer">
+                <Input value={listing.channel_booking_room_setup || ''} onChange={e => update('channel_booking_room_setup' as any, e.target.value)} placeholder="1x Master, 2x Twin, 1x Sofa bed" />
+              </Field>
+            </div>
+            <Field label="Booking.com-beskrivelse">
+              <Textarea value={listing.channel_booking_description || ''} onChange={e => update('channel_booking_description', e.target.value)} rows={4} placeholder="Beskrivelse til Booking.com..." />
+            </Field>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Politikker" hint="Aflysning, depositum osv.">
+                <Textarea value={listing.channel_booking_policies || ''} onChange={e => update('channel_booking_policies' as any, e.target.value)} rows={3} placeholder="Gratis afbestilling op til 48 timer..." />
+              </Field>
+              <Field label="Check-in / Check-out" hint="Tider og procedure">
+                <Textarea value={listing.channel_booking_checkin_checkout || ''} onChange={e => update('channel_booking_checkin_checkout' as any, e.target.value)} rows={3} placeholder="Check-in: 15:00-20:00, Check-out: senest 10:00" />
+              </Field>
+            </div>
+          </Section>
+
+          {/* ── Vrbo Content ── */}
+          <Section title="🏡 Vrbo-indhold" description="Felter tilpasset Vrbo's platform.">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Vrbo-titel">
+                <Input value={listing.channel_vrbo_title || ''} onChange={e => update('channel_vrbo_title', e.target.value)} placeholder="Titel til Vrbo" />
+              </Field>
+              <Field label="Vrbo-highlights" hint="Komma-separeret">
+                <Input value={(listing.channel_vrbo_highlights || []).join(', ')} onChange={e => update('channel_vrbo_highlights' as any, e.target.value.split(',').map(s => s.trim()).filter(Boolean))} placeholder="Ocean view, Hot tub, Private deck" />
+              </Field>
+            </div>
+            <Field label="Vrbo-beskrivelse">
+              <Textarea value={listing.channel_vrbo_description || ''} onChange={e => update('channel_vrbo_description', e.target.value)} rows={4} placeholder="Beskrivelse til Vrbo..." />
+            </Field>
+            <Field label="Vrbo-regler">
+              <Textarea value={listing.channel_vrbo_rules || ''} onChange={e => update('channel_vrbo_rules' as any, e.target.value)} rows={3} placeholder="Husregler specifikt til Vrbo..." />
+            </Field>
+          </Section>
         </TabsContent>
       </Tabs>
 
