@@ -8,7 +8,7 @@ import {
   Calendar as CalendarIcon, Eye, Pencil, ExternalLink, Image,
   Tag, DollarSign, Wifi, AlertCircle, ChevronRight, StickyNote,
   Sparkles, Rocket, Zap, Camera, Info, ArrowRight, X, Plus,
-  AlertTriangle, Settings, Type
+  AlertTriangle, Settings, Type, Plug, RefreshCw, Send, Link2
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusChip } from '@/components/admin/ui/StatusChip';
@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Beds24Integration } from '@/components/admin/Beds24Integration';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
@@ -477,6 +478,7 @@ export default function AdminSagDetail() {
   const tabs = [
     { key: 'overblik', label: 'Overblik', icon: Eye },
     { key: 'listing', label: 'Listing', icon: Home },
+    { key: 'integrationer', label: 'Integrationer', icon: Plug },
     { key: 'kanaler', label: 'Kanaler', icon: Radio },
     { key: 'kalender', label: 'Kalender', icon: CalendarIcon },
     { key: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
@@ -697,6 +699,8 @@ export default function AdminSagDetail() {
         )}
 
         {tab === 'listing' && <InlineListingEditor listing={listing} onSaved={(updated) => setListing({ ...listing, ...updated })} />}
+
+        {tab === 'integrationer' && <Beds24Integration listing={listing} onUpdate={(updated: any) => setListing({ ...listing, ...updated })} />}
 
         {tab === 'kanaler' && (
           <div className="space-y-4">
