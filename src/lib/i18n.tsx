@@ -39,7 +39,7 @@ const translations: AllTranslations = {
     'hero.advisorTitle': 'Udlejningschef',
     'hero.trustpilot': 'Fremragende på Trustpilot',
     'hero.danish': 'Dansk virksomhed',
-    'hero.noBinding': 'Ingen binding',
+    'hero.noBinding': 'Fleksibel aftale',
     'hero.guarantee': 'Tryghedsgaranti inkl.',
     'hero.support': 'Dansk kundeservice',
 
