@@ -98,16 +98,26 @@ export default function AdminDokumenter() {
   const [pageTab, setPageTab] = useState<PageTab>('documents');
   const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
   const [templateForm, setTemplateForm] = useState({ name: '', body_text: '', body_html: '', version: '1.0', is_active: true });
+  const [propertyMap, setPropertyMap] = useState<Record<string, string>>({});
+  const [profileMap, setProfileMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     Promise.all([
       supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500),
       supabase.from('agreements').select('*').order('created_at', { ascending: false }).limit(500),
       supabase.from('agreement_templates').select('*').order('created_at', { ascending: false }),
-    ]).then(([docRes, agrRes, tplRes]) => {
+      supabase.from('properties').select('id, title, case_number'),
+      supabase.from('profiles').select('id, full_name, email'),
+    ]).then(([docRes, agrRes, tplRes, propRes, profRes]) => {
       setDocuments(docRes.data || []);
       setAgreements(agrRes.data || []);
       setTemplates(tplRes.data || []);
+      const pMap: Record<string, string> = {};
+      (propRes.data || []).forEach((p: any) => { pMap[p.id] = p.title || p.case_number || p.id.slice(0, 8); });
+      setPropertyMap(pMap);
+      const prMap: Record<string, string> = {};
+      (profRes.data || []).forEach((p: any) => { prMap[p.id] = p.full_name || p.email || p.id.slice(0, 8); });
+      setProfileMap(prMap);
       setLoading(false);
     });
   }, []);
