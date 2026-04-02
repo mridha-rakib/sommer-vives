@@ -1616,103 +1616,175 @@ export type Database = {
       }
       listings: {
         Row: {
+          about_area: string | null
+          about_property: string | null
           address: string | null
           amenities: string[] | null
           base_price_per_night: number
           bathrooms: number | null
           bedroom_images: Json
           bedrooms: number | null
+          channel_airbnb_description: string | null
+          channel_airbnb_ready: boolean | null
+          channel_airbnb_title: string | null
+          channel_booking_description: string | null
+          channel_booking_ready: boolean | null
+          channel_booking_title: string | null
+          channel_vrbo_description: string | null
+          channel_vrbo_ready: boolean | null
+          channel_vrbo_title: string | null
           check_in_time: string | null
           check_out_time: string | null
+          checkin_info: string | null
+          checkout_info: string | null
           cleaning_fee: number | null
           created_at: string
           currency: string
+          deposit: number | null
           description: string | null
           extra_sections: Json
           facilities: Json
           floor_plan_images: string[] | null
           hero_image: string | null
+          highlights: string[] | null
           house_rules: string | null
           id: string
+          image_captions: Json | null
           image_labels: Json | null
           images: string[] | null
+          internal_status: string | null
           is_active: boolean
           location_map_image: string | null
           location_mood_image: string | null
+          long_description: string | null
           max_guests: number
+          min_nights: number | null
           name: string
           owner_id: string
           practical_info: string | null
+          property_type: string | null
+          readiness_score: number | null
           region: string | null
           slug: string
           sort_order: number
+          sqm: number | null
+          tagline: string | null
           updated_at: string
+          weekend_price_per_night: number | null
         }
         Insert: {
+          about_area?: string | null
+          about_property?: string | null
           address?: string | null
           amenities?: string[] | null
           base_price_per_night?: number
           bathrooms?: number | null
           bedroom_images?: Json
           bedrooms?: number | null
+          channel_airbnb_description?: string | null
+          channel_airbnb_ready?: boolean | null
+          channel_airbnb_title?: string | null
+          channel_booking_description?: string | null
+          channel_booking_ready?: boolean | null
+          channel_booking_title?: string | null
+          channel_vrbo_description?: string | null
+          channel_vrbo_ready?: boolean | null
+          channel_vrbo_title?: string | null
           check_in_time?: string | null
           check_out_time?: string | null
+          checkin_info?: string | null
+          checkout_info?: string | null
           cleaning_fee?: number | null
           created_at?: string
           currency?: string
+          deposit?: number | null
           description?: string | null
           extra_sections?: Json
           facilities?: Json
           floor_plan_images?: string[] | null
           hero_image?: string | null
+          highlights?: string[] | null
           house_rules?: string | null
           id?: string
+          image_captions?: Json | null
           image_labels?: Json | null
           images?: string[] | null
+          internal_status?: string | null
           is_active?: boolean
           location_map_image?: string | null
           location_mood_image?: string | null
+          long_description?: string | null
           max_guests?: number
+          min_nights?: number | null
           name: string
           owner_id: string
           practical_info?: string | null
+          property_type?: string | null
+          readiness_score?: number | null
           region?: string | null
           slug: string
           sort_order?: number
+          sqm?: number | null
+          tagline?: string | null
           updated_at?: string
+          weekend_price_per_night?: number | null
         }
         Update: {
+          about_area?: string | null
+          about_property?: string | null
           address?: string | null
           amenities?: string[] | null
           base_price_per_night?: number
           bathrooms?: number | null
           bedroom_images?: Json
           bedrooms?: number | null
+          channel_airbnb_description?: string | null
+          channel_airbnb_ready?: boolean | null
+          channel_airbnb_title?: string | null
+          channel_booking_description?: string | null
+          channel_booking_ready?: boolean | null
+          channel_booking_title?: string | null
+          channel_vrbo_description?: string | null
+          channel_vrbo_ready?: boolean | null
+          channel_vrbo_title?: string | null
           check_in_time?: string | null
           check_out_time?: string | null
+          checkin_info?: string | null
+          checkout_info?: string | null
           cleaning_fee?: number | null
           created_at?: string
           currency?: string
+          deposit?: number | null
           description?: string | null
           extra_sections?: Json
           facilities?: Json
           floor_plan_images?: string[] | null
           hero_image?: string | null
+          highlights?: string[] | null
           house_rules?: string | null
           id?: string
+          image_captions?: Json | null
           image_labels?: Json | null
           images?: string[] | null
+          internal_status?: string | null
           is_active?: boolean
           location_map_image?: string | null
           location_mood_image?: string | null
+          long_description?: string | null
           max_guests?: number
+          min_nights?: number | null
           name?: string
           owner_id?: string
           practical_info?: string | null
+          property_type?: string | null
+          readiness_score?: number | null
           region?: string | null
           slug?: string
           sort_order?: number
+          sqm?: number | null
+          tagline?: string | null
           updated_at?: string
+          weekend_price_per_night?: number | null
         }
         Relationships: []
       }
