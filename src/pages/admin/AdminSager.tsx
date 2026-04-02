@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, FolderOpen, MapPin, Home, Users, ChevronRight,
-  LayoutGrid, List, CheckCircle2, Clock, Radio
+  LayoutGrid, List, CheckCircle2, Clock, Radio, Columns3,
+  Eye, XCircle, RotateCcw, Handshake, Rocket, Ban
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
 import { KPICard } from '@/components/admin/ui/KPICard';
-import { StatusChip } from '@/components/admin/ui/StatusChip';
+import { StatusChip, type StatusVariant } from '@/components/admin/ui/StatusChip';
 import { EmptyState } from '@/components/admin/ui/EmptyState';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
@@ -20,14 +21,43 @@ import { cn } from '@/lib/utils';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
-const STATUS_MAP: Record<string, { label: string; variant: SVariant }> = {
-  draft: { label: 'Kladde', variant: 'muted' },
-  preparing: { label: 'Klargøring', variant: 'warning' },
-  review: { label: 'Til gennemgang', variant: 'info' },
-  ready: { label: 'Klar', variant: 'success' },
-  live: { label: 'Live', variant: 'success' },
-  paused: { label: 'Pauset', variant: 'danger' },
+/* ── Pipeline stages ── */
+const PIPELINE_STAGES = [
+  'udlejningstjek',
+  'foer_salg',
+  'til_leje',
+  'retur',
+  'tabt_vil_ikke',
+  'tabt_konkurrent',
+] as const;
+
+type PipelineStage = typeof PIPELINE_STAGES[number];
+
+const STATUS_MAP: Record<string, { label: string; variant: SVariant; icon: React.ElementType; color: string }> = {
+  udlejningstjek:  { label: 'Udlejningstjek',             variant: 'warning', icon: Eye,          color: 'border-t-amber-500/60' },
+  foer_salg:       { label: 'Før salg',                    variant: 'info',    icon: Handshake,    color: 'border-t-blue-500/60' },
+  til_leje:        { label: 'Til leje',                    variant: 'success', icon: Rocket,       color: 'border-t-emerald-500/60' },
+  retur:           { label: 'Retur',                       variant: 'muted',   icon: RotateCcw,    color: 'border-t-slate-400/40' },
+  tabt_vil_ikke:   { label: 'Tabt – Vil ikke udleje',     variant: 'danger',  icon: Ban,          color: 'border-t-red-500/40' },
+  tabt_konkurrent: { label: 'Tabt – Til konkurrent',      variant: 'danger',  icon: XCircle,      color: 'border-t-red-500/40' },
+  // Legacy fallbacks
+  draft:           { label: 'Kladde',                      variant: 'muted',   icon: FolderOpen,   color: 'border-t-slate-400/40' },
+  preparing:       { label: 'Klargøring',                  variant: 'warning', icon: Clock,        color: 'border-t-amber-500/60' },
+  review:          { label: 'Til gennemgang',              variant: 'info',    icon: Eye,          color: 'border-t-blue-500/60' },
+  ready:           { label: 'Klar',                        variant: 'success', icon: CheckCircle2, color: 'border-t-emerald-500/60' },
+  live:            { label: 'Til leje',                    variant: 'success', icon: Rocket,       color: 'border-t-emerald-500/60' },
+  paused:          { label: 'Pauset',                      variant: 'danger',  icon: Ban,          color: 'border-t-red-500/40' },
 };
+
+function mapLegacyStatus(s: string | null): string {
+  if (!s) return 'udlejningstjek';
+  if (PIPELINE_STAGES.includes(s as PipelineStage)) return s;
+  // Map old statuses
+  if (s === 'draft' || s === 'preparing' || s === 'review') return 'foer_salg';
+  if (s === 'ready' || s === 'live') return 'til_leje';
+  if (s === 'paused') return 'retur';
+  return 'udlejningstjek';
+}
 
 function ReadinessBar({ score }: { score: number }) {
   const color = score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-400' : 'bg-red-400';
@@ -61,7 +91,7 @@ export default function AdminSager() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [view, setView] = useState<'cards' | 'list'>('cards');
+  const [view, setView] = useState<'pipeline' | 'cards' | 'list'>('pipeline');
 
   useEffect(() => {
     const load = async () => {
@@ -78,8 +108,14 @@ export default function AdminSager() {
     load();
   }, []);
 
-  const filtered = listings.filter(l => {
-    if (statusFilter !== 'all' && (l.internal_status || 'draft') !== statusFilter) return false;
+  // Normalize status for filtering
+  const normalizedListings = useMemo(() =>
+    listings.map(l => ({ ...l, _stage: mapLegacyStatus(l.internal_status) })),
+    [listings]
+  );
+
+  const filtered = normalizedListings.filter(l => {
+    if (statusFilter !== 'all' && l._stage !== statusFilter) return false;
     if (search) {
       const q = search.toLowerCase();
       if (!l.name.toLowerCase().includes(q) && !(l.region || '').toLowerCase().includes(q) && !(l.address || '').toLowerCase().includes(q)) return false;
@@ -87,9 +123,17 @@ export default function AdminSager() {
     return true;
   });
 
-  const liveCount = listings.filter(l => l.internal_status === 'live' || l.is_active).length;
-  const prepCount = listings.filter(l => ['preparing', 'review', 'draft'].includes(l.internal_status || 'draft')).length;
-  const lowReadiness = listings.filter(l => (l.readiness_score || 0) < 50).length;
+  // Pipeline counts
+  const stageCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    PIPELINE_STAGES.forEach(s => { c[s] = 0; });
+    normalizedListings.forEach(l => { c[l._stage] = (c[l._stage] || 0) + 1; });
+    return c;
+  }, [normalizedListings]);
+
+  const activeCount = stageCounts.udlejningstjek + stageCounts.foer_salg;
+  const liveCount = stageCounts.til_leje;
+  const lostCount = stageCounts.tabt_vil_ikke + stageCounts.tabt_konkurrent;
 
   return (
     <AdminLayout>
@@ -99,9 +143,9 @@ export default function AdminSager() {
         {/* KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard title="Sager i alt" value={listings.length} icon={FolderOpen} variant="gold" />
-          <KPICard title="Live" value={liveCount} icon={CheckCircle2} variant="success" />
-          <KPICard title="Under klargøring" value={prepCount} icon={Clock} variant="warning" />
-          <KPICard title="Lav readiness" value={lowReadiness} icon={Radio} variant="danger" subtitle="Under 50%" />
+          <KPICard title="Aktive sager" value={activeCount} icon={Clock} variant="warning" subtitle="Udlejningstjek + Før salg" />
+          <KPICard title="Til leje" value={liveCount} icon={Rocket} variant="success" />
+          <KPICard title="Tabte sager" value={lostCount} icon={XCircle} variant="danger" />
         </div>
 
         {/* Filters */}
@@ -111,16 +155,21 @@ export default function AdminSager() {
             <Input placeholder="Søg på navn, region, adresse..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 rounded-xl bg-card/60 border-border/40" />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-44 rounded-xl bg-card/60 border-border/40 text-xs">
+            <SelectTrigger className="w-52 rounded-xl bg-card/60 border-border/40 text-xs">
               <SelectValue placeholder="Alle status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle status</SelectItem>
-              {Object.entries(STATUS_MAP).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+              {PIPELINE_STAGES.map(k => (
+                <SelectItem key={k} value={k}>{STATUS_MAP[k].label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <div className="flex items-center rounded-xl border border-border/40 overflow-hidden">
-            <button onClick={() => setView('cards')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all', view === 'cards' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
+            <button onClick={() => setView('pipeline')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all', view === 'pipeline' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
+              <Columns3 className="h-3.5 w-3.5" />Pipeline
+            </button>
+            <button onClick={() => setView('cards')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all border-l border-border/40', view === 'cards' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
               <LayoutGrid className="h-3.5 w-3.5" />Kort
             </button>
             <button onClick={() => setView('list')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all border-l border-border/40', view === 'list' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
@@ -134,13 +183,76 @@ export default function AdminSager() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-56 rounded-2xl" />)}
           </div>
+        ) : view === 'pipeline' ? (
+          /* ═══════ PIPELINE VIEW ═══════ */
+          <div className="flex gap-3 overflow-x-auto pb-4 -mx-2 px-2">
+            {PIPELINE_STAGES.map(stage => {
+              const cfg = STATUS_MAP[stage];
+              const stageItems = filtered.filter(l => l._stage === stage);
+              return (
+                <div key={stage} className={cn('flex-shrink-0 w-64 rounded-xl border-t-2 bg-card/40 border border-border/30', cfg.color)}>
+                  {/* Column header */}
+                  <div className="px-3 py-3 border-b border-border/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <cfg.icon className="w-3.5 h-3.5 text-muted-foreground" />
+                        <span className="text-xs font-semibold text-foreground">{cfg.label}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-muted-foreground bg-muted/30 rounded-md px-1.5 py-0.5">
+                        {stageItems.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Cards */}
+                  <div className="p-2 space-y-2 min-h-[120px] max-h-[60vh] overflow-y-auto">
+                    {stageItems.length === 0 ? (
+                      <p className="text-[11px] text-muted-foreground/40 text-center py-6">Ingen sager</p>
+                    ) : (
+                      stageItems.map(l => {
+                        const cover = l.hero_image || l.images?.[0];
+                        const owner = profiles[l.owner_id];
+                        return (
+                          <div
+                            key={l.id}
+                            onClick={() => navigate(`/admin/sager/${l.id}`)}
+                            className="rounded-lg border border-border/30 bg-card/60 hover:bg-card/80 hover:border-border/50 p-3 cursor-pointer transition-all group"
+                          >
+                            {cover && (
+                              <div className="h-20 -mx-1 -mt-1 mb-2 rounded-md overflow-hidden">
+                                <img src={cover} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              </div>
+                            )}
+                            <p className="text-xs font-semibold text-foreground truncate">{l.name}</p>
+                            {l.region && (
+                              <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1">
+                                <MapPin className="w-2.5 h-2.5" />{l.region}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between mt-2">
+                              <ReadinessBar score={l.readiness_score || 0} />
+                            </div>
+                            {owner && (
+                              <p className="text-[10px] text-muted-foreground/60 mt-2 truncate">
+                                {owner.full_name || owner.email}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : filtered.length === 0 ? (
           <Card className="border-border/40 bg-card/60"><CardContent className="p-0"><EmptyState icon={FolderOpen} title="Ingen sager fundet" description="Tilpas filtre eller opret en ny sag" /></CardContent></Card>
         ) : view === 'cards' ? (
           /* ═══════ CARD VIEW ═══════ */
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map(l => {
-              const st = STATUS_MAP[l.internal_status || 'draft'] || STATUS_MAP.draft;
+              const st = STATUS_MAP[l._stage] || STATUS_MAP.udlejningstjek;
               const cover = l.hero_image || l.images?.[0];
               const owner = profiles[l.owner_id];
               return (
@@ -149,7 +261,6 @@ export default function AdminSager() {
                   onClick={() => navigate(`/admin/sager/${l.id}`)}
                   className="border-border/40 bg-card/60 hover:bg-card/80 hover:border-border/60 hover:shadow-lg transition-all cursor-pointer overflow-hidden group"
                 >
-                  {/* Cover image */}
                   <div className="h-36 bg-muted/30 overflow-hidden relative">
                     {cover ? (
                       <img src={cover} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -163,7 +274,6 @@ export default function AdminSager() {
                       <ChannelDots airbnb={l.channel_airbnb_ready || false} booking={l.channel_booking_ready || false} vrbo={l.channel_vrbo_ready || false} />
                     </div>
                   </div>
-
                   <CardContent className="p-4 space-y-3">
                     <div>
                       <h3 className="text-sm font-semibold text-foreground truncate">{l.name}</h3>
@@ -172,12 +282,10 @@ export default function AdminSager() {
                         <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" />{l.max_guests} gæster</span>
                       </div>
                     </div>
-
                     <div className="flex items-center justify-between">
                       <ReadinessBar score={l.readiness_score || 0} />
                       <span className="text-[10px] text-muted-foreground/50">{format(new Date(l.updated_at), 'd. MMM', { locale: da })}</span>
                     </div>
-
                     {owner && (
                       <div className="flex items-center gap-2 pt-2 border-t border-border/20">
                         <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary shrink-0">
@@ -206,7 +314,7 @@ export default function AdminSager() {
                   </thead>
                   <tbody>
                     {filtered.map(l => {
-                      const st = STATUS_MAP[l.internal_status || 'draft'] || STATUS_MAP.draft;
+                      const st = STATUS_MAP[l._stage] || STATUS_MAP.udlejningstjek;
                       const cover = l.hero_image || l.images?.[0];
                       const owner = profiles[l.owner_id];
                       return (
