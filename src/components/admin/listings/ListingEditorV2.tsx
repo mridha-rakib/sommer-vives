@@ -3,6 +3,7 @@ import { ListingCalendarPricing } from './ListingCalendarPricing';
 import { ChannelDataSection } from './ChannelDataSection';
 import { ListingActorsTab } from './ListingActorsTab';
 import { ListingStaffTab } from './ListingStaffTab';
+import { ListingDocumentsTab } from './ListingDocumentsTab';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
