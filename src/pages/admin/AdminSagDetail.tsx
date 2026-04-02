@@ -8,7 +8,7 @@ import {
   Calendar as CalendarIcon, Eye, Pencil, ExternalLink, Image,
   Tag, DollarSign, Wifi, AlertCircle, ChevronRight, StickyNote,
   Sparkles, Rocket, Zap, Camera, Info, ArrowRight, X, Plus,
-  AlertTriangle, Settings, Type, Plug, RefreshCw, Send, Link2
+  AlertTriangle, Settings, Type, Plug, RefreshCw, Send, Link2, Download, User, Shield
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusChip } from '@/components/admin/ui/StatusChip';
@@ -448,6 +448,41 @@ export default function AdminSagDetail() {
   const [aiLoading, setAiLoading] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishFlowOpen, setPublishFlowOpen] = useState(false);
+  const [sagDocs, setSagDocs] = useState<any[]>([]);
+  const [docTemplates, setDocTemplates] = useState<any[]>([]);
+  const [editingDocId, setEditingDocId] = useState<string | null>(null);
+  const [editDocValues, setEditDocValues] = useState<Record<string, string>>({});
+  const [ownerEditOpen, setOwnerEditOpen] = useState(false);
+  const [ownerForm, setOwnerForm] = useState<any>({});
+
+  const loadSagDocs = useCallback(async (listingId: string, ownerId: string) => {
+    const [{ data: sd }, { data: tpls }] = await Promise.all([
+      supabase.from('sag_documents').select('*').eq('listing_id', listingId).order('created_at'),
+      supabase.from('document_templates').select('*').eq('is_active', true).order('sort_order'),
+    ]);
+    setSagDocs(sd || []);
+    setDocTemplates(tpls || []);
+
+    // Auto-generate missing sag documents from templates
+    if (tpls && tpls.length > 0 && sd !== null) {
+      const existingTemplateIds = (sd || []).map((d: any) => d.template_id);
+      const missing = tpls.filter((t: any) => !existingTemplateIds.includes(t.id));
+      if (missing.length > 0) {
+        const inserts = missing.map((t: any) => ({
+          listing_id: listingId,
+          template_id: t.id,
+          owner_id: ownerId,
+          title: t.name,
+          category: t.category,
+          body_html: t.body_html,
+          custom_values: {},
+          status: 'draft',
+        }));
+        const { data: newDocs } = await supabase.from('sag_documents').insert(inserts).select();
+        if (newDocs) setSagDocs(prev => [...prev, ...newDocs]);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -467,11 +502,12 @@ export default function AdminSagDetail() {
         setDocuments(docs || []);
         setAddons(adds || []);
         setBookings(bks || []);
+        loadSagDocs(id, l.owner_id);
       }
       setLoading(false);
     };
     load();
-  }, [id]);
+  }, [id, loadSagDocs]);
 
   const nextSteps = useMemo(() => listing ? computeNextSteps(listing) : [], [listing]);
 
@@ -739,7 +775,7 @@ export default function AdminSagDetail() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <QuickStat label="Bookings" value={bookings.length} />
               <QuickStat label="Opgaver" value={tasks.length} />
-              <QuickStat label="Dokumenter" value={documents.length} />
+              <QuickStat label="Dokumenter" value={sagDocs.length + documents.length} />
               <QuickStat label="Tilkøb" value={addons.length} />
             </div>
           </div>
@@ -991,22 +1027,177 @@ export default function AdminSagDetail() {
 
         {tab === 'dokumenter' && (
           <SectionCard title="Dokumenter" icon={FileText}>
-            {documents.length === 0 ? (
-              <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen dokumenter endnu</p>
-            ) : (
-              <div className="space-y-2">
-                {documents.map(d => (
-                  <div key={d.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center"><FileText className="h-4 w-4 text-muted-foreground" /></div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{d.title}</p>
-                        <p className="text-[11px] text-muted-foreground">{d.document_type} · {format(new Date(d.created_at), 'd. MMM yyyy', { locale: da })}</p>
+            {/* Owner details banner */}
+            {owner && (!owner.cpr_number || !owner.address) && (
+              <button onClick={() => { setOwnerForm({ cpr_number: owner.cpr_number || '', address: owner.address || '', country: owner.country || 'Danmark' }); setOwnerEditOpen(true); }}
+                className="w-full flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-left mb-4 hover:bg-amber-500/15 transition-colors">
+                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+                <div className="flex-1"><p className="text-sm font-medium text-foreground">Kundeoplysninger mangler</p>
+                <p className="text-xs text-muted-foreground">Tilføj CPR-nr. og adresse for at kunne generere dokumenter korrekt</p></div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
+
+            {/* Owner edit inline */}
+            {ownerEditOpen && (
+              <div className="rounded-xl border border-border/40 bg-card/80 p-4 mb-4 space-y-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2"><User className="h-3.5 w-3.5" /> Kundeoplysninger</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">CPR-nummer</Label><Input placeholder="DDMMÅÅ-XXXX" value={ownerForm.cpr_number} onChange={e => setOwnerForm({ ...ownerForm, cpr_number: e.target.value })} /></div>
+                  <div><Label className="text-xs text-muted-foreground">Adresse</Label><Input placeholder="Vejnavn 123, 1234 By" value={ownerForm.address} onChange={e => setOwnerForm({ ...ownerForm, address: e.target.value })} /></div>
+                  <div><Label className="text-xs text-muted-foreground">Land</Label><Input value={ownerForm.country} onChange={e => setOwnerForm({ ...ownerForm, country: e.target.value })} /></div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button size="sm" variant="ghost" onClick={() => setOwnerEditOpen(false)}>Annuller</Button>
+                  <Button size="sm" onClick={async () => {
+                    await supabase.from('profiles').update({ cpr_number: ownerForm.cpr_number, address: ownerForm.address, country: ownerForm.country }).eq('id', owner.id);
+                    setOwner({ ...owner, ...ownerForm });
+                    setOwnerEditOpen(false);
+                    toast.success('Kundeoplysninger opdateret');
+                  }}>Gem</Button>
+                </div>
+              </div>
+            )}
+
+            {/* Sag documents list */}
+            <div className="space-y-3">
+              {sagDocs.length === 0 ? (
+                <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Genererer dokumenter...</p>
+              ) : sagDocs.map(sd => {
+                const isEditing = editingDocId === sd.id;
+                const statusMap: Record<string, { label: string; variant: SVariant }> = {
+                  draft: { label: 'Kladde', variant: 'muted' },
+                  sent: { label: 'Sendt til underskrift', variant: 'warning' },
+                  signed: { label: 'Underskrevet', variant: 'success' },
+                };
+                const st = statusMap[sd.status] || statusMap.draft;
+                const isAftale = sd.category === 'aftale';
+                const icon = isAftale ? Shield : FileText;
+                const IconComp = icon;
+
+                // Resolve placeholders
+                const resolveBody = (html: string, custom: Record<string, string> = {}) => {
+                  const vals: Record<string, string> = {
+                    owner_name: owner?.full_name || '',
+                    owner_email: owner?.email || '',
+                    owner_phone: owner?.phone || '',
+                    owner_address: owner?.address || '',
+                    owner_cpr: owner?.cpr_number || '',
+                    property_name: listing?.name || '',
+                    property_address: listing?.address || '',
+                    commission_percent: custom.commission_percent || '15',
+                    binding_months: custom.binding_months || '6',
+                    notice_days: custom.notice_days || '30',
+                    ...custom,
+                  };
+                  let resolved = html;
+                  Object.entries(vals).forEach(([k, v]) => {
+                    resolved = resolved.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), v || '—');
+                  });
+                  return resolved;
+                };
+
+                return (
+                  <div key={sd.id} className="rounded-xl border border-border/30 bg-muted/10 overflow-hidden">
+                    {/* Header row */}
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center", isAftale ? "bg-primary/15" : "bg-muted/30")}>
+                          <IconComp className={cn("h-4 w-4", isAftale ? "text-primary" : "text-muted-foreground")} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{sd.title}</p>
+                          <p className="text-[11px] text-muted-foreground">{isAftale ? 'Aftale' : 'Standard dokument'} · {format(new Date(sd.created_at), 'd. MMM yyyy', { locale: da })}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <StatusChip label={st.label} variant={st.variant} dot />
+                        <Button size="sm" variant="ghost" onClick={() => {
+                          if (isEditing) { setEditingDocId(null); } else {
+                            setEditingDocId(sd.id);
+                            setEditDocValues(sd.custom_values || {});
+                          }
+                        }}>
+                          {isEditing ? <X className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
+                        </Button>
                       </div>
                     </div>
-                    <StatusChip label={d.status} variant={d.status === 'active' ? 'success' : 'muted'} />
+
+                    {/* Edit / Preview panel */}
+                    {isEditing && (
+                      <div className="border-t border-border/30 px-4 py-4 space-y-4">
+                        {isAftale && (
+                          <div className="grid grid-cols-3 gap-3">
+                            <div><Label className="text-xs text-muted-foreground">Kommission %</Label>
+                              <Input type="number" min={0} max={100} value={editDocValues.commission_percent || '15'} onChange={e => setEditDocValues({ ...editDocValues, commission_percent: e.target.value })} /></div>
+                            <div><Label className="text-xs text-muted-foreground">Bindingsperiode (mdr)</Label>
+                              <Input type="number" min={0} value={editDocValues.binding_months || '6'} onChange={e => setEditDocValues({ ...editDocValues, binding_months: e.target.value })} /></div>
+                            <div><Label className="text-xs text-muted-foreground">Opsigelse (dage)</Label>
+                              <Input type="number" min={0} value={editDocValues.notice_days || '30'} onChange={e => setEditDocValues({ ...editDocValues, notice_days: e.target.value })} /></div>
+                          </div>
+                        )}
+
+                        {/* Preview */}
+                        <div className="rounded-lg border border-border/20 bg-background/50 p-4">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Forhåndsvisning</p>
+                          <div className="prose prose-sm max-w-none text-foreground [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-sm [&_h2]:font-semibold [&_p]:text-xs [&_p]:leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: resolveBody(sd.body_html, editDocValues) }} />
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button size="sm" variant="outline" onClick={async () => {
+                            await supabase.from('sag_documents').update({ custom_values: editDocValues }).eq('id', sd.id);
+                            setSagDocs(prev => prev.map(d => d.id === sd.id ? { ...d, custom_values: editDocValues } : d));
+                            toast.success('Tilpasninger gemt');
+                            setEditingDocId(null);
+                          }}>
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" /> Gem tilpasninger
+                          </Button>
+                          {isAftale && sd.status === 'draft' && (
+                            <Button size="sm" onClick={async () => {
+                              await supabase.from('sag_documents').update({ status: 'sent', sent_at: new Date().toISOString(), custom_values: editDocValues }).eq('id', sd.id);
+                              setSagDocs(prev => prev.map(d => d.id === sd.id ? { ...d, status: 'sent', sent_at: new Date().toISOString(), custom_values: editDocValues } : d));
+                              toast.success('Sendt til underskrift (MitID-integration kommer snart)');
+                              setEditingDocId(null);
+                            }}>
+                              <Send className="h-3.5 w-3.5 mr-1.5" /> Send til underskrift
+                            </Button>
+                          )}
+                          {!isAftale && (
+                            <Button size="sm" variant="outline" onClick={() => {
+                              const w = window.open('', '_blank');
+                              if (w) { w.document.write(resolveBody(sd.body_html, editDocValues)); w.document.close(); }
+                            }}>
+                              <Download className="h-3.5 w-3.5 mr-1.5" /> Åbn dokument
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))}
+                );
+              })}
+            </div>
+
+            {/* Legacy uploaded documents */}
+            {documents.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-border/30">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Uploadede dokumenter</p>
+                <div className="space-y-2">
+                  {documents.map(d => (
+                    <div key={d.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center"><FileText className="h-4 w-4 text-muted-foreground" /></div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{d.title}</p>
+                          <p className="text-[11px] text-muted-foreground">{d.document_type} · {format(new Date(d.created_at), 'd. MMM yyyy', { locale: da })}</p>
+                        </div>
+                      </div>
+                      <StatusChip label={d.status} variant={d.status === 'active' ? 'success' : 'muted'} />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </SectionCard>

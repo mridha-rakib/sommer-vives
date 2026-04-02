@@ -920,6 +920,45 @@ export type Database = {
           },
         ]
       }
+      document_templates: {
+        Row: {
+          body_html: string
+          body_text: string
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          placeholders: Json
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          body_html?: string
+          body_text?: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          placeholders?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          body_text?: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          placeholders?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           booking_id: string | null
@@ -2514,8 +2553,11 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           case_number: string | null
           company_name: string | null
+          country: string | null
+          cpr_number: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -2524,8 +2566,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
           case_number?: string | null
           company_name?: string | null
+          country?: string | null
+          cpr_number?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -2534,8 +2579,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
           case_number?: string | null
           company_name?: string | null
+          country?: string | null
+          cpr_number?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
@@ -2695,6 +2743,62 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sag_documents: {
+        Row: {
+          body_html: string
+          category: string
+          created_at: string
+          custom_values: Json
+          id: string
+          listing_id: string
+          owner_id: string
+          sent_at: string | null
+          signed_at: string | null
+          status: string
+          template_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body_html?: string
+          category?: string
+          created_at?: string
+          custom_values?: Json
+          id?: string
+          listing_id: string
+          owner_id: string
+          sent_at?: string | null
+          signed_at?: string | null
+          status?: string
+          template_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          category?: string
+          created_at?: string
+          custom_values?: Json
+          id?: string
+          listing_id?: string
+          owner_id?: string
+          sent_at?: string | null
+          signed_at?: string | null
+          status?: string
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sag_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
             referencedColumns: ["id"]
           },
         ]
