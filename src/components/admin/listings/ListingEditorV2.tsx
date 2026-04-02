@@ -935,10 +935,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               <Textarea value={listing.checkout_info || ''} onChange={e => update('checkout_info', e.target.value)} rows={3} placeholder="Instruktioner til check-out..." />
             </Section>
           </div>
-        </TabsContent>
 
-        {/* ─── 3. BILLEDER ─── */}
-        <TabsContent value="billeder" className="mt-4 space-y-5">
+          {/* ── Billeder ── */}
           <Section title="Hero-billede" description="Hovedbilledet der vises øverst">
             <Field label="Hero URL">
               <Input value={listing.hero_image || ''} onChange={e => update('hero_image', e.target.value)} placeholder="https://..." />
