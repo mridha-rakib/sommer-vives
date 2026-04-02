@@ -206,7 +206,7 @@ export function Header() {
 
           {/* Mobile menu button */}
           <button
-            className={`md:hidden p-2 rounded-xl transition-colors ${
+            className={`lg:hidden p-2 rounded-xl transition-colors ${
               transparent
                 ? 'text-foreground hover:bg-foreground/10'
                 : 'text-foreground hover:bg-muted'
