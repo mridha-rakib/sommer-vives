@@ -12,6 +12,7 @@ interface ListingData {
   slug: string;
   name: string;
   description: string | null;
+  tagline: string | null;
   address: string | null;
   region: string | null;
   max_guests: number;
@@ -21,6 +22,7 @@ interface ListingData {
   hero_image: string | null;
   images: string[] | null;
   amenities: string[] | null;
+  property_type: string | null;
 }
 
 const REGIONS = ['Alle', 'Nordsjælland', 'Vestjylland', 'Limfjorden', 'Sydsjælland', 'Fyn', 'Bornholm'];
@@ -34,7 +36,7 @@ const Listings = () => {
     const load = async () => {
       const { data } = await supabase
         .from('listings')
-        .select('id, slug, name, description, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, hero_image, images, amenities')
+        .select('id, slug, name, description, tagline, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, hero_image, images, amenities, property_type')
         .eq('is_active', true)
         .order('sort_order');
       setListings((data as unknown as ListingData[]) || []);
@@ -128,7 +130,7 @@ const Listings = () => {
                       bedrooms={listing.bedrooms || undefined}
                       bathrooms={listing.bathrooms || undefined}
                       pricePerNight={listing.base_price_per_night / 100}
-                      teaser={listing.description?.substring(0, 120) || undefined}
+                      teaser={listing.tagline || listing.description?.substring(0, 120) || undefined}
                       tags={listing.amenities?.slice(0, 2) || []}
                     />
                   </motion.div>

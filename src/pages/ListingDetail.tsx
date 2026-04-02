@@ -58,6 +58,15 @@ interface ListingData {
   image_labels: { url: string; label: string }[] | null;
   location_map_image: string | null;
   location_mood_image: string | null;
+  tagline: string | null;
+  long_description: string | null;
+  about_property: string | null;
+  about_area: string | null;
+  highlights: string[] | null;
+  sqm: number | null;
+  property_type: string | null;
+  checkin_info: string | null;
+  checkout_info: string | null;
 }
 
 // ─── Icon Maps ──────────────────────────────────────────
@@ -264,41 +273,54 @@ const ListingDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-14 mb-0">
             {/* Left – main content */}
             <div className="lg:col-span-3">
-              <h1 className="font-display text-2xl md:text-3xl font-semibold text-primary mb-4 leading-tight">
+              <h1 className="font-display text-2xl md:text-3xl font-semibold text-primary mb-2 leading-tight">
                 {listing.name}
               </h1>
+              {listing.tagline && (
+                <p className="text-primary/70 font-display text-lg italic mb-4">{listing.tagline}</p>
+              )}
               {listing.description && (
                 <p className="text-muted-foreground leading-relaxed text-[17px] whitespace-pre-line max-w-2xl">
                   {listing.description}
                 </p>
               )}
 
-              {/* Highlight features */}
-              <div className="relative mt-8 space-y-5 border-t border-border/40 pt-6">
-                {[
-                  { icon: TreePine, title: 'Naturskøn beliggenhed', desc: 'Omgivet af naturens ro — perfekt til afslapning.' },
-                  { icon: Lock, title: 'Nem indtjekning', desc: 'Tjek ind uden vært med smartlås eller nøgleboks.' },
-                  { icon: Leaf, title: 'Fred og ro', desc: 'Et roligt og fredfyldt opholdssted for hele familien.' },
-                ].map((h, i) => (
-                  <motion.div
-                    key={i}
-                    className="relative z-10 flex items-start gap-4"
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: i * 0.08 }}
-                  >
-                    <motion.div className="shrink-0 mt-0.5" whileHover={{ scale: 1.15, rotate: 8 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 12 }}>
-                      <h.icon className="h-7 w-7 text-foreground/70" />
+              {/* Highlights from DB or fallback */}
+              {(listing.highlights && listing.highlights.length > 0) ? (
+                <div className="relative mt-8 space-y-4 border-t border-border/40 pt-6">
+                  {listing.highlights.map((h, i) => (
+                    <motion.div
+                      key={i}
+                      className="relative z-10 flex items-center gap-3"
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: i * 0.08 }}
+                    >
+                      <Star className="h-5 w-5 text-primary/60 shrink-0" />
+                      <p className="text-[15px] font-medium text-foreground">{h}</p>
                     </motion.div>
-                    <div>
-                      <p className="text-[15px] font-medium text-foreground">{h.title}</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">{h.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="relative mt-8 space-y-5 border-t border-border/40 pt-6">
+                  {[
+                    { icon: TreePine, title: 'Naturskøn beliggenhed', desc: 'Omgivet af naturens ro — perfekt til afslapning.' },
+                    { icon: Lock, title: 'Nem indtjekning', desc: 'Tjek ind uden vært med smartlås eller nøgleboks.' },
+                    { icon: Leaf, title: 'Fred og ro', desc: 'Et roligt og fredfyldt opholdssted for hele familien.' },
+                  ].map((h, i) => (
+                    <motion.div key={i} className="relative z-10 flex items-start gap-4"
+                      initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.08 }}>
+                      <h.icon className="h-7 w-7 text-foreground/70 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[15px] font-medium text-foreground">{h.title}</p>
+                        <p className="text-sm text-muted-foreground mt-0.5">{h.desc}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
 
               {/* Scroll hint */}
               {contentSections.length > 0 && (
@@ -337,6 +359,12 @@ const ListingDetail = () => {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Badeværelser</span>
                     <span className="text-foreground font-medium">{listing.bathrooms}</span>
+                  </div>
+                )}
+                {listing.sqm && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Areal</span>
+                    <span className="text-foreground font-medium">{listing.sqm} m²</span>
                   </div>
                 )}
                 {(listing.check_in_time || listing.check_out_time) && (
@@ -464,6 +492,32 @@ const ListingDetail = () => {
 
           <BrandDivider />
 
+          {/* Long description from admin */}
+          {listing.long_description && (
+            <div className="mb-10">
+              <h3 className="font-display text-2xl md:text-3xl font-semibold text-primary mb-3">Om dette sted</h3>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line max-w-3xl">{listing.long_description}</p>
+            </div>
+          )}
+
+          {/* About property & area side by side */}
+          {(listing.about_property || listing.about_area) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+              {listing.about_property && (
+                <div>
+                  <h3 className="font-display text-xl font-semibold text-primary mb-3">Om boligen</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{listing.about_property}</p>
+                </div>
+              )}
+              {listing.about_area && (
+                <div>
+                  <h3 className="font-display text-xl font-semibold text-primary mb-3">Om området</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{listing.about_area}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Content Sections */}
           {contentSections.length > 0 && (
             <div id="content-sections" className="mb-10">
@@ -476,6 +530,24 @@ const ListingDetail = () => {
 
           {/* Facilities */}
           {facilities.length > 0 && <FacilitiesSection facilities={facilities} />}
+
+          {/* Check-in / Check-out info */}
+          {(listing.checkin_info || listing.checkout_info) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+              {listing.checkin_info && (
+                <div>
+                  <h3 className="font-display text-xl font-semibold text-primary mb-3">Check-in</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{listing.checkin_info}</p>
+                </div>
+              )}
+              {listing.checkout_info && (
+                <div>
+                  <h3 className="font-display text-xl font-semibold text-primary mb-3">Check-out</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{listing.checkout_info}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* House rules */}
           {listing.house_rules && (
