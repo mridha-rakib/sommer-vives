@@ -755,8 +755,26 @@ export default function AdminSagDetail() {
                 toast.success('Listing markeret som klar til Beds24');
               }}
             />
+            {/* Send til Beds24 action */}
+            {(listing.sync_status === 'ready' || listing.sync_status === 'error') && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-foreground">Klar til publicering</p>
+                  <p className="text-[11px] text-muted-foreground">Send listing-data til Beds24 channel manager</p>
+                </div>
+                <Button size="sm" className="rounded-xl text-xs gap-1.5" onClick={() => setPublishOpen(true)}>
+                  <Send className="h-3.5 w-3.5" />Send til Beds24
+                </Button>
+              </div>
+            )}
             <Beds24Integration listing={listing} onUpdate={(updated: any) => setListing({ ...listing, ...updated })} />
             <Beds24MappingSection listing={listing} />
+            <Beds24PublishDialog
+              listing={listing}
+              open={publishOpen}
+              onClose={() => setPublishOpen(false)}
+              onConfirmed={(updated) => setListing({ ...listing, ...updated })}
+            />
           </div>
         )}
 
