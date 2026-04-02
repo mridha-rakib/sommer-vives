@@ -14,7 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import {
   ArrowLeft, Loader2, Save, X, Plus, Home, ImageIcon, Tag, DollarSign, CheckCircle2, Globe,
   Star, AlertTriangle, Info, ClipboardCheck, Rocket, Sparkles, Zap,
-  CircleDot, Circle, Check, Calendar as CalendarIcon, Languages, Wand2, MessageSquare, FileText
+  CircleDot, Circle, Check, Calendar as CalendarIcon, Languages, Wand2, MessageSquare, FileText,
+  Link2, RefreshCw, WifiOff, Wifi, Clock, AlertCircle
 } from 'lucide-react';
 
 // ── Types ──
