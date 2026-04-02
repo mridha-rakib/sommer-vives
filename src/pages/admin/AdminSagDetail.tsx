@@ -477,6 +477,7 @@ export default function AdminSagDetail() {
   const tabs = [
     { key: 'overblik', label: 'Overblik', icon: Eye },
     { key: 'listing', label: 'Listing', icon: Home },
+    { key: 'integrationer', label: 'Integrationer', icon: Plug },
     { key: 'kanaler', label: 'Kanaler', icon: Radio },
     { key: 'kalender', label: 'Kalender', icon: CalendarIcon },
     { key: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
