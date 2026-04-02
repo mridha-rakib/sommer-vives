@@ -1032,8 +1032,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           </Section>
         </TabsContent>
 
-        {/* ─── 5. PRISER & REGLER ─── */}
-        <TabsContent value="priser" className="mt-4 space-y-5">
+        {/* ─── TAB 2: PRISER & KALENDER ─── */}
+        <TabsContent value="priser" className="mt-6 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <Section title="Grundpriser (øre)" description="Priser er i øre (100 = 1 DKK)">
               <div className="grid grid-cols-2 gap-4">
