@@ -41,6 +41,9 @@ interface ListingFull {
   readiness_score: number | null; internal_status: string | null;
   checkin_info: string | null; checkout_info: string | null;
   image_captions: Record<string, string> | null;
+  channel_manager_partner: string | null; external_listing_id: string | null;
+  external_property_id: string | null; last_sync_at: string | null;
+  sync_status: string | null; sync_error_message: string | null;
   updated_at: string;
 }
 
