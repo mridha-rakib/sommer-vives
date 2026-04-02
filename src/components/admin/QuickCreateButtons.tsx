@@ -25,8 +25,13 @@ function QuickLeadDialog({ open, onClose }: { open: boolean; onClose: () => void
   const save = async () => {
     if (!form.name.trim()) { toast.error('Navn er påkrævet'); return; }
     setSaving(true);
-    const { error } = await supabase.from('leads').insert({ ...form, status: 'new' });
-    if (error) { toast.error('Kunne ikke oprette lead'); setSaving(false); return; }
+    const payload: Record<string, any> = { name: form.name.trim(), status: 'new', source: form.source };
+    if (form.email.trim()) payload.email = form.email.trim();
+    if (form.phone.trim()) payload.phone = form.phone.trim();
+    if (form.region.trim()) payload.region = form.region.trim();
+    if (form.notes.trim()) payload.notes = form.notes.trim();
+    const { error } = await supabase.from('leads').insert(payload);
+    if (error) { toast.error('Kunne ikke oprette lead: ' + error.message); setSaving(false); return; }
     toast.success('Lead oprettet');
     setForm({ name: '', email: '', phone: '', source: 'contact', region: '', notes: '' });
     setSaving(false); onClose();
