@@ -70,6 +70,7 @@ export function ListingsOverview({ onEdit, onCreate }: Props) {
   const [listings, setListings] = useState<ListingSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
 
   useEffect(() => {
     const load = async () => {
