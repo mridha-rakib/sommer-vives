@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import {
   ArrowLeft, Loader2, Save, X, Plus, Home, ImageIcon, Tag, DollarSign, CheckCircle2, Globe,
   Star, AlertTriangle, Info, ClipboardCheck, Rocket, Sparkles, Zap,
-  CircleDot, Circle, Check, Calendar as CalendarIcon
+  CircleDot, Circle, Check, Calendar as CalendarIcon, Languages, Wand2, MessageSquare, FileText
 } from 'lucide-react';
 
 // ── Types ──
@@ -194,6 +194,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   const [checkDialogOpen, setCheckDialogOpen] = useState(false);
   const [prepareDialogOpen, setPrepareDialogOpen] = useState(false);
   const [aiImproving, setAiImproving] = useState(false);
+  const [aiAction, setAiAction] = useState<string | null>(null);
   const [aiPreview, setAiPreview] = useState<any>(null);
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [channelDialogOpen, setChannelDialogOpen] = useState<string | null>(null);
@@ -286,38 +287,78 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
     setPrepareDialogOpen(true);
   };
 
-  // ── Action: Forbedr tekst med AI ──
-  const handleAiImprove = async () => {
+  // ── Action: AI content tool ──
+  const handleAiAction = async (action: string) => {
     if (!listing) return;
     setAiImproving(true);
+    setAiAction(action);
     setAiDialogOpen(true);
+    setAiPreview(null);
     try {
       const { data, error } = await supabase.functions.invoke('improve-listing-text', {
-        body: { listing },
+        body: { listing, action },
       });
       if (error) throw error;
       if (data?.improved) {
-        setAiPreview(data.improved);
+        setAiPreview({ ...data.improved, _action: action });
       } else if (data?.error) {
         toast({ title: 'AI-fejl', description: data.error, variant: 'destructive' });
         setAiDialogOpen(false);
       }
     } catch (e: any) {
-      toast({ title: 'Fejl', description: e.message || 'Kunne ikke forbedre tekst', variant: 'destructive' });
+      toast({ title: 'Fejl', description: e.message || 'Kunne ikke generere indhold', variant: 'destructive' });
       setAiDialogOpen(false);
     } finally {
       setAiImproving(false);
     }
   };
 
+  // legacy wrapper
+  const handleAiImprove = () => handleAiAction('improve_all');
+
   const applyAiSuggestions = () => {
     if (!aiPreview || !listing) return;
-    if (aiPreview.title) update('description', aiPreview.title);
-    if (aiPreview.tagline) update('tagline', aiPreview.tagline);
-    if (aiPreview.description) update('long_description', aiPreview.description);
-    if (aiPreview.long_description) update('long_description', aiPreview.long_description);
-    if (aiPreview.highlights?.length) update('highlights', aiPreview.highlights);
-    toast({ title: 'AI-tekst anvendt!', description: 'Husk at gemme ændringerne.' });
+    const action = aiPreview._action || 'improve_all';
+
+    if (action === 'improve_title' && aiPreview.suggestions?.length) {
+      update('description', aiPreview.suggestions[0]);
+    } else if (action === 'improve_description' && aiPreview.description) {
+      update('description', aiPreview.description);
+    } else if (action === 'improve_long_description' && aiPreview.long_description) {
+      update('long_description', aiPreview.long_description);
+    } else if (action === 'generate_highlights' && aiPreview.highlights?.length) {
+      update('highlights', aiPreview.highlights);
+    } else if (action === 'channel_airbnb') {
+      if (aiPreview.title) update('channel_airbnb_title', aiPreview.title);
+      if (aiPreview.description) update('channel_airbnb_description', aiPreview.description);
+      if (aiPreview.highlights) update('channel_airbnb_highlights', aiPreview.highlights);
+      if (aiPreview.house_rules) update('channel_airbnb_house_rules', aiPreview.house_rules);
+      if (aiPreview.checkin_notes) update('channel_airbnb_checkin_notes', aiPreview.checkin_notes);
+    } else if (action === 'channel_booking') {
+      if (aiPreview.title) update('channel_booking_title', aiPreview.title);
+      if (aiPreview.description) update('channel_booking_description', aiPreview.description);
+      if (aiPreview.room_setup) update('channel_booking_room_setup', aiPreview.room_setup);
+      if (aiPreview.policies) update('channel_booking_policies', aiPreview.policies);
+      if (aiPreview.checkin_checkout) update('channel_booking_checkin_checkout', aiPreview.checkin_checkout);
+    } else if (action === 'channel_vrbo') {
+      if (aiPreview.title) update('channel_vrbo_title', aiPreview.title);
+      if (aiPreview.description) update('channel_vrbo_description', aiPreview.description);
+      if (aiPreview.highlights) update('channel_vrbo_highlights', aiPreview.highlights);
+      if (aiPreview.rules) update('channel_vrbo_rules', aiPreview.rules);
+    } else if (action === 'translate_en' || action === 'translate_de') {
+      // Store in a toast for now — translations are read-only previews
+      toast({ title: `Oversættelse genereret (${action === 'translate_en' ? 'EN' : 'DE'})`, description: 'Kopiér tekst fra preview-dialogen.' });
+      return;
+    } else {
+      // improve_all fallback
+      if (aiPreview.title) update('description', aiPreview.title);
+      if (aiPreview.tagline) update('tagline', aiPreview.tagline);
+      if (aiPreview.description && !aiPreview.long_description) update('long_description', aiPreview.description);
+      if (aiPreview.long_description) update('long_description', aiPreview.long_description);
+      if (aiPreview.highlights?.length) update('highlights', aiPreview.highlights);
+    }
+
+    toast({ title: 'AI-indhold anvendt!', description: 'Husk at gemme ændringerne.' });
     setAiDialogOpen(false);
     setAiPreview(null);
   };
@@ -443,7 +484,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
       </div>
 
       {/* ── ACTION TOOLBAR ── */}
-      <div className="bg-card border border-border rounded-xl p-3">
+      <div className="bg-card border border-border rounded-xl p-3 space-y-2">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-semibold text-muted-foreground mr-1 hidden sm:inline">Handlinger:</span>
           <Button variant="outline" size="sm" onClick={handleCheck} className="gap-1.5 text-xs h-8">
@@ -451,10 +492,6 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           </Button>
           <Button variant="outline" size="sm" onClick={handlePrepare} className="gap-1.5 text-xs h-8">
             <Rocket className="h-3.5 w-3.5" /> Klargør listing
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleAiImprove} disabled={aiImproving} className="gap-1.5 text-xs h-8 border-primary/30 text-primary hover:bg-primary/5">
-            {aiImproving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-            Forbedr tekst med AI
           </Button>
           <div className="hidden sm:block w-px h-5 bg-border mx-1" />
           <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('airbnb')} className="gap-1.5 text-xs h-8 text-rose-600 hover:bg-rose-50 hover:text-rose-700">
@@ -465,6 +502,39 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           </Button>
           <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('vrbo')} className="gap-1.5 text-xs h-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700">
             <Globe className="h-3.5 w-3.5" /> Forbered Vrbo
+          </Button>
+        </div>
+
+        {/* AI Content Tools Row */}
+        <div className="flex items-center gap-2 flex-wrap border-t border-border/50 pt-2">
+          <span className="text-xs font-semibold text-primary mr-1 hidden sm:inline flex items-center gap-1">
+            <Sparkles className="h-3 w-3" /> AI-værktøjer:
+          </span>
+          <Button variant="outline" size="sm" onClick={() => handleAiAction('improve_title')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-primary/20 text-primary hover:bg-primary/5">
+            <Wand2 className="h-3 w-3" /> Forbedr titel
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleAiAction('improve_description')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-primary/20 text-primary hover:bg-primary/5">
+            <FileText className="h-3 w-3" /> Forbedr beskrivelse
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleAiAction('generate_highlights')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-primary/20 text-primary hover:bg-primary/5">
+            <Star className="h-3 w-3" /> Generér highlights
+          </Button>
+          <div className="hidden sm:block w-px h-4 bg-border mx-0.5" />
+          <Button variant="outline" size="sm" onClick={() => handleAiAction('channel_airbnb')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-rose-200 text-rose-600 hover:bg-rose-50">
+            <Sparkles className="h-3 w-3" /> Lav Airbnb-version
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleAiAction('channel_booking')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-blue-200 text-blue-600 hover:bg-blue-50">
+            <Sparkles className="h-3 w-3" /> Lav Booking-version
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleAiAction('channel_vrbo')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+            <Sparkles className="h-3 w-3" /> Lav Vrbo-version
+          </Button>
+          <div className="hidden sm:block w-px h-4 bg-border mx-0.5" />
+          <Button variant="outline" size="sm" onClick={() => handleAiAction('translate_en')} disabled={aiImproving} className="gap-1.5 text-xs h-7">
+            <Languages className="h-3 w-3" /> Engelsk
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => handleAiAction('translate_de')} disabled={aiImproving} className="gap-1.5 text-xs h-7">
+            <Languages className="h-3 w-3" /> Tysk
           </Button>
         </div>
       </div>
@@ -573,19 +643,47 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" /> AI-forbedret tekst
+              <Sparkles className="h-5 w-5 text-primary" />
+              {aiAction === 'improve_title' ? 'AI – Titelforslag' :
+               aiAction === 'improve_description' ? 'AI – Beskrivelse' :
+               aiAction === 'improve_long_description' ? 'AI – Lang beskrivelse' :
+               aiAction === 'generate_highlights' ? 'AI – Highlights' :
+               aiAction === 'channel_airbnb' ? 'AI – Airbnb-indhold' :
+               aiAction === 'channel_booking' ? 'AI – Booking.com-indhold' :
+               aiAction === 'channel_vrbo' ? 'AI – Vrbo-indhold' :
+               aiAction === 'translate_en' ? 'AI – Engelsk oversættelse' :
+               aiAction === 'translate_de' ? 'AI – Tysk oversættelse' :
+               'AI-forbedret tekst'}
             </DialogTitle>
           </DialogHeader>
           {aiImproving && (
-            <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" /> AI skriver forbedrede tekster...
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <p className="text-sm">AI genererer indhold...</p>
+              <p className="text-[11px] text-muted-foreground/60">Dette tager typisk 5-15 sekunder</p>
             </div>
           )}
           {aiPreview && !aiImproving && (
             <div className="space-y-4">
-              {aiPreview.title && (
+              {/* Title suggestions */}
+              {aiPreview.suggestions && (
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">Offentlig titel</p>
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Vælg en titel:</p>
+                  <div className="space-y-2">
+                    {aiPreview.suggestions.map((s: string, i: number) => (
+                      <button key={i} onClick={() => { update('description', s); toast({ title: 'Titel anvendt!' }); setAiDialogOpen(false); setAiPreview(null); }}
+                        className="w-full text-left text-sm bg-muted/50 hover:bg-primary/5 hover:border-primary/30 border border-border rounded-lg p-3 text-foreground transition-colors">
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Single fields */}
+              {aiPreview.title && !aiPreview.suggestions && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Titel</p>
                   <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground">{aiPreview.title}</p>
                 </div>
               )}
@@ -614,14 +712,54 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                 </div>
               )}
 
-              <div className="flex gap-2 pt-2">
-                <Button onClick={applyAiSuggestions} className="flex-1 gap-1.5">
-                  <Check className="h-4 w-4" /> Anvend alle forslag
-                </Button>
-                <Button variant="outline" onClick={() => { setAiDialogOpen(false); setAiPreview(null); }}>
-                  Annuller
-                </Button>
-              </div>
+              {/* Channel-specific fields */}
+              {aiPreview.house_rules && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Husregler</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.house_rules}</p>
+                </div>
+              )}
+              {aiPreview.checkin_notes && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Check-in noter</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.checkin_notes}</p>
+                </div>
+              )}
+              {aiPreview.room_setup && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Værelseopsætning</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.room_setup}</p>
+                </div>
+              )}
+              {aiPreview.policies && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Politikker</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.policies}</p>
+                </div>
+              )}
+              {aiPreview.checkin_checkout && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Check-in/out info</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.checkin_checkout}</p>
+                </div>
+              )}
+              {aiPreview.rules && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Regler</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.rules}</p>
+                </div>
+              )}
+
+              {!aiPreview.suggestions && (
+                <div className="flex gap-2 pt-2">
+                  <Button onClick={applyAiSuggestions} className="flex-1 gap-1.5">
+                    <Check className="h-4 w-4" /> Anvend forslag
+                  </Button>
+                  <Button variant="outline" onClick={() => { setAiDialogOpen(false); setAiPreview(null); }}>
+                    Annuller
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
