@@ -164,7 +164,7 @@ export function EarningsSection() {
 
   return (
     <>
-      <section ref={ref} className="py-24 md:py-32 bg-background overflow-hidden">
+      <section ref={ref} className="py-16 md:py-32 bg-background overflow-hidden">
         <div className="container mx-auto px-5 md:px-10 max-w-[1100px]">
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
