@@ -611,25 +611,37 @@ export default function AdminDokumenter() {
                 <div className="py-5 border-b border-border/30 space-y-3">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">Tilknytninger</p>
                   {selected.property_id && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <button
+                      onClick={() => { setSelected(null); navigate(`/admin/sager/${selected.property_id}`); }}
+                      className="flex items-center gap-2 text-sm w-full rounded-lg px-2 py-1.5 hover:bg-muted/20 transition-colors group/link"
+                    >
                       <FolderIcon className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-foreground">Sag</span>
-                      <span className="text-muted-foreground text-xs truncate">{selected.property_id}</span>
-                    </div>
+                      <span className="text-foreground font-medium">Sag</span>
+                      <span className="text-primary text-xs truncate group-hover/link:underline">{propertyMap[selected.property_id] || selected._agreement?.property_title || selected.property_id.slice(0, 8)}</span>
+                      <ExternalLink className="w-3 h-3 text-muted-foreground ml-auto opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                    </button>
                   )}
                   {selected.owner_id && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <button
+                      onClick={() => { setSelected(null); navigate(`/admin/crm/udlejere`); }}
+                      className="flex items-center gap-2 text-sm w-full rounded-lg px-2 py-1.5 hover:bg-muted/20 transition-colors group/link"
+                    >
                       <User className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-foreground">Ejer</span>
-                      <span className="text-muted-foreground text-xs truncate">{selected.owner_id}</span>
-                    </div>
+                      <span className="text-foreground font-medium">Ejer</span>
+                      <span className="text-primary text-xs truncate group-hover/link:underline">{profileMap[selected.owner_id] || selected._agreement?.owner_name || selected.owner_id.slice(0, 8)}</span>
+                      <ExternalLink className="w-3 h-3 text-muted-foreground ml-auto opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                    </button>
                   )}
                   {selected.booking_id && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <button
+                      onClick={() => { setSelected(null); navigate(`/admin/bookings`); }}
+                      className="flex items-center gap-2 text-sm w-full rounded-lg px-2 py-1.5 hover:bg-muted/20 transition-colors group/link"
+                    >
                       <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-foreground">Booking</span>
-                      <span className="text-muted-foreground text-xs truncate">{selected.booking_id}</span>
-                    </div>
+                      <span className="text-foreground font-medium">Booking</span>
+                      <span className="text-primary text-xs truncate group-hover/link:underline">{selected.booking_id.slice(0, 8)}</span>
+                      <ExternalLink className="w-3 h-3 text-muted-foreground ml-auto opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                    </button>
                   )}
                   {!selected.property_id && !selected.owner_id && !selected.booking_id && (
                     <p className="text-xs text-muted-foreground/60">Ingen tilknytninger endnu</p>
