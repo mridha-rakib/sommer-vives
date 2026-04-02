@@ -608,15 +608,39 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
             {currentStep === 'media' && (
               <>
                 <div className="mb-8">
-                  <h1 className="font-display text-2xl font-bold text-foreground">Medier</h1>
-                  <p className="text-sm text-muted-foreground mt-1">Billeder, video og plantegninger</p>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Mediebibliotek</p>
+                  <h1 className="font-display text-2xl font-bold text-foreground">Billeder & medier</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Byg et visuelt stærkt galleri der sælger din bolig</p>
                 </div>
 
-                <StudioContentBlock title="Upload billeder" subtitle="Træk og slip eller klik for at uploade" icon={<Camera className="h-4 w-4 text-primary" />}>
+                {/* Stats bar */}
+                <div className="flex items-center gap-4 mb-6 p-4 rounded-2xl bg-muted/10 border border-border/20">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <ImageIcon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <span className="text-lg font-bold text-foreground">{(listing.images || []).length}</span>
+                      <span className="text-xs text-muted-foreground ml-1">billeder</span>
+                    </div>
+                  </div>
+                  <div className="w-px h-8 bg-border/30" />
+                  <div className="flex items-center gap-2">
+                    <span className={cn('text-xs font-medium', listing.hero_image ? 'text-emerald-500' : 'text-amber-500')}>
+                      {listing.hero_image ? '✓ Hero valgt' : '⚠ Intet hero'}
+                    </span>
+                  </div>
+                  <div className="w-px h-8 bg-border/30" />
+                  <div className="text-xs text-muted-foreground">
+                    Min. 5 billeder anbefalet for kanaler
+                  </div>
+                </div>
+
+                <StudioContentBlock title="Upload billeder" subtitle="Træk og slip eller vælg filer" icon={<Camera className="h-4 w-4 text-primary" />}>
                   <ListingImageUpload listingSlug={listing.slug} onUploaded={url => update('images', [...(listing.images || []), url])} />
                 </StudioContentBlock>
 
-                <StudioContentBlock title="Galleri" subtitle="Sortér, tagge og administrer billeder" icon={<ImageIcon className="h-4 w-4 text-primary" />}>
+                <StudioContentBlock title="Galleri" subtitle="Sortér, kategorisér og administrér" icon={<ImageIcon className="h-4 w-4 text-primary" />}>
                   <SortableImageGallery
                     images={listing.images || []}
                     heroImage={listing.hero_image || ''}
@@ -633,6 +657,26 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                       update('combo_hero_images' as any, next);
                     }}
                   />
+                </StudioContentBlock>
+
+                {/* Video section */}
+                <StudioContentBlock title="Videoer" subtitle="Listing-video og videoguides" icon={<Play className="h-4 w-4 text-primary" />}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="rounded-xl border border-border/30 bg-muted/10 p-5 flex flex-col items-center justify-center min-h-[140px]">
+                      <div className="w-12 h-12 rounded-2xl bg-muted/30 flex items-center justify-center mb-3">
+                        <Play className="h-5 w-5 text-muted-foreground/40" />
+                      </div>
+                      <p className="text-xs font-medium text-foreground mb-0.5">Listing-video</p>
+                      <p className="text-[10px] text-muted-foreground text-center">Videoguides administreres i Kontakt & videoguides</p>
+                    </div>
+                    <div className="rounded-xl border border-border/30 bg-muted/10 p-5 flex flex-col items-center justify-center min-h-[140px]">
+                      <div className="w-12 h-12 rounded-2xl bg-muted/30 flex items-center justify-center mb-3">
+                        <MapPin className="h-5 w-5 text-muted-foreground/40" />
+                      </div>
+                      <p className="text-xs font-medium text-foreground mb-0.5">Plantegninger</p>
+                      <p className="text-[10px] text-muted-foreground text-center">Upload plantegning som billede i galleriet og tag den som "Detalje"</p>
+                    </div>
+                  </div>
                 </StudioContentBlock>
               </>
             )}
