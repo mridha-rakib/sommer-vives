@@ -200,6 +200,217 @@ function TimelineItem({ label, date }: { label: string; date: string }) {
   );
 }
 
+// ─── Common amenities for quick-select ───
+const COMMON_AMENITIES = [
+  'WiFi', 'Parkering', 'Opvaskemaskine', 'Vaskemaskine', 'Tørretumbler',
+  'Brændeovn', 'Grill', 'Terrasse', 'Have', 'Spa/Jacuzzi',
+  'Sauna', 'Pool', 'Husdyr tilladt', 'Børnevenlig', 'Handicapvenlig',
+  'Havudsigt', 'Søudsigt', 'Skovudsigt',
+];
+
+// ─── Inline Listing Editor ───
+function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (data: any) => void }) {
+  const [editSection, setEditSection] = useState(0);
+  const [form, setForm] = useState(() => ({
+    name: listing.name || '', description: listing.description || '', address: listing.address || '',
+    region: listing.region || '', city: listing.city || '', tagline: listing.tagline || '',
+    property_type: listing.property_type || '',
+    max_guests: listing.max_guests || 1, bedrooms: listing.bedrooms || 1, bathrooms: listing.bathrooms || 1,
+    base_price_per_night: (listing.base_price_per_night || 0) / 100,
+    cleaning_fee: (listing.cleaning_fee || 0) / 100,
+    weekend_price_per_night: (listing.weekend_price_per_night || 0) / 100,
+    min_nights: listing.min_nights || 1, max_nights: listing.max_nights || 30,
+    check_in_time: listing.check_in_time || '15:00', check_out_time: listing.check_out_time || '10:00',
+    is_active: listing.is_active, house_rules: listing.house_rules || '',
+    practical_info: listing.practical_info || '', checkin_info: listing.checkin_info || '',
+    checkout_info: listing.checkout_info || '',
+    hero_image: listing.hero_image || '', amenities: listing.amenities || [], images: listing.images || [],
+  }));
+  const [newAmenity, setNewAmenity] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formRef = useRef(form);
+  formRef.current = form;
+
+  const persistFn = useCallback(async (data: typeof form) => {
+    setSaving(true);
+    const payload: Record<string, any> = {
+      name: data.name, description: data.description || null,
+      address: data.address || null, region: data.region || null, city: data.city || null,
+      max_guests: data.max_guests, bedrooms: data.bedrooms, bathrooms: data.bathrooms,
+      base_price_per_night: Math.round(data.base_price_per_night * 100),
+      cleaning_fee: Math.round(data.cleaning_fee * 100),
+      weekend_price_per_night: Math.round(data.weekend_price_per_night * 100) || null,
+      min_nights: data.min_nights, max_nights: data.max_nights,
+      check_in_time: data.check_in_time, check_out_time: data.check_out_time,
+      is_active: data.is_active, house_rules: data.house_rules || null,
+      practical_info: data.practical_info || null,
+      checkin_info: data.checkin_info || null, checkout_info: data.checkout_info || null,
+      amenities: data.amenities, images: data.images,
+      hero_image: data.hero_image || (data.images.length > 0 ? data.images[0] : null),
+      property_type: data.property_type || null, tagline: data.tagline || null,
+    };
+    const { error } = await supabase.from('listings').update(payload).eq('id', listing.id);
+    setSaving(false);
+    if (error) { toast.error(`Fejl: ${error.message}`); } else { setLastSaved(new Date()); onSaved(payload); }
+  }, [listing.id, onSaved]);
+
+  const scheduleSave = useCallback(() => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => persistFn(formRef.current), 2000);
+  }, [persistFn]);
+
+  useEffect(() => () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); }, []);
+
+  const upd = (key: string, value: any) => { setForm(prev => ({ ...prev, [key]: value })); scheduleSave(); };
+  const toggleAm = (a: string) => {
+    const has = form.amenities.includes(a);
+    upd('amenities', has ? form.amenities.filter((x: string) => x !== a) : [...form.amenities, a]);
+  };
+
+  const EF = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
+    <div className="space-y-1.5"><Label className="text-sm font-medium text-foreground">{label}</Label>{hint && <p className="text-xs text-muted-foreground -mt-0.5">{hint}</p>}{children}</div>
+  );
+  const ER = ({ children, cols = 2 }: { children: React.ReactNode; cols?: 2 | 3 }) => (
+    <div className={`grid ${cols === 3 ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'} gap-4`}>{children}</div>
+  );
+
+  const readinessChecks = [
+    { label: 'Titel', ok: !!form.name.trim(), fix: 'Tilføj en titel', s: 0 },
+    { label: 'Adresse', ok: !!form.address.trim(), fix: 'Tilføj adresse', s: 0 },
+    { label: 'Beskrivelse', ok: form.description.trim().length >= 20, fix: 'Skriv en beskrivelse (min. 20 tegn)', s: 1 },
+    { label: 'Hero-billede', ok: !!form.hero_image.trim(), fix: 'Vælg et hovedbillede', s: 2 },
+    { label: 'Min. 5 billeder', ok: form.images.filter((i: string) => i.trim()).length >= 5, fix: `Mangler ${Math.max(0, 5 - form.images.filter((i: string) => i.trim()).length)} billeder`, s: 2 },
+    { label: 'Faciliteter', ok: form.amenities.length >= 3, fix: `Tilføj ${Math.max(0, 3 - form.amenities.length)} flere`, s: 3 },
+    { label: 'Pris pr. nat', ok: form.base_price_per_night > 0, fix: 'Sæt en pris per nat', s: 4 },
+    { label: 'Check-in info', ok: !!form.checkin_info.trim(), fix: 'Beskriv ankomst-procedure', s: 5 },
+    { label: 'Husregler', ok: !!form.house_rules.trim(), fix: 'Tilføj husregler', s: 1 },
+  ];
+  const rPassed = readinessChecks.filter(c => c.ok).length;
+  const rScore = Math.round((rPassed / readinessChecks.length) * 100);
+  const sLabels = ['Grunddata', 'Beskrivelse', 'Billeder', 'Faciliteter', 'Priser', 'Klargøring'];
+  const sIcons = [MapPin, Type, Image, Sparkles, DollarSign, Settings];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex gap-1 overflow-x-auto scrollbar-none">
+          {sLabels.map((s, i) => { const Ic = sIcons[i]; return (
+            <button key={s} onClick={() => setEditSection(i)}
+              className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors',
+                editSection === i ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80')}>
+              <Ic className="h-3 w-3" />{s}
+            </button>
+          ); })}
+        </div>
+        <div className="flex items-center gap-2 shrink-0 text-xs text-muted-foreground">
+          {saving ? <span className="flex items-center gap-1"><Clock className="h-3 w-3 animate-spin" /> Gemmer…</span>
+           : lastSaved ? <span className="flex items-center gap-1 text-primary"><CheckCircle2 className="h-3 w-3" /> Gemt</span>
+           : <span>Auto-gem</span>}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border/40 bg-card/60 p-5 space-y-4">
+        {editSection === 0 && (<>
+          <EF label="Titel" hint="Det navn gæsten ser"><Input value={form.name} onChange={e => upd('name', e.target.value)} placeholder="Strandvillaen i Hornbæk" /></EF>
+          <EF label="Tagline"><Input value={form.tagline} onChange={e => upd('tagline', e.target.value)} placeholder="Moderne sommerhus med havudsigt" /></EF>
+          <ER><EF label="Boligtype"><Input value={form.property_type} onChange={e => upd('property_type', e.target.value)} placeholder="Sommerhus" /></EF><EF label="Region"><Input value={form.region} onChange={e => upd('region', e.target.value)} placeholder="Nordsjælland" /></EF></ER>
+          <EF label="Adresse"><Input value={form.address} onChange={e => upd('address', e.target.value)} placeholder="Søvej 28, 3100 Hornbæk" /></EF>
+          <EF label="By"><Input value={form.city} onChange={e => upd('city', e.target.value)} placeholder="Hornbæk" /></EF>
+          <ER cols={3}>
+            <EF label="Max gæster"><Input type="number" min={1} value={form.max_guests} onChange={e => upd('max_guests', parseInt(e.target.value) || 1)} /></EF>
+            <EF label="Soveværelser"><Input type="number" min={0} value={form.bedrooms} onChange={e => upd('bedrooms', parseInt(e.target.value) || 0)} /></EF>
+            <EF label="Badeværelser"><Input type="number" min={0} value={form.bathrooms} onChange={e => upd('bathrooms', parseInt(e.target.value) || 0)} /></EF>
+          </ER>
+          <div className="flex items-center gap-3 pt-2"><Label className="text-sm">Aktiv</Label><Switch checked={form.is_active} onCheckedChange={v => upd('is_active', v)} /></div>
+        </>)}
+        {editSection === 1 && (<>
+          <EF label="Hovedbeskrivelse" hint="Beskriv boligen og stemningen"><Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={6} placeholder="Velkommen til…" /></EF>
+          <EF label="Husregler"><Textarea value={form.house_rules} onChange={e => upd('house_rules', e.target.value)} rows={3} placeholder="Ingen rygning…" /></EF>
+          <EF label="Praktisk info"><Textarea value={form.practical_info} onChange={e => upd('practical_info', e.target.value)} rows={3} placeholder="WiFi: SommerNet…" /></EF>
+        </>)}
+        {editSection === 2 && (<>
+          <EF label="Hero-billede"><Input value={form.hero_image} onChange={e => upd('hero_image', e.target.value)} placeholder="https://…" /></EF>
+          {form.hero_image && <div className="rounded-xl overflow-hidden border border-border h-40"><img src={form.hero_image} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /></div>}
+          <Label className="text-sm font-medium">Galleri</Label>
+          {form.images.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {form.images.map((img: string, i: number) => (
+                <div key={i} className="relative group rounded-xl overflow-hidden border border-border aspect-[4/3] bg-muted">
+                  {img ? <img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /> : <div className="flex items-center justify-center h-full text-xs text-muted-foreground">Tom</div>}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                    <button onClick={() => upd('images', form.images.filter((_: string, idx: number) => idx !== i))} className="opacity-0 group-hover:opacity-100 bg-white/90 text-destructive rounded-full p-1.5"><X className="h-3.5 w-3.5" /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <Button variant="outline" size="sm" onClick={() => upd('images', [...form.images, ''])} className="gap-1.5 w-full"><Plus className="h-3.5 w-3.5" /> Tilføj billede</Button>
+        </>)}
+        {editSection === 3 && (<>
+          <Label className="text-sm font-medium mb-2 block">Hurtigvalg</Label>
+          <div className="flex flex-wrap gap-1.5">
+            {COMMON_AMENITIES.map(a => (
+              <button key={a} onClick={() => toggleAm(a)} className={cn('px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
+                form.amenities.includes(a) ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground border-border hover:border-primary/40')}>{a}</button>
+            ))}
+          </div>
+          {form.amenities.filter((a: string) => !COMMON_AMENITIES.includes(a)).length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {form.amenities.filter((a: string) => !COMMON_AMENITIES.includes(a)).map((a: string) => (
+                <Badge key={a} variant="secondary" className="gap-1 text-xs">{a}<button onClick={() => upd('amenities', form.amenities.filter((x: string) => x !== a))} className="ml-0.5 hover:text-destructive"><X className="h-3 w-3" /></button></Badge>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2 mt-3">
+            <Input value={newAmenity} onChange={e => setNewAmenity(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (newAmenity.trim()) { toggleAm(newAmenity.trim()); setNewAmenity(''); } } }}
+              placeholder="Tilføj egen facilitet…" className="flex-1" />
+            <Button size="sm" variant="outline" onClick={() => { if (newAmenity.trim()) { toggleAm(newAmenity.trim()); setNewAmenity(''); } }}><Plus className="h-4 w-4" /></Button>
+          </div>
+        </>)}
+        {editSection === 4 && (<>
+          <ER><EF label="Pris pr. nat (DKK)"><Input type="number" min={0} step={50} value={form.base_price_per_night} onChange={e => upd('base_price_per_night', parseFloat(e.target.value) || 0)} /></EF><EF label="Weekend-pris (DKK)"><Input type="number" min={0} step={50} value={form.weekend_price_per_night} onChange={e => upd('weekend_price_per_night', parseFloat(e.target.value) || 0)} /></EF></ER>
+          <ER><EF label="Rengøringsgebyr (DKK)"><Input type="number" min={0} step={50} value={form.cleaning_fee} onChange={e => upd('cleaning_fee', parseFloat(e.target.value) || 0)} /></EF><div /></ER>
+          <ER><EF label="Min. nætter"><Input type="number" min={1} value={form.min_nights} onChange={e => upd('min_nights', parseInt(e.target.value) || 1)} /></EF><EF label="Max nætter"><Input type="number" min={1} value={form.max_nights} onChange={e => upd('max_nights', parseInt(e.target.value) || 30)} /></EF></ER>
+        </>)}
+        {editSection === 5 && (<>
+          <div className="flex items-center gap-5 pb-4 border-b border-border">
+            {(() => { const c = 2 * Math.PI * 40; const o = c - (rScore / 100) * c; return (
+              <div className="relative w-20 h-20 shrink-0"><svg className="w-20 h-20 -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="7" className="text-muted/30" />
+                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="7" strokeDasharray={c} strokeDashoffset={o} strokeLinecap="round" className={rScore >= 80 ? 'text-primary' : rScore >= 50 ? 'text-accent-foreground' : 'text-destructive'} />
+              </svg><div className="absolute inset-0 flex items-center justify-center"><span className="text-lg font-bold text-foreground">{rScore}%</span></div></div>
+            ); })()}
+            <div><p className="text-sm font-semibold text-foreground">{rScore === 100 ? 'Klar! 🎉' : rScore >= 80 ? 'Næsten klar' : 'Mangler data'}</p><p className="text-xs text-muted-foreground mt-0.5">{rPassed} af {readinessChecks.length} udfyldt</p></div>
+          </div>
+          {readinessChecks.filter(c => !c.ok).length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mangler</p>
+              {readinessChecks.filter(c => !c.ok).map(item => (
+                <button key={item.label} onClick={() => setEditSection(item.s)} className="w-full flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-left hover:bg-muted/50 transition-colors group">
+                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+                  <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground">{item.label}</p><p className="text-xs text-muted-foreground">{item.fix}</p></div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                </button>
+              ))}
+            </div>
+          )}
+          {rPassed > 0 && <div className="flex flex-wrap gap-1.5">{readinessChecks.filter(c => c.ok).map(item => (
+            <span key={item.label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium"><CheckCircle2 className="h-3 w-3" /> {item.label}</span>
+          ))}</div>}
+          <div className="pt-3 border-t border-border space-y-4">
+            <ER><EF label="Check-in tid"><Input type="time" value={form.check_in_time} onChange={e => upd('check_in_time', e.target.value)} /></EF><EF label="Check-out tid"><Input type="time" value={form.check_out_time} onChange={e => upd('check_out_time', e.target.value)} /></EF></ER>
+            <EF label="Check-in instruktioner"><Textarea value={form.checkin_info} onChange={e => upd('checkin_info', e.target.value)} rows={3} placeholder="Nøgleboksen sidder…" /></EF>
+            <EF label="Check-out instruktioner"><Textarea value={form.checkout_info} onChange={e => upd('checkout_info', e.target.value)} rows={3} placeholder="Tøm køleskab…" /></EF>
+          </div>
+        </>)}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───
 export default function AdminSagDetail() {
   const { id } = useParams<{ id: string }>();
