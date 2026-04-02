@@ -26,11 +26,11 @@ const LEAD_STATUS_LABELS: Record<string, string> = {
   qualified: 'Kvalificeret', waiting: 'Afventer svar', won: 'Vundet', lost: 'Tabt',
 };
 
-const TASK_STATUS: Record<string, { label: string; variant: 'muted' | 'info' | 'warning' | 'success' }> = {
-  pending: { label: 'Ikke startet', variant: 'muted' },
+const TASK_STATUS: Record<string, { label: string; variant: 'muted' | 'info' | 'warning' | 'success' | 'danger' }> = {
+  not_started: { label: 'Ikke startet', variant: 'muted' },
   in_progress: { label: 'I gang', variant: 'info' },
   waiting: { label: 'Afventer', variant: 'warning' },
-  completed: { label: 'Færdig', variant: 'success' },
+  done: { label: 'Færdig', variant: 'success' },
 };
 
 function SectionCard({ title, icon: Icon, linkTo, linkLabel, children, className }: {
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
       const [leadsRes, allLeadsRes, tasksRes, agreementsRes, msgCountRes, msgsRes, docsRes, onbRes] = await Promise.all([
         supabase.from('leads').select('*').in('status', ['new', 'contacted']).order('created_at', { ascending: false }).limit(5),
         supabase.from('leads').select('id, status'),
-        supabase.from('tasks').select('*, property:properties(title)').eq('scheduled_date', todayStr).order('created_at', { ascending: false }).limit(8),
+        supabase.from('system_tasks' as any).select('*').neq('status', 'done').order('created_at', { ascending: false }).limit(8),
         supabase.from('agreements').select('*').eq('status', 'signed').order('signed_at', { ascending: false }).limit(5),
         supabase.from('chat_messages').select('id', { count: 'exact' }).eq('is_read', false),
         supabase.from('chat_messages').select('id, message, sender_name, sender_type, created_at').order('created_at', { ascending: false }).limit(5),
@@ -159,8 +159,8 @@ export default function AdminDashboard() {
           ) : (
             <>
               <KPICard title="Nye leads" value={leads.length} icon={Target} variant="gold" subtitle="Aktive" />
-              <KPICard title="Møder i dag" value={tasks.filter(t => t.task_type?.toLowerCase().includes('møde') || t.task_type?.toLowerCase().includes('besøg')).length} icon={Calendar} />
-              <KPICard title="Opgaver i dag" value={tasks.length} icon={ListChecks} variant={tasks.length > 0 ? 'warning' : 'default'} />
+              <KPICard title="Aktive opgaver" value={tasks.length} icon={ListChecks} variant={tasks.length > 0 ? 'warning' : 'default'} />
+              <KPICard title="Haster" value={tasks.filter(t => t.priority === 'urgent' || t.priority === 'high').length} icon={Calendar} variant={tasks.filter(t => t.priority === 'urgent' || t.priority === 'high').length > 0 ? 'warning' : 'default'} />
               <KPICard title="Nye beskeder" value={unreadCount} icon={MessageSquare} variant={unreadCount > 0 ? 'warning' : 'default'} />
               <KPICard title="Nye aftaler" value={agreements.length} icon={FileSignature} variant="success" subtitle="Underskrevne" />
               <KPICard title="Under klargøring" value={onboarding.length} icon={FolderOpen} variant="gold" />
@@ -179,12 +179,12 @@ export default function AdminDashboard() {
               ) : (
                 <div className="space-y-0.5">
                   {tasks.map(t => {
-                    const st = TASK_STATUS[t.status] || TASK_STATUS.pending;
+                    const st = TASK_STATUS[t.status] || TASK_STATUS.not_started;
                     return (
                       <ListRow
                         key={t.id}
-                        title={t.task_type}
-                        subtitle={(t.property as any)?.title}
+                        title={t.title}
+                        subtitle={t.linked_name || t.description?.slice(0, 50) || undefined}
                         chip={<StatusChip label={st.label} variant={st.variant} dot />}
                       />
                     );
