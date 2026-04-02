@@ -15,6 +15,10 @@ const channels = ['Airbnb', 'Booking.com', 'VRBO', 'Feriepartner', 'Google', 'Fa
 
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const swooshY = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const swooshRotate = useTransform(scrollYProgress, [0, 1], [0, -3]);
 
   return (
     <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
