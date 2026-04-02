@@ -238,7 +238,7 @@ export function PremiumServicesSection() {
           <motion.img
             src={heroInterior}
             alt="Moderne skandinavisk sommerhus"
-            className="w-full aspect-[2.4/1] min-h-[280px] max-h-[420px] object-cover"
+            className="w-full aspect-[16/9] md:aspect-[2.4/1] min-h-[200px] max-h-[420px] object-cover"
             initial={{ scale: 1.04 }}
             animate={isInView ? { scale: 1 } : {}}
             transition={{ duration: 1.2, ease: 'easeOut' }}
