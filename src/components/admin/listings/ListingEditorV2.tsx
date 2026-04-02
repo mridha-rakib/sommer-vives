@@ -193,7 +193,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   const [isDirty, setIsDirty] = useState(false);
   const [newAmenity, setNewAmenity] = useState('');
   const [newHighlight, setNewHighlight] = useState('');
-  const [activeTab, setActiveTab] = useState('grunddata');
+  const [activeTab, setActiveTab] = useState('bolig');
 
   // Action states
   const [checkDialogOpen, setCheckDialogOpen] = useState(false);
