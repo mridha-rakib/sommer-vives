@@ -655,6 +655,143 @@ export default function About() {
     <PublicLayout>
       <HeroSection />
       <FounderVideoSection />
+      <FounderFactsSection />
+      <StorySection />
+      <BrandDNA />
+      <ContactCloseSection />
+    </PublicLayout>
+  );
+}
+function BrandDNA() {
+  const { ref, isInView } = useScrollReveal();
+  const values = [
+    { title: 'Kvalitet over kvantitet', desc: 'Færre ejere, mere opmærksomhed.' },
+    { title: 'Digital nytænkning', desc: 'Moderne værktøjer, fuldt overblik.' },
+    { title: 'Personlig rådgivning', desc: 'Én kontaktperson, der kender dit hus.' },
+  ];
+
+  return (
+    <section ref={ref} className="py-14 md:py-20 bg-card/30 relative">
+      <div className="container mx-auto px-5 md:px-10 max-w-[860px]">
+        <motion.div {...reveal(isInView)} className="flex items-center gap-4 mb-8">
+          <div className="w-6 h-px bg-accent/20" />
+          <p className="text-accent/40 font-body text-[10px] font-semibold tracking-[0.3em] uppercase">Vores DNA</p>
+        </motion.div>
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+          {values.map((v, i) => (
+            <motion.div key={i} {...reveal(isInView, 0.06 * i)}>
+              <h3 className="font-display text-[1.05rem] font-semibold text-primary mb-1.5">{v.title}</h3>
+              <p className="text-muted-foreground/65 text-[13.5px] leading-[1.7]">{v.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   5. CONTACT + FAQ + CTA
+   ═══════════════════════════════════════════════════ */
+function ContactCloseSection() {
+  const { ref, isInView } = useScrollReveal();
+
+  const faqs = [
+    { q: 'Hvem kommer jeg i kontakt med?', a: 'Du taler direkte med Emil eller en af vores rådgivere. Ingen callcentre, ingen ventetid.' },
+    { q: 'Er det uforpligtende at tage en snak?', a: 'Ja, altid. En første samtale er helt uforpligtende — vi vil bare gerne høre om dit hus.' },
+    { q: 'Kan jeg kontakte jer direkte?', a: 'Ja. Du kan ringe til os i åbningstiden, eller skrive en mail, så vender vi tilbage hurtigt.' },
+  ];
+
+  const contacts = [
+    { icon: Phone, title: 'Ring til os', detail: '+45 12 34 56 78', href: 'tel:+4512345678' },
+    { icon: Mail, title: 'Skriv til os', detail: 'kontakt@sommervibes.dk', href: 'mailto:kontakt@sommervibes.dk' },
+    { icon: Clock, title: 'Åbningstider', detail: 'Tirsdag–fredag 10–15' },
+  ];
+
+  return (
+    <section ref={ref} id="kontakt" className="py-16 md:py-24 bg-background scroll-mt-24 relative">
+      <div className="container mx-auto px-5 md:px-10 max-w-[800px]">
+        <motion.div {...reveal(isInView)} className="text-center mb-10">
+          <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary mb-3 tracking-[-0.01em]">
+            Vi er klar til at <span className="text-accent italic font-normal">hjælpe dig</span>
+          </h2>
+          <p className="text-muted-foreground/65 max-w-[380px] mx-auto text-[14.5px] leading-[1.7]">
+            Du er altid velkommen til en uforpligtende samtale. Vi svarer typisk inden for få timer.
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-3 mb-10">
+          {contacts.map((item, i) => (
+            <motion.div
+              key={i}
+              {...reveal(isInView, 0.06 + i * 0.06)}
+              className="bg-card/50 backdrop-blur-sm ring-1 ring-white/[0.03] rounded-xl p-6 text-center hover:ring-accent/8 transition-all duration-400"
+            >
+              <div className="w-9 h-9 rounded-lg bg-accent/8 flex items-center justify-center mx-auto mb-3">
+                <item.icon className="w-4 h-4 text-accent/55" />
+              </div>
+              <h3 className="font-display font-semibold text-primary text-[13.5px] mb-1.5">{item.title}</h3>
+              {item.href ? (
+                <a href={item.href} className="text-muted-foreground/60 text-[13px] hover:text-accent/70 transition-colors duration-300">{item.detail}</a>
+              ) : (
+                <p className="text-muted-foreground/60 text-[13px]">{item.detail}</p>
+              )}
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.div {...reveal(isInView, 0.3)} className="max-w-[600px] mx-auto mb-14">
+          <Accordion type="single" collapsible className="space-y-0">
+            {faqs.map((faq, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="border-border/15">
+                <AccordionTrigger className="text-[13.5px] text-primary/80 font-medium py-3.5 hover:no-underline hover:text-primary transition-colors">
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground/65 text-[13px] leading-[1.7] pb-3">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </motion.div>
+
+        <motion.div
+          {...reveal(isInView, 0.4)}
+          className="text-center pt-8 border-t border-border/15"
+        >
+          <h3 className="font-display text-[1.4rem] md:text-[1.7rem] font-bold text-primary leading-[1.15] mb-3 tracking-[-0.01em]">
+            Lad os tage en uforpligtende snak
+            <span className="block text-accent italic font-normal mt-1 text-[0.9em]">om dit sommerhus</span>
+          </h3>
+          <p className="text-muted-foreground/60 text-[14px] leading-[1.7] mb-8 max-w-[380px] mx-auto">
+            Start med et gratis udlejningstjek eller kom direkte i gang.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link to="/kom-i-gang">
+              <Button variant="gold" size="lg" className="gap-2.5 group px-8 h-11 text-[13.5px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.3)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.4)] transition-shadow duration-500">
+                Udlej dit hus <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+              </Button>
+            </Link>
+            <Link to="/book-vurdering">
+              <Button variant="outline" size="lg" className="border-accent/20 text-accent/80 hover:bg-accent/[0.06] hover:border-accent/30 px-8 h-11 text-[13.5px] font-medium transition-all duration-300">
+                Book gratis udlejningstjek
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   PAGE
+   ═══════════════════════════════════════════════════ */
+export default function About() {
+  return (
+    <PublicLayout>
+      <HeroSection />
+      <FounderVideoSection />
       <StorySection />
       <BrandDNA />
       <ContactCloseSection />
