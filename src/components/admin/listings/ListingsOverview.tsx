@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus, Search, Pencil, Home, MapPin, Users, Clock, Wifi, Globe, AlertCircle } from 'lucide-react';
+import { Loader2, Plus, Search, Pencil, Home, MapPin, Users, Clock, Wifi, Globe, AlertCircle, LayoutList, Columns3 } from 'lucide-react';
+import { ListingsPipelineBoard } from './ListingsPipelineBoard';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 
