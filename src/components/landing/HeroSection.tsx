@@ -179,14 +179,14 @@ export function HeroSection() {
         className="relative z-10 bg-background/60 backdrop-blur-sm border-t border-foreground/10"
       >
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-4 divide-x divide-foreground/10">
+          <div className="flex items-center justify-center gap-8 sm:gap-12 md:gap-20 py-5 md:py-7">
             {[
               { value: '15%', label: 'Kommission' },
               { value: '5 min', label: 'At komme i gang' },
               { value: '6 mdr.', label: 'Binding' },
               { value: '50.200', label: 'Skattefrit' },
             ].map((stat, i) => (
-              <div key={i} className="py-4 sm:py-5 md:py-6 text-center">
+              <div key={i} className="text-center">
                 <div className="font-display text-base sm:text-xl md:text-3xl font-bold text-primary">{stat.value}</div>
                 <div className="text-[8px] sm:text-[10px] md:text-xs text-foreground/50 mt-0.5 font-body tracking-wider uppercase">{stat.label}</div>
               </div>
