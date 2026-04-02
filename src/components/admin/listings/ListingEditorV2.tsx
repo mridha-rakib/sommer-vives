@@ -903,6 +903,16 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         </div>
       )}
 
+      {/* ═══════════════════════ AKTØRER TAB ═══════════════════════ */}
+      {topTab === 'aktoerer' && listing && (
+        <ListingActorsTab listingId={listing.id} ownerId={listing.owner_id} />
+      )}
+
+      {/* ═══════════════════════ MEDARBEJDERE TAB ═══════════════════════ */}
+      {topTab === 'medarbejdere' && listing && (
+        <ListingStaffTab listingId={listing.id} />
+      )}
+
       {/* ═══════════════════════ PLACEHOLDER TABS ═══════════════════════ */}
       {['tilkoeb', 'dokumenter', 'opgaver', 'noter'].includes(topTab) && (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
