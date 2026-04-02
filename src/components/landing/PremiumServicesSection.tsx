@@ -294,7 +294,7 @@ const services: Service[] = [
     expandLabel: 'Hvad du får med',
     signature: true,
     badge: 'Særligt hos SommerVibes',
-    visual: BoostVisual,
+    image: boostImg,
   },
   // 2. Kundedialog 24/7
   {
@@ -305,7 +305,7 @@ const services: Service[] = [
     expandLabel: 'Mindre arbejde for dig',
     signature: true,
     badge: 'Mindre arbejde for dig',
-    visual: DialogVisual,
+    image: kundedialogImg,
   },
   // 3. Slutrengøring
   {
@@ -316,7 +316,7 @@ const services: Service[] = [
     expandLabel: 'Det betyder for dig',
     signature: true,
     badge: 'Ekstra tryghed',
-    visual: CleaningVisual,
+    image: cleaningImg,
   },
   // 4. Eksponering på alle store portaler
   {
@@ -327,7 +327,7 @@ const services: Service[] = [
     expandLabel: 'Hvad du får med',
     signature: true,
     badge: 'Maksimal rækkevidde',
-    visual: PortalsVisual,
+    image: portalsImg,
   },
   // 5. Til-Leje-skilt med QR-kode
   {
@@ -338,7 +338,7 @@ const services: Service[] = [
     expandLabel: 'Derfor gør det en forskel',
     signature: true,
     badge: 'Mere synlighed',
-    visual: QrSignVisual,
+    image: qrSignImg,
   },
   // 6. Kun 15% kommission
   {
@@ -349,7 +349,7 @@ const services: Service[] = [
     expandLabel: 'Hvad det betyder for dig',
     signature: true,
     badge: 'Mere tilbage til dig',
-    visual: CommissionVisual,
+    image: commissionImg,
   },
   // 7. Unikke muligheder for merindtjening
   {
