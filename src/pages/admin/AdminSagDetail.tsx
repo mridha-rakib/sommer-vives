@@ -1,0 +1,510 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
+import {
+  ArrowLeft, Home, MapPin, Users, Bed, Bath, CheckCircle2, Clock,
+  Radio, Globe, FileText, ListChecks, MessageSquare, ShoppingBag,
+  Calendar as CalendarIcon, Eye, Pencil, ExternalLink, Image,
+  Tag, DollarSign, Wifi, AlertCircle, ChevronRight, StickyNote
+} from 'lucide-react';
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import { StatusChip } from '@/components/admin/ui/StatusChip';
+import { EmptyState } from '@/components/admin/ui/EmptyState';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+
+type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
+
+const STATUS_MAP: Record<string, { label: string; variant: SVariant }> = {
+  draft: { label: 'Kladde', variant: 'muted' },
+  preparing: { label: 'Klargøring', variant: 'warning' },
+  review: { label: 'Til gennemgang', variant: 'info' },
+  ready: { label: 'Klar', variant: 'success' },
+  live: { label: 'Live', variant: 'success' },
+  paused: { label: 'Pauset', variant: 'danger' },
+};
+
+const SYNC_STATUS_MAP: Record<string, { label: string; variant: SVariant }> = {
+  not_connected: { label: 'Ikke tilkoblet', variant: 'muted' },
+  ready: { label: 'Klar til integration', variant: 'info' },
+  pending: { label: 'Venter på sync', variant: 'warning' },
+  synced: { label: 'Synkroniseret', variant: 'success' },
+  error: { label: 'Fejl', variant: 'danger' },
+};
+
+function ReadinessRing({ score }: { score: number }) {
+  const circumference = 2 * Math.PI * 40;
+  const offset = circumference - (score / 100) * circumference;
+  const color = score >= 80 ? 'text-emerald-500' : score >= 50 ? 'text-amber-400' : 'text-red-400';
+  return (
+    <div className="relative w-24 h-24">
+      <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/30" />
+        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="6" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className={color} />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-xl font-bold text-foreground">{score}%</span>
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string | React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0"><Icon className="h-3.5 w-3.5 text-muted-foreground" /></div>
+      <div className="flex-1 min-w-0"><p className="text-xs text-muted-foreground">{label}</p><div className="text-sm font-medium text-foreground">{value}</div></div>
+    </div>
+  );
+}
+
+function SectionCard({ title, icon: Icon, children, className }: { title: string; icon?: any; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn('rounded-xl border border-border/40 bg-card/60 backdrop-blur-sm p-5', className)}>
+      <div className="flex items-center gap-2 mb-4">
+        {Icon && <Icon className="h-4 w-4 text-primary" />}
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function ChannelCard({ name, ready, title, description }: { name: string; ready: boolean | null; title: string | null; description: string | null }) {
+  return (
+    <div className={cn('rounded-xl border p-4 transition-all', ready ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/40 bg-card/60')}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-semibold text-foreground">{name}</span>
+        <StatusChip label={ready ? 'Klar' : 'Ikke klar'} variant={ready ? 'success' : 'muted'} dot />
+      </div>
+      {title && <p className="text-xs text-muted-foreground truncate">Titel: {title}</p>}
+      {description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{description}</p>}
+      {!title && !description && <p className="text-xs text-muted-foreground/50 italic">Ingen kanalspecifikt indhold endnu</p>}
+    </div>
+  );
+}
+
+export default function AdminSagDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [listing, setListing] = useState<any>(null);
+  const [owner, setOwner] = useState<any>(null);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [addons, setAddons] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('overblik');
+
+  useEffect(() => {
+    if (!id) return;
+    const load = async () => {
+      const { data: l } = await supabase.from('listings').select('*').eq('id', id).single();
+      setListing(l);
+      if (l) {
+        const [{ data: prof }, { data: ts }, { data: docs }, { data: adds }, { data: bks }] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', l.owner_id).single(),
+          supabase.from('tasks').select('*').in('property_id', [id]).order('scheduled_date'),
+          supabase.from('documents').select('*').eq('owner_id', l.owner_id).limit(20),
+          supabase.from('add_ons').select('*').eq('listing_id', id),
+          supabase.from('bookings').select('*').eq('property_id', id).order('check_in', { ascending: false }).limit(20),
+        ]);
+        setOwner(prof);
+        setTasks(ts || []);
+        setDocuments(docs || []);
+        setAddons(adds || []);
+        setBookings(bks || []);
+      }
+      setLoading(false);
+    };
+    load();
+  }, [id]);
+
+  const tabs = [
+    { key: 'overblik', label: 'Overblik', icon: Eye },
+    { key: 'listing', label: 'Listing', icon: Home },
+    { key: 'kanaler', label: 'Kanaler', icon: Radio },
+    { key: 'kalender', label: 'Kalender', icon: CalendarIcon },
+    { key: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
+    { key: 'dokumenter', label: 'Dokumenter', icon: FileText },
+    { key: 'opgaver', label: 'Opgaver', icon: ListChecks },
+    { key: 'noter', label: 'Noter', icon: StickyNote },
+  ];
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-48 rounded-xl" />
+          <Skeleton className="h-48 rounded-2xl" />
+          <div className="grid grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!listing) {
+    return (
+      <AdminLayout>
+        <div className="space-y-6">
+          <Button variant="ghost" onClick={() => navigate('/admin/sager')} className="gap-2 rounded-xl"><ArrowLeft className="h-4 w-4" />Tilbage</Button>
+          <EmptyState icon={FolderOpen} title="Sag ikke fundet" description="Denne sag eksisterer ikke" />
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  const st = STATUS_MAP[listing.internal_status || 'draft'] || STATUS_MAP.draft;
+  const syncSt = SYNC_STATUS_MAP[listing.sync_status || 'not_connected'] || SYNC_STATUS_MAP.not_connected;
+  const cover = listing.hero_image || listing.images?.[0];
+  const score = listing.readiness_score || 0;
+  const fmt = (v: number) => new Intl.NumberFormat('da-DK', { style: 'currency', currency: listing.currency || 'DKK', maximumFractionDigits: 0 }).format(v);
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Back + header */}
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/admin/sager')} className="h-9 w-9 rounded-xl shrink-0">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold text-foreground truncate">{listing.name}</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <StatusChip label={st.label} variant={st.variant} dot />
+              {listing.region && <span className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{listing.region}</span>}
+            </div>
+          </div>
+          <Button size="sm" className="rounded-xl gap-1.5" onClick={() => navigate(`/admin/sager`)}>
+            <Pencil className="h-3.5 w-3.5" />Rediger listing
+          </Button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 overflow-x-auto pb-1">
+          {tabs.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all',
+                tab === t.key
+                  ? 'bg-primary/10 text-primary border border-primary/20'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent'
+              )}
+            >
+              <t.icon className="h-3.5 w-3.5" />{t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ═══════════════════════ TAB CONTENT ═══════════════════════ */}
+
+        {tab === 'overblik' && (
+          <div className="space-y-6">
+            {/* Hero banner */}
+            <div className="rounded-2xl border border-border/40 overflow-hidden bg-card/60">
+              <div className="h-48 bg-muted/30 overflow-hidden relative">
+                {cover ? <img src={cover} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Home className="h-12 w-12 text-muted-foreground/15" /></div>}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground">{listing.name}</h2>
+                    <p className="text-xs text-muted-foreground">{listing.address || listing.region}</p>
+                  </div>
+                  <ChannelDotsLarge airbnb={listing.channel_airbnb_ready} booking={listing.channel_booking_ready} vrbo={listing.channel_vrbo_ready} />
+                </div>
+              </div>
+            </div>
+
+            {/* Readiness + key info */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <SectionCard title="Readiness" icon={CheckCircle2}>
+                <div className="flex items-center justify-center py-2">
+                  <ReadinessRing score={score} />
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-4">
+                  <MiniStat label="Billeder" value={listing.images?.length || 0} ok={(listing.images?.length || 0) >= 5} />
+                  <MiniStat label="Beskrivelse" value={listing.description ? '✓' : '—'} ok={!!listing.description} />
+                  <MiniStat label="Pris" value={listing.base_price_per_night ? '✓' : '—'} ok={!!listing.base_price_per_night} />
+                  <MiniStat label="Regler" value={listing.house_rules ? '✓' : '—'} ok={!!listing.house_rules} />
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Nøgletal" icon={Home}>
+                <div className="space-y-2.5">
+                  <InfoRow icon={Users} label="Gæster" value={`${listing.max_guests}`} />
+                  <InfoRow icon={Bed} label="Soveværelser" value={`${listing.bedrooms || '—'}`} />
+                  <InfoRow icon={Bath} label="Badeværelser" value={`${listing.bathrooms || '—'}`} />
+                  <InfoRow icon={DollarSign} label="Pris / nat" value={fmt(listing.base_price_per_night)} />
+                  {listing.cleaning_fee && <InfoRow icon={Tag} label="Rengøring" value={fmt(listing.cleaning_fee)} />}
+                  <InfoRow icon={Clock} label="Check-in / out" value={`${listing.check_in_time || '15:00'} / ${listing.check_out_time || '10:00'}`} />
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Ejer" icon={Eye}>
+                {owner ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                        {(owner.full_name || owner.email)[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{owner.full_name || 'Ukendt'}</p>
+                        <p className="text-[11px] text-muted-foreground">{owner.email}</p>
+                      </div>
+                    </div>
+                    {owner.phone && <p className="text-xs text-muted-foreground">{owner.phone}</p>}
+                    <Button variant="outline" size="sm" className="rounded-xl text-xs w-full" onClick={() => navigate('/admin/crm/udlejere')}>Se ejerprofil</Button>
+                  </div>
+                ) : <p className="text-xs text-muted-foreground/50 italic">Ingen ejer tilknyttet</p>}
+              </SectionCard>
+            </div>
+
+            {/* Quick stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <QuickStat label="Bookings" value={bookings.length} />
+              <QuickStat label="Opgaver" value={tasks.length} />
+              <QuickStat label="Dokumenter" value={documents.length} />
+              <QuickStat label="Tilkøb" value={addons.length} />
+            </div>
+          </div>
+        )}
+
+        {tab === 'listing' && (
+          <div className="space-y-4">
+            <SectionCard title="Indhold" icon={FileText}>
+              <div className="space-y-4">
+                <div><p className="text-xs text-muted-foreground mb-1">Tagline</p><p className="text-sm text-foreground">{listing.tagline || <span className="text-muted-foreground/50 italic">Ikke udfyldt</span>}</p></div>
+                <Separator className="bg-border/30" />
+                <div><p className="text-xs text-muted-foreground mb-1">Kort beskrivelse</p><p className="text-sm text-foreground whitespace-pre-wrap">{listing.description || <span className="text-muted-foreground/50 italic">Ikke udfyldt</span>}</p></div>
+                <Separator className="bg-border/30" />
+                <div><p className="text-xs text-muted-foreground mb-1">Lang beskrivelse</p><p className="text-sm text-foreground whitespace-pre-wrap line-clamp-6">{listing.long_description || <span className="text-muted-foreground/50 italic">Ikke udfyldt</span>}</p></div>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Billeder" icon={Image}>
+              {listing.images?.length > 0 ? (
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  {listing.images.map((img: string, i: number) => (
+                    <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted/30">
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-xs text-muted-foreground/50 italic">Ingen billeder uploadet</p>}
+            </SectionCard>
+
+            <SectionCard title="Faciliteter" icon={Wifi}>
+              {listing.amenities?.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {listing.amenities.map((a: string) => (
+                    <span key={a} className="px-2.5 py-1 rounded-lg bg-muted/20 border border-border/30 text-xs text-foreground">{a}</span>
+                  ))}
+                </div>
+              ) : <p className="text-xs text-muted-foreground/50 italic">Ingen faciliteter</p>}
+            </SectionCard>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <SectionCard title="Highlights" icon={Tag}>
+                {listing.highlights?.length > 0 ? (
+                  <ul className="space-y-1.5">
+                    {listing.highlights.map((h: string, i: number) => (
+                      <li key={i} className="flex items-center gap-2 text-sm text-foreground"><CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />{h}</li>
+                    ))}
+                  </ul>
+                ) : <p className="text-xs text-muted-foreground/50 italic">Ingen highlights</p>}
+              </SectionCard>
+
+              <SectionCard title="Husregler" icon={AlertCircle}>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{listing.house_rules || <span className="text-muted-foreground/50 italic">Ikke udfyldt</span>}</p>
+              </SectionCard>
+            </div>
+          </div>
+        )}
+
+        {tab === 'kanaler' && (
+          <div className="space-y-4">
+            <SectionCard title="Integration" icon={Globe}>
+              <div className="space-y-2.5">
+                <InfoRow icon={Globe} label="Channel Manager" value={listing.channel_manager_partner || 'Ingen'} />
+                <InfoRow icon={ExternalLink} label="Eksternt listing ID" value={listing.external_listing_id || '—'} />
+                <InfoRow icon={ExternalLink} label="Eksternt property ID" value={listing.external_property_id || '—'} />
+                <InfoRow icon={Clock} label="Sidst synkroniseret" value={listing.last_sync_at ? format(new Date(listing.last_sync_at), "d. MMM yyyy 'kl.' HH:mm", { locale: da }) : 'Aldrig'} />
+                <InfoRow icon={Radio} label="Sync status" value={<StatusChip label={syncSt.label} variant={syncSt.variant} dot />} />
+                {listing.sync_error_message && <InfoRow icon={AlertCircle} label="Fejlbesked" value={listing.sync_error_message} />}
+              </div>
+            </SectionCard>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <ChannelCard name="Airbnb" ready={listing.channel_airbnb_ready} title={listing.channel_airbnb_title} description={listing.channel_airbnb_description} />
+              <ChannelCard name="Booking.com" ready={listing.channel_booking_ready} title={listing.channel_booking_title} description={listing.channel_booking_description} />
+              <ChannelCard name="Vrbo" ready={listing.channel_vrbo_ready} title={listing.channel_vrbo_title} description={listing.channel_vrbo_description} />
+            </div>
+          </div>
+        )}
+
+        {tab === 'kalender' && (
+          <SectionCard title="Kalender & bookings" icon={CalendarIcon}>
+            {bookings.length === 0 ? (
+              <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen bookings endnu</p>
+            ) : (
+              <div className="space-y-2">
+                {bookings.map(b => (
+                  <div key={b.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{b.guest_name || b.case_number || b.id.slice(0, 8)}</p>
+                      <p className="text-[11px] text-muted-foreground">{format(new Date(b.check_in), 'd. MMM', { locale: da })} → {format(new Date(b.check_out), 'd. MMM yyyy', { locale: da })}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-foreground">{fmt(Number(b.total_amount))}</p>
+                      <StatusChip label={b.status || 'pending'} variant={b.status === 'confirmed' ? 'success' : b.status === 'cancelled' ? 'danger' : 'warning'} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        )}
+
+        {tab === 'tilkoeb' && (
+          <SectionCard title="Tilkøb & ekstraydelser" icon={ShoppingBag}>
+            {addons.length === 0 ? (
+              <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen tilkøb konfigureret</p>
+            ) : (
+              <div className="space-y-2">
+                {addons.map(a => (
+                  <div key={a.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{a.name}</p>
+                      {a.description && <p className="text-[11px] text-muted-foreground mt-0.5">{a.description}</p>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">{a.price} kr</span>
+                      <StatusChip label={a.is_active ? 'Aktiv' : 'Inaktiv'} variant={a.is_active ? 'success' : 'muted'} dot />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        )}
+
+        {tab === 'dokumenter' && (
+          <SectionCard title="Dokumenter" icon={FileText}>
+            {documents.length === 0 ? (
+              <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen dokumenter endnu</p>
+            ) : (
+              <div className="space-y-2">
+                {documents.map(d => (
+                  <div key={d.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center"><FileText className="h-4 w-4 text-muted-foreground" /></div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{d.title}</p>
+                        <p className="text-[11px] text-muted-foreground">{d.document_type} · {format(new Date(d.created_at), 'd. MMM yyyy', { locale: da })}</p>
+                      </div>
+                    </div>
+                    <StatusChip label={d.status} variant={d.status === 'active' ? 'success' : 'muted'} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        )}
+
+        {tab === 'opgaver' && (
+          <SectionCard title="Opgaver" icon={ListChecks}>
+            {tasks.length === 0 ? (
+              <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen opgaver endnu</p>
+            ) : (
+              <div className="space-y-2">
+                {tasks.map(t => (
+                  <div key={t.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{t.task_type}</p>
+                      <p className="text-[11px] text-muted-foreground">{format(new Date(t.scheduled_date), 'd. MMM yyyy', { locale: da })} {t.assigned_to ? `· ${t.assigned_to}` : ''}</p>
+                    </div>
+                    <StatusChip label={t.status || 'pending'} variant={t.status === 'completed' ? 'success' : t.status === 'in_progress' ? 'info' : 'warning'} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+        )}
+
+        {tab === 'noter' && (
+          <SectionCard title="Noter & aktivitet" icon={MessageSquare}>
+            <div className="rounded-xl bg-muted/15 border border-border/30 p-4">
+              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                {listing.practical_info || 'Ingen interne noter endnu.'}
+              </p>
+            </div>
+            <div className="mt-4 pt-4 border-t border-border/30">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">Tidslinje</p>
+              <div className="space-y-3">
+                <TimelineItem label="Sag oprettet" date={listing.created_at} />
+                <TimelineItem label="Sidst opdateret" date={listing.updated_at} />
+                {listing.last_sync_at && <TimelineItem label="Sidst synkroniseret" date={listing.last_sync_at} />}
+              </div>
+            </div>
+          </SectionCard>
+        )}
+      </div>
+    </AdminLayout>
+  );
+}
+
+function MiniStat({ label, value, ok }: { label: string; value: string | number; ok: boolean }) {
+  return (
+    <div className={cn('rounded-lg border p-2.5 text-center', ok ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/30 bg-muted/10')}>
+      <p className={cn('text-sm font-bold', ok ? 'text-emerald-400' : 'text-muted-foreground')}>{value}</p>
+      <p className="text-[10px] text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+function QuickStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-border/40 bg-card/60 p-4 text-center">
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+function ChannelDotsLarge({ airbnb, booking, vrbo }: { airbnb: boolean | null; booking: boolean | null; vrbo: boolean | null }) {
+  const Dot = ({ active, label }: { active: boolean | null; label: string }) => (
+    <div className="flex items-center gap-1.5">
+      <span className={cn('w-2.5 h-2.5 rounded-full', active ? 'bg-emerald-500' : 'bg-muted-foreground/30')} />
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+    </div>
+  );
+  return (
+    <div className="flex items-center gap-3 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-1.5">
+      <Dot active={airbnb} label="Airbnb" />
+      <Dot active={booking} label="Booking" />
+      <Dot active={vrbo} label="Vrbo" />
+    </div>
+  );
+}
+
+function TimelineItem({ label, date }: { label: string; date: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-2 h-2 rounded-full bg-primary/40 shrink-0" />
+      <div className="flex-1">
+        <p className="text-xs text-foreground">{label}</p>
+        <p className="text-[11px] text-muted-foreground">{format(new Date(date), "d. MMMM yyyy 'kl.' HH:mm", { locale: da })}</p>
+      </div>
+    </div>
+  );
+}
