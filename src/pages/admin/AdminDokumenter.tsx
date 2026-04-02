@@ -544,12 +544,26 @@ export default function AdminDokumenter() {
                 {/* Preview area */}
                 {selected.file_url && (
                   <div className="py-5 border-b border-border/30">
-                    <div className={`rounded-xl h-48 flex items-center justify-center ${getMimeColor(selected.mime_type)} border border-border/20`}>
-                      <div className="text-center">
-                        <span className="text-3xl font-bold opacity-30 block">{getMimeIcon(selected.mime_type)}</span>
-                        <p className="text-xs text-muted-foreground mt-2">Forhåndsvisning</p>
+                    {selected.mime_type?.includes('pdf') ? (
+                      <iframe
+                        src={selected.file_url}
+                        className="w-full h-64 rounded-xl border border-border/20"
+                        title="Dokument preview"
+                      />
+                    ) : selected.mime_type?.includes('image') ? (
+                      <img
+                        src={selected.file_url}
+                        alt={selected.title}
+                        className="w-full max-h-64 object-contain rounded-xl border border-border/20"
+                      />
+                    ) : (
+                      <div className={`rounded-xl h-48 flex items-center justify-center ${getMimeColor(selected.mime_type)} border border-border/20`}>
+                        <div className="text-center">
+                          <span className="text-3xl font-bold opacity-30 block">{getMimeIcon(selected.mime_type)}</span>
+                          <p className="text-xs text-muted-foreground mt-2">Forhåndsvisning ikke tilgængelig</p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm" className="flex-1 rounded-xl text-xs gap-1.5 h-9" asChild>
                         <a href={selected.file_url} target="_blank" rel="noreferrer">
