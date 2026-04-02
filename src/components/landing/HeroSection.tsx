@@ -15,18 +15,6 @@ const channels = ['Airbnb', 'Booking.com', 'VRBO', 'Feriepartner', 'Google', 'Fa
 
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [activeItem, setActiveItem] = useState(0);
-  const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const swooshY = useTransform(scrollYProgress, [0, 1], [0, -120]);
-  const swooshRotate = useTransform(scrollYProgress, [0, 1], [0, -3]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveItem((prev) => (prev + 1) % revenueItems.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col overflow-hidden">
