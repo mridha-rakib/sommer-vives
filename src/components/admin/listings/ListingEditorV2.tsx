@@ -963,7 +963,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         visible={isDirty}
         saving={saving}
         onSave={handleSave}
-        onDiscard={() => { loadListing(); setIsDirty(false); }}
+        onDiscard={() => { window.location.reload(); }}
         hasDraft={isDirty}
       />
     </div>
