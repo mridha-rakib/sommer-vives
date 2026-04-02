@@ -193,7 +193,9 @@ export default function AdminLeads() {
         )}
       >
         <div className="flex items-start justify-between mb-2">
-          <h4 className="text-sm font-semibold text-foreground truncate flex-1">{lead.name}</h4>
+          <ProfilePopover type="lead" id={lead.id} data={lead} onOpenDetail={() => setDrawerLead(lead)}>
+            <h4 className="text-sm font-semibold text-foreground truncate flex-1 hover:text-primary transition-colors cursor-pointer" onClick={e => e.stopPropagation()}>{lead.name}</h4>
+          </ProfilePopover>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md opacity-0 group-hover:opacity-100 transition-opacity shrink-0 -mr-1" onClick={e => e.stopPropagation()}>
