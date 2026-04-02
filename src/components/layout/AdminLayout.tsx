@@ -9,6 +9,7 @@ import {
   UserCheck, User, Archive, CalendarDays, ShoppingBag, Radio, ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 interface AdminLayoutProps { children: ReactNode; }
 
