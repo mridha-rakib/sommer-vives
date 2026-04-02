@@ -416,20 +416,29 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
       </div>
 
       {/* ── TOP TABS ── */}
-      <div className="border-b border-border -mx-5 md:-mx-8 px-5 md:px-8 overflow-x-auto scrollbar-hide">
-        <div className="flex gap-0 min-w-max">
-          {TOP_TABS.map(tab => (
-            <button key={tab.value} onClick={() => setTopTab(tab.value)}
-              className={cn(
-                'flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-medium border-b-2 transition-colors whitespace-nowrap',
-                topTab === tab.value
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              )}>
-              <tab.icon className="h-3.5 w-3.5" /> {tab.label}
-            </button>
-          ))}
+      <div className="border-b border-border -mx-5 md:-mx-8 px-5 md:px-8 relative">
+        <div className="overflow-x-auto scrollbar-hide" ref={tabScrollRef}>
+          <div className="flex gap-0 min-w-max">
+            {TOP_TABS.map(tab => (
+              <button key={tab.value} onClick={() => setTopTab(tab.value)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium border-b-2 transition-colors whitespace-nowrap',
+                  topTab === tab.value
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                )}>
+                <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
+        {showTabScrollRight && (
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-card to-transparent pointer-events-none flex items-center justify-end pr-1">
+            <div className="w-5 h-5 rounded-full bg-muted/80 flex items-center justify-center pointer-events-auto cursor-pointer" onClick={() => tabScrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' })}>
+              <ArrowLeft className="h-3 w-3 rotate-180 text-foreground" />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── SUB TABS (only for Listing tab) ── */}
