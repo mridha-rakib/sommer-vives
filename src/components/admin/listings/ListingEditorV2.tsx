@@ -1081,7 +1081,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           />
         </TabsContent>
 
-        <TabsContent value="readiness" className="mt-4 space-y-5">
+        {/* ─── TAB 3: DISTRIBUTION ─── */}
+        <TabsContent value="kanaler" className="mt-6 space-y-8">
           <Section title="Listing Readiness" description="Oversigt over hvad der mangler for at gå live">
             <div className="flex items-center gap-4 mb-4">
               <div className="relative w-20 h-20">
