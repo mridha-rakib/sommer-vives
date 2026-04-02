@@ -7,7 +7,8 @@ import {
   Radio, Globe, FileText, ListChecks, MessageSquare, ShoppingBag,
   Calendar as CalendarIcon, Eye, Pencil, ExternalLink, Image,
   Tag, DollarSign, Wifi, AlertCircle, ChevronRight, StickyNote,
-  Sparkles, Rocket, Zap, Camera, Info, ArrowRight
+  Sparkles, Rocket, Zap, Camera, Info, ArrowRight, X, Plus,
+  AlertTriangle, Settings, Type
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusChip } from '@/components/admin/ui/StatusChip';
