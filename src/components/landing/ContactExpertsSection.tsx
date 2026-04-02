@@ -8,7 +8,7 @@ export function ContactExpertsSection() {
   const { ref, isInView } = useScrollReveal();
 
   return (
-    <section ref={ref} className="py-32 md:py-44 bg-card text-foreground overflow-hidden relative">
+    <section ref={ref} className="py-20 md:py-44 bg-card text-foreground overflow-hidden relative">
       {/* Subtle radial glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--accent)/0.06),transparent_70%)] pointer-events-none" />
 
