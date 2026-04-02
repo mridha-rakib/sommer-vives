@@ -834,6 +834,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
             { value: 'kalender', label: 'Kalender', icon: CalendarIcon },
             { value: 'readiness', label: 'Readiness', icon: Star },
             { value: 'kanaler', label: 'Kanaler', icon: Globe },
+            { value: 'integration', label: 'Integration', icon: Link2 },
           ].map(tab => (
             <TabsTrigger
               key={tab.value}
