@@ -129,13 +129,13 @@ function calcChannelReadiness(f: Partial<ListingFull>, channel: 'airbnb' | 'book
   const shared: [string, boolean, string, string][] = [
     ['Hero-billede', !!f.hero_image, 'indhold', 'Upload et hero-billede'],
     ['Min. 3 galleri-billeder', (f.images?.length || 0) >= 3, 'indhold', 'Tilføj flere billeder'],
-    ['Adresse', !!f.address, 'grunddata', 'Udfyld adressen'],
-    ['Gæstekapacitet', (f.max_guests || 0) > 0, 'grunddata', 'Angiv max gæster'],
-    ['Soveværelser', (f.bedrooms || 0) > 0, 'grunddata', 'Angiv antal soveværelser'],
+    ['Adresse', !!f.address, 'bolig', 'Udfyld adressen'],
+    ['Gæstekapacitet', (f.max_guests || 0) > 0, 'bolig', 'Angiv max gæster'],
+    ['Soveværelser', (f.bedrooms || 0) > 0, 'bolig', 'Angiv antal soveværelser'],
     ['Basispris', (f.base_price_per_night || 0) > 0, 'priser', 'Sæt en basispris'],
-    ['Check-in tid', !!f.check_in_time, 'grunddata', 'Angiv check-in tid'],
-    ['Check-out tid', !!f.check_out_time, 'grunddata', 'Angiv check-out tid'],
-    ['Faciliteter (3+)', (f.amenities?.length || 0) >= 3, 'grunddata', 'Tilføj faciliteter'],
+    ['Check-in tid', !!f.check_in_time, 'bolig', 'Angiv check-in tid'],
+    ['Check-out tid', !!f.check_out_time, 'bolig', 'Angiv check-out tid'],
+    ['Faciliteter (3+)', (f.amenities?.length || 0) >= 3, 'bolig', 'Tilføj faciliteter'],
   ];
 
   const channelChecks: Record<string, [string, boolean, string, string][]> = {
@@ -193,7 +193,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   const [isDirty, setIsDirty] = useState(false);
   const [newAmenity, setNewAmenity] = useState('');
   const [newHighlight, setNewHighlight] = useState('');
-  const [activeTab, setActiveTab] = useState('grunddata');
+  const [activeTab, setActiveTab] = useState('bolig');
 
   // Action states
   const [checkDialogOpen, setCheckDialogOpen] = useState(false);
@@ -412,7 +412,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         }
 
         if (readiness.score >= 70) update('channel_airbnb_ready', true);
-        toast({ title: 'Airbnb-indhold forberedt!', description: 'Tjek preview under Kanaler-fanen.' });
+        toast({ title: 'Airbnb-indhold forberedt!', description: 'Tjek preview under Distribution-fanen.' });
       } catch {
         // Fallback mapping
         if (!listing.channel_airbnb_title) update('channel_airbnb_title', listing.description || listing.name);
@@ -496,60 +496,32 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         </div>
       </div>
 
-      {/* ── ACTION TOOLBAR ── */}
-      <div className="bg-card border border-border rounded-xl p-3 space-y-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-semibold text-muted-foreground mr-1 hidden sm:inline">Handlinger:</span>
-          <Button variant="outline" size="sm" onClick={handleCheck} className="gap-1.5 text-xs h-8">
-            <ClipboardCheck className="h-3.5 w-3.5" /> Tjek listing
-          </Button>
-          <Button variant="outline" size="sm" onClick={handlePrepare} className="gap-1.5 text-xs h-8">
-            <Rocket className="h-3.5 w-3.5" /> Klargør listing
-          </Button>
-          <div className="hidden sm:block w-px h-5 bg-border mx-1" />
-          <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('airbnb')} className="gap-1.5 text-xs h-8 text-rose-600 hover:bg-rose-50 hover:text-rose-700">
-            <Globe className="h-3.5 w-3.5" /> Forbered Airbnb
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('booking')} className="gap-1.5 text-xs h-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700">
-            <Globe className="h-3.5 w-3.5" /> Forbered Booking.com
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('vrbo')} className="gap-1.5 text-xs h-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700">
-            <Globe className="h-3.5 w-3.5" /> Forbered Vrbo
-          </Button>
-        </div>
-
-        {/* AI Content Tools Row */}
-        <div className="flex items-center gap-2 flex-wrap border-t border-border/50 pt-2">
-          <span className="text-xs font-semibold text-primary mr-1 hidden sm:inline flex items-center gap-1">
-            <Sparkles className="h-3 w-3" /> AI-værktøjer:
-          </span>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('improve_title')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-primary/20 text-primary hover:bg-primary/5">
-            <Wand2 className="h-3 w-3" /> Forbedr titel
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('improve_description')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-primary/20 text-primary hover:bg-primary/5">
-            <FileText className="h-3 w-3" /> Forbedr beskrivelse
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('generate_highlights')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-primary/20 text-primary hover:bg-primary/5">
-            <Star className="h-3 w-3" /> Generér highlights
-          </Button>
-          <div className="hidden sm:block w-px h-4 bg-border mx-0.5" />
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('channel_airbnb')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-rose-200 text-rose-600 hover:bg-rose-50">
-            <Sparkles className="h-3 w-3" /> Lav Airbnb-version
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('channel_booking')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-blue-200 text-blue-600 hover:bg-blue-50">
-            <Sparkles className="h-3 w-3" /> Lav Booking-version
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('channel_vrbo')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-            <Sparkles className="h-3 w-3" /> Lav Vrbo-version
-          </Button>
-          <div className="hidden sm:block w-px h-4 bg-border mx-0.5" />
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('translate_en')} disabled={aiImproving} className="gap-1.5 text-xs h-7">
-            <Languages className="h-3 w-3" /> Engelsk
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('translate_de')} disabled={aiImproving} className="gap-1.5 text-xs h-7">
-            <Languages className="h-3 w-3" /> Tysk
-          </Button>
-        </div>
+      {/* ── COMPACT AI TOOLBAR ── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button variant="ghost" size="sm" onClick={handleCheck} className="gap-1.5 text-xs h-7 text-muted-foreground hover:text-foreground">
+          <ClipboardCheck className="h-3 w-3" /> Tjek listing
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handlePrepare} className="gap-1.5 text-xs h-7 text-muted-foreground hover:text-foreground">
+          <Rocket className="h-3 w-3" /> Klargør
+        </Button>
+        <div className="w-px h-4 bg-border" />
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('improve_title')} disabled={aiImproving} className="gap-1 text-xs h-7 text-primary/70 hover:text-primary">
+          <Wand2 className="h-3 w-3" /> Titel
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('improve_description')} disabled={aiImproving} className="gap-1 text-xs h-7 text-primary/70 hover:text-primary">
+          <FileText className="h-3 w-3" /> Beskrivelse
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('generate_highlights')} disabled={aiImproving} className="gap-1 text-xs h-7 text-primary/70 hover:text-primary">
+          <Star className="h-3 w-3" /> Highlights
+        </Button>
+        <div className="w-px h-4 bg-border" />
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('translate_en')} disabled={aiImproving} className="gap-1 text-xs h-7 text-muted-foreground">
+          <Languages className="h-3 w-3" /> EN
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('translate_de')} disabled={aiImproving} className="gap-1 text-xs h-7 text-muted-foreground">
+          <Languages className="h-3 w-3" /> DE
+        </Button>
+        <span className="ml-auto text-[10px] text-muted-foreground/50">Auto-gem</span>
       </div>
 
       {/* ── TJEK LISTING DIALOG ── */}
@@ -824,39 +796,33 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               </div>
 
               <Button className="w-full" onClick={() => { setChannelDialogOpen(null); setActiveTab('kanaler'); setIsDirty(true); }}>
-                Gå til Kanaler-fanen
+                Gå til Distribution-fanen
               </Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Tabs */}
+      {/* Tabs — 3 clean sections */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start bg-card border border-border rounded-xl p-1 h-auto flex-wrap gap-1">
+        <TabsList className="w-full justify-start bg-transparent border-b border-border rounded-none p-0 h-auto gap-0">
           {[
-            { value: 'grunddata', label: 'Grunddata', icon: Home },
-            { value: 'beskrivelse', label: 'Beskrivelse', icon: Tag },
-            { value: 'billeder', label: 'Billeder', icon: ImageIcon },
-            { value: 'faciliteter', label: 'Faciliteter', icon: CheckCircle2 },
-            { value: 'priser', label: 'Priser & Regler', icon: DollarSign },
-            { value: 'kalender', label: 'Kalender', icon: CalendarIcon },
-            { value: 'readiness', label: 'Readiness', icon: Star },
-            { value: 'kanaler', label: 'Kanaler', icon: Globe },
-            { value: 'integration', label: 'Integration', icon: Link2 },
+            { value: 'bolig', label: 'Bolig', icon: Home },
+            { value: 'priser', label: 'Priser & Kalender', icon: DollarSign },
+            { value: 'kanaler', label: 'Distribution', icon: Globe },
           ].map(tab => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              className="gap-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="gap-2 text-sm font-medium px-5 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground"
             >
-              <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+              <tab.icon className="h-4 w-4" /> {tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {/* ─── 1. GRUNDDATA ─── */}
-        <TabsContent value="grunddata" className="mt-4 space-y-5">
+        {/* ─── TAB 1: BOLIG ─── */}
+        <TabsContent value="bolig" className="mt-6 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <Section title="Navne & Titler" description="Intern og offentlig titel">
               <Field label="Internt navn" hint="Bruges kun i admin">
@@ -906,10 +872,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               </Field>
             </div>
           </Section>
-        </TabsContent>
 
-        {/* ─── 2. BESKRIVELSE ─── */}
-        <TabsContent value="beskrivelse" className="mt-4 space-y-5">
+          {/* ── Beskrivelse ── */}
           <Section title="Kort beskrivelse" description="Vises i listing-kortet og søgeresultater">
             <Textarea value={listing.description || ''} onChange={e => update('description', e.target.value)} rows={3} placeholder="En kort, fængende beskrivelse..." />
           </Section>
@@ -971,10 +935,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               <Textarea value={listing.checkout_info || ''} onChange={e => update('checkout_info', e.target.value)} rows={3} placeholder="Instruktioner til check-out..." />
             </Section>
           </div>
-        </TabsContent>
 
-        {/* ─── 3. BILLEDER ─── */}
-        <TabsContent value="billeder" className="mt-4 space-y-5">
+          {/* ── Billeder ── */}
           <Section title="Hero-billede" description="Hovedbilledet der vises øverst">
             <Field label="Hero URL">
               <Input value={listing.hero_image || ''} onChange={e => update('hero_image', e.target.value)} placeholder="https://..." />
@@ -1022,10 +984,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               <Plus className="h-3.5 w-3.5" /> Tilføj billede
             </Button>
           </Section>
-        </TabsContent>
 
-        {/* ─── 4. FACILITETER ─── */}
-        <TabsContent value="faciliteter" className="mt-4 space-y-5">
+          {/* ── Faciliteter ── */}
           <Section title="Faciliteter & Udstyr" description="Vælg fra listen eller tilføj egne">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {AMENITIES_PRESETS.map(a => {
@@ -1072,8 +1032,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           </Section>
         </TabsContent>
 
-        {/* ─── 5. PRISER & REGLER ─── */}
-        <TabsContent value="priser" className="mt-4 space-y-5">
+        {/* ─── TAB 2: PRISER & KALENDER ─── */}
+        <TabsContent value="priser" className="mt-6 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <Section title="Grundpriser (øre)" description="Priser er i øre (100 = 1 DKK)">
               <div className="grid grid-cols-2 gap-4">
@@ -1108,10 +1068,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               </div>
             </Section>
           </div>
-        </TabsContent>
 
-        {/* ─── 5.5 KALENDER & PRISER ─── */}
-        <TabsContent value="kalender" className="mt-4">
+          {/* ── Kalender ── */}
           <ListingCalendarPricing
             listingId={listing.id}
             ownerId={listing.owner_id}
@@ -1123,7 +1081,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           />
         </TabsContent>
 
-        <TabsContent value="readiness" className="mt-4 space-y-5">
+        {/* ─── TAB 3: DISTRIBUTION ─── */}
+        <TabsContent value="kanaler" className="mt-6 space-y-8">
           <Section title="Listing Readiness" description="Oversigt over hvad der mangler for at gå live">
             <div className="flex items-center gap-4 mb-4">
               <div className="relative w-20 h-20">
@@ -1187,10 +1146,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               <div><span className="font-medium text-foreground block">Owner ID</span><code className="font-mono">{listing.owner_id}</code></div>
             </div>
           </Section>
-        </TabsContent>
 
-        {/* ─── 7. DISTRIBUTION & KANALER ─── */}
-        <TabsContent value="kanaler" className="mt-4 space-y-5">
+          {/* ── Kanaler ── */}
           <div>
             <h3 className="font-display text-lg font-semibold text-foreground">Distribution & kanaler</h3>
             <p className="text-xs text-muted-foreground mt-0.5">Klargør og publicer din listing til eksterne platforme</p>
@@ -1634,10 +1591,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               },
             ]}
           />
-        </TabsContent>
 
-        {/* ─── 9. INTEGRATION ─── */}
-        <TabsContent value="integration" className="mt-4 space-y-5">
+          {/* ── Integration ── */}
           {(() => {
             const syncStatus = listing.sync_status || 'not_connected';
             const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode; bg: string }> = {
