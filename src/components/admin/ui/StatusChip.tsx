@@ -1,10 +1,11 @@
 import { cn } from '@/lib/utils';
 
-interface StatusChipProps {
+export interface StatusChipProps {
   label: string;
   variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'muted';
   size?: 'sm' | 'md';
   dot?: boolean;
+  className?: string;
 }
 
 const variants = {
