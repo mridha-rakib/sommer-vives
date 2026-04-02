@@ -57,6 +57,8 @@ export function Beds24Integration({ listing, onUpdate }: Props) {
     if (error) {
       toast.error('Kunne ikke gemme');
     } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('audit_log').insert({ action: 'beds24_mapping_updated', entity_type: 'listing', entity_id: listing.id, actor_user_id: user?.id || null, actor_email: user?.email || null, after_data: { external_property_id: externalPropertyId, external_listing_id: externalListingId } });
       toast.success('Mapping gemt');
       onUpdate({ external_property_id: externalPropertyId, external_listing_id: externalListingId, channel_manager_partner: 'beds24' });
     }
