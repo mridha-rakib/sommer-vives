@@ -377,7 +377,7 @@ const services: Service[] = [
     long: 'Med vores elektroniske nøgleløsning gør vi adgangen til boligen enkel og smidig for alle relevante parter. Det gælder både gæster, rengøring, viceværter og dig som ejer. Vi håndterer koder og hjælper med, at løsningen fungerer i praksis, så du får mindre koordinering, bedre flow og en mere professionel drift omkring udlejningen.',
     expandLabel: 'Det betyder for dig',
     badge: 'Nem drift',
-    visual: NoegleVisual,
+    image: keyboxImg,
   },
   // 9. Fri rådgiversupport
   {
