@@ -4,7 +4,7 @@ import { ChannelDataSection } from './ChannelDataSection';
 import { ListingActorsTab } from './ListingActorsTab';
 import { ListingStaffTab } from './ListingStaffTab';
 import { ListingDocumentsTab } from './ListingDocumentsTab';
-import { ListingImageUpload, type BedroomImage, type ImageLabel } from './ListingImageUpload';
+import { ListingImageUpload, SortableImageGallery, type BedroomImage, type ImageLabel } from './ListingImageUpload';
 import { AdminFacilities, type FacilityCategory } from './AdminFacilities';
 import { AdminSectionEditor, type ExtraSection } from './AdminSectionEditor';
 import { StickyActionBar } from './StickyActionBar';
