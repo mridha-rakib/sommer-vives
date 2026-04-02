@@ -26,6 +26,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Beds24Integration } from '@/components/admin/Beds24Integration';
+import { Beds24MappingSection } from '@/components/admin/Beds24MappingSection';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
@@ -700,7 +701,12 @@ export default function AdminSagDetail() {
 
         {tab === 'listing' && <InlineListingEditor listing={listing} onSaved={(updated) => setListing({ ...listing, ...updated })} />}
 
-        {tab === 'integrationer' && <Beds24Integration listing={listing} onUpdate={(updated: any) => setListing({ ...listing, ...updated })} />}
+        {tab === 'integrationer' && (
+          <div className="space-y-4">
+            <Beds24Integration listing={listing} onUpdate={(updated: any) => setListing({ ...listing, ...updated })} />
+            <Beds24MappingSection listing={listing} />
+          </div>
+        )}
 
         {tab === 'kanaler' && (
           <div className="space-y-4">
