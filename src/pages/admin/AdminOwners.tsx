@@ -55,7 +55,7 @@ export default function AdminOwners() {
 
     const [{ data: profiles }, { data: properties }, { data: bookings }, { data: agreements }] = await Promise.all([
       supabase.from('profiles').select('*').in('id', ownerIds),
-      supabase.from('properties').select('owner_id, id'),
+      supabase.from('listings').select('owner_id, id'),
       supabase.from('bookings').select('owner_id, owner_payout').neq('status', 'cancelled'),
       supabase.from('agreements').select('owner_id, status'),
     ]);
