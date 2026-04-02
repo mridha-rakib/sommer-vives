@@ -196,39 +196,40 @@ const App = () => (
             {/* ─── Admin Panel ─── */}
             <Route path="/admin/auth" element={<AdminAuth />} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/beskeder" element={<ProtectedRoute requireAdmin><AdminBeskeder /></ProtectedRoute>} />
+            <Route path="/admin/kalender" element={<ProtectedRoute requireAdmin><AdminKalender /></ProtectedRoute>} />
+            <Route path="/admin/opgaver" element={<ProtectedRoute requireAdmin><AdminOpgaver /></ProtectedRoute>} />
             <Route path="/admin/leads" element={<ProtectedRoute requireAdmin><AdminLeads /></ProtectedRoute>} />
-            <Route path="/admin/owners" element={<ProtectedRoute requireAdmin><AdminOwners /></ProtectedRoute>} />
-            <Route path="/admin/guests" element={<ProtectedRoute requireAdmin><AdminGuests /></ProtectedRoute>} />
-            <Route path="/admin/properties-mgmt" element={<ProtectedRoute requireAdmin><AdminPropertiesMgmt /></ProtectedRoute>} />
-            <Route path="/admin/agreements" element={<ProtectedRoute requireAdmin><AdminAgreements /></ProtectedRoute>} />
+            <Route path="/admin/crm/udlejere" element={<ProtectedRoute requireAdmin><AdminOwners /></ProtectedRoute>} />
+            <Route path="/admin/crm/gaester" element={<ProtectedRoute requireAdmin><AdminCrmGaester /></ProtectedRoute>} />
+            <Route path="/admin/crm/arkiv" element={<ProtectedRoute requireAdmin><AdminCrmArkiv /></ProtectedRoute>} />
+            <Route path="/admin/modtagelse" element={<ProtectedRoute requireAdmin><AdminModtagelse /></ProtectedRoute>} />
+            <Route path="/admin/sager" element={<ProtectedRoute requireAdmin><AdminSager /></ProtectedRoute>} />
+            <Route path="/admin/sager/kalender" element={<ProtectedRoute requireAdmin><AdminSagerKalender /></ProtectedRoute>} />
+            <Route path="/admin/sager/tilkoeb" element={<ProtectedRoute requireAdmin><AdminSagerTilkoeb /></ProtectedRoute>} />
+            <Route path="/admin/sager/kanaler" element={<ProtectedRoute requireAdmin><AdminSagerKanaler /></ProtectedRoute>} />
+            <Route path="/admin/dokumenter" element={<ProtectedRoute requireAdmin><AdminDokumenter /></ProtectedRoute>} />
+            <Route path="/admin/oekonomi" element={<ProtectedRoute requireAdmin><AdminOekonomi /></ProtectedRoute>} />
+            <Route path="/admin/indstillinger" element={<ProtectedRoute requireAdmin><AdminIndstillinger /></ProtectedRoute>} />
             <Route path="/admin/templates" element={<ProtectedRoute requireAdmin><AdminTemplates /></ProtectedRoute>} />
-            <Route path="/admin/pipeline" element={<ProtectedRoute requireAdmin><AdminPipeline /></ProtectedRoute>} />
-            <Route path="/admin/tasks" element={<ProtectedRoute requireAdmin><AdminTasks /></ProtectedRoute>} />
-            <Route path="/admin/bookings" element={<ProtectedRoute requireAdmin><AdminBookings /></ProtectedRoute>} />
-            <Route path="/admin/calendar" element={<ProtectedRoute requireAdmin><AdminCalendarPage /></ProtectedRoute>} />
-            <Route path="/admin/listings" element={<ProtectedRoute requireAdmin><AdminListings /></ProtectedRoute>} />
-            <Route path="/admin/pricing" element={<ProtectedRoute requireAdmin><AdminPricing /></ProtectedRoute>} />
-            <Route path="/admin/addons" element={<ProtectedRoute requireAdmin><AdminAddOns /></ProtectedRoute>} />
-            <Route path="/admin/payments" element={<ProtectedRoute requireAdmin><AdminPayments /></ProtectedRoute>} />
-            <Route path="/admin/payouts" element={<ProtectedRoute requireAdmin><AdminPayouts /></ProtectedRoute>} />
-            <Route path="/admin/chat" element={<ProtectedRoute requireAdmin><AdminChat /></ProtectedRoute>} />
-            <Route path="/admin/emails" element={<ProtectedRoute requireAdmin><AdminEmailsPage /></ProtectedRoute>} />
-            <Route path="/admin/support" element={<ProtectedRoute requireAdmin><AdminSupportTickets /></ProtectedRoute>} />
-            <Route path="/admin/service-partners" element={<ProtectedRoute requireAdmin><AdminServicePartners /></ProtectedRoute>} />
-            <Route path="/admin/cleaning" element={<ProtectedRoute requireAdmin><AdminCleaning /></ProtectedRoute>} />
-            <Route path="/admin/maintenance" element={<ProtectedRoute requireAdmin><AdminMaintenance /></ProtectedRoute>} />
-            <Route path="/admin/keyboxes" element={<ProtectedRoute requireAdmin><AdminKeyboxes /></ProtectedRoute>} />
-            <Route path="/admin/documents" element={<ProtectedRoute requireAdmin><AdminDocuments /></ProtectedRoute>} />
-            <Route path="/admin/stay-content" element={<ProtectedRoute requireAdmin><AdminStayContent /></ProtectedRoute>} />
-            <Route path="/admin/cms" element={<ProtectedRoute requireAdmin><AdminCMS /></ProtectedRoute>} />
-            <Route path="/admin/automations" element={<ProtectedRoute requireAdmin><AdminAutomations /></ProtectedRoute>} />
             <Route path="/admin/notifications" element={<ProtectedRoute requireAdmin><AdminNotifications /></ProtectedRoute>} />
             <Route path="/admin/audit-log" element={<ProtectedRoute requireAdmin><AdminAuditLog /></ProtectedRoute>} />
-            <Route path="/admin/optimizations" element={<ProtectedRoute requireAdmin><AdminOptimizations /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
-            {/* Legacy redirects */}
-            <Route path="/admin/properties" element={<Navigate to="/admin/listings" replace />} />
-            <Route path="/admin/inquiries" element={<ProtectedRoute requireAdmin><AdminInquiries /></ProtectedRoute>} />
+            {/* Legacy admin redirects */}
+            <Route path="/admin/listings" element={<Navigate to="/admin/sager" replace />} />
+            <Route path="/admin/owners" element={<Navigate to="/admin/crm/udlejere" replace />} />
+            <Route path="/admin/guests" element={<Navigate to="/admin/crm/gaester" replace />} />
+            <Route path="/admin/bookings" element={<Navigate to="/admin/sager" replace />} />
+            <Route path="/admin/calendar" element={<Navigate to="/admin/kalender" replace />} />
+            <Route path="/admin/addons" element={<Navigate to="/admin/sager/tilkoeb" replace />} />
+            <Route path="/admin/documents" element={<Navigate to="/admin/dokumenter" replace />} />
+            <Route path="/admin/chat" element={<Navigate to="/admin/beskeder" replace />} />
+            <Route path="/admin/payments" element={<Navigate to="/admin/oekonomi" replace />} />
+            <Route path="/admin/payouts" element={<Navigate to="/admin/oekonomi" replace />} />
+            <Route path="/admin/properties" element={<Navigate to="/admin/sager" replace />} />
+            <Route path="/admin/tasks" element={<Navigate to="/admin/opgaver" replace />} />
+            <Route path="/admin/pipeline" element={<Navigate to="/admin/leads" replace />} />
+            <Route path="/admin/inquiries" element={<Navigate to="/admin/leads" replace />} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
