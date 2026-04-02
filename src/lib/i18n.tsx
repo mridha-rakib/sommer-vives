@@ -666,7 +666,7 @@ const translations: AllTranslations = {
     'hero.advisorTitle': 'Verhuurmanager',
     'hero.trustpilot': 'Uitstekend op Trustpilot',
     'hero.danish': 'Deens bedrijf',
-    'hero.noBinding': 'Geen bindung',
+    'hero.noBinding': 'Flexibele overeenkomst',
     'hero.guarantee': 'Veiligheidsgarantie incl.',
     'hero.support': 'Deense klantenservice',
 
