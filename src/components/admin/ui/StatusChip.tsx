@@ -1,10 +1,11 @@
 import { cn } from '@/lib/utils';
 
-interface StatusChipProps {
+export interface StatusChipProps {
   label: string;
   variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'muted';
   size?: 'sm' | 'md';
   dot?: boolean;
+  className?: string;
 }
 
 const variants = {
@@ -25,12 +26,13 @@ const dotColors = {
   muted: 'bg-muted-foreground',
 };
 
-export function StatusChip({ label, variant = 'default', size = 'sm', dot }: StatusChipProps) {
+export function StatusChip({ label, variant = 'default', size = 'sm', dot, className }: StatusChipProps) {
   return (
     <span className={cn(
       'inline-flex items-center gap-1.5 rounded-full border font-medium',
       variants[variant],
-      size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs'
+      size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs',
+      className
     )}>
       {dot && <span className={cn('w-1.5 h-1.5 rounded-full', dotColors[variant])} />}
       {label}

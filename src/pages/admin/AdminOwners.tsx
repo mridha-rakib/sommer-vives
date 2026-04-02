@@ -1,373 +1,319 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { 
-  Search, Plus, Mail, Phone, Building2, 
-  MoreHorizontal, Eye, Edit, DollarSign, Settings2
+import {
+  Search, Plus, Mail, Phone, Building2, MapPin,
+  MoreHorizontal, UserCheck, FileText, Wallet, MessageSquare,
+  ListChecks, ChevronRight, X, Send, PhoneCall, Download
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
+import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
+import { StatusChip } from '@/components/admin/ui/StatusChip';
+import { KPICard } from '@/components/admin/ui/KPICard';
+import { EmptyState } from '@/components/admin/ui/EmptyState';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface Owner {
-  id: string;
-  email: string;
-  full_name: string | null;
-  phone: string | null;
-  company_name: string | null;
-  case_number: string | null;
-  created_at: string;
-  property_count?: number;
-  total_earnings?: number;
-  commission?: {
-    type: string;
-    ek_percentage: number;
-    erik_percentage: number;
-  };
+  id: string; email: string; full_name: string | null; phone: string | null;
+  company_name: string | null; case_number: string | null; created_at: string;
+  property_count?: number; total_earnings?: number; agreement_status?: string;
+  properties?: any[]; bookings_count?: number;
 }
+
+const AGREEMENT_STATUS: Record<string, { label: string; variant: 'success' | 'warning' | 'muted' | 'info' | 'danger' }> = {
+  signed: { label: 'Underskrevet', variant: 'success' },
+  sent: { label: 'Afventer', variant: 'warning' },
+  draft: { label: 'Kladde', variant: 'muted' },
+};
 
 export default function AdminOwners() {
   const [owners, setOwners] = useState<Owner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
-  const [selectedOwner, setSelectedOwner] = useState<Owner | null>(null);
-  const [commissionType, setCommissionType] = useState<string>('platform');
+  const [search, setSearch] = useState('');
+  const [drawerOwner, setDrawerOwner] = useState<Owner | null>(null);
+  const [tab, setTab] = useState('info');
+  const [ownerProperties, setOwnerProperties] = useState<any[]>([]);
+  const [ownerAgreements, setOwnerAgreements] = useState<any[]>([]);
+  const [ownerBookings, setOwnerBookings] = useState<any[]>([]);
 
-  const loadOwners = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
-    try {
-      // Get all users with owner role
-      const { data: ownerRoles } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'owner');
+    const { data: ownerRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'owner');
+    const ownerIds = ownerRoles?.map(r => r.user_id) || [];
+    if (ownerIds.length === 0) { setOwners([]); setLoading(false); return; }
 
-      const ownerIds = ownerRoles?.map(r => r.user_id) || [];
+    const [{ data: profiles }, { data: properties }, { data: bookings }, { data: agreements }] = await Promise.all([
+      supabase.from('profiles').select('*').in('id', ownerIds),
+      supabase.from('properties').select('owner_id, id'),
+      supabase.from('bookings').select('owner_id, owner_payout').neq('status', 'cancelled'),
+      supabase.from('agreements').select('owner_id, status'),
+    ]);
 
-      if (ownerIds.length === 0) {
-        setOwners([]);
-        setLoading(false);
-        return;
-      }
+    const mapped = (profiles || []).map(p => {
+      const propCount = properties?.filter(pr => pr.owner_id === p.id).length || 0;
+      const earnings = bookings?.filter(b => b.owner_id === p.id).reduce((s, b) => s + (Number(b.owner_payout) || 0), 0) || 0;
+      const latestAgreement = agreements?.find(a => a.owner_id === p.id);
+      return { ...p, property_count: propCount, total_earnings: earnings, agreement_status: latestAgreement?.status || null, bookings_count: bookings?.filter(b => b.owner_id === p.id).length || 0 };
+    });
 
-      // Get profiles for these owners
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', ownerIds);
-
-      // Get property counts per owner
-      const { data: properties } = await supabase
-        .from('properties')
-        .select('owner_id');
-
-      // Get earnings per owner from bookings
-      const { data: bookings } = await supabase
-        .from('bookings')
-        .select('owner_id, owner_payout')
-        .neq('status', 'cancelled');
-
-      // Get commission splits
-      const { data: commissions } = await supabase
-        .from('commission_splits')
-        .select('property_id, commission_type, ek_percentage, erik_percentage');
-
-      const ownersWithStats = (profiles || []).map(profile => {
-        const propertyCount = properties?.filter(p => p.owner_id === profile.id).length || 0;
-        const totalEarnings = bookings
-          ?.filter(b => b.owner_id === profile.id)
-          .reduce((sum, b) => sum + (Number(b.owner_payout) || 0), 0) || 0;
-
-        return {
-          ...profile,
-          property_count: propertyCount,
-          total_earnings: totalEarnings,
-        };
-      });
-
-      // Filter by search query
-      const filtered = searchQuery
-        ? ownersWithStats.filter(o => 
-            o.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            o.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            o.company_name?.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        : ownersWithStats;
-
-      setOwners(filtered);
-    } catch (error) {
-      toast.error('Kunne ikke hente ejere');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadOwners();
+    setOwners(mapped);
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(loadOwners, 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  useEffect(() => { load(); }, []);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('da-DK', { 
-      style: 'currency', 
-      currency: 'DKK',
-      maximumFractionDigits: 0 
-    }).format(value);
+  const openDrawer = async (owner: Owner) => {
+    setDrawerOwner(owner);
+    setTab('info');
+    const [{ data: props }, { data: agrs }, { data: bks }] = await Promise.all([
+      supabase.from('properties').select('*').eq('owner_id', owner.id),
+      supabase.from('agreements').select('*').eq('owner_id', owner.id).order('created_at', { ascending: false }),
+      supabase.from('bookings').select('*').eq('owner_id', owner.id).order('check_in', { ascending: false }).limit(20),
+    ]);
+    setOwnerProperties(props || []);
+    setOwnerAgreements(agrs || []);
+    setOwnerBookings(bks || []);
   };
 
-  const openCommissionDialog = (owner: Owner) => {
-    setSelectedOwner(owner);
-    setCommissionDialogOpen(true);
-  };
+  const filtered = owners.filter(o => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return o.full_name?.toLowerCase().includes(q) || o.email.toLowerCase().includes(q) || o.phone?.includes(q) || o.company_name?.toLowerCase().includes(q);
+  });
+
+  const totalEarnings = owners.reduce((s, o) => s + (o.total_earnings || 0), 0);
+  const totalProps = owners.reduce((s, o) => s + (o.property_count || 0), 0);
+  const signedCount = owners.filter(o => o.agreement_status === 'signed').length;
+
+  const fmt = (v: number) => new Intl.NumberFormat('da-DK', { style: 'currency', currency: 'DKK', maximumFractionDigits: 0 }).format(v);
+
+  const drawerTabs = [
+    { key: 'info', label: 'Profil' },
+    { key: 'properties', label: 'Boliger' },
+    { key: 'agreements', label: 'Aftaler' },
+    { key: 'bookings', label: 'Bookings' },
+  ];
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Ejere</h1>
-            <p className="text-muted-foreground">
-              {owners.length} ejere registreret
-            </p>
-          </div>
-          <Button asChild>
-            <Link to="/admin/owners/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Ny ejer
-            </Link>
-          </Button>
+        <AdminPageHeader title="Udlejere" subtitle={`${owners.length} ejere i systemet`} />
+
+        {/* KPIs */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KPICard title="Ejere" value={owners.length} icon={UserCheck} variant="gold" />
+          <KPICard title="Boliger" value={totalProps} icon={Building2} />
+          <KPICard title="Underskrevne aftaler" value={signedCount} icon={FileText} variant="success" />
+          <KPICard title="Total udbetalt" value={fmt(totalEarnings)} icon={Wallet} variant="gold" />
         </div>
 
         {/* Search */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Søg på navn, email, firma..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Samlede ejere</div>
-              <div className="text-2xl font-bold">{owners.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Total udbetalt</div>
-              <div className="text-2xl font-bold text-accent">
-                {formatCurrency(owners.reduce((sum, o) => sum + (o.total_earnings || 0), 0))}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground">Gennemsnitlige boliger pr. ejer</div>
-              <div className="text-2xl font-bold">
-                {owners.length > 0 
-                  ? (owners.reduce((sum, o) => sum + (o.property_count || 0), 0) / owners.length).toFixed(1)
-                  : '0'}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Søg på navn, email, firma..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 rounded-xl bg-card/60 border-border/40" />
         </div>
 
-        {/* Table */}
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="p-4 space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-14 w-full" />
-                ))}
+        {/* Owner list */}
+        {loading ? (
+          <div className="space-y-2">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
+        ) : filtered.length === 0 ? (
+          <Card className="border-border/40 bg-card/60"><CardContent className="p-0"><EmptyState icon={UserCheck} title="Ingen ejere fundet" description="Tilpas din søgning" /></CardContent></Card>
+        ) : (
+          <div className="space-y-2">
+            {filtered.map(o => (
+              <Card key={o.id} className="border-border/40 bg-card/60 hover:bg-card/80 hover:border-border/60 transition-all cursor-pointer" onClick={() => openDrawer(o)}>
+                <CardContent className="py-4 px-5 flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                    {(o.full_name || o.email)[0].toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground truncate">{o.full_name || o.email}</p>
+                      {o.case_number && <span className="text-[10px] text-muted-foreground/60 font-mono">{o.case_number}</span>}
+                    </div>
+                    <div className="flex items-center gap-3 mt-0.5">
+                      <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" />{o.email}</span>
+                      {o.phone && <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Phone className="h-3 w-3" />{o.phone}</span>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="text-right hidden sm:block">
+                      <p className="text-xs font-medium text-foreground">{o.property_count} {o.property_count === 1 ? 'bolig' : 'boliger'}</p>
+                      <p className="text-[11px] text-muted-foreground">{fmt(o.total_earnings || 0)}</p>
+                    </div>
+                    {o.agreement_status && AGREEMENT_STATUS[o.agreement_status] && (
+                      <StatusChip label={AGREEMENT_STATUS[o.agreement_status].label} variant={AGREEMENT_STATUS[o.agreement_status].variant} dot />
+                    )}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ═══════ DETAIL DRAWER ═══════ */}
+      <Sheet open={!!drawerOwner} onOpenChange={open => { if (!open) setDrawerOwner(null); }}>
+        <SheetContent className="w-full sm:max-w-lg p-0 border-l border-border/40 bg-background">
+          {drawerOwner && (
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="px-6 pt-6 pb-4 border-b border-border/30">
+                <SheetHeader className="mb-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0">
+                      {(drawerOwner.full_name || drawerOwner.email)[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <SheetTitle className="text-lg font-bold text-foreground">{drawerOwner.full_name || 'Ukendt'}</SheetTitle>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {drawerOwner.case_number && <span className="text-[11px] text-muted-foreground font-mono">{drawerOwner.case_number}</span>}
+                        {drawerOwner.company_name && <><span className="text-[11px] text-muted-foreground/40">·</span><span className="text-[11px] text-muted-foreground">{drawerOwner.company_name}</span></>}
+                      </div>
+                    </div>
+                  </div>
+                </SheetHeader>
+
+                {/* Quick actions */}
+                <div className="flex gap-2 mt-4">
+                  {drawerOwner.phone && (
+                    <a href={`tel:${drawerOwner.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/40 bg-card/60 hover:bg-muted/30 text-xs font-medium transition-all">
+                      <PhoneCall className="h-3.5 w-3.5 text-primary" />Ring
+                    </a>
+                  )}
+                  <a href={`mailto:${drawerOwner.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/40 bg-card/60 hover:bg-muted/30 text-xs font-medium transition-all">
+                    <Send className="h-3.5 w-3.5 text-primary" />Email
+                  </a>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-1 mt-4">
+                  {drawerTabs.map(t => (
+                    <button key={t.key} onClick={() => setTab(t.key)} className={cn('px-3 py-1.5 rounded-lg text-xs font-medium transition-all', tab === t.key ? 'bg-primary/10 text-primary border border-primary/20' : 'text-muted-foreground hover:text-foreground border border-transparent')}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="font-semibold">Navn</TableHead>
-                    <TableHead className="font-semibold">Kontakt</TableHead>
-                    <TableHead className="font-semibold">Firma</TableHead>
-                    <TableHead className="font-semibold text-center">Boliger</TableHead>
-                    <TableHead className="font-semibold text-right">Udbetalt</TableHead>
-                    <TableHead className="font-semibold">Oprettet</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {owners.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        Ingen ejere fundet
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    owners.map((owner) => (
-                      <TableRow key={owner.id} className="hover:bg-muted/30">
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{owner.full_name || 'Ikke angivet'}</div>
-                            {owner.case_number && (
-                              <div className="text-xs text-muted-foreground font-mono">{owner.case_number}</div>
-                            )}
+
+              <ScrollArea className="flex-1">
+                <div className="px-6 py-5 space-y-5">
+                  {tab === 'info' && (
+                    <>
+                      <div>
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">Kontaktoplysninger</p>
+                        <div className="space-y-2.5">
+                          <InfoRow icon={Mail} label="Email" value={drawerOwner.email} />
+                          <InfoRow icon={Phone} label="Telefon" value={drawerOwner.phone || '—'} />
+                          {drawerOwner.company_name && <InfoRow icon={Building2} label="Firma" value={drawerOwner.company_name} />}
+                          <InfoRow icon={UserCheck} label="Oprettet" value={format(new Date(drawerOwner.created_at), "d. MMMM yyyy", { locale: da })} />
+                        </div>
+                      </div>
+                      <Separator className="bg-border/30" />
+                      <div>
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">Overblik</p>
+                        <div className="grid grid-cols-3 gap-3">
+                          <MiniStat label="Boliger" value={drawerOwner.property_count || 0} />
+                          <MiniStat label="Bookings" value={drawerOwner.bookings_count || 0} />
+                          <MiniStat label="Udbetalt" value={fmt(drawerOwner.total_earnings || 0)} />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {tab === 'properties' && (
+                    ownerProperties.length === 0 ? (
+                      <p className="text-xs text-muted-foreground/60 italic py-8 text-center">Ingen boliger endnu</p>
+                    ) : ownerProperties.map(p => (
+                      <Card key={p.id} className="border-border/40 bg-card/60">
+                        <CardContent className="py-3 px-4">
+                          <p className="text-sm font-medium text-foreground">{p.title}</p>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{p.region || p.address}</span>
+                            {p.case_number && <span className="text-[10px] text-muted-foreground font-mono">{p.case_number}</span>}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-                              {owner.email}
-                            </div>
-                            {owner.phone && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <Phone className="h-3.5 w-3.5 text-muted-foreground" />
-                                {owner.phone}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{owner.company_name || '-'}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary">
-                            <Building2 className="h-3 w-3 mr-1" />
-                            {owner.property_count}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-medium text-accent">
-                          {formatCurrency(owner.total_earnings || 0)}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {format(new Date(owner.created_at), 'd. MMM yyyy', { locale: da })}
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link to={`/admin/owners/${owner.id}`}>
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Se profil
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Rediger
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => openCommissionDialog(owner)}>
-                                <Settings2 className="h-4 w-4 mr-2" />
-                                Kommissionsopsætning
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <DollarSign className="h-4 w-4 mr-2" />
-                                Se udbetalinger
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                          <StatusChip label={p.status === 'published' ? 'Live' : p.status} variant={p.status === 'published' ? 'success' : 'muted'} dot className="mt-2" />
+                        </CardContent>
+                      </Card>
                     ))
                   )}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Commission Dialog */}
-        <Dialog open={commissionDialogOpen} onOpenChange={setCommissionDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Kommissionsopsætning</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div>
-                <Label>Ejer</Label>
-                <p className="text-sm text-muted-foreground">{selectedOwner?.full_name || selectedOwner?.email}</p>
-              </div>
-              <div className="space-y-2">
-                <Label>Kommissionstype</Label>
-                <Select value={commissionType} onValueChange={setCommissionType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="platform">Platform (50% / 50%)</SelectItem>
-                    <SelectItem value="sales_meeting">Salgsmøde (80% / 20%)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  {commissionType === 'platform' 
-                    ? 'EK: 50% | Erik: 50% - For boliger taget via platform' 
-                    : 'EK: 80% | Erik: 20% - For boliger taget via fysisk salgsmøde'}
-                </p>
-              </div>
+                  {tab === 'agreements' && (
+                    ownerAgreements.length === 0 ? (
+                      <p className="text-xs text-muted-foreground/60 italic py-8 text-center">Ingen aftaler endnu</p>
+                    ) : ownerAgreements.map(a => (
+                      <Card key={a.id} className="border-border/40 bg-card/60">
+                        <CardContent className="py-3 px-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{a.property_title || 'Aftale'}</p>
+                            <p className="text-[11px] text-muted-foreground">{a.commission_percent}% kommission · {format(new Date(a.created_at), 'd. MMM yyyy', { locale: da })}</p>
+                          </div>
+                          <StatusChip
+                            label={AGREEMENT_STATUS[a.status]?.label || a.status}
+                            variant={AGREEMENT_STATUS[a.status]?.variant || 'muted'}
+                            dot
+                          />
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+
+                  {tab === 'bookings' && (
+                    ownerBookings.length === 0 ? (
+                      <p className="text-xs text-muted-foreground/60 italic py-8 text-center">Ingen bookings endnu</p>
+                    ) : ownerBookings.map(b => (
+                      <Card key={b.id} className="border-border/40 bg-card/60">
+                        <CardContent className="py-3 px-4 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{b.guest_name || b.case_number || b.id.slice(0, 8)}</p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {format(new Date(b.check_in), 'd. MMM', { locale: da })} → {format(new Date(b.check_out), 'd. MMM yyyy', { locale: da })}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-foreground">{fmt(Number(b.total_amount))}</p>
+                            <StatusChip label={b.status} variant={b.status === 'confirmed' ? 'success' : b.status === 'pending' ? 'warning' : 'muted'} />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setCommissionDialogOpen(false)}>Annuller</Button>
-              <Button onClick={() => {
-                toast.success('Kommission opdateret');
-                setCommissionDialogOpen(false);
-              }}>Gem</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </AdminLayout>
+  );
+}
+
+function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0"><Icon className="h-3.5 w-3.5 text-muted-foreground" /></div>
+      <div><p className="text-xs text-muted-foreground">{label}</p><p className="text-sm font-medium text-foreground">{value}</p></div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-border/40 bg-muted/10 p-3 text-center">
+      <p className="text-lg font-bold text-foreground">{value}</p>
+      <p className="text-[10px] text-muted-foreground uppercase tracking-wide mt-0.5">{label}</p>
+    </div>
   );
 }
