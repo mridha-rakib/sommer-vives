@@ -25,8 +25,13 @@ function QuickLeadDialog({ open, onClose }: { open: boolean; onClose: () => void
   const save = async () => {
     if (!form.name.trim()) { toast.error('Navn er påkrævet'); return; }
     setSaving(true);
-    const { error } = await supabase.from('leads').insert({ ...form, status: 'new' });
-    if (error) { toast.error('Kunne ikke oprette lead'); setSaving(false); return; }
+    const payload: Record<string, any> = { name: form.name.trim(), status: 'new', source: form.source };
+    if (form.email.trim()) payload.email = form.email.trim();
+    if (form.phone.trim()) payload.phone = form.phone.trim();
+    if (form.region.trim()) payload.region = form.region.trim();
+    if (form.notes.trim()) payload.notes = form.notes.trim();
+    const { error } = await supabase.from('leads').insert(payload as any);
+    if (error) { toast.error('Kunne ikke oprette lead: ' + error.message); setSaving(false); return; }
     toast.success('Lead oprettet');
     setForm({ name: '', email: '', phone: '', source: 'contact', region: '', notes: '' });
     setSaving(false); onClose();
@@ -74,10 +79,10 @@ function QuickSagDialog({ open, onClose }: { open: boolean; onClose: () => void 
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('properties').insert({
-      title: form.title.trim(), address: form.address.trim() || null,
-      owner_id: user?.id || '', status: 'draft', region: form.region.trim() || null,
+      title: form.title.trim(), address: form.address.trim() || 'Ikke angivet',
+      owner_id: user?.id || '', status: 'draft', region: form.region.trim() || 'Ikke angivet',
     });
-    if (error) { toast.error('Kunne ikke oprette sag'); setSaving(false); return; }
+    if (error) { toast.error('Kunne ikke oprette sag: ' + error.message); setSaving(false); return; }
     toast.success('Sag oprettet');
     setForm({ title: '', address: '', owner_name: '', region: '', notes: '' });
     setSaving(false); onClose();
@@ -129,9 +134,10 @@ function QuickOpgaveDialog({ open, onClose }: { open: boolean; onClose: () => vo
     if (!title.trim()) { toast.error('Titel er påkrævet'); return; }
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
+    const validLinkedType = linkedType && linkedType !== '_none' ? linkedType : null;
     const { error } = await supabase.from('system_tasks' as any).insert({
       title: title.trim(), description: description.trim() || null, priority,
-      linked_type: linkedType || null, linked_name: linkedName.trim() || null,
+      linked_type: validLinkedType, linked_name: validLinkedType ? (linkedName.trim() || null) : null,
       due_date: dueDate || null, assigned_to: user?.id || null,
       created_by: user?.id || null, source: 'manual',
     });
