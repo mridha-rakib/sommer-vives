@@ -10,6 +10,7 @@ import {
   UserCheck, User, ExternalLink
 } from 'lucide-react';
 import { QuickCreateButtons } from '@/components/admin/QuickCreateButtons';
+import { GlobalSearch } from '@/components/admin/GlobalSearch';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 
