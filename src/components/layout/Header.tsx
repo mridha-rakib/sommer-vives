@@ -65,7 +65,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation — pill style */}
-          <div className={`hidden md:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
+          <div className={`hidden lg:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
             transparent
               ? 'bg-foreground/8 backdrop-blur-md border border-foreground/10'
               : 'bg-muted/50 border border-border/50'
