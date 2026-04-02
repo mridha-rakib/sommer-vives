@@ -136,13 +136,13 @@ function FounderVideoSection() {
           {/* Text below video */}
           <motion.div {...reveal(isInView, 0.2)} className="mt-8 max-w-[580px] mx-auto text-center">
             <p className="text-muted-foreground/80 leading-[1.8] mb-5 text-[14.5px]">
-              Da Emil selv blev sommerhus-ejer, oplevede han det samme som mange andre — et bureau, der føltes distanceret, ugennemsigtigt og upersonligt. I stedet for at acceptere det, byggede han SommerVibes.
+              Vi startede SommerVibes, fordi vi selv oplevede det som mange husejere gør — et bureau, der føltes distanceret, ugennemsigtigt og upersonligt. Så vi byggede det bureau, vi selv savnede.
             </p>
             <div className="inline-block border-l-[1.5px] border-accent/20 pl-5 py-1 text-left">
               <p className="text-primary/70 font-display text-[0.95rem] italic leading-[1.7]">
-                "Jeg ville skabe det bureau, jeg selv savnede som husejer."
+                "Vi ville skabe det bureau, vi selv savnede som husejere."
               </p>
-              <p className="text-accent/40 text-[10px] mt-2 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann</p>
+              <p className="text-accent/40 text-[10px] mt-2 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann, Grundlægger</p>
             </div>
           </motion.div>
         </div>
