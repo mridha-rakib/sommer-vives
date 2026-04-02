@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useRef, useState, useEffect } from 'react';
 import emilPortrait from '@/assets/emil-portrait.jpg';
-import heroHouse from '@/assets/hero-house.jpg';
+import emilHeadshot from '@/assets/emil-headshot.jpg';
+import kvieSoeDrone from '@/assets/kvie-soe-drone.jpg';
 import {
   Accordion,
   AccordionContent,
