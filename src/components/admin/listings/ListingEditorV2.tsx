@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { ListingCalendarPricing } from './ListingCalendarPricing';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import {
   ArrowLeft, Loader2, Save, X, Plus, Home, ImageIcon, Tag, DollarSign, CheckCircle2, Globe,
   Star, AlertTriangle, Info, ClipboardCheck, Rocket, Sparkles, Zap,
-  CircleDot, Circle, Check
+  CircleDot, Circle, Check, Calendar as CalendarIcon
 } from 'lucide-react';
 
 // ── Types ──
@@ -688,6 +689,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
             { value: 'billeder', label: 'Billeder', icon: ImageIcon },
             { value: 'faciliteter', label: 'Faciliteter', icon: CheckCircle2 },
             { value: 'priser', label: 'Priser & Regler', icon: DollarSign },
+            { value: 'kalender', label: 'Kalender', icon: CalendarIcon },
             { value: 'readiness', label: 'Readiness', icon: Star },
             { value: 'kanaler', label: 'Kanaler', icon: Globe },
           ].map(tab => (
@@ -956,7 +958,19 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           </div>
         </TabsContent>
 
-        {/* ─── 6. READINESS ─── */}
+        {/* ─── 5.5 KALENDER & PRISER ─── */}
+        <TabsContent value="kalender" className="mt-4">
+          <ListingCalendarPricing
+            listingId={listing.id}
+            ownerId={listing.owner_id}
+            basePricePerNight={listing.base_price_per_night}
+            weekendPricePerNight={listing.weekend_price_per_night}
+            minNights={listing.min_nights}
+            cleaningFee={listing.cleaning_fee}
+            checkInTime={listing.check_in_time}
+          />
+        </TabsContent>
+
         <TabsContent value="readiness" className="mt-4 space-y-5">
           <Section title="Listing Readiness" description="Oversigt over hvad der mangler for at gå live">
             <div className="flex items-center gap-4 mb-4">
