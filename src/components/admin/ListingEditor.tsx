@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Loader2, X, Plus, Check, Image, MapPin, Type, DollarSign, Settings, Sparkles } from 'lucide-react';
+import { ArrowLeft, Loader2, X, Plus, Check, Image, MapPin, Type, DollarSign, Settings, Sparkles, AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
 
 /* ─── types ─── */
 interface ContentFields {
