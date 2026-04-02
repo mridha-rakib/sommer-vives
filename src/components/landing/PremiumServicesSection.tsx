@@ -36,11 +36,19 @@ import { Link } from 'react-router-dom';
 
 // Service card images
 import boostImg from '@/assets/services/boost.jpg';
-import kundedialogImg from '@/assets/services/kundedialog.png';
+import kundedialogImg from '@/assets/services/kundedialog.jpg';
 import cleaningImg from '@/assets/services/cleaning.jpg';
 import qrSignImg from '@/assets/services/qr-sign.jpg';
 import portalsImg from '@/assets/services/portals.jpg';
 import commissionImg from '@/assets/services/commission.jpg';
+import revenueImg from '@/assets/services/revenue.jpg';
+import keyboxImg from '@/assets/services/keybox.jpg';
+import supportImg from '@/assets/services/support.jpg';
+import repairImg from '@/assets/services/repair.jpg';
+import marketingImg from '@/assets/services/marketing.jpg';
+import dashboardImg from '@/assets/services/dashboard.jpg';
+import shieldImg from '@/assets/services/shield.jpg';
+import flexibilityImg from '@/assets/services/flexibility.jpg';
 
 interface Service {
   icon: typeof QrCode;
