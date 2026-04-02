@@ -1,6 +1,10 @@
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { AdminListingsManager } from '@/components/admin/AdminListingsManager';
+import { AdminListingsModule } from '@/components/admin/listings/AdminListingsModule';
 
-export default function AdminListingsNew() {
-  return <AdminLayout><AdminListingsManager /></AdminLayout>;
+export default function AdminListings() {
+  return (
+    <AdminLayout>
+      <AdminListingsModule />
+    </AdminLayout>
+  );
 }
