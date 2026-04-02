@@ -97,19 +97,10 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
       )} style={{ top: 0, height: '100vh' }}>
         <div className={cn('flex items-center justify-between p-4 border-b border-border', collapsed && 'justify-center')}>
           {!collapsed && (
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
-                <Home className="h-4 w-4 text-accent" />
-              </div>
-              <span className="font-display text-lg font-semibold text-foreground">
-                Sommer<span className="text-accent">Vibes</span>
-              </span>
-            </Link>
+            <BrandLogo to="/owner" tagline="Ejerportal" />
           )}
           {collapsed && (
-            <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
-              <Home className="h-4 w-4 text-accent" />
-            </div>
+            <BrandLogo to="/owner" tagline="" className="[&>span:first-child]:text-xs" />
           )}
           <button 
             className="hidden md:flex text-muted-foreground hover:text-foreground transition-colors"

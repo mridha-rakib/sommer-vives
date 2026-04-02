@@ -50,14 +50,7 @@ export function GuestLayout({ children, bookingData, onLogout, guestEmail }: Gue
             <button onClick={() => setMobileNavOpen(!mobileNavOpen)} className="md:hidden p-1.5 hover:bg-muted rounded-lg">
               {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <Link to="/guest" className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
-                <Home className="h-3.5 w-3.5 text-accent" />
-              </div>
-              <span className="font-display text-base font-semibold text-foreground">
-                Sommer<span className="text-accent">Vibes</span>
-              </span>
-            </Link>
+            <BrandLogo to="/guest" tagline="Gæsteportal" />
           </div>
           <div className="flex items-center gap-3">
             {guestEmail && (
