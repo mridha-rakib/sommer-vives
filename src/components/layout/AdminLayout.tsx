@@ -9,6 +9,7 @@ import {
   FileText, Wallet, ChevronDown, Search,
   UserCheck, User, ExternalLink
 } from 'lucide-react';
+import { QuickCreateButtons } from '@/components/admin/QuickCreateButtons';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 
