@@ -584,34 +584,19 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           {/* ── BILLEDER ── */}
           {subTab === 'billeder' && (
             <div className="space-y-6">
-              <Section title="Hero-billede" description="Hovedbilledet der vises øverst">
-                <Field label="Hero URL">
-                  <Input value={listing.hero_image || ''} onChange={e => update('hero_image', e.target.value)} placeholder="https://..." />
-                </Field>
-                {listing.hero_image && (
-                  <div className="w-full max-w-md rounded-xl overflow-hidden border border-border">
-                    <img src={listing.hero_image} alt="Hero" className="w-full h-48 object-cover" />
-                  </div>
-                )}
-              </Section>
-              <Section title="Galleri" description="Tilføj, fjern og omsortér billeder">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {(listing.images || []).map((img, i) => (
-                    <div key={i} className="relative group rounded-xl overflow-hidden border border-border bg-muted">
-                      {img ? <img src={img} alt="" className="w-full h-32 object-cover" /> : (
-                        <div className="w-full h-32 flex items-center justify-center"><ImageIcon className="h-8 w-8 text-muted-foreground/20" /></div>
-                      )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <Button variant="secondary" size="sm" className="h-7 text-[10px]" onClick={() => update('hero_image', img)}><Star className="h-3 w-3 mr-1" /> Hero</Button>
-                        <Button variant="destructive" size="sm" className="h-7 text-[10px]" onClick={() => update('images', (listing.images || []).filter((_, idx) => idx !== i))}><X className="h-3 w-3" /></Button>
-                      </div>
-                      <Input value={img} onChange={e => { const n = [...(listing.images || [])]; n[i] = e.target.value; update('images', n); }}
-                        className="rounded-none border-0 border-t text-[11px] h-8" placeholder="Billede URL" />
-                    </div>
-                  ))}
-                </div>
-                <Button variant="outline" size="sm" onClick={() => update('images', [...(listing.images || []), ''])} className="gap-1.5 mt-2"><Plus className="h-3.5 w-3.5" /> Tilføj billede</Button>
-              </Section>
+              <ListingImageUpload
+                listingSlug={listing.slug}
+                images={listing.images || []}
+                heroImage={listing.hero_image || ''}
+                bedroomImages={(listing.bedroom_images as BedroomImage[]) || []}
+                imageLabels={((listing.image_labels as any) || []) as ImageLabel[]}
+                comboHeroImages={listing.combo_hero_images || []}
+                onImagesChange={imgs => update('images', imgs)}
+                onHeroChange={url => update('hero_image', url)}
+                onBedroomImagesChange={bi => update('bedroom_images' as any, bi)}
+                onImageLabelsChange={labels => update('image_labels' as any, labels)}
+                onComboHeroChange={imgs => update('combo_hero_images' as any, imgs)}
+              />
             </div>
           )}
 
