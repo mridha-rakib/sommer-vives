@@ -9,6 +9,7 @@ import {
   FileText, Wallet, ChevronDown, Search,
   UserCheck, User, ExternalLink
 } from 'lucide-react';
+import { QuickCreateButtons } from '@/components/admin/QuickCreateButtons';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 
@@ -240,6 +241,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            <QuickCreateButtons />
             <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground rounded-xl px-3 h-9 bg-muted/20 border border-border/30">
               <Search className="w-3.5 h-3.5" />
               <span>Søg...</span>
