@@ -192,19 +192,50 @@ export default function AdminDokumenter() {
       <div className="space-y-6">
         <AdminPageHeader
           title="Dokumenter"
-          subtitle="Dokumentbibliotek for sager, ejere, gæster og leads"
+          subtitle="Dokumentbibliotek, aftaler og skabeloner"
           actions={
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-1">
-              {counts.total} dokumenter
-            </Badge>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center rounded-xl border border-border/40 overflow-hidden">
+                <button onClick={() => setPageTab('documents')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all', pageTab === 'documents' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
+                  <FileText className="h-3.5 w-3.5" />Dokumenter
+                </button>
+                <button onClick={() => setPageTab('templates')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all border-l border-border/40', pageTab === 'templates' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
+                  <Copy className="h-3.5 w-3.5" />Skabeloner
+                </button>
+              </div>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-1">
+                {counts.total} dokumenter
+              </Badge>
+            </div>
           }
         />
 
+        {/* ── Pending agreements alert ── */}
+        {pendingAgreements.length > 0 && pageTab === 'documents' && (
+          <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">
+                {pendingAgreements.length} {pendingAgreements.length === 1 ? 'aftale afventer' : 'aftaler afventer'} behandling
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {pendingAgreements.filter(a => a.status === 'draft').length > 0 && `${pendingAgreements.filter(a => a.status === 'draft').length} kladde(r)`}
+                {pendingAgreements.filter(a => a.status === 'draft').length > 0 && pendingAgreements.filter(a => a.status === 'sent').length > 0 && ' · '}
+                {pendingAgreements.filter(a => a.status === 'sent').length > 0 && `${pendingAgreements.filter(a => a.status === 'sent').length} sendt og afventer signatur`}
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => setTypeFilter('agreement')}>
+              Vis aftaler
+            </Button>
+          </div>
+        )}
+
+        {pageTab === 'documents' && (<>
         {/* ── KPIs ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {([
             { label: 'Alle dokumenter', value: counts.total, icon: FolderOpen },
-            { label: 'Aktive', value: counts.active, icon: FileText },
+            { label: 'Aktive / signerede', value: counts.active, icon: FileText },
             { label: 'Kladder', value: counts.draft, icon: File },
             { label: 'Dokumenttyper', value: counts.types, icon: Grid3X3 },
           ]).map(kpi => (
