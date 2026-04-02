@@ -701,7 +701,12 @@ export default function AdminSagDetail() {
 
         {tab === 'listing' && <InlineListingEditor listing={listing} onSaved={(updated) => setListing({ ...listing, ...updated })} />}
 
-        {tab === 'integrationer' && <Beds24Integration listing={listing} onUpdate={(updated: any) => setListing({ ...listing, ...updated })} />}
+        {tab === 'integrationer' && (
+          <div className="space-y-4">
+            <Beds24Integration listing={listing} onUpdate={(updated: any) => setListing({ ...listing, ...updated })} />
+            <Beds24MappingSection listing={listing} />
+          </div>
+        )}
 
         {tab === 'kanaler' && (
           <div className="space-y-4">
