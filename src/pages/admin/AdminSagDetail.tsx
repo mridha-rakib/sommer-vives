@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Beds24Integration } from '@/components/admin/Beds24Integration';
 import { Beds24MappingSection } from '@/components/admin/Beds24MappingSection';
+import { Beds24ReadinessEngine } from '@/components/admin/Beds24ReadinessEngine';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
