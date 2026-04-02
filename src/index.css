@@ -155,6 +155,77 @@
   }
 }
 
+/* ── Premium motion layer ── */
+@layer utilities {
+  /* Card hover lift */
+  .hover-lift {
+    @apply transition-all duration-500 ease-out;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px -8px hsla(0, 0%, 0%, 0.25);
+  }
+}
+
+/* ── Global transition polish ── */
+
+/* Smoother accordion content */
+[data-state="open"] > [data-radix-accordion-content] {
+  animation: accordion-down 0.35s cubic-bezier(0.33,1,0.68,1);
+}
+[data-state="closed"] > [data-radix-accordion-content] {
+  animation: accordion-up 0.3s cubic-bezier(0.33,1,0.68,1);
+}
+
+/* Premium input focus transitions */
+input, textarea, select, [role="combobox"] {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.25s ease;
+}
+input:focus, textarea:focus {
+  box-shadow: 0 0 0 3px hsla(38, 55%, 42%, 0.08);
+}
+
+/* Button premium hover – refined surface response */
+button, [role="button"] {
+  transition: all 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* Navigation link underline animation */
+.nav-link-animated {
+  position: relative;
+}
+.nav-link-animated::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: hsl(var(--accent));
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+}
+.nav-link-animated:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Smooth section borders / dividers */
+section {
+  transition: background-color 0.5s ease;
+}
+
+/* Premium card surface */
+.card-premium {
+  transition: transform 0.5s cubic-bezier(0.33,1,0.68,1), box-shadow 0.5s cubic-bezier(0.33,1,0.68,1), border-color 0.4s ease;
+}
+.card-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px -6px hsla(0, 0%, 0%, 0.2);
+  border-color: hsla(38, 55%, 42%, 0.15);
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.6s ease-out forwards;
