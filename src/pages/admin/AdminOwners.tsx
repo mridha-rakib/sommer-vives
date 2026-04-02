@@ -77,7 +77,7 @@ export default function AdminOwners() {
     setDrawerOwner(owner);
     setTab('info');
     const [{ data: props }, { data: agrs }, { data: bks }] = await Promise.all([
-      supabase.from('properties').select('*').eq('owner_id', owner.id),
+      supabase.from('listings').select('*').eq('owner_id', owner.id),
       supabase.from('agreements').select('*').eq('owner_id', owner.id).order('created_at', { ascending: false }),
       supabase.from('bookings').select('*').eq('owner_id', owner.id).order('check_in', { ascending: false }).limit(20),
     ]);
