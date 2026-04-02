@@ -98,9 +98,18 @@ function FounderVideoSection() {
   return (
     <section ref={ref} className="py-16 md:py-24 bg-background relative">
       <div className="container mx-auto px-5 md:px-10">
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center max-w-[1100px] mx-auto">
-          {/* Video — autoplay */}
-          <motion.div {...reveal(isInView)} className="lg:col-span-7">
+        <div className="max-w-[820px] mx-auto">
+          {/* Header */}
+          <motion.div {...reveal(isInView)} className="text-center mb-8">
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød Emil</span>
+            <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em]">
+              Mennesket bag
+              <span className="text-accent italic font-normal ml-2">SommerVibes</span>
+            </h2>
+          </motion.div>
+
+          {/* Video — centered */}
+          <motion.div {...reveal(isInView, 0.1)}>
             <div className="relative rounded-[1.25rem] overflow-hidden bg-card/60 ring-1 ring-white/[0.04] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
               <video
                 ref={videoRef}
@@ -109,10 +118,8 @@ function FounderVideoSection() {
                 muted
                 playsInline
                 preload="auto"
-                className="w-full aspect-[16/10] object-cover object-top"
+                className="w-full aspect-video object-cover object-top"
               />
-
-              {/* Replay button */}
               <motion.button
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -126,22 +133,12 @@ function FounderVideoSection() {
             </div>
           </motion.div>
 
-          {/* Soft storytelling */}
-          <motion.div {...reveal(isInView, 0.15)} className="lg:col-span-5">
-            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød Emil</span>
-            <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-5">
-              Mennesket bag
-              <span className="block text-accent italic font-normal mt-1">SommerVibes</span>
-            </h2>
-
+          {/* Text below video */}
+          <motion.div {...reveal(isInView, 0.2)} className="mt-8 max-w-[580px] mx-auto text-center">
             <p className="text-muted-foreground/80 leading-[1.8] mb-5 text-[14.5px]">
-              Da Emil selv blev sommerhus-ejer, oplevede han det samme som mange andre — et bureau, der føltes distanceret, ugennemsigtigt og upersonligt.
+              Da Emil selv blev sommerhus-ejer, oplevede han det samme som mange andre — et bureau, der føltes distanceret, ugennemsigtigt og upersonligt. I stedet for at acceptere det, byggede han SommerVibes.
             </p>
-            <p className="text-muted-foreground/80 leading-[1.8] mb-7 text-[14.5px]">
-              I stedet for at acceptere det, byggede han SommerVibes: et bureau, hvor husejere kender deres rådgiver ved navn, har fuldt overblik over alt — og aldrig føler sig som et nummer i rækken.
-            </p>
-
-            <div className="border-l-[1.5px] border-accent/20 pl-5 py-1">
+            <div className="inline-block border-l-[1.5px] border-accent/20 pl-5 py-1 text-left">
               <p className="text-primary/70 font-display text-[0.95rem] italic leading-[1.7]">
                 "Jeg ville skabe det bureau, jeg selv savnede som husejer."
               </p>
