@@ -38,7 +38,7 @@ export function Header() {
     { name: 'Priser', href: '/pricing' },
     { name: 'Sommerhuse', href: '/listings' },
     { name: 'Om os', href: '/about' },
-    
+    { name: 'Beregn indtjening', href: '/beregn-lejeindtaegt', highlight: true },
   ];
 
   const isActiveLink = (href: string) => location.pathname === href;
