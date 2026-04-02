@@ -6,10 +6,11 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, LogOut, Menu, X, Calendar,
   MessageSquare, ListChecks, Target, Users, FolderOpen, Inbox,
-  FileText, Wallet, ChevronDown, Search,
+  FileText, Wallet, ChevronDown,
   UserCheck, User, ExternalLink
 } from 'lucide-react';
 import { QuickCreateButtons } from '@/components/admin/QuickCreateButtons';
+import { GlobalSearch } from '@/components/admin/GlobalSearch';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 
@@ -242,11 +243,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
           <div className="flex items-center gap-2">
             <QuickCreateButtons />
-            <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground rounded-xl px-3 h-9 bg-muted/20 border border-border/30">
-              <Search className="w-3.5 h-3.5" />
-              <span>Søg...</span>
-              <kbd className="ml-4 text-[10px] bg-muted/50 px-1.5 py-0.5 rounded-md font-mono">⌘K</kbd>
-            </Button>
+            <div className="hidden md:block">
+              <GlobalSearch />
+            </div>
             <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground hover:text-foreground gap-1.5 h-9 rounded-xl">
               <Link to="/"><ExternalLink className="w-3 h-3" />Website</Link>
             </Button>
