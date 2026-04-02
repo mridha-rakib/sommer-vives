@@ -88,23 +88,7 @@ function HeroSection() {
 function FounderVideoSection() {
   const { ref, isInView } = useScrollReveal();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [hasEnded, setHasEnded] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
 
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    const onEnd = () => { setIsPlaying(false); setHasEnded(true); };
-    const onPlay = () => { setIsPlaying(true); setHasEnded(false); };
-    v.addEventListener('ended', onEnd);
-    v.addEventListener('play', onPlay);
-    return () => {
-      v.removeEventListener('ended', onEnd);
-      v.removeEventListener('play', onPlay);
-    };
-  }, []);
-
-  const play = () => { videoRef.current?.play(); };
   const replay = () => {
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
@@ -116,45 +100,24 @@ function FounderVideoSection() {
     <section ref={ref} className="py-16 md:py-24 bg-background relative">
       <div className="container mx-auto px-5 md:px-10">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center max-w-[1100px] mx-auto">
-          {/* Video */}
+          {/* Video — autoplay */}
           <motion.div {...reveal(isInView)} className="lg:col-span-7">
             <div className="relative rounded-[1.25rem] overflow-hidden bg-card/60 ring-1 ring-white/[0.04] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
               <video
                 ref={videoRef}
                 src="/videos/ewk-intro.mp4"
-                poster={emilPortrait}
-                playsInline
+                autoPlay
                 muted
-                preload="metadata"
+                playsInline
+                preload="auto"
                 className="w-full aspect-[16/10] object-cover object-top"
               />
 
-              <AnimatePresence>
-                {!isPlaying && !hasEnded && (
-                  <motion.button
-                    key="play"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    onClick={play}
-                    className="absolute inset-0 flex items-center justify-center bg-background/30 group cursor-pointer"
-                  >
-                    <div className="relative">
-                      <div className="absolute -inset-5 rounded-full bg-accent/8 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                      <div className="relative w-16 h-16 md:w-[72px] md:h-[72px] rounded-full bg-accent/90 flex items-center justify-center shadow-[0_10px_50px_-10px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300">
-                        <Play className="w-5 h-5 md:w-6 md:h-6 text-primary fill-primary ml-0.5" />
-                      </div>
-                    </div>
-                  </motion.button>
-                )}
-              </AnimatePresence>
-
-              {/* Always-visible sticky replay button */}
+              {/* Replay button */}
               <motion.button
                 initial={{ opacity: 0 }}
-                animate={{ opacity: isPlaying || hasEnded ? 1 : 0 }}
-                transition={{ duration: 0.3 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 1 }}
                 onClick={replay}
                 className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-card/80 backdrop-blur-md ring-1 ring-white/[0.08] flex items-center justify-center cursor-pointer hover:scale-105 hover:ring-accent/20 transition-all duration-300 z-10"
                 title="Se igen"
