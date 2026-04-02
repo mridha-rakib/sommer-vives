@@ -29,9 +29,6 @@ interface ListingRow {
   is_active: boolean; amenities: string[] | null; house_rules: string | null;
   practical_info: string | null; images: string[] | null; hero_image: string | null;
   currency: string; region: string | null; owner_id: string;
-  weekend_price_per_night: number | null; min_nights: number | null; max_nights: number | null;
-  city: string | null; property_type: string | null; tagline: string | null;
-  checkin_info: string | null; checkout_info: string | null;
   [key: string]: any;
 }
 
