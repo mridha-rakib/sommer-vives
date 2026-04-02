@@ -159,8 +159,8 @@ export default function AdminDashboard() {
           ) : (
             <>
               <KPICard title="Nye leads" value={leads.length} icon={Target} variant="gold" subtitle="Aktive" />
-              <KPICard title="Møder i dag" value={tasks.filter(t => t.task_type?.toLowerCase().includes('møde') || t.task_type?.toLowerCase().includes('besøg')).length} icon={Calendar} />
-              <KPICard title="Opgaver i dag" value={tasks.length} icon={ListChecks} variant={tasks.length > 0 ? 'warning' : 'default'} />
+              <KPICard title="Aktive opgaver" value={tasks.length} icon={ListChecks} variant={tasks.length > 0 ? 'warning' : 'default'} />
+              <KPICard title="Haster" value={tasks.filter(t => t.priority === 'urgent' || t.priority === 'high').length} icon={Calendar} variant={tasks.filter(t => t.priority === 'urgent' || t.priority === 'high').length > 0 ? 'warning' : 'default'} />
               <KPICard title="Nye beskeder" value={unreadCount} icon={MessageSquare} variant={unreadCount > 0 ? 'warning' : 'default'} />
               <KPICard title="Nye aftaler" value={agreements.length} icon={FileSignature} variant="success" subtitle="Underskrevne" />
               <KPICard title="Under klargøring" value={onboarding.length} icon={FolderOpen} variant="gold" />
