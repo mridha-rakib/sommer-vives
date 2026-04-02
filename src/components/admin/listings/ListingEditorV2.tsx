@@ -803,26 +803,20 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Tabs */}
+      {/* Tabs — 3 clean sections */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full justify-start bg-card border border-border rounded-xl p-1 h-auto flex-wrap gap-1">
+        <TabsList className="w-full justify-start bg-transparent border-b border-border rounded-none p-0 h-auto gap-0">
           {[
-            { value: 'grunddata', label: 'Grunddata', icon: Home },
-            { value: 'beskrivelse', label: 'Beskrivelse', icon: Tag },
-            { value: 'billeder', label: 'Billeder', icon: ImageIcon },
-            { value: 'faciliteter', label: 'Faciliteter', icon: CheckCircle2 },
-            { value: 'priser', label: 'Priser & Regler', icon: DollarSign },
-            { value: 'kalender', label: 'Kalender', icon: CalendarIcon },
-            { value: 'readiness', label: 'Readiness', icon: Star },
-            { value: 'kanaler', label: 'Kanaler', icon: Globe },
-            { value: 'integration', label: 'Integration', icon: Link2 },
+            { value: 'bolig', label: 'Bolig', icon: Home },
+            { value: 'priser', label: 'Priser & Kalender', icon: DollarSign },
+            { value: 'kanaler', label: 'Distribution', icon: Globe },
           ].map(tab => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              className="gap-1.5 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="gap-2 text-sm font-medium px-5 py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none text-muted-foreground"
             >
-              <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+              <tab.icon className="h-4 w-4" /> {tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
