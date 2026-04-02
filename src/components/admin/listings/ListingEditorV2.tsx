@@ -9,9 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   ArrowLeft, Loader2, Save, X, Plus, Home, ImageIcon, Tag, DollarSign, CheckCircle2, Globe,
-  GripVertical, Star, AlertTriangle, Info
+  Star, AlertTriangle, Info, ClipboardCheck, Rocket, Sparkles, Zap,
+  CircleDot, Circle, Check
 } from 'lucide-react';
 
 // ── Types ──
@@ -79,8 +81,16 @@ const PROPERTY_TYPES = [
   { value: 'farmhouse', label: 'Bondegård' },
 ];
 
+const STATUS_OPTIONS = [
+  { value: 'draft', label: 'Kladde', icon: Circle, color: 'text-muted-foreground' },
+  { value: 'preparing', label: 'Under klargøring', icon: CircleDot, color: 'text-amber-500' },
+  { value: 'ready', label: 'Klar', icon: Check, color: 'text-emerald-500' },
+  { value: 'live', label: 'Live', icon: Zap, color: 'text-primary' },
+  { value: 'paused', label: 'Pauset', icon: Circle, color: 'text-orange-500' },
+];
+
 // ── Readiness calc ──
-function calcReadiness(f: Partial<ListingFull>): { score: number; missing: string[] } {
+function calcReadiness(f: Partial<ListingFull>): { score: number; missing: string[]; passed: string[] } {
   const checks: [string, boolean][] = [
     ['Navn', !!f.name],
     ['Beskrivelse', !!(f.description && f.description.length > 20)],
@@ -97,9 +107,9 @@ function calcReadiness(f: Partial<ListingFull>): { score: number; missing: strin
     ['Check-in tid', !!f.check_in_time],
     ['Check-out tid', !!f.check_out_time],
   ];
-  const passed = checks.filter(([, ok]) => ok).length;
+  const passed = checks.filter(([, ok]) => ok).map(([name]) => name);
   const missing = checks.filter(([, ok]) => !ok).map(([name]) => name);
-  return { score: Math.round((passed / checks.length) * 100), missing };
+  return { score: Math.round((passed.length / checks.length) * 100), missing, passed };
 }
 
 export function ListingEditorV2({ listingId, onBack }: Props) {
@@ -111,6 +121,15 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   const [newAmenity, setNewAmenity] = useState('');
   const [newHighlight, setNewHighlight] = useState('');
   const [activeTab, setActiveTab] = useState('grunddata');
+
+  // Action states
+  const [checkDialogOpen, setCheckDialogOpen] = useState(false);
+  const [prepareDialogOpen, setPrepareDialogOpen] = useState(false);
+  const [aiImproving, setAiImproving] = useState(false);
+  const [aiPreview, setAiPreview] = useState<any>(null);
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [channelDialogOpen, setChannelDialogOpen] = useState<string | null>(null);
+  const [channelPreparing, setChannelPreparing] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -126,55 +145,33 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
     setIsDirty(true);
   };
 
-  const readiness = useMemo(() => listing ? calcReadiness(listing) : { score: 0, missing: [] }, [listing]);
+  const readiness = useMemo(() => listing ? calcReadiness(listing) : { score: 0, missing: [], passed: [] }, [listing]);
 
   const handleSave = async () => {
     if (!listing) return;
     setSaving(true);
-
     const score = calcReadiness(listing).score;
 
     const { error } = await supabase.from('listings').update({
-      name: listing.name,
-      description: listing.description,
-      address: listing.address,
-      region: listing.region,
-      max_guests: listing.max_guests,
-      bedrooms: listing.bedrooms,
-      bathrooms: listing.bathrooms,
-      base_price_per_night: listing.base_price_per_night,
-      cleaning_fee: listing.cleaning_fee,
-      check_in_time: listing.check_in_time,
-      check_out_time: listing.check_out_time,
-      is_active: listing.is_active,
-      house_rules: listing.house_rules,
-      practical_info: listing.practical_info,
-      amenities: listing.amenities,
-      images: listing.images,
-      hero_image: listing.hero_image,
-      tagline: listing.tagline,
-      long_description: listing.long_description,
-      about_property: listing.about_property,
-      about_area: listing.about_area,
-      highlights: listing.highlights,
-      sqm: listing.sqm,
-      property_type: listing.property_type,
-      weekend_price_per_night: listing.weekend_price_per_night,
-      min_nights: listing.min_nights,
-      deposit: listing.deposit,
-      channel_airbnb_ready: listing.channel_airbnb_ready,
-      channel_booking_ready: listing.channel_booking_ready,
-      channel_vrbo_ready: listing.channel_vrbo_ready,
-      channel_airbnb_title: listing.channel_airbnb_title,
-      channel_booking_title: listing.channel_booking_title,
-      channel_vrbo_title: listing.channel_vrbo_title,
-      channel_airbnb_description: listing.channel_airbnb_description,
+      name: listing.name, description: listing.description, address: listing.address,
+      region: listing.region, max_guests: listing.max_guests, bedrooms: listing.bedrooms,
+      bathrooms: listing.bathrooms, base_price_per_night: listing.base_price_per_night,
+      cleaning_fee: listing.cleaning_fee, check_in_time: listing.check_in_time,
+      check_out_time: listing.check_out_time, is_active: listing.is_active,
+      house_rules: listing.house_rules, practical_info: listing.practical_info,
+      amenities: listing.amenities, images: listing.images, hero_image: listing.hero_image,
+      tagline: listing.tagline, long_description: listing.long_description,
+      about_property: listing.about_property, about_area: listing.about_area,
+      highlights: listing.highlights, sqm: listing.sqm, property_type: listing.property_type,
+      weekend_price_per_night: listing.weekend_price_per_night, min_nights: listing.min_nights,
+      deposit: listing.deposit, channel_airbnb_ready: listing.channel_airbnb_ready,
+      channel_booking_ready: listing.channel_booking_ready, channel_vrbo_ready: listing.channel_vrbo_ready,
+      channel_airbnb_title: listing.channel_airbnb_title, channel_booking_title: listing.channel_booking_title,
+      channel_vrbo_title: listing.channel_vrbo_title, channel_airbnb_description: listing.channel_airbnb_description,
       channel_booking_description: listing.channel_booking_description,
       channel_vrbo_description: listing.channel_vrbo_description,
-      readiness_score: score,
-      internal_status: listing.internal_status,
-      checkin_info: listing.checkin_info,
-      checkout_info: listing.checkout_info,
+      readiness_score: score, internal_status: listing.internal_status,
+      checkin_info: listing.checkin_info, checkout_info: listing.checkout_info,
       image_captions: listing.image_captions as any,
     }).eq('id', listing.id);
 
@@ -187,6 +184,94 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
     }
   };
 
+  // ── Action: Tjek listing ──
+  const handleCheck = () => {
+    setCheckDialogOpen(true);
+  };
+
+  // ── Action: Klargør listing ──
+  const handlePrepare = async () => {
+    if (!listing) return;
+    const r = calcReadiness(listing);
+    let newStatus = listing.internal_status || 'draft';
+
+    if (r.score === 100) {
+      newStatus = 'ready';
+    } else if (r.score >= 50) {
+      newStatus = 'preparing';
+    } else {
+      newStatus = 'draft';
+    }
+
+    update('internal_status', newStatus);
+    update('readiness_score' as any, r.score);
+    setPrepareDialogOpen(true);
+  };
+
+  // ── Action: Forbedr tekst med AI ──
+  const handleAiImprove = async () => {
+    if (!listing) return;
+    setAiImproving(true);
+    setAiDialogOpen(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-listing-text', {
+        body: { listing },
+      });
+      if (error) throw error;
+      if (data?.improved) {
+        setAiPreview(data.improved);
+      } else if (data?.error) {
+        toast({ title: 'AI-fejl', description: data.error, variant: 'destructive' });
+        setAiDialogOpen(false);
+      }
+    } catch (e: any) {
+      toast({ title: 'Fejl', description: e.message || 'Kunne ikke forbedre tekst', variant: 'destructive' });
+      setAiDialogOpen(false);
+    } finally {
+      setAiImproving(false);
+    }
+  };
+
+  const applyAiSuggestions = () => {
+    if (!aiPreview || !listing) return;
+    if (aiPreview.title) update('description', aiPreview.title);
+    if (aiPreview.tagline) update('tagline', aiPreview.tagline);
+    if (aiPreview.description) update('long_description', aiPreview.description);
+    if (aiPreview.long_description) update('long_description', aiPreview.long_description);
+    if (aiPreview.highlights?.length) update('highlights', aiPreview.highlights);
+    toast({ title: 'AI-tekst anvendt!', description: 'Husk at gemme ændringerne.' });
+    setAiDialogOpen(false);
+    setAiPreview(null);
+  };
+
+  // ── Action: Forbered kanal ──
+  const handlePrepareChannel = async (channel: 'airbnb' | 'booking' | 'vrbo') => {
+    if (!listing) return;
+    setChannelDialogOpen(channel);
+    setChannelPreparing(true);
+
+    // Auto-map listing content to channel fields if empty
+    const titleKey = `channel_${channel}_title` as keyof ListingFull;
+    const descKey = `channel_${channel}_description` as keyof ListingFull;
+    const readyKey = `channel_${channel}_ready` as keyof ListingFull;
+
+    if (!listing[titleKey]) {
+      update(titleKey as any, listing.description || listing.name);
+    }
+    if (!listing[descKey]) {
+      const desc = [listing.long_description, listing.about_property, listing.about_area]
+        .filter(Boolean).join('\n\n') || listing.description || '';
+      update(descKey as any, desc);
+    }
+
+    // Auto-mark as ready if score is high enough
+    if (readiness.score >= 70 && !listing[readyKey]) {
+      update(readyKey as any, true);
+    }
+
+    setChannelPreparing(false);
+  };
+
   if (loading || !listing) {
     return (
       <div className="flex items-center justify-center py-24 text-muted-foreground gap-2">
@@ -194,6 +279,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
       </div>
     );
   }
+
+  const currentStatus = STATUS_OPTIONS.find(s => s.value === (listing.internal_status || 'draft')) || STATUS_OPTIONS[0];
 
   return (
     <div className="space-y-5 pb-24">
@@ -204,19 +291,29 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         </Button>
         <div className="flex-1 min-w-0">
           <h2 className="font-display text-xl font-bold text-foreground truncate">{listing.name}</h2>
-          <p className="text-xs text-muted-foreground">{listing.slug} · Readiness {readiness.score}%</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-xs text-muted-foreground">{listing.slug}</span>
+            <span className="text-muted-foreground/30">·</span>
+            <div className="flex items-center gap-1">
+              <div className={`w-5 h-1.5 rounded-full ${readiness.score >= 80 ? 'bg-emerald-500' : readiness.score >= 50 ? 'bg-amber-400' : 'bg-destructive'}`} style={{ width: `${Math.max(readiness.score * 0.4, 6)}px` }} />
+              <span className="text-xs font-medium text-muted-foreground">{readiness.score}%</span>
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Select value={listing.internal_status || 'draft'} onValueChange={v => update('internal_status', v)}>
-            <SelectTrigger className="w-[130px] h-8 text-xs">
+            <SelectTrigger className="w-[160px] h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="draft">Kladde</SelectItem>
-              <SelectItem value="review">Til gennemgang</SelectItem>
-              <SelectItem value="ready">Klar</SelectItem>
-              <SelectItem value="live">Live</SelectItem>
-              <SelectItem value="paused">Pauset</SelectItem>
+              {STATUS_OPTIONS.map(s => (
+                <SelectItem key={s.value} value={s.value}>
+                  <span className="flex items-center gap-1.5">
+                    <s.icon className={`h-3 w-3 ${s.color}`} />
+                    {s.label}
+                  </span>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Button size="sm" onClick={handleSave} disabled={saving || !isDirty} className="gap-1.5">
@@ -225,6 +322,244 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           </Button>
         </div>
       </div>
+
+      {/* ── ACTION TOOLBAR ── */}
+      <div className="bg-card border border-border rounded-xl p-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-semibold text-muted-foreground mr-1 hidden sm:inline">Handlinger:</span>
+          <Button variant="outline" size="sm" onClick={handleCheck} className="gap-1.5 text-xs h-8">
+            <ClipboardCheck className="h-3.5 w-3.5" /> Tjek listing
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrepare} className="gap-1.5 text-xs h-8">
+            <Rocket className="h-3.5 w-3.5" /> Klargør listing
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleAiImprove} disabled={aiImproving} className="gap-1.5 text-xs h-8 border-primary/30 text-primary hover:bg-primary/5">
+            {aiImproving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            Forbedr tekst med AI
+          </Button>
+          <div className="hidden sm:block w-px h-5 bg-border mx-1" />
+          <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('airbnb')} className="gap-1.5 text-xs h-8 text-rose-600 hover:bg-rose-50 hover:text-rose-700">
+            <Globe className="h-3.5 w-3.5" /> Forbered Airbnb
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('booking')} className="gap-1.5 text-xs h-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700">
+            <Globe className="h-3.5 w-3.5" /> Forbered Booking.com
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('vrbo')} className="gap-1.5 text-xs h-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700">
+            <Globe className="h-3.5 w-3.5" /> Forbered Vrbo
+          </Button>
+        </div>
+      </div>
+
+      {/* ── TJEK LISTING DIALOG ── */}
+      <Dialog open={checkDialogOpen} onOpenChange={setCheckDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardCheck className="h-5 w-5 text-primary" /> Listing-tjek
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="relative w-16 h-16">
+                <svg className="w-16 h-16 -rotate-90" viewBox="0 0 36 36">
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
+                    stroke={readiness.score >= 80 ? 'hsl(142, 71%, 45%)' : readiness.score >= 50 ? 'hsl(38, 92%, 50%)' : 'hsl(0, 84%, 60%)'}
+                    strokeWidth="3" strokeDasharray={`${readiness.score}, 100`} strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center font-bold text-foreground">{readiness.score}%</div>
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">
+                  {readiness.score === 100 ? 'Alt ser godt ud!' : readiness.score >= 80 ? 'Næsten klar!' : readiness.score >= 50 ? 'Godt på vej' : 'Flere felter mangler'}
+                </p>
+                <p className="text-xs text-muted-foreground">{readiness.passed.length} af {readiness.passed.length + readiness.missing.length} felter udfyldt</p>
+              </div>
+            </div>
+
+            {readiness.passed.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-emerald-600">✓ Udfyldt</p>
+                {readiness.passed.map(p => (
+                  <div key={p} className="flex items-center gap-2 text-xs text-muted-foreground py-0.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> {p}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {readiness.missing.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-amber-600">⚠ Mangler</p>
+                {readiness.missing.map(m => (
+                  <div key={m} className="flex items-center gap-2 text-xs text-amber-600 py-0.5">
+                    <AlertTriangle className="h-3.5 w-3.5" /> {m}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── KLARGØR DIALOG ── */}
+      <Dialog open={prepareDialogOpen} onOpenChange={setPrepareDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Rocket className="h-5 w-5 text-primary" /> Klargøringsstatus
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-muted/50 rounded-lg p-4 text-center">
+              <div className="text-3xl font-bold text-foreground mb-1">{readiness.score}%</div>
+              <p className="text-sm text-muted-foreground">Readiness score</p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">Status opdateret til:</p>
+              <div className="flex items-center gap-2">
+                <currentStatus.icon className={`h-4 w-4 ${currentStatus.color}`} />
+                <span className="font-semibold text-foreground">{currentStatus.label}</span>
+              </div>
+            </div>
+
+            {readiness.score < 100 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-xs text-amber-700">
+                  <AlertTriangle className="h-3.5 w-3.5 inline mr-1" />
+                  {readiness.missing.length} felter mangler endnu. Udfyld dem for at nå 100%.
+                </p>
+              </div>
+            )}
+
+            {readiness.score === 100 && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                <p className="text-xs text-emerald-700">
+                  <CheckCircle2 className="h-3.5 w-3.5 inline mr-1" />
+                  Alle felter er udfyldt — listingen er klar til at gå live!
+                </p>
+              </div>
+            )}
+
+            <Button className="w-full" onClick={() => { setPrepareDialogOpen(false); setIsDirty(true); }}>
+              OK, gem ændringerne
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── AI TEKST DIALOG ── */}
+      <Dialog open={aiDialogOpen} onOpenChange={v => { if (!aiImproving) setAiDialogOpen(v); }}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" /> AI-forbedret tekst
+            </DialogTitle>
+          </DialogHeader>
+          {aiImproving && (
+            <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" /> AI skriver forbedrede tekster...
+            </div>
+          )}
+          {aiPreview && !aiImproving && (
+            <div className="space-y-4">
+              {aiPreview.title && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Offentlig titel</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground">{aiPreview.title}</p>
+                </div>
+              )}
+              {aiPreview.tagline && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Tagline</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground">{aiPreview.tagline}</p>
+                </div>
+              )}
+              {(aiPreview.long_description || aiPreview.description) && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Beskrivelse</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.long_description || aiPreview.description}</p>
+                </div>
+              )}
+              {aiPreview.highlights?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Highlights</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {aiPreview.highlights.map((h: string, i: number) => (
+                      <Badge key={i} variant="secondary" className="text-xs gap-1">
+                        <Star className="h-3 w-3 text-amber-500" /> {h}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <Button onClick={applyAiSuggestions} className="flex-1 gap-1.5">
+                  <Check className="h-4 w-4" /> Anvend alle forslag
+                </Button>
+                <Button variant="outline" onClick={() => { setAiDialogOpen(false); setAiPreview(null); }}>
+                  Annuller
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── KANAL DIALOG ── */}
+      <Dialog open={!!channelDialogOpen} onOpenChange={() => setChannelDialogOpen(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Forbered {channelDialogOpen === 'airbnb' ? 'Airbnb' : channelDialogOpen === 'booking' ? 'Booking.com' : 'Vrbo'}
+            </DialogTitle>
+          </DialogHeader>
+          {channelPreparing ? (
+            <div className="flex items-center justify-center py-8 gap-2 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" /> Forbereder kanalindhold...
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                <p className="text-sm text-emerald-700 font-medium flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4" /> Kanalindhold er forberedt
+                </p>
+              </div>
+
+              <div className="space-y-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Titel kopieret fra listing
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Beskrivelse sammensat
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Faciliteter klar til mapping
+                </div>
+                {readiness.score >= 70 && (
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Markeret som klar
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Info className="h-3.5 w-3.5" />
+                  Du kan redigere den kanalspecifikke tekst under "Kanaler"-fanen.
+                </p>
+              </div>
+
+              <Button className="w-full" onClick={() => { setChannelDialogOpen(null); setActiveTab('kanaler'); setIsDirty(true); }}>
+                Gå til Kanaler-fanen
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -391,20 +726,10 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                     </div>
                   )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="h-7 text-[10px]"
-                      onClick={() => { update('hero_image', img); }}
-                    >
+                    <Button variant="secondary" size="sm" className="h-7 text-[10px]" onClick={() => update('hero_image', img)}>
                       <Star className="h-3 w-3 mr-1" /> Hero
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="h-7 text-[10px]"
-                      onClick={() => update('images', (listing.images || []).filter((_, idx) => idx !== i))}
-                    >
+                    <Button variant="destructive" size="sm" className="h-7 text-[10px]" onClick={() => update('images', (listing.images || []).filter((_, idx) => idx !== i))}>
                       <X className="h-3 w-3" />
                     </Button>
                   </div>
@@ -437,16 +762,11 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                   <button
                     key={a}
                     onClick={() => {
-                      if (isSelected) {
-                        update('amenities', (listing.amenities || []).filter(x => x !== a));
-                      } else {
-                        update('amenities', [...(listing.amenities || []), a]);
-                      }
+                      if (isSelected) update('amenities', (listing.amenities || []).filter(x => x !== a));
+                      else update('amenities', [...(listing.amenities || []), a]);
                     }}
                     className={`px-3 py-2.5 rounded-lg border text-sm text-left transition-all ${
-                      isSelected
-                        ? 'bg-primary/10 border-primary/30 text-primary font-medium'
-                        : 'bg-card border-border text-muted-foreground hover:border-primary/20'
+                      isSelected ? 'bg-primary/10 border-primary/30 text-primary font-medium' : 'bg-card border-border text-muted-foreground hover:border-primary/20'
                     }`}
                   >
                     <CheckCircle2 className={`h-3.5 w-3.5 inline mr-1.5 ${isSelected ? 'text-primary' : 'text-muted-foreground/30'}`} />
@@ -524,10 +844,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
             <div className="flex items-center gap-4 mb-4">
               <div className="relative w-20 h-20">
                 <svg className="w-20 h-20 -rotate-90" viewBox="0 0 36 36">
-                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
-                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                  <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none"
                     stroke={readiness.score >= 80 ? 'hsl(var(--primary))' : readiness.score >= 50 ? '#f59e0b' : '#ef4444'}
                     strokeWidth="3" strokeDasharray={`${readiness.score}, 100`} strokeLinecap="round" />
                 </svg>
@@ -566,11 +884,14 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
             <Select value={listing.internal_status || 'draft'} onValueChange={v => update('internal_status', v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="draft">Kladde</SelectItem>
-                <SelectItem value="review">Til gennemgang</SelectItem>
-                <SelectItem value="ready">Klar</SelectItem>
-                <SelectItem value="live">Live</SelectItem>
-                <SelectItem value="paused">Pauset</SelectItem>
+                {STATUS_OPTIONS.map(s => (
+                  <SelectItem key={s.value} value={s.value}>
+                    <span className="flex items-center gap-1.5">
+                      <s.icon className={`h-3 w-3 ${s.color}`} />
+                      {s.label}
+                    </span>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </Section>
@@ -598,6 +919,9 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                   onCheckedChange={v => update(`channel_${ch.key}_ready` as any, v)}
                 />
                 <span className={`text-sm font-medium ${ch.color}`}>{ch.label} klar</span>
+                <Button variant="ghost" size="sm" className="ml-auto text-xs h-7 gap-1" onClick={() => handlePrepareChannel(ch.key)}>
+                  <Rocket className="h-3 w-3" /> Auto-forbered
+                </Button>
               </div>
               <Field label={`${ch.label}-specifik titel`}>
                 <Input
