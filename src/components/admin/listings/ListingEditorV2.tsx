@@ -247,27 +247,68 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   // ── Action: Forbered kanal ──
   const handlePrepareChannel = async (channel: 'airbnb' | 'booking' | 'vrbo') => {
     if (!listing) return;
+
+    if (channel === 'airbnb') {
+      setAirbnbPreparing(true);
+      setActiveTab('kanaler');
+
+      try {
+        // Use AI to generate Airbnb-optimized content
+        const { data, error } = await supabase.functions.invoke('improve-listing-text', {
+          body: {
+            listing,
+            channel: 'airbnb',
+            prompt: 'Optimize this listing for Airbnb. Create a compelling Airbnb title (max 50 chars), and a detailed Airbnb description that highlights the unique experience. Write in Danish. Be warm, inviting and conversion-focused.',
+          },
+        });
+
+        if (!error && data?.improved) {
+          const title = data.improved.title || data.improved.tagline || listing.description || listing.name;
+          const desc = data.improved.long_description || data.improved.description ||
+            [listing.long_description, listing.about_property, listing.about_area].filter(Boolean).join('\n\n') || listing.description || '';
+
+          update('channel_airbnb_title', title);
+          update('channel_airbnb_description', desc);
+          setAirbnbAiUsed(true);
+        } else {
+          // Fallback: map without AI
+          if (!listing.channel_airbnb_title) update('channel_airbnb_title', listing.description || listing.name);
+          if (!listing.channel_airbnb_description) {
+            const desc = [listing.long_description, listing.about_property, listing.about_area].filter(Boolean).join('\n\n') || listing.description || '';
+            update('channel_airbnb_description', desc);
+          }
+        }
+
+        if (readiness.score >= 70) update('channel_airbnb_ready', true);
+        toast({ title: 'Airbnb-indhold forberedt!', description: 'Tjek preview under Kanaler-fanen.' });
+      } catch {
+        // Fallback mapping
+        if (!listing.channel_airbnb_title) update('channel_airbnb_title', listing.description || listing.name);
+        if (!listing.channel_airbnb_description) {
+          const desc = [listing.long_description, listing.about_property, listing.about_area].filter(Boolean).join('\n\n') || listing.description || '';
+          update('channel_airbnb_description', desc);
+        }
+        if (readiness.score >= 70) update('channel_airbnb_ready', true);
+      } finally {
+        setAirbnbPreparing(false);
+      }
+      return;
+    }
+
+    // Other channels: simple mapping
     setChannelDialogOpen(channel);
     setChannelPreparing(true);
 
-    // Auto-map listing content to channel fields if empty
     const titleKey = `channel_${channel}_title` as keyof ListingFull;
     const descKey = `channel_${channel}_description` as keyof ListingFull;
     const readyKey = `channel_${channel}_ready` as keyof ListingFull;
 
-    if (!listing[titleKey]) {
-      update(titleKey as any, listing.description || listing.name);
-    }
+    if (!listing[titleKey]) update(titleKey as any, listing.description || listing.name);
     if (!listing[descKey]) {
-      const desc = [listing.long_description, listing.about_property, listing.about_area]
-        .filter(Boolean).join('\n\n') || listing.description || '';
+      const desc = [listing.long_description, listing.about_property, listing.about_area].filter(Boolean).join('\n\n') || listing.description || '';
       update(descKey as any, desc);
     }
-
-    // Auto-mark as ready if score is high enough
-    if (readiness.score >= 70 && !listing[readyKey]) {
-      update(readyKey as any, true);
-    }
+    if (readiness.score >= 70 && !listing[readyKey]) update(readyKey as any, true);
 
     setChannelPreparing(false);
   };
