@@ -26,6 +26,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Beds24Integration } from '@/components/admin/Beds24Integration';
+import { Beds24MappingSection } from '@/components/admin/Beds24MappingSection';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
