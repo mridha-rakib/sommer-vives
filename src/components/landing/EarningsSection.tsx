@@ -1,10 +1,11 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, TrendingUp, Calculator, Zap, BedDouble, Clock, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Zap, BedDouble, Clock, Sparkles, X, CheckCircle2 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import earningsImg from '@/assets/earnings-lifestyle.jpg';
 
 /* ── Tax calculator logic ── */
 const TAX_FREE_AMOUNT = 50200;
@@ -18,188 +19,191 @@ function calculate(income: number) {
 }
 const fmt = (n: number) => new Intl.NumberFormat('da-DK', { maximumFractionDigits: 0 }).format(n);
 
-/* ── Revenue categories ── */
-const categories = [
-  { icon: Zap, title: 'Forbrugsafregning', share: 8, highlight: 'Op til 1.500 kr./uge' },
-  { icon: BedDouble, title: 'Tillægspakker', share: 5, highlight: '75-200 kr./person' },
-  { icon: Clock, title: 'Fleksibilitet', share: 4, highlight: '200-500 kr./tilvalg' },
-  { icon: Sparkles, title: 'Service & gebyrer', share: 3, highlight: '800-1.500 kr./ophold' },
+/* ── Value props ── */
+const valueProps = [
+  { icon: Zap, title: 'Forbrugsafregning', desc: 'Gæster betaler el, vand og varme — op til 1.500 kr./uge ekstra til dig.' },
+  { icon: BedDouble, title: 'Sengepakker & tillæg', desc: 'Sengepakker, håndklæder og rengøring som tilvalg — 75-200 kr./person.' },
+  { icon: Clock, title: 'Fleksibel check-in/out', desc: 'Tidlig ankomst og sen afrejse som betalte tilvalg — 200-500 kr.' },
+  { icon: Sparkles, title: 'Skattefrit bundfradrag', desc: 'De første 50.200 kr. af din lejeindtægt er skattefri — hvert år.' },
 ];
 
-type Tab = 'revenue' | 'tax';
+const fade = (inView: boolean, delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: inView ? { opacity: 1, y: 0 } : {},
+  transition: { duration: 0.9, delay, ease: 'easeOut' as const },
+});
 
-export function EarningsSection() {
-  const { ref, isInView } = useScrollReveal();
-  const [tab, setTab] = useState<Tab>('revenue');
-  const [income, setIncome] = useState(80000);
+/* ── Calculator Dialog ── */
+function CalculatorDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [income, setIncome] = useState(120000);
   const result = calculate(income);
   const commission = Math.round(income * 0.15);
+  const extras = Math.round(income * 0.2);
+  const totalGross = income + extras;
 
   return (
-    <section ref={ref} className="py-20 md:py-28 bg-card text-foreground overflow-hidden relative">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.06),transparent_70%)]" />
-
-      <div className="container mx-auto px-4 md:px-8 relative">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-10"
-        >
-          <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">
-            Hvad kan dit hus <span className="text-primary italic font-normal">reelt tjene?</span>
-          </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-sm md:text-base">
-            Se dit fulde indtjeningspotentiale — inklusiv de tilvalg, andre bureauer beholder selv.
-          </p>
-        </motion.div>
-
-        {/* Tab switcher */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex justify-center gap-2 mb-10"
-        >
-          {[
-            { key: 'revenue' as Tab, icon: TrendingUp, label: '+20% merindtjening' },
-            { key: 'tax' as Tab, icon: Calculator, label: 'Skatteberegner' },
-          ].map(({ key, icon: Icon, label }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
-                tab === key
-                  ? 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80 border border-border'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {label}
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-[520px] bg-primary border-white/10 text-white p-0 gap-0 rounded-2xl overflow-hidden">
+        <div className="p-6 md:p-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <span className="text-accent/50 font-body text-[9px] font-semibold tracking-[0.3em] uppercase block mb-1">
+                Indtjeningsberegner
+              </span>
+              <h3 className="font-display text-lg font-semibold text-white">
+                Se dit potentiale
+              </h3>
+            </div>
+            <button onClick={onClose} className="text-white/40 hover:text-white/70 transition-colors">
+              <X className="w-5 h-5" />
             </button>
-          ))}
-        </motion.div>
+          </div>
 
-        {/* Tab content */}
-        <AnimatePresence mode="wait">
-          {tab === 'revenue' ? (
-            <motion.div
-              key="revenue"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.4 }}
-              className="max-w-3xl mx-auto"
-            >
-              {/* Revenue cards as a compact 2x2 grid */}
-              <div className="grid grid-cols-2 gap-3 md:gap-4 mb-8">
-                {categories.map((cat, i) => {
-                  const Icon = cat.icon;
-                  return (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.4, delay: i * 0.08 }}
-                      className="group rounded-2xl border border-border bg-card p-5 hover:bg-primary/10 hover:border-primary/20 transition-all duration-400"
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-9 h-9 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
-                          <Icon className="w-4 h-4 text-primary/70 group-hover:text-primary transition-colors" />
-                        </div>
-                      <span className="font-display text-xl font-bold text-primary/40 group-hover:text-primary transition-colors">
-                          +{cat.share}%
-                        </span>
-                      </div>
-                      <h3 className="font-display text-sm font-bold text-foreground mb-1">{cat.title}</h3>
-                      <div className="flex items-center gap-1.5">
-                        <CheckCircle2 className="w-3 h-3 text-primary/50" />
-                        <span className="text-xs text-muted-foreground">{cat.highlight}</span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+          {/* Slider */}
+          <div className="mb-6">
+            <div className="flex justify-between items-end mb-3">
+              <span className="text-white/50 text-sm">Forventet lejeindtægt</span>
+              <span className="font-display text-xl font-bold text-accent">{fmt(income)} kr.</span>
+            </div>
+            <Slider
+              value={[income]}
+              onValueChange={(v) => setIncome(v[0])}
+              min={20000}
+              max={300000}
+              step={5000}
+              className="my-4"
+            />
+            <div className="flex justify-between text-[11px] text-white/30">
+              <span>20.000 kr.</span>
+              <span>300.000 kr.</span>
+            </div>
+          </div>
+
+          {/* Breakdown */}
+          <div className="space-y-0 mb-6">
+            {[
+              { label: 'Lejeindtægt', value: `${fmt(income)} kr.`, accent: false },
+              { label: 'Tilvalg & forbrug (+20%)', value: `+${fmt(extras)} kr.`, accent: true },
+              { label: 'Bruttoindtægt i alt', value: `${fmt(totalGross)} kr.`, accent: false, bold: true },
+            ].map((row, i) => (
+              <div key={i} className={`flex justify-between items-center py-3 border-b border-white/[0.06] ${row.bold ? 'mt-1' : ''}`}>
+                <span className={`text-sm ${row.bold ? 'text-white font-medium' : 'text-white/60'}`}>{row.label}</span>
+                <span className={`text-sm font-semibold ${row.accent ? 'text-accent' : row.bold ? 'text-white' : 'text-white/80'}`}>{row.value}</span>
               </div>
+            ))}
+          </div>
 
-              <p className="text-center text-muted-foreground text-sm mb-5">
-                Hos de fleste bureauer forsvinder disse indtægter. Hos os tilfalder de <strong className="text-foreground">dig</strong>.
+          {/* Deductions */}
+          <div className="bg-white/[0.04] rounded-xl p-4 mb-6">
+            {[
+              { label: 'Kommission (15%)', value: `−${fmt(Math.round(totalGross * 0.15))} kr.` },
+              { label: 'Estimeret skat', value: `−${fmt(result.tax)} kr.` },
+            ].map((row, i) => (
+              <div key={i} className="flex justify-between items-center py-2">
+                <span className="text-white/45 text-sm">{row.label}</span>
+                <span className="text-white/60 text-sm">{row.value}</span>
+              </div>
+            ))}
+            <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-white/[0.06]">
+              <CheckCircle2 className="w-3 h-3 text-accent/60" />
+              <span className="text-accent/60 text-[11px]">Inkl. skattefrit bundfradrag på 50.200 kr.</span>
+            </div>
+          </div>
+
+          {/* Result */}
+          <div className="text-center">
+            <span className="text-white/40 text-[10px] uppercase tracking-[0.2em] block mb-1">Du beholder estimeret</span>
+            <div className="font-display text-3xl md:text-4xl font-bold text-accent">
+              {fmt(result.afterTax - commission + extras * 0.7)} kr.
+            </div>
+            <span className="text-white/35 text-xs">pr. år efter skat og kommission</span>
+          </div>
+        </div>
+
+        {/* Footer CTA */}
+        <div className="border-t border-white/[0.06] p-4 text-center">
+          <Link
+            to="/beregn-lejeindtaegt"
+            className="inline-flex items-center gap-2 text-accent/70 text-[13px] font-medium hover:text-accent transition-colors group"
+          >
+            Se fuld beregning
+            <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Main Section ── */
+export function EarningsSection() {
+  const { ref, isInView } = useScrollReveal();
+  const [calcOpen, setCalcOpen] = useState(false);
+
+  return (
+    <>
+      <section ref={ref} className="py-24 md:py-32 bg-primary overflow-hidden">
+        <div className="container mx-auto px-5 md:px-10 max-w-[1140px]">
+          {/* Editorial hero — image + text */}
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center mb-20 md:mb-28">
+            {/* Image */}
+            <motion.div
+              initial={{ opacity: 0, scale: 1.03 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 1.1, ease: 'easeOut' }}
+              className="overflow-hidden rounded-2xl lg:rounded-3xl"
+            >
+              <img
+                src={earningsImg}
+                alt="Morgenmad på sommerhusterrasse"
+                className="w-full aspect-[4/3] object-cover"
+              />
+            </motion.div>
+
+            {/* Text */}
+            <motion.div {...fade(isInView, 0.15)} className="max-w-[460px]">
+              <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.35em] uppercase block mb-5">
+                Din indtjening
+              </span>
+              <h2 className="font-display text-[1.7rem] md:text-[2.3rem] lg:text-[2.6rem] font-semibold text-white leading-[1.08] tracking-[-0.02em] mb-5">
+                Mere end bare
+                <span className="block text-accent italic font-normal mt-1">lejeindtægt</span>
+              </h2>
+              <p className="text-white/55 text-[15px] leading-[1.8] mb-7">
+                Hos SommerVibes tjener du ikke kun på overnatninger. Tilvalg, forbrug og serviceydelser tilfalder dig som ejer — og med skattefradraget på 50.200 kr. beholder du endnu mere.
               </p>
-              <div className="text-center">
-                <Link to="/kom-i-gang">
-                  <Button variant="gold" size="lg" className="gap-2 group rounded-full">
-                    Beregn din indtægt
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
+              <button
+                onClick={() => setCalcOpen(true)}
+                className="btn-gold inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-sm group"
+              >
+                Beregn din indtjening
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </button>
             </motion.div>
-          ) : (
-            <motion.div
-              key="tax"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.4 }}
-              className="max-w-xl mx-auto"
-            >
-              <div className="bg-card border border-border rounded-3xl p-6 md:p-8">
-                {/* Slider */}
-                <div className="mb-6">
-                  <div className="flex justify-between items-end mb-3">
-                    <span className="text-muted-foreground text-sm">Brutto lejeindtægt</span>
-                    <span className="font-display text-2xl font-bold text-primary">{fmt(income)} kr.</span>
-                  </div>
-                  <Slider
-                    value={[income]}
-                    onValueChange={(v) => setIncome(v[0])}
-                    min={20000}
-                    max={300000}
-                    step={5000}
-                    className="my-4"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground/70">
-                    <span>20.000 kr.</span>
-                    <span>300.000 kr.</span>
-                  </div>
-                </div>
+          </div>
 
-                {/* Breakdown */}
-                <div className="space-y-3 mb-6">
-                  {[
-                    { label: 'Kommission (15%)', value: `-${fmt(commission)} kr.`, muted: true },
-                    { label: 'Skattefrit bundfradrag', value: `${fmt(result.taxFree)} kr.`, muted: false },
-                    { label: 'Skat (gns. ~34%)', value: `-${fmt(result.tax)} kr.`, muted: true },
-                  ].map((row, i) => (
-                    <div key={i} className="flex justify-between items-center py-2.5 border-b border-border">
-                      <span className={`text-sm ${row.muted ? 'text-muted-foreground' : 'text-foreground'}`}>{row.label}</span>
-                      <span className={`font-semibold ${row.muted ? 'text-muted-foreground' : 'text-primary'}`}>{row.value}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Result */}
-                  <div className="bg-primary/10 rounded-2xl p-5 text-center border border-primary/20">
-                    <div className="text-muted-foreground text-xs mb-1 uppercase tracking-wider">Du beholder ca.</div>
-                  <div className="font-display text-3xl md:text-4xl font-bold text-primary">
-                    {fmt(result.afterTax - commission)} kr.
+          {/* Value props — 4 editorial blocks */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-10">
+            {valueProps.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <motion.div key={i} {...fade(isInView, 0.08 * i)} className="flex gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                    <Icon className="w-5 h-5 text-accent/70" strokeWidth={1.5} />
                   </div>
-                  <div className="text-muted-foreground/70 text-xs mt-1">efter skat og kommission</div>
-                </div>
-              </div>
+                  <div>
+                    <h4 className="font-display text-[15px] font-semibold text-white/85 mb-1.5">{item.title}</h4>
+                    <p className="text-white/40 text-[13px] leading-[1.65]">{item.desc}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-              <div className="text-center mt-6">
-                <Link to="/beregn-lejeindtaegt">
-                  <Button variant="link" className="text-primary gap-2 p-0 text-sm font-medium group">
-                    Se fuld beregning
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </section>
+      <CalculatorDialog open={calcOpen} onClose={() => setCalcOpen(false)} />
+    </>
   );
 }
