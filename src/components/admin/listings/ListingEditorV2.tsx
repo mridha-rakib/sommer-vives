@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { ListingCalendarPricing } from './ListingCalendarPricing';
 import { ChannelDataSection } from './ChannelDataSection';
+import { ListingActorsTab } from './ListingActorsTab';
+import { ListingStaffTab } from './ListingStaffTab';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +18,8 @@ import {
   Star, AlertTriangle, Info, ClipboardCheck, Rocket, Sparkles, Zap,
   CircleDot, Circle, Check, Languages, Wand2, FileText,
   Link2, RefreshCw, WifiOff, Wifi, Clock, AlertCircle,
-  Eye, Settings, Tag, Puzzle, FileCheck, StickyNote, Calendar as CalendarIcon, ShoppingBag
+  Eye, Settings, Tag, Puzzle, FileCheck, StickyNote, Calendar as CalendarIcon, ShoppingBag,
+  Users, Briefcase
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -183,6 +186,8 @@ const TOP_TABS = [
   { value: 'kalender', label: 'Kalender', icon: CalendarIcon },
   { value: 'priser', label: 'Priser', icon: DollarSign },
   { value: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
+  { value: 'aktoerer', label: 'Aktører', icon: Users },
+  { value: 'medarbejdere', label: 'Medarbejdere', icon: Briefcase },
   { value: 'dokumenter', label: 'Dokumenter', icon: FileText },
   { value: 'opgaver', label: 'Opgaver', icon: ClipboardCheck },
   { value: 'noter', label: 'Noter', icon: StickyNote },
@@ -896,6 +901,16 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
             <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Info className="h-3.5 w-3.5" /> Sæsonpriser og rabatter styres under kalenderfanen.</p>
           </div>
         </div>
+      )}
+
+      {/* ═══════════════════════ AKTØRER TAB ═══════════════════════ */}
+      {topTab === 'aktoerer' && listing && (
+        <ListingActorsTab listingId={listing.id} ownerId={listing.owner_id} />
+      )}
+
+      {/* ═══════════════════════ MEDARBEJDERE TAB ═══════════════════════ */}
+      {topTab === 'medarbejdere' && listing && (
+        <ListingStaffTab listingId={listing.id} />
       )}
 
       {/* ═══════════════════════ PLACEHOLDER TABS ═══════════════════════ */}
