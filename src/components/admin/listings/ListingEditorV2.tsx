@@ -496,60 +496,32 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         </div>
       </div>
 
-      {/* ── ACTION TOOLBAR ── */}
-      <div className="bg-card border border-border rounded-xl p-3 space-y-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-semibold text-muted-foreground mr-1 hidden sm:inline">Handlinger:</span>
-          <Button variant="outline" size="sm" onClick={handleCheck} className="gap-1.5 text-xs h-8">
-            <ClipboardCheck className="h-3.5 w-3.5" /> Tjek listing
-          </Button>
-          <Button variant="outline" size="sm" onClick={handlePrepare} className="gap-1.5 text-xs h-8">
-            <Rocket className="h-3.5 w-3.5" /> Klargør listing
-          </Button>
-          <div className="hidden sm:block w-px h-5 bg-border mx-1" />
-          <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('airbnb')} className="gap-1.5 text-xs h-8 text-rose-600 hover:bg-rose-50 hover:text-rose-700">
-            <Globe className="h-3.5 w-3.5" /> Forbered Airbnb
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('booking')} className="gap-1.5 text-xs h-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700">
-            <Globe className="h-3.5 w-3.5" /> Forbered Booking.com
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => handlePrepareChannel('vrbo')} className="gap-1.5 text-xs h-8 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700">
-            <Globe className="h-3.5 w-3.5" /> Forbered Vrbo
-          </Button>
-        </div>
-
-        {/* AI Content Tools Row */}
-        <div className="flex items-center gap-2 flex-wrap border-t border-border/50 pt-2">
-          <span className="text-xs font-semibold text-primary mr-1 hidden sm:inline flex items-center gap-1">
-            <Sparkles className="h-3 w-3" /> AI-værktøjer:
-          </span>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('improve_title')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-primary/20 text-primary hover:bg-primary/5">
-            <Wand2 className="h-3 w-3" /> Forbedr titel
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('improve_description')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-primary/20 text-primary hover:bg-primary/5">
-            <FileText className="h-3 w-3" /> Forbedr beskrivelse
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('generate_highlights')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-primary/20 text-primary hover:bg-primary/5">
-            <Star className="h-3 w-3" /> Generér highlights
-          </Button>
-          <div className="hidden sm:block w-px h-4 bg-border mx-0.5" />
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('channel_airbnb')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-rose-200 text-rose-600 hover:bg-rose-50">
-            <Sparkles className="h-3 w-3" /> Lav Airbnb-version
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('channel_booking')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-blue-200 text-blue-600 hover:bg-blue-50">
-            <Sparkles className="h-3 w-3" /> Lav Booking-version
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('channel_vrbo')} disabled={aiImproving} className="gap-1.5 text-xs h-7 border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-            <Sparkles className="h-3 w-3" /> Lav Vrbo-version
-          </Button>
-          <div className="hidden sm:block w-px h-4 bg-border mx-0.5" />
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('translate_en')} disabled={aiImproving} className="gap-1.5 text-xs h-7">
-            <Languages className="h-3 w-3" /> Engelsk
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => handleAiAction('translate_de')} disabled={aiImproving} className="gap-1.5 text-xs h-7">
-            <Languages className="h-3 w-3" /> Tysk
-          </Button>
-        </div>
+      {/* ── COMPACT AI TOOLBAR ── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button variant="ghost" size="sm" onClick={handleCheck} className="gap-1.5 text-xs h-7 text-muted-foreground hover:text-foreground">
+          <ClipboardCheck className="h-3 w-3" /> Tjek listing
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handlePrepare} className="gap-1.5 text-xs h-7 text-muted-foreground hover:text-foreground">
+          <Rocket className="h-3 w-3" /> Klargør
+        </Button>
+        <div className="w-px h-4 bg-border" />
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('improve_title')} disabled={aiImproving} className="gap-1 text-xs h-7 text-primary/70 hover:text-primary">
+          <Wand2 className="h-3 w-3" /> Titel
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('improve_description')} disabled={aiImproving} className="gap-1 text-xs h-7 text-primary/70 hover:text-primary">
+          <FileText className="h-3 w-3" /> Beskrivelse
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('generate_highlights')} disabled={aiImproving} className="gap-1 text-xs h-7 text-primary/70 hover:text-primary">
+          <Star className="h-3 w-3" /> Highlights
+        </Button>
+        <div className="w-px h-4 bg-border" />
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('translate_en')} disabled={aiImproving} className="gap-1 text-xs h-7 text-muted-foreground">
+          <Languages className="h-3 w-3" /> EN
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => handleAiAction('translate_de')} disabled={aiImproving} className="gap-1 text-xs h-7 text-muted-foreground">
+          <Languages className="h-3 w-3" /> DE
+        </Button>
+        <span className="ml-auto text-[10px] text-muted-foreground/50">Auto-gem</span>
       </div>
 
       {/* ── TJEK LISTING DIALOG ── */}
