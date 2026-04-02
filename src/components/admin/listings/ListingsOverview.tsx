@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus, Search, Pencil, Home, MapPin, Users, Clock, Wifi, Globe, AlertCircle } from 'lucide-react';
+import { Loader2, Plus, Search, Pencil, Home, MapPin, Users, Clock, Wifi, Globe, AlertCircle, LayoutList, Columns3 } from 'lucide-react';
+import { ListingsPipelineBoard } from './ListingsPipelineBoard';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 
@@ -69,6 +70,7 @@ export function ListingsOverview({ onEdit, onCreate }: Props) {
   const [listings, setListings] = useState<ListingSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'table' | 'board'>('table');
 
   useEffect(() => {
     const load = async () => {
@@ -106,9 +108,29 @@ export function ListingsOverview({ onEdit, onCreate }: Props) {
           <h1 className="font-display text-2xl font-bold text-foreground">Listings</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{listings.length} sommerhuse registreret</p>
         </div>
-        <Button onClick={onCreate} className="gap-2">
-          <Plus className="h-4 w-4" /> Opret ny listing
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-muted rounded-lg p-0.5">
+            <Button
+              variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="h-8 px-3 gap-1.5"
+              onClick={() => setViewMode('table')}
+            >
+              <LayoutList className="h-3.5 w-3.5" /> Liste
+            </Button>
+            <Button
+              variant={viewMode === 'board' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="h-8 px-3 gap-1.5"
+              onClick={() => setViewMode('board')}
+            >
+              <Columns3 className="h-3.5 w-3.5" /> Pipeline
+            </Button>
+          </div>
+          <Button onClick={onCreate} className="gap-2">
+            <Plus className="h-4 w-4" /> Opret ny listing
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -137,8 +159,10 @@ export function ListingsOverview({ onEdit, onCreate }: Props) {
         ))}
       </div>
 
-      {/* Listings table */}
-      {filtered.length === 0 ? (
+      {/* Board or Table view */}
+      {viewMode === 'board' ? (
+        <ListingsPipelineBoard listings={filtered} onEdit={onEdit} />
+      ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
           <Home className="h-10 w-10 mx-auto mb-3 opacity-30" />
           <p>Ingen listings fundet</p>
