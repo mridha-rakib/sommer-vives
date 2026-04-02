@@ -43,7 +43,7 @@ function CalculatorDialog({ open, onClose }: { open: boolean; onClose: () => voi
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-[520px] bg-primary border-white/10 text-white p-0 gap-0 rounded-2xl overflow-hidden">
+      <DialogContent className="sm:max-w-[520px] bg-background border-white/10 text-white p-0 gap-0 rounded-2xl overflow-hidden">
         <div className="p-6 md:p-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
