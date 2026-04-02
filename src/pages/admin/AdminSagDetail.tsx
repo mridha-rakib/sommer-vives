@@ -30,6 +30,7 @@ import { Beds24MappingSection } from '@/components/admin/Beds24MappingSection';
 import { Beds24ReadinessEngine } from '@/components/admin/Beds24ReadinessEngine';
 import { Beds24PublishDialog } from '@/components/admin/Beds24PublishDialog';
 import { Beds24SyncLog } from '@/components/admin/Beds24SyncLog';
+import { PublishFlowModal } from '@/components/admin/PublishFlowModal';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
