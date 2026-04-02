@@ -55,7 +55,7 @@ import AdminOpgaver from "./pages/admin/AdminOpgaver";
 import AdminLeads from "./pages/admin/AdminLeads";
 import AdminOwners from "./pages/admin/AdminOwners";
 import AdminCrmGaester from "./pages/admin/AdminCrmGaester";
-import AdminCrmArkiv from "./pages/admin/AdminCrmArkiv";
+
 import AdminModtagelse from "./pages/admin/AdminModtagelse";
 import AdminSager from "./pages/admin/AdminSager";
 import AdminSagDetail from "./pages/admin/AdminSagDetail";
