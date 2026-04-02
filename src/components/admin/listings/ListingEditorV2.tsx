@@ -984,10 +984,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               <Plus className="h-3.5 w-3.5" /> Tilføj billede
             </Button>
           </Section>
-        </TabsContent>
 
-        {/* ─── 4. FACILITETER ─── */}
-        <TabsContent value="faciliteter" className="mt-4 space-y-5">
+          {/* ── Faciliteter ── */}
           <Section title="Faciliteter & Udstyr" description="Vælg fra listen eller tilføj egne">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {AMENITIES_PRESETS.map(a => {
