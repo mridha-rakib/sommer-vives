@@ -2952,6 +2952,66 @@ export type Database = {
           },
         ]
       }
+      system_tasks: {
+        Row: {
+          assigned_name: string | null
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          linked_id: string | null
+          linked_name: string | null
+          linked_type: Database["public"]["Enums"]["task_linked_type"] | null
+          notes: string | null
+          priority: Database["public"]["Enums"]["task_priority"]
+          source: Database["public"]["Enums"]["task_source"]
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_name?: string | null
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_name?: string | null
+          linked_type?: Database["public"]["Enums"]["task_linked_type"] | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          source?: Database["public"]["Enums"]["task_source"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_name?: string | null
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_name?: string | null
+          linked_type?: Database["public"]["Enums"]["task_linked_type"] | null
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          source?: Database["public"]["Enums"]["task_source"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -3076,6 +3136,17 @@ export type Database = {
         | "ready_to_publish"
         | "live"
       source_channel: "direct" | "airbnb" | "booking_com" | "vrbo" | "other"
+      task_linked_type:
+        | "lead"
+        | "owner"
+        | "guest"
+        | "listing"
+        | "document"
+        | "meeting"
+        | "booking"
+      task_priority: "low" | "normal" | "high" | "urgent"
+      task_source: "manual" | "system"
+      task_status: "not_started" | "in_progress" | "waiting" | "done"
       user_role:
         | "owner"
         | "admin"
@@ -3265,6 +3336,18 @@ export const Constants = {
         "live",
       ],
       source_channel: ["direct", "airbnb", "booking_com", "vrbo", "other"],
+      task_linked_type: [
+        "lead",
+        "owner",
+        "guest",
+        "listing",
+        "document",
+        "meeting",
+        "booking",
+      ],
+      task_priority: ["low", "normal", "high", "urgent"],
+      task_source: ["manual", "system"],
+      task_status: ["not_started", "in_progress", "waiting", "done"],
       user_role: [
         "owner",
         "admin",
