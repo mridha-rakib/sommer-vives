@@ -159,8 +159,10 @@ export function ListingsOverview({ onEdit, onCreate }: Props) {
         ))}
       </div>
 
-      {/* Listings table */}
-      {filtered.length === 0 ? (
+      {/* Board or Table view */}
+      {viewMode === 'board' ? (
+        <ListingsPipelineBoard listings={filtered} onEdit={onEdit} />
+      ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
           <Home className="h-10 w-10 mx-auto mb-3 opacity-30" />
           <p>Ingen listings fundet</p>
