@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, CalendarDays, DoorOpen, Info, ShoppingBag, MessageCircle, 
