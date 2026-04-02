@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, LogOut, Menu, X, Calendar,
-  MessageSquare, ListChecks, Target, Users, Inbox, FolderOpen,
-  FileText, Wallet, ChevronDown, ChevronRight, Search,
-  UserCheck, User, Archive, CalendarDays, ShoppingBag, Radio, ExternalLink
+  MessageSquare, ListChecks, Target, Users, FolderOpen,
+  FileText, Wallet, ChevronDown, Search,
+  UserCheck, User, Archive, ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
