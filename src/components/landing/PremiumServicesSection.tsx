@@ -35,7 +35,7 @@ export function PremiumServicesSection() {
   const { ref: ref2, isInView: isInView2 } = useScrollReveal();
 
   return (
-    <section className="py-20 md:py-28 bg-primary">
+    <section className="py-20 md:py-28 bg-background">
       <div className="container mx-auto px-5 md:px-10 max-w-[1100px]">
 
         {/* ── Hero: image with text overlay ── */}
