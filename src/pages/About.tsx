@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useRef, useState } from 'react';
 import emilHeadshot from '@/assets/emil-headshot.jpg';
-import emilHeadshot from '@/assets/emil-headshot.jpg';
 import kvieSoeDrone from '@/assets/kvie-soe-drone.jpg';
 import {
   Accordion,
