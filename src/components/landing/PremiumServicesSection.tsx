@@ -414,7 +414,7 @@ const services: Service[] = [
     short: 'Et enkelt setup med struktur, overblik og effektiv drift omkring din bolig.',
     long: 'Vi arbejder moderne og effektivt med fokus på synlighed, struktur og høj udnyttelse af din bolig. Det betyder, at samarbejdet skal være let at forstå, let at følge med i og let at skabe resultater med. SommerVibes er bygget til husejere, der ønsker høj service uden tung administration eller unødigt bøvl.',
     expandLabel: 'Mere overblik',
-    visual: AdminVisual,
+    image: dashboardImg,
   },
   // 13. Tryghedsgaranti
   {
