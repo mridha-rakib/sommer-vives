@@ -179,19 +179,22 @@ export function HeroSection() {
         className="relative z-10 bg-secondary/80 backdrop-blur-sm border-t border-foreground/10"
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center gap-5 sm:gap-8 md:gap-12 py-3.5 md:py-4 flex-wrap">
+          <div className="flex items-center justify-center gap-6 sm:gap-8 md:gap-12 py-3.5 md:py-4 flex-wrap">
             {[
-              { emoji: '⭐', text: 'Fremragende på Trustpilot' },
-              { emoji: '🇩🇰', text: 'Dansk virksomhed' },
-              { emoji: '🤝', text: 'Ingen binding' },
-              { emoji: '🛡️', text: 'Tryghedsgaranti inkl.' },
-              { emoji: '💬', text: 'Dansk kundeservice' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-foreground/70">
-                <span className="text-sm">{item.emoji}</span>
-                <span className="text-[11px] sm:text-[12px] font-medium font-body">{item.text}</span>
-              </div>
-            ))}
+              { icon: Star, text: 'Fremragende på Trustpilot' },
+              { icon: Flag, text: 'Dansk virksomhed' },
+              { icon: Handshake, text: 'Ingen binding' },
+              { icon: ShieldCheck, text: 'Tryghedsgaranti inkl.' },
+              { icon: MessageCircle, text: 'Dansk kundeservice' },
+            ].map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <div key={i} className="flex items-center gap-2 text-foreground/70">
+                  <Icon className="w-4 h-4 text-accent/70" strokeWidth={1.5} />
+                  <span className="text-[11px] sm:text-[12px] font-medium font-body">{item.text}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </motion.div>
