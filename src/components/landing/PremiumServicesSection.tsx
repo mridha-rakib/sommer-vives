@@ -34,6 +34,14 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
 
+// Service card images
+import boostImg from '@/assets/services/boost.jpg';
+import kundedialogImg from '@/assets/services/kundedialog.png';
+import cleaningImg from '@/assets/services/cleaning.jpg';
+import qrSignImg from '@/assets/services/qr-sign.jpg';
+import portalsImg from '@/assets/services/portals.jpg';
+import commissionImg from '@/assets/services/commission.jpg';
+
 interface Service {
   icon: typeof QrCode;
   title: string;
@@ -43,6 +51,7 @@ interface Service {
   signature?: boolean;
   badge?: string;
   visual?: () => ReactNode;
+  image?: string;
 }
 
 /* ═══════════════════════════════════════════
@@ -285,7 +294,7 @@ const services: Service[] = [
     expandLabel: 'Hvad du får med',
     signature: true,
     badge: 'Særligt hos SommerVibes',
-    visual: BoostVisual,
+    image: boostImg,
   },
   // 2. Kundedialog 24/7
   {
@@ -296,7 +305,7 @@ const services: Service[] = [
     expandLabel: 'Mindre arbejde for dig',
     signature: true,
     badge: 'Mindre arbejde for dig',
-    visual: DialogVisual,
+    image: kundedialogImg,
   },
   // 3. Slutrengøring
   {
@@ -307,7 +316,7 @@ const services: Service[] = [
     expandLabel: 'Det betyder for dig',
     signature: true,
     badge: 'Ekstra tryghed',
-    visual: CleaningVisual,
+    image: cleaningImg,
   },
   // 4. Eksponering på alle store portaler
   {
@@ -318,7 +327,7 @@ const services: Service[] = [
     expandLabel: 'Hvad du får med',
     signature: true,
     badge: 'Maksimal rækkevidde',
-    visual: PortalsVisual,
+    image: portalsImg,
   },
   // 5. Til-Leje-skilt med QR-kode
   {
@@ -329,7 +338,7 @@ const services: Service[] = [
     expandLabel: 'Derfor gør det en forskel',
     signature: true,
     badge: 'Mere synlighed',
-    visual: QrSignVisual,
+    image: qrSignImg,
   },
   // 6. Kun 15% kommission
   {
@@ -340,7 +349,7 @@ const services: Service[] = [
     expandLabel: 'Hvad det betyder for dig',
     signature: true,
     badge: 'Mere tilbage til dig',
-    visual: CommissionVisual,
+    image: commissionImg,
   },
   // 7. Unikke muligheder for merindtjening
   {
@@ -451,6 +460,12 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           <X className="w-4 h-4 text-foreground" strokeWidth={1.5} />
         </button>
 
+        {service.image && (
+          <div className="rounded-xl overflow-hidden mb-5 -mx-2">
+            <img src={service.image} alt={service.title} className="w-full h-40 object-cover rounded-xl" />
+          </div>
+        )}
+
         {service.badge && (
           <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase text-primary/70 mb-4">
             <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
@@ -458,13 +473,15 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           </span>
         )}
 
-        <div className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center mb-5 ${
-          service.signature
-            ? 'bg-primary/12 border border-primary/20'
-            : 'bg-secondary border border-border/50'
-        }`}>
-          <service.icon className="w-5 h-5 text-primary" strokeWidth={1.4} />
-        </div>
+        {!service.image && (
+          <div className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center mb-5 ${
+            service.signature
+              ? 'bg-primary/12 border border-primary/20'
+              : 'bg-secondary border border-border/50'
+          }`}>
+            <service.icon className="w-5 h-5 text-primary" strokeWidth={1.4} />
+          </div>
+        )}
 
         <h3 className="font-display text-xl font-bold text-foreground mb-2 leading-snug">
           {service.title}
@@ -476,7 +493,7 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           </p>
         )}
 
-        {service.visual && (
+        {service.visual && !service.image && (
           <div className="mb-5">{service.visual()}</div>
         )}
 
@@ -512,35 +529,56 @@ function ServiceCard({
           : 'bg-card border-border/50'
       } hover:shadow-[0_8px_32px_-8px_hsl(var(--ring)/0.1)] hover:border-primary/20`}
     >
-      {service.signature && (
+      {/* Hero image for signature cards */}
+      {service.image && (
+        <div className="relative h-44 overflow-hidden">
+          <img
+            src={service.image}
+            alt={service.title}
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+          {service.badge && (
+            <span className="absolute top-3 left-4 inline-flex items-center gap-1.5 text-[9px] font-semibold tracking-[0.2em] uppercase text-primary bg-card/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-primary/15">
+              <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
+              {service.badge}
+            </span>
+          )}
+        </div>
+      )}
+
+      {service.signature && !service.image && (
         <div className="h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       )}
 
       <div className="p-7 md:p-8 flex flex-col gap-3.5 flex-1">
-        {/* Badge */}
-        {service.badge && (
+        {/* Badge (only for non-image cards) */}
+        {service.badge && !service.image && (
           <span className="inline-flex items-center gap-1.5 text-[9.5px] font-semibold tracking-[0.22em] uppercase text-primary/60">
             <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
             {service.badge}
           </span>
         )}
 
-        {/* Icon */}
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-          service.signature
-            ? 'bg-primary/10 border border-primary/15 group-hover:bg-primary/15 group-hover:shadow-[0_0_16px_-4px_hsl(var(--ring)/0.1)]'
-            : 'bg-secondary border border-border/30 group-hover:bg-muted group-hover:border-border/60'
-        }`}>
-          <Icon className="w-[19px] h-[19px] text-primary" strokeWidth={1.3} />
-        </div>
+        {/* Icon (only for non-image cards) */}
+        {!service.image && (
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+            service.signature
+              ? 'bg-primary/10 border border-primary/15 group-hover:bg-primary/15 group-hover:shadow-[0_0_16px_-4px_hsl(var(--ring)/0.1)]'
+              : 'bg-secondary border border-border/30 group-hover:bg-muted group-hover:border-border/60'
+          }`}>
+            <Icon className="w-[19px] h-[19px] text-primary" strokeWidth={1.3} />
+          </div>
+        )}
 
         {/* Title */}
         <h3 className="font-display text-[1.1rem] font-semibold text-foreground leading-snug">
           {service.title}
         </h3>
 
-        {/* Visual storytelling */}
-        {service.visual && (
+        {/* Visual storytelling (only for non-image cards) */}
+        {service.visual && !service.image && (
           <div className="py-0.5">{service.visual()}</div>
         )}
 
