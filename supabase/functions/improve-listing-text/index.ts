@@ -11,11 +11,31 @@ serve(async (req) => {
   }
 
   try {
-    const { listing } = await req.json();
+    const { listing, channel, prompt: customPrompt } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `Du er en ekspert i at skrive premium boligannoncetekster til dansk sommerhusudlejning.
+    const isAirbnb = channel === 'airbnb';
+
+    const systemPrompt = isAirbnb
+      ? `Du er en ekspert i at skrive Airbnb-annoncer for dansk sommerhusudlejning.
+Skriv tekster der er:
+- Optimeret til Airbnb-platformen (kort, punchy titel max 50 tegn)
+- Varme, indbydende og oplevelsesfokuserede
+- Konverteringsorienterede med stærk "book nu"-appel
+- På dansk, premium-segment
+
+Svar i JSON:
+{
+  "title": "Airbnb-titel (max 50 tegn)",
+  "tagline": "kort tagline",
+  "description": "kort Airbnb-beskrivelse (2-3 sætninger)",
+  "long_description": "detaljeret Airbnb-beskrivelse (5-8 sætninger, brug afsnit)",
+  "highlights": ["highlight 1", "highlight 2", "highlight 3", "highlight 4", "highlight 5"]
+}
+
+Svar KUN med valid JSON, ingen markdown.`
+      : `Du er en ekspert i at skrive premium boligannoncetekster til dansk sommerhusudlejning.
 Du modtager data om en bolig og skal forbedre teksten så den er:
 - Professionel og konverteringsorienteret
 - Lokker med oplevelser, ikke bare facts
@@ -33,7 +53,7 @@ Svar i JSON med denne struktur:
 
 Svar KUN med valid JSON, ingen markdown.`;
 
-    const userPrompt = `Forbedr teksten for denne listing:
+    const userPrompt = `${customPrompt ? customPrompt + '\n\n' : ''}${isAirbnb ? 'Optimer denne listing til Airbnb' : 'Forbedr teksten for denne listing'}:
 
 Navn: ${listing.name}
 Nuværende titel: ${listing.description || 'Ingen'}
