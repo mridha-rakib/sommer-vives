@@ -948,117 +948,283 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           </Section>
         </TabsContent>
 
-        {/* ─── 7. KANALER ─── */}
+        {/* ─── 7. DISTRIBUTION & KANALER ─── */}
         <TabsContent value="kanaler" className="mt-4 space-y-5">
-          {/* AIRBNB PREVIEW */}
-          <Section title="Airbnb Preview" description="Se hvordan din listing vil se ud på Airbnb">
-            <div className="rounded-xl border border-border overflow-hidden bg-muted/30">
-              <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-0">
-                <div className="relative">
-                  {(listing.hero_image || listing.images?.[0]) ? (
-                    <img src={listing.hero_image || listing.images![0]} alt="Preview" className="w-full h-48 md:h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-48 md:h-full bg-muted flex items-center justify-center">
-                      <ImageIcon className="h-10 w-10 text-muted-foreground/20" />
-                    </div>
-                  )}
-                  {(listing.images?.length || 0) > 1 && (
-                    <div className="absolute bottom-2 right-2 flex gap-1">
-                      {listing.images!.slice(1, 4).map((img, i) => (
-                        <div key={i} className="w-10 h-10 rounded border-2 border-background overflow-hidden">
-                          <img src={img} alt="" className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                      {listing.images!.length > 4 && (
-                        <div className="w-10 h-10 rounded border-2 border-background bg-background/80 flex items-center justify-center text-[10px] font-bold text-muted-foreground">
-                          +{listing.images!.length - 4}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 space-y-3">
-                  <div>
-                    <h4 className="font-display text-base font-semibold text-foreground">
-                      {listing.channel_airbnb_title || listing.description || listing.name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground mt-0.5">{listing.address || listing.region || 'Ingen adresse'}</p>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>{listing.max_guests} gæster</span>
-                    <span>{listing.bedrooms || 0} soveværelser</span>
-                    <span>{listing.bathrooms || 0} bad</span>
-                    {listing.sqm && <span>{listing.sqm} m²</span>}
-                  </div>
-                  {(listing.amenities?.length || 0) > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {listing.amenities!.slice(0, 8).map(a => (
-                        <Badge key={a} variant="outline" className="text-[10px] px-2 py-0.5">{a}</Badge>
-                      ))}
-                      {listing.amenities!.length > 8 && (
-                        <Badge variant="outline" className="text-[10px] px-2 py-0.5">+{listing.amenities!.length - 8} mere</Badge>
-                      )}
-                    </div>
-                  )}
-                  <p className="text-xs text-muted-foreground line-clamp-3">
-                    {listing.channel_airbnb_description || listing.long_description || listing.description || 'Ingen beskrivelse endnu.'}
-                  </p>
-                </div>
-              </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-display text-lg font-semibold text-foreground">Distribution & kanaler</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Klargør og publicer din listing til eksterne platforme</p>
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <Button onClick={() => handlePrepareChannel('airbnb')} disabled={airbnbPreparing} className="gap-1.5 bg-rose-600 hover:bg-rose-700 text-white">
-                {airbnbPreparing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Forbered Airbnb
-              </Button>
-              <div className="flex items-center gap-2">
-                <Switch checked={listing.channel_airbnb_ready || false} onCheckedChange={v => update('channel_airbnb_ready', v)} />
-                <span className="text-sm text-muted-foreground">Airbnb-klar</span>
-              </div>
-              {listing.channel_airbnb_ready && (
-                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20"><CheckCircle2 className="h-3 w-3 mr-1" /> Klar</Badge>
-              )}
-              {airbnbAiUsed && (
-                <Badge variant="outline" className="text-primary border-primary/30 text-xs"><Sparkles className="h-3 w-3 mr-1" /> AI-optimeret</Badge>
-              )}
-            </div>
-          </Section>
+          </div>
 
-          <Section title="Airbnb-specifikt indhold" description="Rediger det indhold der sendes til Airbnb">
-            <Field label="Airbnb-titel" hint="Max 50 tegn for bedste visning">
-              <Input value={listing.channel_airbnb_title || ''} onChange={e => update('channel_airbnb_title', e.target.value)} placeholder="Titel optimeret til Airbnb" maxLength={50} />
-              <div className="text-[10px] text-muted-foreground text-right">{(listing.channel_airbnb_title || '').length}/50</div>
-            </Field>
-            <Field label="Airbnb-beskrivelse">
-              <Textarea value={listing.channel_airbnb_description || ''} onChange={e => update('channel_airbnb_description', e.target.value)} rows={5} placeholder="Beskrivelse optimeret til Airbnb" />
-            </Field>
-          </Section>
+          {/* Channel cards grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {([
+              { key: 'airbnb' as const, label: 'Airbnb', accent: 'rose', icon: '🏠' },
+              { key: 'booking' as const, label: 'Booking.com', accent: 'blue', icon: '🅱️' },
+              { key: 'vrbo' as const, label: 'Vrbo', accent: 'indigo', icon: '🏡' },
+            ]).map(ch => {
+              const title = (listing as any)[`channel_${ch.key}_title`] as string | null;
+              const desc = (listing as any)[`channel_${ch.key}_description`] as string | null;
+              const ready = (listing as any)[`channel_${ch.key}_ready`] as boolean | null;
 
-          {/* Booking.com & Vrbo */}
-          {(['booking', 'vrbo'] as const).map(ch => {
-            const label = ch === 'booking' ? 'Booking.com' : 'Vrbo';
-            const color = ch === 'booking' ? 'text-blue-600' : 'text-indigo-500';
-            return (
-              <Section key={ch} title={label}>
-                <div className="flex items-center gap-3 mb-3">
-                  <Switch checked={(listing as any)[`channel_${ch}_ready`] || false} onCheckedChange={v => update(`channel_${ch}_ready` as any, v)} />
-                  <span className={`text-sm font-medium ${color}`}>{label} klar</span>
-                  <Button variant="ghost" size="sm" className="ml-auto text-xs h-7 gap-1" onClick={() => handlePrepareChannel(ch)}>
-                    <Rocket className="h-3 w-3" /> Auto-forbered
-                  </Button>
+              // Per-channel missing fields
+              const channelMissing: string[] = [];
+              if (!title || title.length < 5) channelMissing.push('Kanaltitel');
+              if (!desc || desc.length < 20) channelMissing.push('Kanalbeskrivelse');
+              if (!listing.hero_image) channelMissing.push('Hero-billede');
+              if ((listing.images?.length || 0) < 3) channelMissing.push('Min. 3 billeder');
+              if ((listing.amenities?.length || 0) < 3) channelMissing.push('Min. 3 faciliteter');
+              if (!listing.address) channelMissing.push('Adresse');
+              if ((listing.max_guests || 0) < 1) channelMissing.push('Gæstekapacitet');
+              if ((listing.base_price_per_night || 0) <= 0) channelMissing.push('Pris');
+
+              const channelStatus = ready
+                ? 'klar'
+                : channelMissing.length === 0
+                  ? 'klar'
+                  : (title || desc)
+                    ? 'mangler_data'
+                    : 'ikke_startet';
+
+              const statusConfig = {
+                ikke_startet: { label: 'Ikke startet', dotClass: 'bg-muted-foreground', badgeClass: 'bg-muted text-muted-foreground' },
+                mangler_data: { label: 'Mangler data', dotClass: 'bg-amber-400', badgeClass: 'bg-amber-400/10 text-amber-500 border-amber-400/20' },
+                klar: { label: 'Klar', dotClass: 'bg-emerald-500', badgeClass: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+              };
+              const st = statusConfig[channelStatus];
+
+              const accentMap = { rose: 'border-rose-500/20', blue: 'border-blue-500/20', indigo: 'border-indigo-500/20' };
+              const btnMap = { rose: 'bg-rose-600 hover:bg-rose-700', blue: 'bg-blue-600 hover:bg-blue-700', indigo: 'bg-indigo-600 hover:bg-indigo-700' };
+
+              return (
+                <div key={ch.key} className={`rounded-xl border-2 ${channelStatus === 'klar' ? 'border-emerald-500/30' : accentMap[ch.accent]} bg-card overflow-hidden flex flex-col`}>
+                  {/* Header */}
+                  <div className="p-4 pb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xl">{ch.icon}</span>
+                      <div>
+                        <h4 className="font-display text-sm font-semibold text-foreground">{ch.label}</h4>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <div className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`} />
+                          <span className="text-[10px] text-muted-foreground">{st.label}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={`text-[10px] ${st.badgeClass}`}>{st.label}</Badge>
+                  </div>
+
+                  {/* Content preview */}
+                  <div className="px-4 pb-3 space-y-2 flex-1">
+                    <div className="rounded-lg bg-muted/30 p-3 space-y-1.5">
+                      <p className="text-[11px] font-medium text-foreground truncate">
+                        {title || <span className="text-muted-foreground italic">Ingen titel endnu</span>}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground line-clamp-2">
+                        {desc || 'Ingen beskrivelse endnu'}
+                      </p>
+                    </div>
+
+                    {/* Image readiness */}
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <ImageIcon className="h-3 w-3" />
+                      <span>{listing.images?.length || 0} billeder</span>
+                      <span className="text-muted-foreground/30">·</span>
+                      <span>{listing.hero_image ? 'Hero ✓' : 'Ingen hero'}</span>
+                    </div>
+
+                    {/* Capacity */}
+                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                      <span>{listing.max_guests} gæster</span>
+                      <span>{listing.bedrooms || 0} sov.</span>
+                      <span>{(listing.amenities?.length || 0)} fac.</span>
+                    </div>
+
+                    {/* Missing fields */}
+                    {channelMissing.length > 0 && (
+                      <div className="space-y-1 pt-1">
+                        <p className="text-[10px] font-medium text-amber-500 flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" /> {channelMissing.length} mangler
+                        </p>
+                        {channelMissing.slice(0, 3).map(m => (
+                          <p key={m} className="text-[10px] text-muted-foreground pl-4">• {m}</p>
+                        ))}
+                        {channelMissing.length > 3 && (
+                          <p className="text-[10px] text-muted-foreground pl-4">+ {channelMissing.length - 3} mere...</p>
+                        )}
+                      </div>
+                    )}
+
+                    {channelMissing.length === 0 && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-emerald-500 pt-1">
+                        <CheckCircle2 className="h-3 w-3" /> Alle felter klar
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="p-3 pt-0 space-y-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handlePrepareChannel(ch.key)}
+                      disabled={ch.key === 'airbnb' && airbnbPreparing}
+                      className={`w-full gap-1.5 text-xs h-8 text-white ${btnMap[ch.accent]}`}
+                    >
+                      {ch.key === 'airbnb' && airbnbPreparing
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Sparkles className="h-3.5 w-3.5" />
+                      }
+                      Forbered {ch.label}
+                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-[10px] h-7"
+                        onClick={() => {
+                          setChannelDetailOpen(ch.key);
+                        }}
+                      >
+                        Se mangler
+                      </Button>
+                      <Button
+                        variant={ready ? 'secondary' : 'outline'}
+                        size="sm"
+                        className="flex-1 text-[10px] h-7"
+                        onClick={() => update(`channel_${ch.key}_ready` as any, !ready)}
+                      >
+                        {ready ? '✓ Markeret klar' : 'Markér som klar'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <Field label={`${label}-specifik titel`}>
-                  <Input value={(listing as any)[`channel_${ch}_title`] || ''} onChange={e => update(`channel_${ch}_title` as any, e.target.value)} placeholder={`Titel optimeret til ${label}`} />
-                </Field>
-                <Field label={`${label}-specifik beskrivelse`}>
-                  <Textarea value={(listing as any)[`channel_${ch}_description`] || ''} onChange={e => update(`channel_${ch}_description` as any, e.target.value)} rows={3} placeholder={`Beskrivelse optimeret til ${label}`} />
-                </Field>
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> Push-status: Ikke forbundet (placeholder)</p>
-                </div>
-              </Section>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {/* Channel detail dialog */}
+          <Dialog open={!!channelDetailOpen} onOpenChange={() => setChannelDetailOpen(null)}>
+            <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-primary" />
+                  {channelDetailOpen === 'airbnb' ? 'Airbnb' : channelDetailOpen === 'booking' ? 'Booking.com' : 'Vrbo'} — Detaljer
+                </DialogTitle>
+              </DialogHeader>
+              {channelDetailOpen && (() => {
+                const ch = channelDetailOpen as 'airbnb' | 'booking' | 'vrbo';
+                const title = (listing as any)[`channel_${ch}_title`] as string | null;
+                const desc = (listing as any)[`channel_${ch}_description`] as string | null;
+                const ready = (listing as any)[`channel_${ch}_ready`] as boolean | null;
+                const missing: string[] = [];
+                if (!title || title.length < 5) missing.push('Kanaltitel (min 5 tegn)');
+                if (!desc || desc.length < 20) missing.push('Kanalbeskrivelse (min 20 tegn)');
+                if (!listing.hero_image) missing.push('Hero-billede');
+                if ((listing.images?.length || 0) < 3) missing.push('Mindst 3 galleri-billeder');
+                if ((listing.amenities?.length || 0) < 3) missing.push('Mindst 3 faciliteter');
+                if (!listing.address) missing.push('Adresse');
+                if ((listing.max_guests || 0) < 1) missing.push('Gæstekapacitet');
+                if ((listing.base_price_per_night || 0) <= 0) missing.push('Basispris');
+                if (!listing.check_in_time) missing.push('Check-in tid');
+                if (!listing.check_out_time) missing.push('Check-out tid');
+                if (!listing.house_rules) missing.push('Husregler');
+
+                return (
+                  <div className="space-y-4">
+                    {/* Title & desc preview */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground">Kanaltitel</p>
+                      <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground">
+                        {title || <span className="italic text-muted-foreground">Ikke udfyldt</span>}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground">Kanalbeskrivelse</p>
+                      <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground whitespace-pre-line">
+                        {desc || <span className="italic text-muted-foreground">Ikke udfyldt</span>}
+                      </div>
+                    </div>
+
+                    {/* Image readiness */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground">Billeder</p>
+                      <div className="flex gap-2">
+                        {listing.images?.slice(0, 5).map((img, i) => (
+                          <div key={i} className="w-14 h-14 rounded-lg overflow-hidden border border-border">
+                            <img src={img} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        ))}
+                        {(!listing.images || listing.images.length === 0) && (
+                          <p className="text-xs text-muted-foreground italic">Ingen billeder</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Missing fields */}
+                    {missing.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-xs font-semibold text-amber-500">⚠ Manglende felter ({missing.length})</p>
+                        {missing.map(m => (
+                          <div key={m} className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" /> {m}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {missing.length === 0 && (
+                      <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-3 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        <p className="text-xs text-emerald-500 font-medium">Alle påkrævede felter er udfyldt!</p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        className="flex-1 gap-1.5"
+                        onClick={() => { handlePrepareChannel(ch); setChannelDetailOpen(null); }}
+                      >
+                        <Sparkles className="h-4 w-4" /> Forbered {channelDetailOpen === 'airbnb' ? 'Airbnb' : channelDetailOpen === 'booking' ? 'Booking.com' : 'Vrbo'}
+                      </Button>
+                      <Button
+                        variant={ready ? 'secondary' : 'outline'}
+                        onClick={() => { update(`channel_${ch}_ready` as any, !ready); setChannelDetailOpen(null); setIsDirty(true); }}
+                      >
+                        {ready ? '✓ Klar' : 'Markér klar'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+            </DialogContent>
+          </Dialog>
+
+          {/* Editable channel content sections */}
+          <div className="space-y-5">
+            <Section title="Airbnb-indhold" description="Rediger titel og beskrivelse til Airbnb">
+              <Field label="Airbnb-titel" hint="Max 50 tegn for bedste visning">
+                <Input value={listing.channel_airbnb_title || ''} onChange={e => update('channel_airbnb_title', e.target.value)} placeholder="Titel optimeret til Airbnb" maxLength={50} />
+                <div className="text-[10px] text-muted-foreground text-right">{(listing.channel_airbnb_title || '').length}/50</div>
+              </Field>
+              <Field label="Airbnb-beskrivelse">
+                <Textarea value={listing.channel_airbnb_description || ''} onChange={e => update('channel_airbnb_description', e.target.value)} rows={4} placeholder="Beskrivelse optimeret til Airbnb" />
+              </Field>
+            </Section>
+
+            {(['booking', 'vrbo'] as const).map(ch => {
+              const label = ch === 'booking' ? 'Booking.com' : 'Vrbo';
+              return (
+                <Section key={ch} title={`${label}-indhold`} description={`Rediger titel og beskrivelse til ${label}`}>
+                  <Field label={`${label}-titel`}>
+                    <Input value={(listing as any)[`channel_${ch}_title`] || ''} onChange={e => update(`channel_${ch}_title` as any, e.target.value)} placeholder={`Titel optimeret til ${label}`} />
+                  </Field>
+                  <Field label={`${label}-beskrivelse`}>
+                    <Textarea value={(listing as any)[`channel_${ch}_description`] || ''} onChange={e => update(`channel_${ch}_description` as any, e.target.value)} rows={3} placeholder={`Beskrivelse optimeret til ${label}`} />
+                  </Field>
+                </Section>
+              );
+            })}
+          </div>
         </TabsContent>
       </Tabs>
 
