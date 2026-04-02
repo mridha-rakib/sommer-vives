@@ -54,6 +54,15 @@ const SYNC_STATUS_MAP: Record<string, { label: string; variant: SVariant }> = {
   error: { label: 'Fejl', variant: 'danger' },
 };
 
+const STAGE_OPTIONS = [
+  { key: 'udlejningstjek', label: 'Udlejningstjek' },
+  { key: 'foer_salg', label: 'Før salg' },
+  { key: 'til_leje', label: 'Til leje' },
+  { key: 'retur', label: 'Retur' },
+  { key: 'tabt_vil_ikke', label: 'Tabt – Vil ikke' },
+  { key: 'tabt_konkurrent', label: 'Tabt – Konkurrent' },
+];
+
 // ─── Smart Next Steps Engine ───
 interface NextStep {
   id: string;
