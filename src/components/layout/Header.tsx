@@ -35,10 +35,9 @@ export function Header() {
 
   const navigation = [
     { name: 'Sådan virker det', href: '/#saadan-virker-det' },
-    { name: 'Priser', href: '/pricing' },
     { name: 'Sommerhuse', href: '/listings' },
+    { name: 'Priser', href: '/pricing' },
     { name: 'Om os', href: '/about' },
-    { name: 'Beregn indtjening', href: '/beregn-lejeindtaegt', highlight: true },
   ];
 
   const isActiveLink = (href: string) => {
