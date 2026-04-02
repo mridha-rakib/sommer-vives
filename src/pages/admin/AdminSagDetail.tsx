@@ -909,6 +909,12 @@ export default function AdminSagDetail() {
           </SectionCard>
         )}
       </div>
+      <PublishFlowModal
+        listing={listing}
+        open={publishFlowOpen}
+        onClose={() => setPublishFlowOpen(false)}
+        onPublished={(updated) => setListing({ ...listing, ...updated })}
+      />
     </AdminLayout>
   );
 }
