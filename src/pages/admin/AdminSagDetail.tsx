@@ -497,6 +497,7 @@ export default function AdminSagDetail() {
     { key: 'integrationer', label: 'Integrationer', icon: Plug },
     { key: 'kanaler', label: 'Kanaler', icon: Radio },
     { key: 'kalender', label: 'Kalender', icon: CalendarIcon },
+    { key: 'priser', label: 'Priser', icon: DollarSign },
     { key: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
     { key: 'dokumenter', label: 'Dokumenter', icon: FileText },
     { key: 'opgaver', label: 'Opgaver', icon: ListChecks },
