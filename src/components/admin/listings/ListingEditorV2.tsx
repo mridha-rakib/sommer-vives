@@ -950,45 +950,115 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
 
         {/* ─── 7. KANALER ─── */}
         <TabsContent value="kanaler" className="mt-4 space-y-5">
-          {[
-            { key: 'airbnb' as const, label: 'Airbnb', color: 'text-rose-500' },
-            { key: 'booking' as const, label: 'Booking.com', color: 'text-blue-600' },
-            { key: 'vrbo' as const, label: 'Vrbo', color: 'text-indigo-500' },
-          ].map(ch => (
-            <Section key={ch.key} title={ch.label}>
-              <div className="flex items-center gap-3 mb-3">
-                <Switch
-                  checked={(listing as any)[`channel_${ch.key}_ready`] || false}
-                  onCheckedChange={v => update(`channel_${ch.key}_ready` as any, v)}
-                />
-                <span className={`text-sm font-medium ${ch.color}`}>{ch.label} klar</span>
-                <Button variant="ghost" size="sm" className="ml-auto text-xs h-7 gap-1" onClick={() => handlePrepareChannel(ch.key)}>
-                  <Rocket className="h-3 w-3" /> Auto-forbered
-                </Button>
+          {/* AIRBNB PREVIEW */}
+          <Section title="Airbnb Preview" description="Se hvordan din listing vil se ud på Airbnb">
+            <div className="rounded-xl border border-border overflow-hidden bg-muted/30">
+              <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-0">
+                <div className="relative">
+                  {(listing.hero_image || listing.images?.[0]) ? (
+                    <img src={listing.hero_image || listing.images![0]} alt="Preview" className="w-full h-48 md:h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-48 md:h-full bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-10 w-10 text-muted-foreground/20" />
+                    </div>
+                  )}
+                  {(listing.images?.length || 0) > 1 && (
+                    <div className="absolute bottom-2 right-2 flex gap-1">
+                      {listing.images!.slice(1, 4).map((img, i) => (
+                        <div key={i} className="w-10 h-10 rounded border-2 border-background overflow-hidden">
+                          <img src={img} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                      {listing.images!.length > 4 && (
+                        <div className="w-10 h-10 rounded border-2 border-background bg-background/80 flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                          +{listing.images!.length - 4}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 space-y-3">
+                  <div>
+                    <h4 className="font-display text-base font-semibold text-foreground">
+                      {listing.channel_airbnb_title || listing.description || listing.name}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">{listing.address || listing.region || 'Ingen adresse'}</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span>{listing.max_guests} gæster</span>
+                    <span>{listing.bedrooms || 0} soveværelser</span>
+                    <span>{listing.bathrooms || 0} bad</span>
+                    {listing.sqm && <span>{listing.sqm} m²</span>}
+                  </div>
+                  {(listing.amenities?.length || 0) > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {listing.amenities!.slice(0, 8).map(a => (
+                        <Badge key={a} variant="outline" className="text-[10px] px-2 py-0.5">{a}</Badge>
+                      ))}
+                      {listing.amenities!.length > 8 && (
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5">+{listing.amenities!.length - 8} mere</Badge>
+                      )}
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground line-clamp-3">
+                    {listing.channel_airbnb_description || listing.long_description || listing.description || 'Ingen beskrivelse endnu.'}
+                  </p>
+                </div>
               </div>
-              <Field label={`${ch.label}-specifik titel`}>
-                <Input
-                  value={(listing as any)[`channel_${ch.key}_title`] || ''}
-                  onChange={e => update(`channel_${ch.key}_title` as any, e.target.value)}
-                  placeholder={`Titel optimeret til ${ch.label}`}
-                />
-              </Field>
-              <Field label={`${ch.label}-specifik beskrivelse`}>
-                <Textarea
-                  value={(listing as any)[`channel_${ch.key}_description`] || ''}
-                  onChange={e => update(`channel_${ch.key}_description` as any, e.target.value)}
-                  rows={3}
-                  placeholder={`Beskrivelse optimeret til ${ch.label}`}
-                />
-              </Field>
-              <div className="rounded-lg bg-muted/50 p-3">
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <Globe className="h-3.5 w-3.5" />
-                  Push-status: Ikke forbundet (placeholder)
-                </p>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <Button onClick={() => handlePrepareChannel('airbnb')} disabled={airbnbPreparing} className="gap-1.5 bg-rose-600 hover:bg-rose-700 text-white">
+                {airbnbPreparing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                Forbered Airbnb
+              </Button>
+              <div className="flex items-center gap-2">
+                <Switch checked={listing.channel_airbnb_ready || false} onCheckedChange={v => update('channel_airbnb_ready', v)} />
+                <span className="text-sm text-muted-foreground">Airbnb-klar</span>
               </div>
-            </Section>
-          ))}
+              {listing.channel_airbnb_ready && (
+                <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20"><CheckCircle2 className="h-3 w-3 mr-1" /> Klar</Badge>
+              )}
+              {airbnbAiUsed && (
+                <Badge variant="outline" className="text-primary border-primary/30 text-xs"><Sparkles className="h-3 w-3 mr-1" /> AI-optimeret</Badge>
+              )}
+            </div>
+          </Section>
+
+          <Section title="Airbnb-specifikt indhold" description="Rediger det indhold der sendes til Airbnb">
+            <Field label="Airbnb-titel" hint="Max 50 tegn for bedste visning">
+              <Input value={listing.channel_airbnb_title || ''} onChange={e => update('channel_airbnb_title', e.target.value)} placeholder="Titel optimeret til Airbnb" maxLength={50} />
+              <div className="text-[10px] text-muted-foreground text-right">{(listing.channel_airbnb_title || '').length}/50</div>
+            </Field>
+            <Field label="Airbnb-beskrivelse">
+              <Textarea value={listing.channel_airbnb_description || ''} onChange={e => update('channel_airbnb_description', e.target.value)} rows={5} placeholder="Beskrivelse optimeret til Airbnb" />
+            </Field>
+          </Section>
+
+          {/* Booking.com & Vrbo */}
+          {(['booking', 'vrbo'] as const).map(ch => {
+            const label = ch === 'booking' ? 'Booking.com' : 'Vrbo';
+            const color = ch === 'booking' ? 'text-blue-600' : 'text-indigo-500';
+            return (
+              <Section key={ch} title={label}>
+                <div className="flex items-center gap-3 mb-3">
+                  <Switch checked={(listing as any)[`channel_${ch}_ready`] || false} onCheckedChange={v => update(`channel_${ch}_ready` as any, v)} />
+                  <span className={`text-sm font-medium ${color}`}>{label} klar</span>
+                  <Button variant="ghost" size="sm" className="ml-auto text-xs h-7 gap-1" onClick={() => handlePrepareChannel(ch)}>
+                    <Rocket className="h-3 w-3" /> Auto-forbered
+                  </Button>
+                </div>
+                <Field label={`${label}-specifik titel`}>
+                  <Input value={(listing as any)[`channel_${ch}_title`] || ''} onChange={e => update(`channel_${ch}_title` as any, e.target.value)} placeholder={`Titel optimeret til ${label}`} />
+                </Field>
+                <Field label={`${label}-specifik beskrivelse`}>
+                  <Textarea value={(listing as any)[`channel_${ch}_description`] || ''} onChange={e => update(`channel_${ch}_description` as any, e.target.value)} rows={3} placeholder={`Beskrivelse optimeret til ${label}`} />
+                </Field>
+                <div className="rounded-lg bg-muted/50 p-3">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> Push-status: Ikke forbundet (placeholder)</p>
+                </div>
+              </Section>
+            );
+          })}
         </TabsContent>
       </Tabs>
 
