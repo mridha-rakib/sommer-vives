@@ -14,15 +14,28 @@ import {
 
 type FieldStatus = 'autofilled' | 'needs_approval' | 'missing' | 'platform_specific' | 'manual_override';
 
+type ValidationSeverity = 'missing' | 'weak' | 'platform_mismatch' | 'manual_needed';
+
+interface ValidationIssue {
+  fieldKey: string;
+  fieldLabel: string;
+  severity: ValidationSeverity;
+  message: string;
+  suggestion?: string;
+  canAutoFill: boolean;
+}
+
 interface ChannelField {
   key: string;
   label: string;
   type: 'text' | 'textarea' | 'tags';
   hint?: string;
   maxLength?: number;
+  minLength?: number;
   rows?: number;
-  masterSource?: string; // description of where data comes from
+  masterSource?: string;
   platformSpecific?: boolean;
+  required?: boolean;
   getMasterValue: () => string | string[] | null;
 }
 
