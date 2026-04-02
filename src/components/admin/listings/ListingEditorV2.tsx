@@ -412,7 +412,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         }
 
         if (readiness.score >= 70) update('channel_airbnb_ready', true);
-        toast({ title: 'Airbnb-indhold forberedt!', description: 'Tjek preview under Kanaler-fanen.' });
+        toast({ title: 'Airbnb-indhold forberedt!', description: 'Tjek preview under Distribution-fanen.' });
       } catch {
         // Fallback mapping
         if (!listing.channel_airbnb_title) update('channel_airbnb_title', listing.description || listing.name);
@@ -796,7 +796,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               </div>
 
               <Button className="w-full" onClick={() => { setChannelDialogOpen(null); setActiveTab('kanaler'); setIsDirty(true); }}>
-                Gå til Kanaler-fanen
+                Gå til Distribution-fanen
               </Button>
             </div>
           )}
