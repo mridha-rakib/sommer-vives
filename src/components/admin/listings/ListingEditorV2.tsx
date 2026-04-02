@@ -1068,10 +1068,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               </div>
             </Section>
           </div>
-        </TabsContent>
 
-        {/* ─── 5.5 KALENDER & PRISER ─── */}
-        <TabsContent value="kalender" className="mt-4">
+          {/* ── Kalender ── */}
           <ListingCalendarPricing
             listingId={listing.id}
             ownerId={listing.owner_id}
