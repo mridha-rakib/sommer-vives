@@ -521,35 +521,56 @@ function ServiceCard({
           : 'bg-card border-border/50'
       } hover:shadow-[0_8px_32px_-8px_hsl(var(--ring)/0.1)] hover:border-primary/20`}
     >
-      {service.signature && (
+      {/* Hero image for signature cards */}
+      {service.image && (
+        <div className="relative h-44 overflow-hidden">
+          <img
+            src={service.image}
+            alt={service.title}
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+          {service.badge && (
+            <span className="absolute top-3 left-4 inline-flex items-center gap-1.5 text-[9px] font-semibold tracking-[0.2em] uppercase text-primary bg-card/80 backdrop-blur-sm px-2.5 py-1 rounded-full border border-primary/15">
+              <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
+              {service.badge}
+            </span>
+          )}
+        </div>
+      )}
+
+      {service.signature && !service.image && (
         <div className="h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       )}
 
       <div className="p-7 md:p-8 flex flex-col gap-3.5 flex-1">
-        {/* Badge */}
-        {service.badge && (
+        {/* Badge (only for non-image cards) */}
+        {service.badge && !service.image && (
           <span className="inline-flex items-center gap-1.5 text-[9.5px] font-semibold tracking-[0.22em] uppercase text-primary/60">
             <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
             {service.badge}
           </span>
         )}
 
-        {/* Icon */}
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-          service.signature
-            ? 'bg-primary/10 border border-primary/15 group-hover:bg-primary/15 group-hover:shadow-[0_0_16px_-4px_hsl(var(--ring)/0.1)]'
-            : 'bg-secondary border border-border/30 group-hover:bg-muted group-hover:border-border/60'
-        }`}>
-          <Icon className="w-[19px] h-[19px] text-primary" strokeWidth={1.3} />
-        </div>
+        {/* Icon (only for non-image cards) */}
+        {!service.image && (
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+            service.signature
+              ? 'bg-primary/10 border border-primary/15 group-hover:bg-primary/15 group-hover:shadow-[0_0_16px_-4px_hsl(var(--ring)/0.1)]'
+              : 'bg-secondary border border-border/30 group-hover:bg-muted group-hover:border-border/60'
+          }`}>
+            <Icon className="w-[19px] h-[19px] text-primary" strokeWidth={1.3} />
+          </div>
+        )}
 
         {/* Title */}
         <h3 className="font-display text-[1.1rem] font-semibold text-foreground leading-snug">
           {service.title}
         </h3>
 
-        {/* Visual storytelling */}
-        {service.visual && (
+        {/* Visual storytelling (only for non-image cards) */}
+        {service.visual && !service.image && (
           <div className="py-0.5">{service.visual()}</div>
         )}
 
