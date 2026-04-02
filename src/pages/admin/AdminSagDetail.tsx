@@ -8,7 +8,7 @@ import {
   Calendar as CalendarIcon, Eye, Pencil, ExternalLink, Image,
   Tag, DollarSign, Wifi, AlertCircle, ChevronRight, StickyNote,
   Sparkles, Rocket, Zap, Camera, Info, ArrowRight, X, Plus,
-  AlertTriangle, Settings, Type
+  AlertTriangle, Settings, Type, Plug, RefreshCw, Send, Link2
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusChip } from '@/components/admin/ui/StatusChip';
