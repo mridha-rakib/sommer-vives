@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
 import { StatusChip, type StatusVariant } from '@/components/admin/ui/StatusChip';
@@ -10,14 +11,19 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   FileText, Search, Download, Eye, FolderOpen, Grid3X3, List, Filter,
   FileSignature, Receipt, Upload, ShieldCheck, File, CalendarDays,
-  User, FolderOpen as FolderIcon, ExternalLink, Link2, Clock, MoreHorizontal
+  User, FolderOpen as FolderIcon, ExternalLink, Link2, Clock, MoreHorizontal,
+  AlertTriangle, Pencil, Copy, Plus, Trash2, BookTemplate
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 /* ── Config ── */
 type DocType = 'formidlingsaftale' | 'owner_upload' | 'invoice' | 'statement' | 'id_personal' | 'internal' | 'other';
@@ -39,6 +45,7 @@ const STATUS_CFG: Record<string, { label: string; variant: StatusVariant }> = {
   archived: { label: 'Arkiveret',  variant: 'muted' },
   pending:  { label: 'Afventer',   variant: 'warning' },
   signed:   { label: 'Underskrevet', variant: 'success' },
+  sent:     { label: 'Sendt',      variant: 'info' },
   expired:  { label: 'Udløbet',    variant: 'danger' },
 };
 
@@ -75,24 +82,64 @@ function getMimeColor(mime: string | null) {
   return 'bg-muted/40 text-muted-foreground';
 }
 
+type PageTab = 'documents' | 'templates';
+
 export default function AdminDokumenter() {
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState<any[]>([]);
+  const [agreements, setAgreements] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [selected, setSelected] = useState<any | null>(null);
+  const [pageTab, setPageTab] = useState<PageTab>('documents');
+  const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
+  const [templateForm, setTemplateForm] = useState({ name: '', body_text: '', body_html: '', version: '1.0', is_active: true });
 
   useEffect(() => {
-    supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500)
-      .then(({ data }) => { setDocuments(data || []); setLoading(false); });
+    Promise.all([
+      supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500),
+      supabase.from('agreements').select('*').order('created_at', { ascending: false }).limit(500),
+      supabase.from('agreement_templates').select('*').order('created_at', { ascending: false }),
+    ]).then(([docRes, agrRes, tplRes]) => {
+      setDocuments(docRes.data || []);
+      setAgreements(agrRes.data || []);
+      setTemplates(tplRes.data || []);
+      setLoading(false);
+    });
   }, []);
 
-  const types = useMemo(() => [...new Set(documents.map(d => d.document_type))], [documents]);
+  // Merge agreements into a unified document list
+  const allDocs = useMemo(() => {
+    const agreementDocs = agreements.map(a => ({
+      id: a.id,
+      title: `Formidlingsaftale — ${a.owner_name || a.property_title || 'Ukendt ejer'}`,
+      document_type: 'agreement',
+      status: a.status,
+      created_at: a.created_at,
+      file_url: a.pdf_url,
+      file_size: null,
+      mime_type: a.pdf_url ? 'application/pdf' : null,
+      owner_id: a.owner_id,
+      property_id: a.property_id,
+      booking_id: null,
+      _source: 'agreement' as const,
+      _agreement: a,
+    }));
+    const normalDocs = documents.map(d => ({ ...d, _source: 'document' as const, _agreement: null }));
+    return [...normalDocs, ...agreementDocs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [documents, agreements]);
+
+  // Pending agreements count (draft or sent but not signed)
+  const pendingAgreements = agreements.filter(a => a.status === 'draft' || a.status === 'sent');
+
+  const types = useMemo(() => [...new Set(allDocs.map(d => d.document_type))], [allDocs]);
 
   const filtered = useMemo(() => {
-    return documents.filter(d => {
+    return allDocs.filter(d => {
       if (typeFilter !== 'all' && d.document_type !== typeFilter) return false;
       if (statusFilter !== 'all' && d.status !== statusFilter) return false;
       if (search) {
@@ -101,14 +148,44 @@ export default function AdminDokumenter() {
       }
       return true;
     });
-  }, [documents, typeFilter, statusFilter, search]);
+  }, [allDocs, typeFilter, statusFilter, search]);
 
   const counts = useMemo(() => ({
-    total: documents.length,
-    active: documents.filter(d => d.status === 'active').length,
-    draft: documents.filter(d => d.status === 'draft').length,
+    total: allDocs.length,
+    active: allDocs.filter(d => d.status === 'active' || d.status === 'signed').length,
+    draft: allDocs.filter(d => d.status === 'draft').length,
     types: types.length,
-  }), [documents, types]);
+  }), [allDocs, types]);
+
+  // Template CRUD
+  const openNewTemplate = () => {
+    setEditingTemplate('new');
+    setTemplateForm({ name: '', body_text: '', body_html: '', version: '1.0', is_active: true });
+  };
+  const openEditTemplate = (t: any) => {
+    setEditingTemplate(t);
+    setTemplateForm({ name: t.name, body_text: t.body_text, body_html: t.body_html, version: t.version, is_active: t.is_active });
+  };
+  const saveTemplate = async () => {
+    if (!templateForm.name.trim()) { toast.error('Navn er påkrævet'); return; }
+    if (editingTemplate === 'new') {
+      const { error } = await supabase.from('agreement_templates').insert(templateForm);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Skabelon oprettet');
+    } else {
+      const { error } = await supabase.from('agreement_templates').update(templateForm).eq('id', editingTemplate.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Skabelon opdateret');
+    }
+    setEditingTemplate(null);
+    const { data } = await supabase.from('agreement_templates').select('*').order('created_at', { ascending: false });
+    setTemplates(data || []);
+  };
+  const deleteTemplate = async (id: string) => {
+    await supabase.from('agreement_templates').delete().eq('id', id);
+    setTemplates(prev => prev.filter(t => t.id !== id));
+    toast.success('Skabelon slettet');
+  };
 
   return (
     <AdminLayout>
