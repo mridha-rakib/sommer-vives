@@ -10,12 +10,6 @@ const trustPoints = [
   '6 måneders aftale — vi investerer i samarbejdet',
 ];
 
-const revenueItems = [
-  { icon: Zap, label: 'El, vand & varme', pct: '+8%' },
-  { icon: BedDouble, label: 'Sengepakker & tillæg', pct: '+5%' },
-  { icon: Clock, label: 'Fleksibel check-in/out', pct: '+4%' },
-  { icon: Sparkles, label: 'Rengøring & service', pct: '+3%' },
-];
 
 const channels = ['Airbnb', 'Booking.com', 'VRBO', 'Feriepartner', 'Google', 'Facebook', 'Instagram'];
 
