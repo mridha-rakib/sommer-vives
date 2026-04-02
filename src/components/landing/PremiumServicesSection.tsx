@@ -433,7 +433,7 @@ const services: Service[] = [
     short: 'Du bestemmer selv, hvor meget du vil udleje, og hvordan samarbejdet skal fungere.',
     long: 'Hos SommerVibes tilpasser vi samarbejdet til dig og din bolig — ikke omvendt. Du vælger selv, hvor meget du vil udleje, hvordan boligen skal drives, og hvilke løsninger du ønsker hjælp til. Det giver dig frihed, kontrol og en mere behagelig måde at udleje på, uden at du skal presses ind i en standardmodel.',
     expandLabel: 'På dine vilkår',
-    visual: FlexVisual,
+    image: flexibilityImg,
   },
 ];
 
