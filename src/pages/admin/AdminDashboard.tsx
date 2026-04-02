@@ -26,11 +26,11 @@ const LEAD_STATUS_LABELS: Record<string, string> = {
   qualified: 'Kvalificeret', waiting: 'Afventer svar', won: 'Vundet', lost: 'Tabt',
 };
 
-const TASK_STATUS: Record<string, { label: string; variant: 'muted' | 'info' | 'warning' | 'success' }> = {
-  pending: { label: 'Ikke startet', variant: 'muted' },
+const TASK_STATUS: Record<string, { label: string; variant: 'muted' | 'info' | 'warning' | 'success' | 'danger' }> = {
+  not_started: { label: 'Ikke startet', variant: 'muted' },
   in_progress: { label: 'I gang', variant: 'info' },
   waiting: { label: 'Afventer', variant: 'warning' },
-  completed: { label: 'Færdig', variant: 'success' },
+  done: { label: 'Færdig', variant: 'success' },
 };
 
 function SectionCard({ title, icon: Icon, linkTo, linkLabel, children, className }: {
