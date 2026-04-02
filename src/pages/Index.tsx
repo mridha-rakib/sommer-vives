@@ -23,6 +23,7 @@ const Index = () => {
     <PublicLayout>
       <ExitIntentPopup />
       <HeroSection />
+      <EarningsSection />
       <PremiumServicesSection />
       <PropertyTypesSection />
       <HowItWorksSection />
