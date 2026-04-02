@@ -101,9 +101,9 @@ function FounderVideoSection() {
         <div className="max-w-[820px] mx-auto">
           {/* Header */}
           <motion.div {...reveal(isInView)} className="text-center mb-8">
-            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød Emil</span>
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Vores historie</span>
             <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em]">
-              Mennesket bag
+              Folkene bag
               <span className="text-accent italic font-normal ml-2">SommerVibes</span>
             </h2>
           </motion.div>
