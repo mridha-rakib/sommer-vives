@@ -643,19 +643,47 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" /> AI-forbedret tekst
+              <Sparkles className="h-5 w-5 text-primary" />
+              {aiAction === 'improve_title' ? 'AI – Titelforslag' :
+               aiAction === 'improve_description' ? 'AI – Beskrivelse' :
+               aiAction === 'improve_long_description' ? 'AI – Lang beskrivelse' :
+               aiAction === 'generate_highlights' ? 'AI – Highlights' :
+               aiAction === 'channel_airbnb' ? 'AI – Airbnb-indhold' :
+               aiAction === 'channel_booking' ? 'AI – Booking.com-indhold' :
+               aiAction === 'channel_vrbo' ? 'AI – Vrbo-indhold' :
+               aiAction === 'translate_en' ? 'AI – Engelsk oversættelse' :
+               aiAction === 'translate_de' ? 'AI – Tysk oversættelse' :
+               'AI-forbedret tekst'}
             </DialogTitle>
           </DialogHeader>
           {aiImproving && (
-            <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" /> AI skriver forbedrede tekster...
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <p className="text-sm">AI genererer indhold...</p>
+              <p className="text-[11px] text-muted-foreground/60">Dette tager typisk 5-15 sekunder</p>
             </div>
           )}
           {aiPreview && !aiImproving && (
             <div className="space-y-4">
-              {aiPreview.title && (
+              {/* Title suggestions */}
+              {aiPreview.suggestions && (
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground mb-1">Offentlig titel</p>
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Vælg en titel:</p>
+                  <div className="space-y-2">
+                    {aiPreview.suggestions.map((s: string, i: number) => (
+                      <button key={i} onClick={() => { update('description', s); toast({ title: 'Titel anvendt!' }); setAiDialogOpen(false); setAiPreview(null); }}
+                        className="w-full text-left text-sm bg-muted/50 hover:bg-primary/5 hover:border-primary/30 border border-border rounded-lg p-3 text-foreground transition-colors">
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Single fields */}
+              {aiPreview.title && !aiPreview.suggestions && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Titel</p>
                   <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground">{aiPreview.title}</p>
                 </div>
               )}
@@ -684,14 +712,54 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                 </div>
               )}
 
-              <div className="flex gap-2 pt-2">
-                <Button onClick={applyAiSuggestions} className="flex-1 gap-1.5">
-                  <Check className="h-4 w-4" /> Anvend alle forslag
-                </Button>
-                <Button variant="outline" onClick={() => { setAiDialogOpen(false); setAiPreview(null); }}>
-                  Annuller
-                </Button>
-              </div>
+              {/* Channel-specific fields */}
+              {aiPreview.house_rules && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Husregler</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.house_rules}</p>
+                </div>
+              )}
+              {aiPreview.checkin_notes && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Check-in noter</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.checkin_notes}</p>
+                </div>
+              )}
+              {aiPreview.room_setup && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Værelseopsætning</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.room_setup}</p>
+                </div>
+              )}
+              {aiPreview.policies && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Politikker</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.policies}</p>
+                </div>
+              )}
+              {aiPreview.checkin_checkout && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Check-in/out info</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.checkin_checkout}</p>
+                </div>
+              )}
+              {aiPreview.rules && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1">Regler</p>
+                  <p className="text-sm bg-muted/50 rounded-lg p-3 text-foreground whitespace-pre-line">{aiPreview.rules}</p>
+                </div>
+              )}
+
+              {!aiPreview.suggestions && (
+                <div className="flex gap-2 pt-2">
+                  <Button onClick={applyAiSuggestions} className="flex-1 gap-1.5">
+                    <Check className="h-4 w-4" /> Anvend forslag
+                  </Button>
+                  <Button variant="outline" onClick={() => { setAiDialogOpen(false); setAiPreview(null); }}>
+                    Annuller
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
