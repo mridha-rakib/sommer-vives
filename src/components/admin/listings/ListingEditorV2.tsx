@@ -1025,11 +1025,71 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
 
         {/* ─── 7. DISTRIBUTION & KANALER ─── */}
         <TabsContent value="kanaler" className="mt-4 space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-display text-lg font-semibold text-foreground">Distribution & kanaler</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Klargør og publicer din listing til eksterne platforme</p>
+          <div>
+            <h3 className="font-display text-lg font-semibold text-foreground">Distribution & kanaler</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Klargør og publicer din listing til eksterne platforme</p>
+          </div>
+
+          {/* ── Readiness Dashboard ── */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h4 className="font-display text-sm font-semibold text-foreground mb-4">Readiness overblik</h4>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Global */}
+              <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30">
+                <ReadinessRing score={readiness.score} size={56} strokeWidth={4} />
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-foreground">Global</p>
+                  <p className="text-[10px] text-muted-foreground">{readiness.missing.length} mangler</p>
+                </div>
+              </div>
+              {/* Per-channel */}
+              {([
+                { key: 'airbnb' as const, label: 'Airbnb', icon: '🏠' },
+                { key: 'booking' as const, label: 'Booking.com', icon: '🅱️' },
+                { key: 'vrbo' as const, label: 'Vrbo', icon: '🏡' },
+              ] as const).map(ch => {
+                const cr = channelReadiness[ch.key];
+                return (
+                  <div key={ch.key} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setChannelDialogOpen(ch.key)}>
+                    <ReadinessRing score={cr.score} size={56} strokeWidth={4} />
+                    <div className="text-center">
+                      <p className="text-xs font-semibold text-foreground">{ch.icon} {ch.label}</p>
+                      <p className="text-[10px] text-muted-foreground">{cr.missing.length} mangler</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+
+            {/* Next best action */}
+            {(() => {
+              const allChannelMissing = [
+                ...channelReadiness.airbnb.missing.map(m => ({ ...m, channel: 'Airbnb' })),
+                ...channelReadiness.booking.missing.map(m => ({ ...m, channel: 'Booking.com' })),
+                ...channelReadiness.vrbo.missing.map(m => ({ ...m, channel: 'Vrbo' })),
+              ];
+              const next = allChannelMissing[0];
+              if (!next) return (
+                <div className="mt-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-3 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <p className="text-xs text-emerald-600 font-medium">Alle kanaler er 100% klar! 🎉</p>
+                </div>
+              );
+              return (
+                <div className="mt-4 rounded-lg bg-primary/5 border border-primary/20 p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-foreground">Næste handling</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{next.action} — {next.channel}</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" className="text-[10px] h-7 shrink-0" onClick={() => setActiveTab(next.tab)}>
+                    Gå til {next.tab}
+                  </Button>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Channel cards grid */}
