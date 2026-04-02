@@ -12,10 +12,8 @@ interface ListingRow {
   check_in_time: string | null; check_out_time: string | null;
   is_active: boolean; amenities: string[] | null; house_rules: string | null;
   practical_info: string | null; images: string[] | null; hero_image: string | null;
-  currency: string; extra_sections: any[] | null;
-  bedroom_images: any[] | null; facilities: any[] | null;
-  floor_plan_images: string[] | null; image_labels: any[] | null;
-  sort_order: number; region: string | null; owner_id: string;
+  currency: string; region: string | null; owner_id: string;
+  [key: string]: any;
 }
 
 export function AdminListingsManager() {
