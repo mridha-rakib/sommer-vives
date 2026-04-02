@@ -36,11 +36,19 @@ import { Link } from 'react-router-dom';
 
 // Service card images
 import boostImg from '@/assets/services/boost.jpg';
-import kundedialogImg from '@/assets/services/kundedialog.png';
+import kundedialogImg from '@/assets/services/kundedialog.jpg';
 import cleaningImg from '@/assets/services/cleaning.jpg';
 import qrSignImg from '@/assets/services/qr-sign.jpg';
 import portalsImg from '@/assets/services/portals.jpg';
 import commissionImg from '@/assets/services/commission.jpg';
+import revenueImg from '@/assets/services/revenue.jpg';
+import keyboxImg from '@/assets/services/keybox.jpg';
+import supportImg from '@/assets/services/support.jpg';
+import repairImg from '@/assets/services/repair.jpg';
+import marketingImg from '@/assets/services/marketing.jpg';
+import dashboardImg from '@/assets/services/dashboard.jpg';
+import shieldImg from '@/assets/services/shield.jpg';
+import flexibilityImg from '@/assets/services/flexibility.jpg';
 
 interface Service {
   icon: typeof QrCode;
@@ -359,7 +367,7 @@ const services: Service[] = [
     long: 'Hos SommerVibes får du adgang til fleksible indtægtsmuligheder, der kan løfte den samlede værdi af hver booking. Det kan være betaling for sengepakker, forbrug, tidlig check-in, sen check-out og andre relevante tilvalg. Det giver dig mulighed for at skræddersy din udlejning og hente ekstra værdi ud af de detaljer, som ofte gør en reel forskel på bundlinjen.',
     expandLabel: 'Mere indtjening',
     badge: 'Populær blandt ejere',
-    visual: RevenueVisual,
+    image: revenueImg,
   },
   // 8. Nøgleservice
   {
@@ -369,7 +377,7 @@ const services: Service[] = [
     long: 'Med vores elektroniske nøgleløsning gør vi adgangen til boligen enkel og smidig for alle relevante parter. Det gælder både gæster, rengøring, viceværter og dig som ejer. Vi håndterer koder og hjælper med, at løsningen fungerer i praksis, så du får mindre koordinering, bedre flow og en mere professionel drift omkring udlejningen.',
     expandLabel: 'Det betyder for dig',
     badge: 'Nem drift',
-    visual: NoegleVisual,
+    image: keyboxImg,
   },
   // 9. Fri rådgiversupport
   {
@@ -379,7 +387,7 @@ const services: Service[] = [
     long: 'Hos SommerVibes står du ikke alene med spørgsmål om udlejning, drift, priser, booking eller optimering af din bolig. Du har løbende adgang til sparring og ærlig rådgivning fra en rådgiver, der kender samarbejdet og din bolig. Det skaber nærvær, overblik og tryghed i en hverdag, hvor det skal være nemt at komme videre.',
     expandLabel: 'Tæt sparring',
     badge: 'Inkluderet service',
-    visual: RaadgiverVisual,
+    image: supportImg,
   },
   // 10. Service & reparation
   {
@@ -388,7 +396,7 @@ const services: Service[] = [
     short: 'Hvis noget opstår under udlejningen, hjælper vi med at få det løst.',
     long: 'Hvis der opstår en akut situation under en udlejning, kan SommerVibes hjælpe med at rekvirere relevante håndværkere eller fagpersoner på dine vegne. Udgifter faktureres naturligvis direkte til dig, og du vælger selv, om du vil stå for vedligeholdelsen selv eller ønsker, at vi hjælper med koordineringen. Det giver dig fleksibilitet og gør det lettere at håndtere det uforudsete.',
     expandLabel: 'Fleksibel hjælp',
-    visual: ServiceRepVisual,
+    image: repairImg,
   },
   // 11. Effektiv markedsføring
   {
@@ -397,7 +405,7 @@ const services: Service[] = [
     short: 'Din bolig skal ikke bare online — den skal præsenteres stærkt og tiltrække de rigtige gæster.',
     long: 'Vi sørger for, at dit sommerhus præsenterer sig fra sin allerbedste side med professionelt indhold, visuelt flot opsætning og skarp tekst. Dertil arbejder vi aktivt med målrettet markedsføring, så boligen ikke blot er til stede på de rigtige kanaler, men også bliver valgt af de rigtige gæster. Målet er at øge synlighed, styrke præsentationen og skabe flere relevante bookinger.',
     expandLabel: 'Flere relevante bookinger',
-    visual: MarketingVisual,
+    image: marketingImg,
   },
   // 12. Moderne administration
   {
@@ -406,7 +414,7 @@ const services: Service[] = [
     short: 'Et enkelt setup med struktur, overblik og effektiv drift omkring din bolig.',
     long: 'Vi arbejder moderne og effektivt med fokus på synlighed, struktur og høj udnyttelse af din bolig. Det betyder, at samarbejdet skal være let at forstå, let at følge med i og let at skabe resultater med. SommerVibes er bygget til husejere, der ønsker høj service uden tung administration eller unødigt bøvl.',
     expandLabel: 'Mere overblik',
-    visual: AdminVisual,
+    image: dashboardImg,
   },
   // 13. Tryghedsgaranti
   {
@@ -416,7 +424,7 @@ const services: Service[] = [
     long: 'Skulle en gæst forårsage skade under et ophold, tilbyder vi via vores samarbejdspartner på udlejningsforsikring en løsning med selvrisiko på 3.000 kr. Vi anbefaler samtidig, at du også har en relevant udvidet udlejningsforsikring gennem dit eget forsikringsselskab, så du står bedst muligt dækket. Hos SommerVibes er tryghed ikke en sidebemærkning — det er en vigtig del af samarbejdet.',
     expandLabel: 'Ekstra tryghed',
     badge: 'Ro i maven',
-    visual: TryghedVisual,
+    image: shieldImg,
   },
   // 14. Fuld fleksibilitet
   {
@@ -425,7 +433,7 @@ const services: Service[] = [
     short: 'Du bestemmer selv, hvor meget du vil udleje, og hvordan samarbejdet skal fungere.',
     long: 'Hos SommerVibes tilpasser vi samarbejdet til dig og din bolig — ikke omvendt. Du vælger selv, hvor meget du vil udleje, hvordan boligen skal drives, og hvilke løsninger du ønsker hjælp til. Det giver dig frihed, kontrol og en mere behagelig måde at udleje på, uden at du skal presses ind i en standardmodel.',
     expandLabel: 'På dine vilkår',
-    visual: FlexVisual,
+    image: flexibilityImg,
   },
 ];
 
