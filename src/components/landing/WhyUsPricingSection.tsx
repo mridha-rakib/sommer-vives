@@ -42,6 +42,10 @@ export function WhyUsPricingSection() {
               {t('why.title')}<span className="block text-accent italic font-normal mt-1">{t('why.titleAccent')}</span>
             </motion.h2>
 
+            <motion.div initial={{ opacity: 0 }} animate={isInView ? { opacity: 1 } : {}} transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex gap-1 mb-6">
+              {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 text-accent fill-accent/80" strokeWidth={0} />)}
+            </motion.div>
             <div className="space-y-3 mb-8">
               {perks.map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, x: -12 }} animate={isInView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.35, delay: 0.15 + i * 0.06 }} className="flex items-center gap-3">
