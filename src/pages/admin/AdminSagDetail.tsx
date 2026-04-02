@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Beds24Integration } from '@/components/admin/Beds24Integration';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
