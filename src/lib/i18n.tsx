@@ -248,7 +248,7 @@ const translations: AllTranslations = {
     'hero.advisorTitle': 'Rental Manager',
     'hero.trustpilot': 'Excellent on Trustpilot',
     'hero.danish': 'Danish company',
-    'hero.noBinding': 'No lock-in',
+    'hero.noBinding': 'Flexible agreement',
     'hero.guarantee': 'Safety guarantee incl.',
     'hero.support': 'Danish customer service',
 
