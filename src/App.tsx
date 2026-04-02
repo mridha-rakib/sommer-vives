@@ -145,6 +145,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* ─── Public Website ─── */}
             <Route path="/" element={<Index />} />
