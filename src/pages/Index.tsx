@@ -9,25 +9,24 @@ import { PricingSection } from '@/components/landing/PricingSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
 import { ContactExpertsSection } from '@/components/landing/ContactExpertsSection';
-
-const homeFAQs = [
-  // Opstart
-  { q: 'Hvordan starter jeg op med SommerVibes?', a: 'Det tager fem minutter at oprette din bolig online. En personlig rådgiver tager kontakt inden for 24 timer og guider dig igennem næste skridt — billeder, tekst og publicering.' },
-  { q: 'Hvor hurtigt kan mit hus komme live?', a: 'De fleste husejere er klar til første booking inden for 1–2 uger efter oprettelse. Vi klarer fotografering, listing og publicering.' },
-  // Økonomi
-  { q: 'Hvad koster det at udleje med jer?', a: 'Oprettelse er gratis. Vi tager 15 % af gennemførte bookinger. Gæsten betaler et servicegebyr på 5 %. Ingen opstartsgebyrer, ingen skjulte omkostninger.' },
-  { q: 'Hvornår udbetales min indtjening?', a: 'Din udbetaling overføres kort efter gæstens check-in. Du kan altid følge med i din ejerportal.' },
-  // Drift
-  { q: 'Kan jeg stadig bruge huset selv?', a: 'Helt naturligt. Du blokerer de perioder, du selv vil bruge huset, direkte i din ejerportal. Du bestemmer altid.' },
-  { q: 'Hvordan tager I jer af gæster og rengøring?', a: 'Vi håndterer al gæstekommunikation og koordinerer slutrengøring med lokale samarbejdspartnere. Gæstens pris inkluderer altid rengøringsgebyr, så du aldrig selv står med det.' },
-  { q: 'Må jeg også udleje via andre kanaler?', a: 'Ja. Din bolig er din. Vi kan endda hjælpe med at koordinere kalenderen, så du undgår dobbeltbookinger.' },
-  // Aftale & tryghed
-  { q: 'Hvordan fungerer jeres 6 måneders aftale?', a: 'Vi investerer tid i professionelle billeder, listingopsætning og markedsføring fra dag ét. Aftalen sikrer, at vi begge får det bedste ud af samarbejdet. Herefter er du fri til at opsige.' },
-  { q: 'Hvad hvis en gæst forårsager skade?', a: 'Vores udlejningsforsikring dækker pludselige og uforudsete skader, der opstår under gæstens ophold. Du kan læse vilkårene i din aftale.' },
-  { q: 'Hvad skal jeg selv have klar?', a: 'Meget lidt. Vi hjælper dig hele vejen. Du skal blot have adgang til huset og en god idé om, hvornår det er ledigt.' },
-];
+import { useTranslation } from '@/lib/i18n';
 
 const Index = () => {
+  const { t } = useTranslation();
+
+  const homeFAQs = [
+    { q: t('faq.q1'), a: t('faq.a1') },
+    { q: t('faq.q2'), a: t('faq.a2') },
+    { q: t('faq.q3'), a: t('faq.a3') },
+    { q: t('faq.q4'), a: t('faq.a4') },
+    { q: t('faq.q5'), a: t('faq.a5') },
+    { q: t('faq.q6'), a: t('faq.a6') },
+    { q: t('faq.q7'), a: t('faq.a7') },
+    { q: t('faq.q8'), a: t('faq.a8') },
+    { q: t('faq.q9'), a: t('faq.a9') },
+    { q: t('faq.q10'), a: t('faq.a10') },
+  ];
+
   return (
     <PublicLayout>
       <ExitIntentPopup />
@@ -42,8 +41,8 @@ const Index = () => {
       <TestimonialsSection />
       <div id="faq">
         <ContextualFAQ
-          heading="Spørgsmål & svar"
-          subheading="Det skal være nemt at forstå, hvad du får."
+          heading={t('faq.heading')}
+          subheading={t('faq.subheading')}
           items={homeFAQs}
         />
       </div>
