@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import {
-  ArrowLeft, Home, MapPin, Users, Bed, Bath, CheckCircle2, Clock,
+  ArrowLeft, Home, MapPin, Users, Bed, Bath, CheckCircle2, Clock, FolderOpen,
   Radio, Globe, FileText, ListChecks, MessageSquare, ShoppingBag,
   Calendar as CalendarIcon, Eye, Pencil, ExternalLink, Image,
   Tag, DollarSign, Wifi, AlertCircle, ChevronRight, StickyNote
