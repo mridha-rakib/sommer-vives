@@ -193,25 +193,36 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Sidebar */}
       <aside className={cn(
-        'fixed md:static inset-y-0 left-0 z-50 w-[260px] bg-card/50 backdrop-blur-xl border-r border-border/50 transition-transform duration-300 flex flex-col',
+        'fixed md:static inset-y-0 left-0 z-50 bg-card/50 backdrop-blur-xl border-r border-border/50 transition-all duration-300 flex flex-col',
+        collapsed ? 'w-[60px]' : 'w-[260px]',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       )}>
         {/* Logo header */}
-        <div className="h-14 px-5 flex items-center justify-between border-b border-border/30">
-          <BrandLogo to="/admin" tagline="Operations" />
+        <div className="h-14 px-3 flex items-center justify-between border-b border-border/30">
+          {!collapsed && <BrandLogo to="/admin" tagline="Operations" />}
+          {collapsed && (
+            <Link to="/admin" className="mx-auto">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <LayoutDashboard className="w-4 h-4 text-primary" />
+              </div>
+            </Link>
+          )}
           <button className="md:hidden text-muted-foreground hover:text-foreground p-1 rounded-lg" onClick={() => setSidebarOpen(false)}>
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Nav sections */}
-        <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto scrollbar-hide">
+        <nav className="flex-1 px-2 py-4 space-y-5 overflow-y-auto scrollbar-hide">
           {navSections.map((section, idx) => (
             <div key={idx}>
-              {section.label && (
+              {section.label && !collapsed && (
                 <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.15em]">
                   {section.label}
                 </p>
+              )}
+              {section.label && collapsed && (
+                <div className="mx-auto w-6 border-t border-border/30 mb-2" />
               )}
               <div className="space-y-0.5">
                 {section.items.map(renderNavItem)}
@@ -220,17 +231,35 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           ))}
         </nav>
 
+        {/* Collapse toggle (desktop only) */}
+        <div className="hidden md:flex justify-center py-2 border-t border-border/30">
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            className="p-1.5 rounded-lg hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors"
+            title={collapsed ? 'Udvid menu' : 'Minimer menu'}
+          >
+            <ChevronLeft className={cn('w-4 h-4 transition-transform duration-300', collapsed && 'rotate-180')} />
+          </button>
+        </div>
+
         {/* User */}
-        <div className="p-4 border-t border-border/30">
+        <div className={cn('p-3 border-t border-border/30', collapsed && 'px-2')}>
           <div className="flex items-center gap-3">
-            <img src={emilAvatar} alt="Emil W. Klockmann" className="w-11 h-11 rounded-full object-cover border-2 border-primary/30 shadow-lg shadow-primary/10" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold text-foreground leading-tight">Emil W. Klockmann</p>
-              <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">Udlejningschef</p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-foreground p-1.5 h-auto rounded-lg shrink-0">
-              <LogOut className="w-4 h-4" />
-            </Button>
+            <img src={emilAvatar} alt="Emil W. Klockmann" className={cn(
+              'rounded-full object-cover border-2 border-primary/30 shadow-lg shadow-primary/10 shrink-0',
+              collapsed ? 'w-8 h-8' : 'w-11 h-11'
+            )} />
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-foreground leading-tight">Emil W. Klockmann</p>
+                <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">Udlejningschef</p>
+              </div>
+            )}
+            {!collapsed && (
+              <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-foreground p-1.5 h-auto rounded-lg shrink-0">
+                <LogOut className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </aside>
