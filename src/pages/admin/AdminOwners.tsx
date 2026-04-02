@@ -55,7 +55,7 @@ export default function AdminOwners() {
 
     const [{ data: profiles }, { data: properties }, { data: bookings }, { data: agreements }] = await Promise.all([
       supabase.from('profiles').select('*').in('id', ownerIds),
-      supabase.from('properties').select('owner_id, id'),
+      supabase.from('listings').select('owner_id, id'),
       supabase.from('bookings').select('owner_id, owner_payout').neq('status', 'cancelled'),
       supabase.from('agreements').select('owner_id, status'),
     ]);
@@ -77,7 +77,7 @@ export default function AdminOwners() {
     setDrawerOwner(owner);
     setTab('info');
     const [{ data: props }, { data: agrs }, { data: bks }] = await Promise.all([
-      supabase.from('properties').select('*').eq('owner_id', owner.id),
+      supabase.from('listings').select('*').eq('owner_id', owner.id),
       supabase.from('agreements').select('*').eq('owner_id', owner.id).order('created_at', { ascending: false }),
       supabase.from('bookings').select('*').eq('owner_id', owner.id).order('check_in', { ascending: false }).limit(20),
     ]);
@@ -239,12 +239,12 @@ export default function AdminOwners() {
                     ) : ownerProperties.map(p => (
                       <Card key={p.id} className="border-border/40 bg-card/60">
                         <CardContent className="py-3 px-4">
-                          <p className="text-sm font-medium text-foreground">{p.title}</p>
+                          <p className="text-sm font-medium text-foreground">{p.name}</p>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{p.region || p.address}</span>
-                            {p.case_number && <span className="text-[10px] text-muted-foreground font-mono">{p.case_number}</span>}
+                            {p.slug && <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>}
                           </div>
-                          <StatusChip label={p.status === 'published' ? 'Live' : p.status} variant={p.status === 'published' ? 'success' : 'muted'} dot className="mt-2" />
+                          <StatusChip label={p.is_active ? 'Live' : 'Inaktiv'} variant={p.is_active ? 'success' : 'muted'} dot className="mt-2" />
                         </CardContent>
                       </Card>
                     ))
