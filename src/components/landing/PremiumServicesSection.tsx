@@ -405,7 +405,7 @@ const services: Service[] = [
     short: 'Din bolig skal ikke bare online — den skal præsenteres stærkt og tiltrække de rigtige gæster.',
     long: 'Vi sørger for, at dit sommerhus præsenterer sig fra sin allerbedste side med professionelt indhold, visuelt flot opsætning og skarp tekst. Dertil arbejder vi aktivt med målrettet markedsføring, så boligen ikke blot er til stede på de rigtige kanaler, men også bliver valgt af de rigtige gæster. Målet er at øge synlighed, styrke præsentationen og skabe flere relevante bookinger.',
     expandLabel: 'Flere relevante bookinger',
-    visual: MarketingVisual,
+    image: marketingImg,
   },
   // 12. Moderne administration
   {
