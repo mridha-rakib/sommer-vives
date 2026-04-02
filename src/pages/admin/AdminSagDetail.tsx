@@ -478,57 +478,7 @@ export default function AdminSagDetail() {
           </div>
         )}
 
-        {tab === 'listing' && (
-          <div className="space-y-4">
-            <SectionCard title="Indhold" icon={FileText}>
-              <div className="space-y-4">
-                <div><p className="text-xs text-muted-foreground mb-1">Tagline</p><p className="text-sm text-foreground">{listing.tagline || <span className="text-muted-foreground/50 italic">Ikke udfyldt</span>}</p></div>
-                <Separator className="bg-border/30" />
-                <div><p className="text-xs text-muted-foreground mb-1">Kort beskrivelse</p><p className="text-sm text-foreground whitespace-pre-wrap">{listing.description || <span className="text-muted-foreground/50 italic">Ikke udfyldt</span>}</p></div>
-                <Separator className="bg-border/30" />
-                <div><p className="text-xs text-muted-foreground mb-1">Lang beskrivelse</p><p className="text-sm text-foreground whitespace-pre-wrap line-clamp-6">{listing.long_description || <span className="text-muted-foreground/50 italic">Ikke udfyldt</span>}</p></div>
-              </div>
-            </SectionCard>
-
-            <SectionCard title="Billeder" icon={Image}>
-              {listing.images?.length > 0 ? (
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                  {listing.images.map((img: string, i: number) => (
-                    <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted/30">
-                      <img src={img} alt="" className="w-full h-full object-cover" />
-                    </div>
-                  ))}
-                </div>
-              ) : <p className="text-xs text-muted-foreground/50 italic">Ingen billeder uploadet</p>}
-            </SectionCard>
-
-            <SectionCard title="Faciliteter" icon={Wifi}>
-              {listing.amenities?.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {listing.amenities.map((a: string) => (
-                    <span key={a} className="px-2.5 py-1 rounded-lg bg-muted/20 border border-border/30 text-xs text-foreground">{a}</span>
-                  ))}
-                </div>
-              ) : <p className="text-xs text-muted-foreground/50 italic">Ingen faciliteter</p>}
-            </SectionCard>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <SectionCard title="Highlights" icon={Tag}>
-                {listing.highlights?.length > 0 ? (
-                  <ul className="space-y-1.5">
-                    {listing.highlights.map((h: string, i: number) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-foreground"><CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />{h}</li>
-                    ))}
-                  </ul>
-                ) : <p className="text-xs text-muted-foreground/50 italic">Ingen highlights</p>}
-              </SectionCard>
-
-              <SectionCard title="Husregler" icon={AlertCircle}>
-                <p className="text-sm text-foreground whitespace-pre-wrap">{listing.house_rules || <span className="text-muted-foreground/50 italic">Ikke udfyldt</span>}</p>
-              </SectionCard>
-            </div>
-          </div>
-        )}
+        {tab === 'listing' && <InlineListingEditor listing={listing} onSaved={(updated) => setListing({ ...listing, ...updated })} />}
 
         {tab === 'kanaler' && (
           <div className="space-y-4">
