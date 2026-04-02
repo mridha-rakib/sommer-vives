@@ -38,6 +38,7 @@ export function Header() {
     { name: t('nav.howItWorks'), href: '/#saadan-virker-det' },
     { name: t('nav.listings'), href: '/listings' },
     { name: t('nav.pricing'), href: '/#priser' },
+    { name: t('nav.faq'), href: '/#faq' },
     { name: t('nav.about'), href: '/about' },
   ];
 
