@@ -58,6 +58,7 @@ import AdminCrmGaester from "./pages/admin/AdminCrmGaester";
 import AdminCrmArkiv from "./pages/admin/AdminCrmArkiv";
 import AdminModtagelse from "./pages/admin/AdminModtagelse";
 import AdminSager from "./pages/admin/AdminSager";
+import AdminSagDetail from "./pages/admin/AdminSagDetail";
 import AdminSagerKalender from "./pages/admin/AdminSagerKalender";
 import AdminSagerTilkoeb from "./pages/admin/AdminSagerTilkoeb";
 import AdminSagerKanaler from "./pages/admin/AdminSagerKanaler";
