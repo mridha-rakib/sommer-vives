@@ -1082,7 +1082,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                         size="sm"
                         className="flex-1 text-[10px] h-7"
                         onClick={() => {
-                          setChannelDetailOpen(ch.key);
+                          setChannelDialogOpen(ch.key);
                         }}
                       >
                         Se mangler
@@ -1103,16 +1103,16 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           </div>
 
           {/* Channel detail dialog */}
-          <Dialog open={!!channelDetailOpen} onOpenChange={() => setChannelDetailOpen(null)}>
+          <Dialog open={!!channelDialogOpen} onOpenChange={() => setChannelDialogOpen(null)}>
             <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5 text-primary" />
-                  {channelDetailOpen === 'airbnb' ? 'Airbnb' : channelDetailOpen === 'booking' ? 'Booking.com' : 'Vrbo'} — Detaljer
+                  {channelDialogOpen === 'airbnb' ? 'Airbnb' : channelDialogOpen === 'booking' ? 'Booking.com' : 'Vrbo'} — Detaljer
                 </DialogTitle>
               </DialogHeader>
-              {channelDetailOpen && (() => {
-                const ch = channelDetailOpen as 'airbnb' | 'booking' | 'vrbo';
+              {channelDialogOpen && (() => {
+                const ch = channelDialogOpen as 'airbnb' | 'booking' | 'vrbo';
                 const title = (listing as any)[`channel_${ch}_title`] as string | null;
                 const desc = (listing as any)[`channel_${ch}_description`] as string | null;
                 const ready = (listing as any)[`channel_${ch}_ready`] as boolean | null;
@@ -1182,13 +1182,13 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                     <div className="flex gap-2 pt-2">
                       <Button
                         className="flex-1 gap-1.5"
-                        onClick={() => { handlePrepareChannel(ch); setChannelDetailOpen(null); }}
+                        onClick={() => { handlePrepareChannel(ch); setChannelDialogOpen(null); }}
                       >
-                        <Sparkles className="h-4 w-4" /> Forbered {channelDetailOpen === 'airbnb' ? 'Airbnb' : channelDetailOpen === 'booking' ? 'Booking.com' : 'Vrbo'}
+                        <Sparkles className="h-4 w-4" /> Forbered {channelDialogOpen === 'airbnb' ? 'Airbnb' : channelDialogOpen === 'booking' ? 'Booking.com' : 'Vrbo'}
                       </Button>
                       <Button
                         variant={ready ? 'secondary' : 'outline'}
-                        onClick={() => { update(`channel_${ch}_ready` as any, !ready); setChannelDetailOpen(null); setIsDirty(true); }}
+                        onClick={() => { update(`channel_${ch}_ready` as any, !ready); setChannelDialogOpen(null); setIsDirty(true); }}
                       >
                         {ready ? '✓ Klar' : 'Markér klar'}
                       </Button>
