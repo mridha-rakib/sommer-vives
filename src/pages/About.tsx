@@ -101,9 +101,9 @@ function FounderVideoSection() {
         <div className="max-w-[820px] mx-auto">
           {/* Header */}
           <motion.div {...reveal(isInView)} className="text-center mb-8">
-            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød Emil</span>
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Vores historie</span>
             <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em]">
-              Mennesket bag
+              Folkene bag
               <span className="text-accent italic font-normal ml-2">SommerVibes</span>
             </h2>
           </motion.div>
@@ -136,13 +136,13 @@ function FounderVideoSection() {
           {/* Text below video */}
           <motion.div {...reveal(isInView, 0.2)} className="mt-8 max-w-[580px] mx-auto text-center">
             <p className="text-muted-foreground/80 leading-[1.8] mb-5 text-[14.5px]">
-              Da Emil selv blev sommerhus-ejer, oplevede han det samme som mange andre — et bureau, der føltes distanceret, ugennemsigtigt og upersonligt. I stedet for at acceptere det, byggede han SommerVibes.
+              Vi startede SommerVibes, fordi vi selv oplevede det som mange husejere gør — et bureau, der føltes distanceret, ugennemsigtigt og upersonligt. Så vi byggede det bureau, vi selv savnede.
             </p>
             <div className="inline-block border-l-[1.5px] border-accent/20 pl-5 py-1 text-left">
               <p className="text-primary/70 font-display text-[0.95rem] italic leading-[1.7]">
-                "Jeg ville skabe det bureau, jeg selv savnede som husejer."
+                "Vi ville skabe det bureau, vi selv savnede som husejere."
               </p>
-              <p className="text-accent/40 text-[10px] mt-2 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann</p>
+              <p className="text-accent/40 text-[10px] mt-2 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann, Grundlægger</p>
             </div>
           </motion.div>
         </div>
@@ -167,14 +167,14 @@ function FounderFactsSection() {
           </motion.div>
 
           <motion.div {...reveal(isInView, 0.12)} className="lg:col-span-7">
-            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød grundlæggeren</span>
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Vores grundlægger</span>
             <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-1.5">
               Emil Weng Klockmann
             </h2>
             <p className="text-accent/55 text-[13px] font-medium tracking-wide mb-6">Grundlægger & Udlejningschef</p>
 
             <p className="text-muted-foreground/80 leading-[1.8] mb-7 text-[14.5px]">
-              Uddannet ejendomsmægler og selv sommerhus-ejer. Emil grundlagde SommerVibes med én ambition: at give husejere en bedre, mere personlig og mere gennemsigtig oplevelse.
+              Uddannet ejendomsmægler og selv sommerhus-ejer. Vi grundlagde SommerVibes med én ambition: at give husejere en bedre, mere personlig og mere gennemsigtig oplevelse.
             </p>
 
             <div className="space-y-2.5 mb-8">
@@ -191,12 +191,12 @@ function FounderFactsSection() {
             <div className="flex flex-wrap gap-2.5">
               <a href="tel:+4512345678">
                 <Button variant="outline" size="sm" className="gap-2 text-[12.5px] border-border/30 hover:border-accent/20 hover:bg-accent/[0.04] transition-all duration-300">
-                  <Phone className="w-3.5 h-3.5 text-accent/55" /> Ring til Emil
+                  <Phone className="w-3.5 h-3.5 text-accent/55" /> Ring til os
                 </Button>
               </a>
               <a href="mailto:emil@sommervibes.dk">
                 <Button variant="outline" size="sm" className="gap-2 text-[12.5px] border-border/30 hover:border-accent/20 hover:bg-accent/[0.04] transition-all duration-300">
-                  <Mail className="w-3.5 h-3.5 text-accent/55" /> Skriv til Emil
+                  <Mail className="w-3.5 h-3.5 text-accent/55" /> Skriv til os
                 </Button>
               </a>
             </div>
