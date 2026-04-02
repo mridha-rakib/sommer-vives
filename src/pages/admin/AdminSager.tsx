@@ -229,8 +229,27 @@ export default function AdminSager() {
                       <td className="px-3 py-2 text-[10px] text-muted-foreground/60 whitespace-nowrap">
                         {format(new Date(l.updated_at), 'dd-MM-yyyy', { locale: da })}
                       </td>
-                      <td className="px-3 py-2">
-                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/25" />
+                      <td className="px-3 py-2" onClick={e => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg">
+                              <MoreHorizontal className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem onClick={() => navigate(`/admin/sager/${l.id}`)}>Åbn sag</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={async () => {
+                              if (!confirm(`Slet sag "${l.name}"?`)) return;
+                              const { error } = await supabase.from('listings').delete().eq('id', l.id);
+                              if (error) { toast.error('Kunne ikke slette: ' + error.message); return; }
+                              toast.success('Sag slettet');
+                              setListings(prev => prev.filter(x => x.id !== l.id));
+                            }}>
+                              <Trash2 className="h-3 w-3 mr-2" />Slet
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   );
