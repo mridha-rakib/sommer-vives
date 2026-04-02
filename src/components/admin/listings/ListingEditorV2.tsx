@@ -1,4 +1,34 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, type ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+
+// UI
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+// Icons
+import {
+  ArrowLeft, Loader2, Save, X, Plus, Home, ImageIcon, DollarSign, CheckCircle2, Globe,
+  Star, AlertTriangle, Info, ClipboardCheck, Rocket, Sparkles, Zap,
+  CircleDot, Circle, Check, Languages, Wand2, FileText,
+  Eye, Settings, Tag, Puzzle, FileCheck, StickyNote, Calendar as CalendarIcon, ShoppingBag,
+  Users, Briefcase, Heart, Bed, Utensils, MapPin, Play, Phone, Camera, Layers,
+  ChevronRight, Monitor, PanelRightClose
+} from 'lucide-react';
+
+// Studio modules
+import { StudioContentBlock, StudioField, StudioTextArea, StudioInput, StudioBulletEditor, StudioAIButton } from './studio/StudioContentBlock';
+import { StudioStepNav, type StudioStep } from './studio/StudioStepNav';
+import { StudioPreview } from './studio/StudioPreview';
+
+// Existing components
 import { ListingCalendarPricing } from './ListingCalendarPricing';
 import { ChannelDataSection } from './ChannelDataSection';
 import { ListingActorsTab } from './ListingActorsTab';
@@ -7,26 +37,6 @@ import { ListingDocumentsTab } from './ListingDocumentsTab';
 import { ListingImageUpload, SortableImageGallery, type BedroomImage, type ImageLabel } from './ListingImageUpload';
 import { AdminFacilities, type FacilityCategory } from './AdminFacilities';
 import { AdminSectionEditor, type ExtraSection } from './AdminSectionEditor';
-import { StickyActionBar } from './StickyActionBar';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  ArrowLeft, Loader2, Save, X, Plus, Home, ImageIcon, DollarSign, CheckCircle2, Globe,
-  Star, AlertTriangle, Info, ClipboardCheck, Rocket, Sparkles, Zap,
-  CircleDot, Circle, Check, Languages, Wand2, FileText,
-  Link2, RefreshCw, WifiOff, Wifi, Clock, AlertCircle,
-  Eye, Settings, Tag, Puzzle, FileCheck, StickyNote, Calendar as CalendarIcon, ShoppingBag,
-  Users, Briefcase
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 // ── Types ──
 interface ListingFull {
@@ -60,37 +70,7 @@ interface ListingFull {
 
 interface Props { listingId: string; onBack: () => void; }
 
-// ── UI Helpers ──
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-5 md:p-6 space-y-4">
-      <div>
-        <h3 className="font-display text-base font-semibold text-foreground">{title}</h3>
-        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-sm font-medium text-foreground">{label}</Label>
-      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
-      {children}
-    </div>
-  );
-}
-
 // ── Constants ──
-const AMENITIES_PRESETS = [
-  'WiFi', 'Køkken', 'Parkering', 'EV-lader', 'Sauna', 'Spa / Jacuzzi',
-  'Vaskemaskine', 'Tørretumbler', 'Opvaskemaskine', 'Brændeovn', 'Terrasse',
-  'Havudsigt', 'Grill', 'Trampolin', 'Legeplads', 'Cykel-udlån',
-  'Kajak', 'Pool', 'Husdjur tilladt', 'Røgfrit', 'TV', 'Aircondition',
-];
-
 const PROPERTY_TYPES = [
   { value: 'summerhouse', label: 'Sommerhus' },
   { value: 'villa', label: 'Villa' },
@@ -104,7 +84,23 @@ const STATUS_OPTIONS = [
   { value: 'preparing', label: 'Under klargøring', icon: CircleDot, color: 'text-amber-500' },
   { value: 'ready', label: 'Klar', icon: Check, color: 'text-emerald-500' },
   { value: 'live', label: 'Live', icon: Zap, color: 'text-primary' },
-  { value: 'paused', label: 'Pauset', icon: Circle, color: 'text-orange-500' },
+  { value: 'paused', label: 'Pauset', icon: Circle, color: 'text-amber-500' },
+];
+
+const STUDIO_STEPS: StudioStep[] = [
+  { id: 'setup', label: 'Grundopsætning', icon: Settings, description: 'Kernedata og boligtype' },
+  { id: 'studio', label: 'Listing Studio', icon: Sparkles, description: 'Byg din SommerVibes-præsentation' },
+  { id: 'media', label: 'Medier', icon: Camera, description: 'Billeder, video og plantegninger' },
+  { id: 'rooms', label: 'Sovepladser & faciliteter', icon: Bed, description: 'Soveværelser og komfort' },
+  { id: 'booking', label: 'Bookingoplevelse', icon: CalendarIcon, description: 'Priser, check-in og regler' },
+  { id: 'contact', label: 'Kontakt & videoguides', icon: Play, description: 'Kontakt og guidemateriale' },
+  { id: 'airbnb', label: 'Airbnb', icon: Home, description: 'Airbnb-kanal data' },
+  { id: 'bookingcom', label: 'Booking.com', icon: Globe, description: 'Booking.com-kanal data' },
+  { id: 'vrbo', label: 'Vrbo', icon: MapPin, description: 'Vrbo-kanal data' },
+  { id: 'publish', label: 'Klargøring & publicering', icon: Rocket, description: 'Readiness og go-live' },
+  { id: 'actors', label: 'Aktører', icon: Users, description: 'Ejer og kontakter' },
+  { id: 'staff', label: 'Medarbejdere', icon: Briefcase, description: 'Tildelte medarbejdere' },
+  { id: 'documents', label: 'Dokumenter', icon: FileText, description: 'Sagens dokumenter' },
 ];
 
 // ── Readiness ──
@@ -126,36 +122,36 @@ function calcReadiness(f: Partial<ListingFull>) {
 type ChannelReadinessResult = { score: number; missing: { field: string; tab: string; action: string }[]; passed: string[] };
 function calcChannelReadiness(f: Partial<ListingFull>, channel: 'airbnb' | 'booking' | 'vrbo'): ChannelReadinessResult {
   const shared: [string, boolean, string, string][] = [
-    ['Hero-billede', !!f.hero_image, 'billeder', 'Upload et hero-billede'],
-    ['Min. 3 galleri-billeder', (f.images?.length || 0) >= 3, 'billeder', 'Tilføj flere billeder'],
-    ['Adresse', !!f.address, 'grunddata', 'Udfyld adressen'],
-    ['Gæstekapacitet', (f.max_guests || 0) > 0, 'grunddata', 'Angiv max gæster'],
-    ['Soveværelser', (f.bedrooms || 0) > 0, 'grunddata', 'Angiv antal soveværelser'],
-    ['Basispris', (f.base_price_per_night || 0) > 0, 'priser', 'Sæt en basispris'],
-    ['Check-in tid', !!f.check_in_time, 'grunddata', 'Angiv check-in tid'],
-    ['Check-out tid', !!f.check_out_time, 'grunddata', 'Angiv check-out tid'],
-    ['Faciliteter (3+)', (f.amenities?.length || 0) >= 3, 'faciliteter', 'Tilføj faciliteter'],
+    ['Hero-billede', !!f.hero_image, 'media', 'Upload et hero-billede'],
+    ['Min. 3 galleri-billeder', (f.images?.length || 0) >= 3, 'media', 'Tilføj flere billeder'],
+    ['Adresse', !!f.address, 'setup', 'Udfyld adressen'],
+    ['Gæstekapacitet', (f.max_guests || 0) > 0, 'setup', 'Angiv max gæster'],
+    ['Soveværelser', (f.bedrooms || 0) > 0, 'rooms', 'Angiv antal soveværelser'],
+    ['Basispris', (f.base_price_per_night || 0) > 0, 'booking', 'Sæt en basispris'],
+    ['Check-in tid', !!f.check_in_time, 'booking', 'Angiv check-in tid'],
+    ['Check-out tid', !!f.check_out_time, 'booking', 'Angiv check-out tid'],
+    ['Faciliteter (3+)', (f.amenities?.length || 0) >= 3, 'rooms', 'Tilføj faciliteter'],
   ];
   const channelChecks: Record<string, [string, boolean, string, string][]> = {
     airbnb: [
-      ['Airbnb-titel', !!(f.channel_airbnb_title && f.channel_airbnb_title.length >= 5), 'kanaler', 'Skriv en Airbnb-titel'],
-      ['Airbnb-beskrivelse', !!(f.channel_airbnb_description && f.channel_airbnb_description.length >= 20), 'kanaler', 'Skriv en Airbnb-beskrivelse'],
-      ['Airbnb-husregler', !!(f.channel_airbnb_house_rules && f.channel_airbnb_house_rules.length > 5), 'kanaler', 'Tilføj husregler'],
-      ['Airbnb-highlights', (f.channel_airbnb_highlights?.length || 0) >= 2, 'kanaler', 'Tilføj highlights'],
-      ['Airbnb check-in noter', !!(f.channel_airbnb_checkin_notes && f.channel_airbnb_checkin_notes.length > 5), 'kanaler', 'Beskriv check-in'],
+      ['Airbnb-titel', !!(f.channel_airbnb_title && f.channel_airbnb_title.length >= 5), 'airbnb', 'Skriv en Airbnb-titel'],
+      ['Airbnb-beskrivelse', !!(f.channel_airbnb_description && f.channel_airbnb_description.length >= 20), 'airbnb', 'Skriv en Airbnb-beskrivelse'],
+      ['Airbnb-husregler', !!(f.channel_airbnb_house_rules && f.channel_airbnb_house_rules.length > 5), 'airbnb', 'Tilføj husregler'],
+      ['Airbnb-highlights', (f.channel_airbnb_highlights?.length || 0) >= 2, 'airbnb', 'Tilføj highlights'],
+      ['Airbnb check-in noter', !!(f.channel_airbnb_checkin_notes && f.channel_airbnb_checkin_notes.length > 5), 'airbnb', 'Beskriv check-in'],
     ],
     booking: [
-      ['Booking.com-titel', !!(f.channel_booking_title && f.channel_booking_title.length >= 5), 'kanaler', 'Skriv en titel'],
-      ['Booking.com-beskrivelse', !!(f.channel_booking_description && f.channel_booking_description.length >= 20), 'kanaler', 'Skriv en beskrivelse'],
-      ['Værelseopsætning', !!(f.channel_booking_room_setup && f.channel_booking_room_setup.length > 3), 'kanaler', 'Beskriv værelserne'],
-      ['Politikker', !!(f.channel_booking_policies && f.channel_booking_policies.length > 5), 'kanaler', 'Tilføj politik'],
-      ['Check-in/out info', !!(f.channel_booking_checkin_checkout && f.channel_booking_checkin_checkout.length > 5), 'kanaler', 'Udfyld check-in/out'],
+      ['Booking.com-titel', !!(f.channel_booking_title && f.channel_booking_title.length >= 5), 'bookingcom', 'Skriv en titel'],
+      ['Booking.com-beskrivelse', !!(f.channel_booking_description && f.channel_booking_description.length >= 20), 'bookingcom', 'Skriv en beskrivelse'],
+      ['Værelseopsætning', !!(f.channel_booking_room_setup && f.channel_booking_room_setup.length > 3), 'bookingcom', 'Beskriv værelserne'],
+      ['Politikker', !!(f.channel_booking_policies && f.channel_booking_policies.length > 5), 'bookingcom', 'Tilføj politik'],
+      ['Check-in/out info', !!(f.channel_booking_checkin_checkout && f.channel_booking_checkin_checkout.length > 5), 'bookingcom', 'Udfyld check-in/out'],
     ],
     vrbo: [
-      ['Vrbo-titel', !!(f.channel_vrbo_title && f.channel_vrbo_title.length >= 5), 'kanaler', 'Skriv en titel'],
-      ['Vrbo-beskrivelse', !!(f.channel_vrbo_description && f.channel_vrbo_description.length >= 20), 'kanaler', 'Skriv en beskrivelse'],
-      ['Vrbo-highlights', (f.channel_vrbo_highlights?.length || 0) >= 2, 'kanaler', 'Tilføj highlights'],
-      ['Vrbo-regler', !!(f.channel_vrbo_rules && f.channel_vrbo_rules.length > 5), 'kanaler', 'Tilføj regler'],
+      ['Vrbo-titel', !!(f.channel_vrbo_title && f.channel_vrbo_title.length >= 5), 'vrbo', 'Skriv en titel'],
+      ['Vrbo-beskrivelse', !!(f.channel_vrbo_description && f.channel_vrbo_description.length >= 20), 'vrbo', 'Skriv en beskrivelse'],
+      ['Vrbo-highlights', (f.channel_vrbo_highlights?.length || 0) >= 2, 'vrbo', 'Tilføj highlights'],
+      ['Vrbo-regler', !!(f.channel_vrbo_rules && f.channel_vrbo_rules.length > 5), 'vrbo', 'Tilføj regler'],
     ],
   };
   const all = [...shared, ...channelChecks[channel]];
@@ -182,56 +178,18 @@ function ReadinessRing({ score, size = 48, strokeWidth = 3 }: { score: number; s
   );
 }
 
-// ── Top-level tabs ──
-const TOP_TABS = [
-  { value: 'overblik', label: 'Overblik', icon: Eye },
-  { value: 'listing', label: 'Listing', icon: Home },
-  { value: 'integrationer', label: 'Integrationer', icon: Puzzle },
-  { value: 'kanaler', label: 'Kanaler', icon: Globe },
-  { value: 'kalender', label: 'Kalender', icon: CalendarIcon },
-  { value: 'priser', label: 'Priser', icon: DollarSign },
-  { value: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
-  { value: 'aktoerer', label: 'Aktører', icon: Users },
-  { value: 'medarbejdere', label: 'Medarbejdere', icon: Briefcase },
-  { value: 'dokumenter', label: 'Dokumenter', icon: FileText },
-  { value: 'opgaver', label: 'Opgaver', icon: ClipboardCheck },
-  { value: 'noter', label: 'Noter', icon: StickyNote },
-];
-
-// Sub-tabs for the "Listing" top tab
-const LISTING_SUB_TABS = [
-  { value: 'grunddata', label: 'Grunddata', icon: Settings },
-  { value: 'beskrivelse', label: 'Beskrivelse', icon: FileText },
-  { value: 'billeder', label: 'Billeder', icon: ImageIcon },
-  { value: 'faciliteter', label: 'Faciliteter', icon: Tag },
-  { value: 'sektioner', label: 'Sektioner', icon: Puzzle },
-  { value: 'priser_sub', label: 'Priser', icon: DollarSign },
-  { value: 'klargoering', label: 'Klargøring', icon: FileCheck },
-];
-
-// ── Main Component ──
+// ══════════════════════════════════════════
+// MAIN COMPONENT
+// ══════════════════════════════════════════
 export function ListingEditorV2({ listingId, onBack }: Props) {
   const { toast } = useToast();
   const [listing, setListing] = useState<ListingFull | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-  const [newAmenity, setNewAmenity] = useState('');
-  const [newHighlight, setNewHighlight] = useState('');
-  const [topTab, setTopTab] = useState('listing');
-  const [subTab, setSubTab] = useState('grunddata');
-  const tabScrollRef = useRef<HTMLDivElement>(null);
-  const [showTabScrollRight, setShowTabScrollRight] = useState(false);
-
-  useEffect(() => {
-    const el = tabScrollRef.current;
-    if (!el) return;
-    const check = () => setShowTabScrollRight(el.scrollWidth - el.scrollLeft - el.clientWidth > 10);
-    check();
-    el.addEventListener('scroll', check);
-    window.addEventListener('resize', check);
-    return () => { el.removeEventListener('scroll', check); window.removeEventListener('resize', check); };
-  }, [listing]);
+  const [currentStep, setCurrentStep] = useState('setup');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [sideNavCollapsed, setSideNavCollapsed] = useState(false);
 
   // AI states
   const [aiImproving, setAiImproving] = useState(false);
@@ -267,6 +225,21 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
     if (!listing) return { airbnb: { score: 0, missing: [], passed: [] }, booking: { score: 0, missing: [], passed: [] }, vrbo: { score: 0, missing: [], passed: [] } };
     return { airbnb: calcChannelReadiness(listing, 'airbnb'), booking: calcChannelReadiness(listing, 'booking'), vrbo: calcChannelReadiness(listing, 'vrbo') };
   }, [listing]);
+
+  const completedSteps = useMemo(() => {
+    if (!listing) return [];
+    const completed: string[] = [];
+    if (listing.name && listing.address && listing.region) completed.push('setup');
+    if (listing.description && listing.long_description) completed.push('studio');
+    if ((listing.images?.length || 0) >= 3 && listing.hero_image) completed.push('media');
+    if ((listing.amenities?.length || 0) >= 3 && (listing.bedrooms || 0) > 0) completed.push('rooms');
+    if (listing.base_price_per_night > 0 && listing.check_in_time) completed.push('booking');
+    if (channelReadiness.airbnb.score >= 80) completed.push('airbnb');
+    if (channelReadiness.booking.score >= 80) completed.push('bookingcom');
+    if (channelReadiness.vrbo.score >= 80) completed.push('vrbo');
+    if (readiness.score >= 90) completed.push('publish');
+    return completed;
+  }, [listing, channelReadiness, readiness]);
 
   const handleSaveInner = async () => {
     if (!listing) return;
@@ -389,560 +362,537 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   };
 
   if (loading || !listing) {
-    return <div className="flex items-center justify-center py-24 text-muted-foreground gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Henter listing...</div>;
+    return (
+      <div className="flex items-center justify-center py-24 gap-3">
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        <span className="text-sm text-muted-foreground font-medium">Indlæser Listing Studio...</span>
+      </div>
+    );
   }
 
   const currentStatus = STATUS_OPTIONS.find(s => s.value === (listing.internal_status || 'draft')) || STATUS_OPTIONS[0];
+  const stepInfo = STUDIO_STEPS.find(s => s.id === currentStep);
 
   return (
-    <div className="space-y-0 pb-24">
-      {/* ── HEADER ── */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9"><ArrowLeft className="h-5 w-5" /></Button>
-        <div className="flex-1 min-w-0">
-          <h2 className="font-display text-xl font-bold text-foreground truncate">{listing.name}</h2>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-xs text-muted-foreground">{listing.slug}</span>
-            <span className="text-muted-foreground/30">·</span>
-            <div className="flex items-center gap-1">
-              <div className={`h-1.5 rounded-full ${readiness.score >= 80 ? 'bg-emerald-500' : readiness.score >= 50 ? 'bg-amber-400' : 'bg-destructive'}`} style={{ width: `${Math.max(readiness.score * 0.4, 6)}px` }} />
-              <span className="text-xs font-medium text-muted-foreground">{readiness.score}%</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={listing.internal_status || 'draft'} onValueChange={v => update('internal_status', v)}>
-            <SelectTrigger className="w-[160px] h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map(s => (
-                <SelectItem key={s.value} value={s.value}>
-                  <span className="flex items-center gap-1.5"><s.icon className={`h-3 w-3 ${s.color}`} />{s.label}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button size="sm" onClick={handleSave} disabled={saving || !isDirty} className="gap-1.5">
-            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Gem
-          </Button>
-        </div>
-      </div>
-
-      {/* ── TOP TABS ── */}
-      <div className="border-b border-border -mx-5 md:-mx-8 px-5 md:px-8 relative">
-        <div className="overflow-x-auto scrollbar-hide" ref={tabScrollRef}>
-          <div className="flex gap-0 min-w-max">
-            {TOP_TABS.map(tab => (
-              <button key={tab.value} onClick={() => setTopTab(tab.value)}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium border-b-2 transition-colors whitespace-nowrap',
-                  topTab === tab.value
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                )}>
-                <tab.icon className="h-3.5 w-3.5" /> {tab.label}
+    <div className="flex h-[calc(100vh-7rem)] -mt-5 md:-mt-8 -mx-5 md:-mx-8">
+      {/* ── Left: Step Navigation ── */}
+      <div className={cn(
+        'border-r border-border/30 bg-card/30 backdrop-blur-sm shrink-0 flex flex-col transition-all duration-300',
+        sideNavCollapsed ? 'w-[52px]' : 'w-[220px]'
+      )}>
+        {/* Studio branding header */}
+        <div className="px-3 py-4 border-b border-border/30">
+          {!sideNavCollapsed ? (
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-gold-dark flex items-center justify-center">
+                <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-bold text-foreground uppercase tracking-wider">Listing Studio</p>
+                <p className="text-[10px] text-primary font-medium">SommerVibes</p>
+              </div>
+              <button onClick={() => setSideNavCollapsed(true)} className="p-1 rounded-lg hover:bg-muted/30">
+                <PanelRightClose className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <button onClick={() => setSideNavCollapsed(false)} className="mx-auto flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-gold-dark">
+              <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
+            </button>
+          )}
         </div>
-        {showTabScrollRight && (
-          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-card to-transparent pointer-events-none flex items-center justify-end pr-1">
-            <div className="w-5 h-5 rounded-full bg-muted/80 flex items-center justify-center pointer-events-auto cursor-pointer" onClick={() => tabScrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' })}>
-              <ArrowLeft className="h-3 w-3 rotate-180 text-foreground" />
+
+        {/* Steps */}
+        <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-hide">
+          {sideNavCollapsed ? (
+            <div className="space-y-1">
+              {STUDIO_STEPS.map((step) => {
+                const isActive = step.id === currentStep;
+                const isCompleted = completedSteps.includes(step.id);
+                return (
+                  <button key={step.id} onClick={() => setCurrentStep(step.id)} title={step.label}
+                    className={cn(
+                      'flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all',
+                      isActive ? 'bg-primary/15 text-primary' : isCompleted ? 'text-primary/60' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                    )}>
+                    {isCompleted && !isActive ? <Check className="h-3.5 w-3.5" /> : <step.icon className="h-3.5 w-3.5" />}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <StudioStepNav steps={STUDIO_STEPS} currentStep={currentStep} onStepChange={setCurrentStep} completedSteps={completedSteps} />
+          )}
+        </div>
+
+        {/* Readiness footer */}
+        {!sideNavCollapsed && (
+          <div className="p-3 border-t border-border/30">
+            <div className="flex items-center gap-2.5">
+              <ReadinessRing score={readiness.score} size={36} strokeWidth={2.5} />
+              <div>
+                <p className="text-[10px] font-semibold text-foreground">{readiness.score}% klar</p>
+                <p className="text-[9px] text-muted-foreground">{readiness.missing.length} mangler</p>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* ── SUB TABS (only for Listing tab) ── */}
-      {topTab === 'listing' && (
-        <div className="flex items-center gap-1 mt-4 mb-6 overflow-x-auto scrollbar-hide">
-          {LISTING_SUB_TABS.map(tab => (
-            <button key={tab.value} onClick={() => setSubTab(tab.value)}
-              className={cn(
-                'flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium rounded-full border transition-all whitespace-nowrap',
-                subTab === tab.value
-                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                  : 'bg-transparent text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
-              )}>
-              <tab.icon className="h-3 w-3" /> {tab.label}
-            </button>
-          ))}
-          <span className="ml-auto text-[10px] text-muted-foreground/50 shrink-0">Auto-gem</span>
-        </div>
-      )}
-
-      {/* ═══════════════════════ LISTING TAB ═══════════════════════ */}
-      {topTab === 'listing' && (
-        <div className="space-y-6 mt-2">
-          {/* ── GRUNDDATA ── */}
-          {subTab === 'grunddata' && (
-            <div className="space-y-6">
-              <Section title="Grunddata" description="Kerneoplysninger om boligen">
-                <Field label="Titel" hint="Det navn gæsten ser">
-                  <Input value={listing.name} onChange={e => update('name', e.target.value)} />
-                </Field>
-                <Field label="Tagline">
-                  <Input value={listing.tagline || ''} onChange={e => update('tagline', e.target.value)} placeholder="Moderne sommerhus med havudsigt" />
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Boligtype">
-                    <Select value={listing.property_type || 'summerhouse'} onValueChange={v => update('property_type', v)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{PROPERTY_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
-                    </Select>
-                  </Field>
-                  <Field label="Region">
-                    <Input value={listing.region || ''} onChange={e => update('region', e.target.value)} placeholder="Nordsjælland" />
-                  </Field>
-                </div>
-                <Field label="Adresse">
-                  <Input value={listing.address || ''} onChange={e => update('address', e.target.value)} placeholder="Skovvej 12, 4573 Højby" />
-                </Field>
-                <Field label="By">
-                  <Input value={listing.city || ''} onChange={e => update('city' as any, e.target.value)} placeholder="Hornbæk" />
-                </Field>
-                <div className="grid grid-cols-3 gap-4">
-                  <Field label="Max gæster">
-                    <Input type="number" min={1} value={listing.max_guests} onChange={e => update('max_guests', parseInt(e.target.value) || 1)} />
-                  </Field>
-                  <Field label="Soveværelser">
-                    <Input type="number" min={0} value={listing.bedrooms || 0} onChange={e => update('bedrooms', parseInt(e.target.value) || 0)} />
-                  </Field>
-                  <Field label="Badeværelser">
-                    <Input type="number" min={0} value={listing.bathrooms || 0} onChange={e => update('bathrooms', parseInt(e.target.value) || 0)} />
-                  </Field>
-                </div>
-                <div className="flex items-center gap-3 pt-2">
-                  <Switch checked={listing.is_active} onCheckedChange={v => update('is_active', v)} />
-                  <Label className="text-sm">Aktiv</Label>
-                </div>
-              </Section>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <Section title="Check-in">
-                  <Field label="Check-in tid">
-                    <Input type="time" value={listing.check_in_time || '15:00'} onChange={e => update('check_in_time', e.target.value)} />
-                  </Field>
-                  <Field label="Check-in instruktioner">
-                    <Textarea value={listing.checkin_info || ''} onChange={e => update('checkin_info', e.target.value)} rows={3} placeholder="Instruktioner til check-in..." />
-                  </Field>
-                </Section>
-                <Section title="Check-out">
-                  <Field label="Check-out tid">
-                    <Input type="time" value={listing.check_out_time || '10:00'} onChange={e => update('check_out_time', e.target.value)} />
-                  </Field>
-                  <Field label="Check-out instruktioner">
-                    <Textarea value={listing.checkout_info || ''} onChange={e => update('checkout_info', e.target.value)} rows={3} placeholder="Instruktioner til check-out..." />
-                  </Field>
-                </Section>
-              </div>
-            </div>
-          )}
-
-          {/* ── BESKRIVELSE ── */}
-          {subTab === 'beskrivelse' && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="ghost" size="sm" onClick={() => handleAiAction('improve_title')} disabled={aiImproving} className="gap-1 text-xs h-7 text-primary/70 hover:text-primary">
-                  <Wand2 className="h-3 w-3" /> AI Titel
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleAiAction('improve_description')} disabled={aiImproving} className="gap-1 text-xs h-7 text-primary/70 hover:text-primary">
-                  <FileText className="h-3 w-3" /> AI Beskrivelse
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleAiAction('generate_highlights')} disabled={aiImproving} className="gap-1 text-xs h-7 text-primary/70 hover:text-primary">
-                  <Star className="h-3 w-3" /> AI Highlights
-                </Button>
-                <div className="w-px h-4 bg-border" />
-                <Button variant="ghost" size="sm" onClick={() => handleAiAction('translate_en')} disabled={aiImproving} className="gap-1 text-xs h-7 text-muted-foreground">
-                  <Languages className="h-3 w-3" /> EN
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleAiAction('translate_de')} disabled={aiImproving} className="gap-1 text-xs h-7 text-muted-foreground">
-                  <Languages className="h-3 w-3" /> DE
-                </Button>
-              </div>
-
-              <Section title="Kort beskrivelse" description="Vises i listing-kortet og søgeresultater">
-                <Textarea value={listing.description || ''} onChange={e => update('description', e.target.value)} rows={3} placeholder="En kort, fængende beskrivelse..." />
-              </Section>
-              <Section title="Lang beskrivelse" description="Detaljeret beskrivelse til listingsiden">
-                <Textarea value={listing.long_description || ''} onChange={e => update('long_description', e.target.value)} rows={6} placeholder="Beskriv boligen i detaljer..." />
-              </Section>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <Section title="Om boligen">
-                  <Textarea value={listing.about_property || ''} onChange={e => update('about_property', e.target.value)} rows={4} placeholder="Boligen er bygget i..." />
-                </Section>
-                <Section title="Om området">
-                  <Textarea value={listing.about_area || ''} onChange={e => update('about_area', e.target.value)} rows={4} placeholder="Området byder på..." />
-                </Section>
-              </div>
-              <Section title="Highlights" description="Fremhævede features for denne bolig">
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {(listing.highlights || []).map((h, i) => (
-                    <Badge key={i} variant="secondary" className="gap-1 text-xs">
-                      <Star className="h-3 w-3 text-amber-500" /> {h}
-                      <button onClick={() => update('highlights', (listing.highlights || []).filter((_, idx) => idx !== i))} className="ml-1 hover:text-destructive"><X className="h-3 w-3" /></button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input value={newHighlight} onChange={e => setNewHighlight(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (newHighlight.trim()) { update('highlights', [...(listing.highlights || []), newHighlight.trim()]); setNewHighlight(''); } } }}
-                    placeholder="F.eks. Havudsigt, Nyistandsat..." className="flex-1" />
-                  <Button variant="outline" size="sm" onClick={() => { if (newHighlight.trim()) { update('highlights', [...(listing.highlights || []), newHighlight.trim()]); setNewHighlight(''); } }}><Plus className="h-4 w-4" /></Button>
-                </div>
-              </Section>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <Section title="Husregler">
-                  <Textarea value={listing.house_rules || ''} onChange={e => update('house_rules', e.target.value)} rows={4} placeholder="Ingen rygning, ingen fester..." />
-                </Section>
-                <Section title="Praktisk info">
-                  <Textarea value={listing.practical_info || ''} onChange={e => update('practical_info', e.target.value)} rows={4} placeholder="WiFi-kode, parkering..." />
-                </Section>
-              </div>
-            </div>
-          )}
-
-          {/* ── BILLEDER ── */}
-          {subTab === 'billeder' && (
-            <div className="space-y-6">
-              <Section title="Upload billeder" description="Træk og slip eller klik for at uploade">
-                <ListingImageUpload
-                  listingSlug={listing.slug}
-                  onUploaded={url => update('images', [...(listing.images || []), url])}
-                />
-              </Section>
-              <Section title="Galleri" description="Sortér, tagge og administrer billeder">
-                <SortableImageGallery
-                  images={listing.images || []}
-                  heroImage={listing.hero_image || ''}
-                  bedroomImages={((listing as any).bedroom_images as BedroomImage[]) || []}
-                  imageLabels={((listing as any).image_labels as ImageLabel[]) || []}
-                  comboHeroImages={((listing as any).combo_hero_images as string[]) || []}
-                  onImagesChange={imgs => update('images', imgs)}
-                  onHeroChange={url => update('hero_image', url)}
-                  onBedroomImagesChange={bi => update('bedroom_images' as any, bi)}
-                  onImageLabelsChange={labels => update('image_labels' as any, labels)}
-                  onComboHeroToggle={url => {
-                    const current = ((listing as any).combo_hero_images as string[]) || [];
-                    const next = current.includes(url) ? current.filter(u => u !== url) : [...current, url];
-                    update('combo_hero_images' as any, next);
-                  }}
-                />
-              </Section>
-            </div>
-          )}
-
-          {/* ── FACILITETER ── */}
-          {subTab === 'faciliteter' && (
-            <AdminFacilities
-              facilities={((listing as any).facilities as FacilityCategory[]) || []}
-              onChange={f => update('facilities' as any, f)}
-            />
-          )}
-
-          {/* ── SEKTIONER ── */}
-          {subTab === 'sektioner' && (
-            <Section title="Ekstra sektioner" description="Tilføj ekstra indholdsblokke med billeder til din listing">
-              <AdminSectionEditor
-                sections={((listing as any).extra_sections as ExtraSection[]) || []}
-                onChange={s => update('extra_sections' as any, s)}
-                listingSlug={listing.slug}
-              />
-            </Section>
-          )}
-
-          {/* ── PRISER (sub) ── */}
-          {subTab === 'priser_sub' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <Section title="Grundpriser" description="Priser er i øre (100 = 1 DKK)">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label="Basispris pr. nat">
-                      <Input type="number" min={0} step={100} value={listing.base_price_per_night} onChange={e => update('base_price_per_night', parseInt(e.target.value) || 0)} />
-                    </Field>
-                    <Field label="Weekend-pris pr. nat">
-                      <Input type="number" min={0} step={100} value={listing.weekend_price_per_night || ''} onChange={e => update('weekend_price_per_night', parseInt(e.target.value) || null)} placeholder="Samme som basis" />
-                    </Field>
-                  </div>
-                  <Field label="Rengøringsgebyr">
-                    <Input type="number" min={0} step={100} value={listing.cleaning_fee || 0} onChange={e => update('cleaning_fee', parseInt(e.target.value) || 0)} />
-                  </Field>
-                  <Field label="Depositum">
-                    <Input type="number" min={0} step={100} value={listing.deposit || 0} onChange={e => update('deposit', parseInt(e.target.value) || 0)} />
-                  </Field>
-                </Section>
-                <Section title="Regler">
-                  <Field label="Minimum nætter">
-                    <Input type="number" min={1} value={listing.min_nights || 2} onChange={e => update('min_nights', parseInt(e.target.value) || 1)} />
-                  </Field>
-                  <Field label="m²">
-                    <Input type="number" min={0} value={listing.sqm || ''} onChange={e => update('sqm', parseInt(e.target.value) || null)} placeholder="120" />
-                  </Field>
-                </Section>
-              </div>
-            </div>
-          )}
-
-          {/* ── KLARGØRING ── */}
-          {subTab === 'klargoering' && (
-            <div className="space-y-6">
-              <Section title="Listing Readiness" description="Oversigt over hvad der mangler for at gå live">
-                <div className="flex items-center gap-4 mb-4">
-                  <ReadinessRing score={readiness.score} size={64} strokeWidth={4} />
-                  <div>
-                    <h4 className="font-semibold text-foreground">
-                      {readiness.score === 100 ? 'Alt er klar!' : readiness.score >= 80 ? 'Næsten klar!' : readiness.score >= 50 ? 'Godt på vej' : 'Mere data mangler'}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">{readiness.passed.length} af {readiness.passed.length + readiness.missing.length} felter udfyldt</p>
-                  </div>
-                </div>
-                {readiness.passed.length > 0 && (
-                  <div className="space-y-1 mb-4">
-                    <p className="text-xs font-semibold text-emerald-600">✓ Udfyldt</p>
-                    {readiness.passed.map(p => (
-                      <div key={p} className="flex items-center gap-2 text-xs text-muted-foreground py-0.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> {p}</div>
-                    ))}
-                  </div>
-                )}
-                {readiness.missing.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="text-xs font-semibold text-amber-600">⚠ Mangler</p>
-                    {readiness.missing.map(m => (
-                      <div key={m} className="flex items-center gap-2 text-xs text-amber-600 py-0.5"><AlertTriangle className="h-3.5 w-3.5" /> {m}</div>
-                    ))}
-                  </div>
-                )}
-                {readiness.score === 100 && (
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 flex items-center gap-3 mt-4">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                    <p className="text-sm text-emerald-600 font-medium">Alle felter er udfyldt — listingen er klar til at gå live!</p>
-                  </div>
-                )}
-              </Section>
-              <Section title="Intern status">
-                <Select value={listing.internal_status || 'draft'} onValueChange={v => update('internal_status', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{STATUS_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}><span className="flex items-center gap-1.5"><s.icon className={`h-3 w-3 ${s.color}`} />{s.label}</span></SelectItem>)}</SelectContent>
-                </Select>
-              </Section>
-              <Section title="Systeminfo">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
-                  <div><span className="font-medium text-foreground block">Slug</span>{listing.slug}</div>
-                  <div><span className="font-medium text-foreground block">ID</span><code className="font-mono">{listing.id}</code></div>
-                  <div><span className="font-medium text-foreground block">Owner ID</span><code className="font-mono">{listing.owner_id}</code></div>
-                </div>
-              </Section>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ═══════════════════════ OVERBLIK TAB ═══════════════════════ */}
-      {topTab === 'overblik' && (
-        <div className="space-y-6 mt-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-xl border border-border bg-card p-4 text-center">
-              <ReadinessRing score={readiness.score} size={56} strokeWidth={4} />
-              <p className="text-xs font-semibold mt-2">Readiness</p>
-            </div>
-            {(['airbnb', 'booking', 'vrbo'] as const).map(ch => (
-              <div key={ch} className="rounded-xl border border-border bg-card p-4 text-center">
-                <ReadinessRing score={channelReadiness[ch].score} size={56} strokeWidth={4} />
-                <p className="text-xs font-semibold mt-2">{ch === 'airbnb' ? '🏠 Airbnb' : ch === 'booking' ? '🅱️ Booking' : '🏡 Vrbo'}</p>
-                <p className="text-[10px] text-muted-foreground">{channelReadiness[ch].missing.length} mangler</p>
-              </div>
-            ))}
-          </div>
-          <Section title="Hurtig status">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              <div><span className="text-muted-foreground text-xs">Status</span><p className="font-medium flex items-center gap-1.5"><currentStatus.icon className={`h-3 w-3 ${currentStatus.color}`} />{currentStatus.label}</p></div>
-              <div><span className="text-muted-foreground text-xs">Gæster</span><p className="font-medium">{listing.max_guests}</p></div>
-              <div><span className="text-muted-foreground text-xs">Sov.</span><p className="font-medium">{listing.bedrooms || 0}</p></div>
-              <div><span className="text-muted-foreground text-xs">Billeder</span><p className="font-medium">{listing.images?.length || 0}</p></div>
-            </div>
-          </Section>
-        </div>
-      )}
-
-      {/* ═══════════════════════ KANALER TAB ═══════════════════════ */}
-      {topTab === 'kanaler' && (
-        <div className="space-y-6 mt-6">
-          {/* Readiness Dashboard */}
-          <div className="rounded-xl border border-border bg-card p-5">
-            <h4 className="font-display text-sm font-semibold text-foreground mb-4">Readiness overblik</h4>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30">
-                <ReadinessRing score={readiness.score} size={56} strokeWidth={4} />
-                <p className="text-xs font-semibold text-foreground">Global</p>
-              </div>
-              {(['airbnb', 'booking', 'vrbo'] as const).map(ch => (
-                <div key={ch} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30">
-                  <ReadinessRing score={channelReadiness[ch].score} size={56} strokeWidth={4} />
-                  <p className="text-xs font-semibold">{ch === 'airbnb' ? '🏠 Airbnb' : ch === 'booking' ? '🅱️ Booking' : '🏡 Vrbo'}</p>
-                  <p className="text-[10px] text-muted-foreground">{channelReadiness[ch].missing.length} mangler</p>
-                </div>
-              ))}
+      {/* ── Right: Content area ── */}
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        {/* Top bar */}
+        <div className="h-13 border-b border-border/30 flex items-center justify-between px-5 shrink-0 bg-card/20">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8 rounded-lg">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="min-w-0">
+              <h2 className="font-display text-base font-bold text-foreground truncate">{listing.name}</h2>
+              <p className="text-[10px] text-muted-foreground flex items-center gap-2">
+                {stepInfo?.label}
+                <span className="text-muted-foreground/30">·</span>
+                <span className={cn('flex items-center gap-1', currentStatus.color)}>
+                  <currentStatus.icon className="h-2.5 w-2.5" /> {currentStatus.label}
+                </span>
+              </p>
             </div>
           </div>
-
-          {/* Channel sections */}
-          <ChannelDataSection channelName="Airbnb" channelKey="airbnb" emoji="🏠" listing={listing}
-            onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('airbnb')} aiFilling={airbnbPreparing}
-            readinessScore={channelReadiness.airbnb.score} readinessPassed={channelReadiness.airbnb.passed} readinessMissing={channelReadiness.airbnb.missing}
-            fields={[
-              { key: 'channel_airbnb_title', label: 'Airbnb-titel', type: 'text', maxLength: 50, hint: 'Clickbait-titel optimeret til Airbnb', masterSource: 'Navn / Tagline', getMasterValue: () => listing.tagline || listing.description || listing.name },
-              { key: 'channel_airbnb_highlights', label: 'Airbnb-highlights', type: 'tags', hint: 'Top-oplevelser', masterSource: 'Highlights', getMasterValue: () => listing.highlights },
-              { key: 'channel_airbnb_description', label: 'Airbnb-beskrivelse', type: 'textarea', rows: 5, hint: 'Detaljeret beskrivelse', masterSource: 'Lang beskrivelse', getMasterValue: () => [listing.long_description, listing.about_property, listing.about_area].filter(Boolean).join('\n\n') || listing.description },
-              { key: 'channel_airbnb_house_rules', label: 'Airbnb-husregler', type: 'textarea', rows: 3, masterSource: 'Husregler', getMasterValue: () => listing.house_rules },
-              { key: 'channel_airbnb_checkin_notes', label: 'Check-in noter', type: 'textarea', rows: 3, masterSource: 'Check-in info', getMasterValue: () => listing.checkin_info, platformSpecific: !listing.checkin_info },
-            ]} />
-          <ChannelDataSection channelName="Booking.com" channelKey="booking" emoji="🅱️" listing={listing}
-            onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('booking')} aiFilling={channelPreparing}
-            readinessScore={channelReadiness.booking.score} readinessPassed={channelReadiness.booking.passed} readinessMissing={channelReadiness.booking.missing}
-            fields={[
-              { key: 'channel_booking_title', label: 'Booking.com-titel', type: 'text', masterSource: 'Navn', getMasterValue: () => listing.name },
-              { key: 'channel_booking_description', label: 'Booking.com-beskrivelse', type: 'textarea', rows: 5, masterSource: 'Lang beskrivelse', getMasterValue: () => [listing.long_description, listing.about_property].filter(Boolean).join('\n\n') || listing.description },
-              { key: 'channel_booking_room_setup', label: 'Værelseopsætning', type: 'textarea', rows: 3, platformSpecific: true, getMasterValue: () => listing.bedrooms ? `${listing.bedrooms} soveværelse(r), ${listing.bathrooms || 1} badeværelse(r), max ${listing.max_guests} gæster` : null },
-              { key: 'channel_booking_policies', label: 'Politikker', type: 'textarea', rows: 3, platformSpecific: true, getMasterValue: () => listing.deposit ? `Depositum: ${listing.deposit} DKK` : null },
-              { key: 'channel_booking_checkin_checkout', label: 'Check-in / Check-out', type: 'textarea', rows: 3, masterSource: 'Check-in/out tider', getMasterValue: () => { const p: string[] = []; if (listing.check_in_time) p.push(`Check-in: fra kl. ${listing.check_in_time}`); if (listing.check_out_time) p.push(`Check-out: senest kl. ${listing.check_out_time}`); if (listing.checkin_info) p.push(listing.checkin_info); return p.length ? p.join('\n') : null; } },
-            ]} />
-          <ChannelDataSection channelName="Vrbo" channelKey="vrbo" emoji="🏡" listing={listing}
-            onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('vrbo')} aiFilling={channelPreparing}
-            readinessScore={channelReadiness.vrbo.score} readinessPassed={channelReadiness.vrbo.passed} readinessMissing={channelReadiness.vrbo.missing}
-            fields={[
-              { key: 'channel_vrbo_title', label: 'Vrbo-titel', type: 'text', masterSource: 'Navn / Tagline', getMasterValue: () => listing.tagline || listing.name },
-              { key: 'channel_vrbo_highlights', label: 'Vrbo-highlights', type: 'tags', masterSource: 'Highlights', getMasterValue: () => listing.highlights },
-              { key: 'channel_vrbo_description', label: 'Vrbo-beskrivelse', type: 'textarea', rows: 5, masterSource: 'Lang beskrivelse', getMasterValue: () => [listing.long_description, listing.about_area].filter(Boolean).join('\n\n') || listing.description },
-              { key: 'channel_vrbo_rules', label: 'Vrbo-regler', type: 'textarea', rows: 3, masterSource: 'Husregler', getMasterValue: () => listing.house_rules },
-            ]} />
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} className="gap-1.5 text-xs h-8 rounded-xl border-border/50">
+              <Eye className="h-3.5 w-3.5" /> Preview
+            </Button>
+            <Select value={listing.internal_status || 'draft'} onValueChange={v => update('internal_status', v)}>
+              <SelectTrigger className="w-[130px] h-8 text-xs rounded-xl"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map(s => (
+                  <SelectItem key={s.value} value={s.value}>
+                    <span className="flex items-center gap-1.5"><s.icon className={`h-3 w-3 ${s.color}`} />{s.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" onClick={handleSave} disabled={saving || !isDirty} className="gap-1.5 text-xs h-8 rounded-xl">
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+              Gem
+            </Button>
+          </div>
         </div>
-      )}
 
-      {/* ═══════════════════════ INTEGRATIONER TAB ═══════════════════════ */}
-      {topTab === 'integrationer' && (
-        <div className="space-y-6 mt-6">
-          {(() => {
-            const syncStatus = listing.sync_status || 'not_connected';
-            const cfg: Record<string, { label: string; color: string; icon: React.ReactNode; bg: string }> = {
-              not_connected: { label: 'Ikke tilkoblet', color: 'text-muted-foreground', icon: <WifiOff className="h-4 w-4" />, bg: 'bg-muted' },
-              ready: { label: 'Klar til integration', color: 'text-blue-600', icon: <Wifi className="h-4 w-4" />, bg: 'bg-blue-50 dark:bg-blue-950/30' },
-              pending: { label: 'Venter på sync', color: 'text-amber-600', icon: <Clock className="h-4 w-4 animate-pulse" />, bg: 'bg-amber-50 dark:bg-amber-950/30' },
-              synced: { label: 'Synkroniseret', color: 'text-emerald-600', icon: <CheckCircle2 className="h-4 w-4" />, bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
-              error: { label: 'Fejl', color: 'text-destructive', icon: <AlertCircle className="h-4 w-4" />, bg: 'bg-destructive/10' },
-            };
-            const s = cfg[syncStatus] || cfg.not_connected;
-            return (
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8">
+          <div className="max-w-4xl mx-auto space-y-6">
+
+            {/* ═══ GRUNDOPSÆTNING ═══ */}
+            {currentStep === 'setup' && (
               <>
-                <div className={`rounded-xl border border-border p-5 flex items-center justify-between ${s.bg}`}>
-                  <div className="flex items-center gap-3">
-                    <div className={s.color}>{s.icon}</div>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">Grundopsætning</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Kerneoplysninger om boligen</p>
+                </div>
+
+                <StudioContentBlock title="Bolig identitet" icon={<Home className="h-4 w-4 text-primary" />}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <StudioField label="Titel" hint="Det navn gæsten ser">
+                      <StudioInput value={listing.name} onChange={v => update('name', v)} />
+                    </StudioField>
+                    <StudioField label="Tagline" hint="Kort fængende undertitel">
+                      <StudioInput value={listing.tagline || ''} onChange={v => update('tagline', v)} placeholder="Moderne sommerhus med havudsigt" />
+                    </StudioField>
+                  </div>
+                  <div className="grid grid-cols-2 gap-5">
+                    <StudioField label="Boligtype">
+                      <Select value={listing.property_type || 'summerhouse'} onValueChange={v => update('property_type', v)}>
+                        <SelectTrigger className="rounded-xl bg-background/50 border-border/50"><SelectValue /></SelectTrigger>
+                        <SelectContent>{PROPERTY_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </StudioField>
+                    <StudioField label="m²">
+                      <StudioInput type="number" value={listing.sqm || ''} onChange={v => update('sqm', parseInt(v) || null)} placeholder="120" />
+                    </StudioField>
+                  </div>
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Lokation" icon={<MapPin className="h-4 w-4 text-primary" />}>
+                  <StudioField label="Adresse">
+                    <StudioInput value={listing.address || ''} onChange={v => update('address', v)} placeholder="Skovvej 12, 4573 Højby" />
+                  </StudioField>
+                  <div className="grid grid-cols-2 gap-5">
+                    <StudioField label="By">
+                      <StudioInput value={listing.city || ''} onChange={v => update('city' as any, v)} placeholder="Hornbæk" />
+                    </StudioField>
+                    <StudioField label="Region">
+                      <StudioInput value={listing.region || ''} onChange={v => update('region', v)} placeholder="Nordsjælland" />
+                    </StudioField>
+                  </div>
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Kapacitet" icon={<Users className="h-4 w-4 text-primary" />}>
+                  <div className="grid grid-cols-3 gap-5">
+                    <StudioField label="Max gæster">
+                      <StudioInput type="number" value={listing.max_guests} onChange={v => update('max_guests', parseInt(v) || 1)} />
+                    </StudioField>
+                    <StudioField label="Soveværelser">
+                      <StudioInput type="number" value={listing.bedrooms || 0} onChange={v => update('bedrooms', parseInt(v) || 0)} />
+                    </StudioField>
+                    <StudioField label="Badeværelser">
+                      <StudioInput type="number" value={listing.bathrooms || 0} onChange={v => update('bathrooms', parseInt(v) || 0)} />
+                    </StudioField>
+                  </div>
+                  <div className="flex items-center gap-3 pt-2">
+                    <Switch checked={listing.is_active} onCheckedChange={v => update('is_active', v)} />
+                    <Label className="text-sm font-medium">Aktiv listing</Label>
+                  </div>
+                </StudioContentBlock>
+              </>
+            )}
+
+            {/* ═══ LISTING STUDIO ═══ */}
+            {currentStep === 'studio' && (
+              <>
+                <div className="mb-8">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className={`font-semibold text-sm ${s.color}`}>{s.label}</p>
-                      {listing.last_sync_at && <p className="text-xs text-muted-foreground mt-0.5">Sidst synkroniseret: {new Date(listing.last_sync_at).toLocaleString('da-DK')}</p>}
+                      <h1 className="font-display text-2xl font-bold text-foreground">
+                        <span className="text-gradient-gold">SommerVibes</span> Listing Studio
+                      </h1>
+                      <p className="text-sm text-muted-foreground mt-1">Byg din premium bolig-præsentation</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StudioAIButton label="AI Alt indhold" onClick={() => handleAiAction('improve_all')} loading={aiImproving} />
+                      <StudioAIButton label="Oversæt EN" onClick={() => handleAiAction('translate_en')} loading={aiImproving} />
+                      <StudioAIButton label="Oversæt DE" onClick={() => handleAiAction('translate_de')} loading={aiImproving} />
                     </div>
                   </div>
-                  <Select value={syncStatus} onValueChange={v => update('sync_status' as any, v)}>
-                    <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="not_connected">Ikke tilkoblet</SelectItem>
-                      <SelectItem value="ready">Klar til integration</SelectItem>
-                      <SelectItem value="pending">Venter på sync</SelectItem>
-                      <SelectItem value="synced">Synkroniseret</SelectItem>
-                      <SelectItem value="error">Fejl</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                  <Section title="Channel Manager" description="Tilslutning til ekstern partner">
-                    <Field label="Channel Manager Partner">
-                      <Select value={listing.channel_manager_partner || ''} onValueChange={v => update('channel_manager_partner' as any, v || null)}>
-                        <SelectTrigger><SelectValue placeholder="Vælg partner..." /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Ingen</SelectItem>
-                          <SelectItem value="beds24">Beds24</SelectItem>
-                          <SelectItem value="guesty">Guesty</SelectItem>
-                          <SelectItem value="hostaway">Hostaway</SelectItem>
-                          <SelectItem value="lodgify">Lodgify</SelectItem>
-                          <SelectItem value="smoobu">Smoobu</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  </Section>
-                  <Section title="Ekstern ID-mapping" description="ID'er til synkronisering">
-                    <Field label="Eksternt Listing-ID">
-                      <Input value={listing.external_listing_id || ''} onChange={e => update('external_listing_id' as any, e.target.value || null)} placeholder="F.eks. 123456" />
-                    </Field>
-                    <Field label="Eksternt Property-ID">
-                      <Input value={listing.external_property_id || ''} onChange={e => update('external_property_id' as any, e.target.value || null)} placeholder="F.eks. PROP-789" />
-                    </Field>
-                  </Section>
-                </div>
+
+                <StudioContentBlock title="Hero & intro" subtitle="Fangsteksten og den første oplevelse" icon={<Star className="h-4 w-4 text-primary" />}
+                  actions={<StudioAIButton label="AI Titel" onClick={() => handleAiAction('improve_title')} loading={aiImproving} />}>
+                  <StudioField label="Kort beskrivelse" hint="Vises i søgeresultater og listing-kort">
+                    <StudioTextArea value={listing.description || ''} onChange={v => update('description', v)} rows={3} placeholder="En kort, fængende beskrivelse..." />
+                  </StudioField>
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Højdepunkter" subtitle="De oplevelser der skiller sig ud" icon={<Star className="h-4 w-4 text-primary" />}
+                  actions={<StudioAIButton label="AI Highlights" onClick={() => handleAiAction('generate_highlights')} loading={aiImproving} />}>
+                  <StudioBulletEditor items={listing.highlights || []} onChange={v => update('highlights', v)} placeholder="F.eks. Havudsigt, Nyistandsat, Sauna..." />
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Boligen" subtitle="Detaljeret beskrivelse af boligen" icon={<Home className="h-4 w-4 text-primary" />}
+                  actions={<StudioAIButton label="AI Beskrivelse" onClick={() => handleAiAction('improve_long_description')} loading={aiImproving} />}>
+                  <StudioField label="Lang beskrivelse">
+                    <StudioTextArea value={listing.long_description || ''} onChange={v => update('long_description', v)} rows={6} placeholder="Beskriv boligen i detaljer..." />
+                  </StudioField>
+                  <StudioField label="Om boligen">
+                    <StudioTextArea value={listing.about_property || ''} onChange={v => update('about_property', v)} rows={4} placeholder="Boligen er bygget i..." />
+                  </StudioField>
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Her skal du være" subtitle="Fortæl om det lokale område" icon={<MapPin className="h-4 w-4 text-primary" />}>
+                  <StudioField label="Om området">
+                    <StudioTextArea value={listing.about_area || ''} onChange={v => update('about_area', v)} rows={4} placeholder="Området byder på..." />
+                  </StudioField>
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Ekstra sektioner" subtitle="Tilføj egne indholdsblokke" icon={<Layers className="h-4 w-4 text-primary" />}>
+                  <AdminSectionEditor
+                    sections={((listing as any).extra_sections as ExtraSection[]) || []}
+                    onChange={s => update('extra_sections' as any, s)}
+                    listingSlug={listing.slug}
+                  />
+                </StudioContentBlock>
               </>
-            );
-          })()}
-        </div>
-      )}
+            )}
 
-      {/* ═══════════════════════ KALENDER TAB ═══════════════════════ */}
-      {topTab === 'kalender' && (
-        <div className="mt-6">
-          <ListingCalendarPricing listingId={listing.id} ownerId={listing.owner_id}
-            basePricePerNight={listing.base_price_per_night} weekendPricePerNight={listing.weekend_price_per_night}
-            minNights={listing.min_nights} cleaningFee={listing.cleaning_fee} checkInTime={listing.check_in_time} />
-        </div>
-      )}
+            {/* ═══ MEDIER ═══ */}
+            {currentStep === 'media' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">Medier</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Billeder, video og plantegninger</p>
+                </div>
 
-      {/* ═══════════════════════ PRISER TAB (top-level) ═══════════════════════ */}
-      {topTab === 'priser' && (
-        <div className="space-y-6 mt-6">
-          <Section title="Grundpriser">
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Basispris pr. nat"><Input type="number" min={0} step={100} value={listing.base_price_per_night} onChange={e => update('base_price_per_night', parseInt(e.target.value) || 0)} /></Field>
-              <Field label="Weekend-pris pr. nat"><Input type="number" min={0} step={100} value={listing.weekend_price_per_night || ''} onChange={e => update('weekend_price_per_night', parseInt(e.target.value) || null)} placeholder="Samme som basis" /></Field>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Rengøringsgebyr"><Input type="number" min={0} step={100} value={listing.cleaning_fee || 0} onChange={e => update('cleaning_fee', parseInt(e.target.value) || 0)} /></Field>
-              <Field label="Depositum"><Input type="number" min={0} step={100} value={listing.deposit || 0} onChange={e => update('deposit', parseInt(e.target.value) || 0)} /></Field>
-            </div>
-            <Field label="Minimum nætter"><Input type="number" min={1} value={listing.min_nights || 2} onChange={e => update('min_nights', parseInt(e.target.value) || 1)} className="max-w-[200px]" /></Field>
-          </Section>
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Info className="h-3.5 w-3.5" /> Sæsonpriser og rabatter styres under kalenderfanen.</p>
+                <StudioContentBlock title="Upload billeder" subtitle="Træk og slip eller klik for at uploade" icon={<Camera className="h-4 w-4 text-primary" />}>
+                  <ListingImageUpload listingSlug={listing.slug} onUploaded={url => update('images', [...(listing.images || []), url])} />
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Galleri" subtitle="Sortér, tagge og administrer billeder" icon={<ImageIcon className="h-4 w-4 text-primary" />}>
+                  <SortableImageGallery
+                    images={listing.images || []}
+                    heroImage={listing.hero_image || ''}
+                    bedroomImages={((listing as any).bedroom_images as BedroomImage[]) || []}
+                    imageLabels={((listing as any).image_labels as ImageLabel[]) || []}
+                    comboHeroImages={((listing as any).combo_hero_images as string[]) || []}
+                    onImagesChange={imgs => update('images', imgs)}
+                    onHeroChange={url => update('hero_image', url)}
+                    onBedroomImagesChange={bi => update('bedroom_images' as any, bi)}
+                    onImageLabelsChange={labels => update('image_labels' as any, labels)}
+                    onComboHeroToggle={url => {
+                      const current = ((listing as any).combo_hero_images as string[]) || [];
+                      const next = current.includes(url) ? current.filter((u: string) => u !== url) : [...current, url];
+                      update('combo_hero_images' as any, next);
+                    }}
+                  />
+                </StudioContentBlock>
+              </>
+            )}
+
+            {/* ═══ SOVEPLADSER & FACILITETER ═══ */}
+            {currentStep === 'rooms' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">Sovepladser & faciliteter</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Komfort og faciliteter i boligen</p>
+                </div>
+
+                <StudioContentBlock title="Faciliteter" subtitle="Hvad tilbyder boligen?" icon={<Tag className="h-4 w-4 text-primary" />}>
+                  <AdminFacilities
+                    facilities={((listing as any).facilities as FacilityCategory[]) || []}
+                    onChange={f => update('facilities' as any, f)}
+                  />
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Quick amenities" subtitle="Hurtige tilvalg" icon={<Check className="h-4 w-4 text-primary" />}>
+                  <StudioBulletEditor items={listing.amenities || []} onChange={v => update('amenities', v)} placeholder="F.eks. WiFi, Pool, Sauna..." maxItems={30} />
+                </StudioContentBlock>
+              </>
+            )}
+
+            {/* ═══ BOOKINGOPLEVELSE ═══ */}
+            {currentStep === 'booking' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">Bookingoplevelse</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Priser, regler og gæsteinformation</p>
+                </div>
+
+                <StudioContentBlock title="Priser" icon={<DollarSign className="h-4 w-4 text-primary" />}>
+                  <div className="grid grid-cols-2 gap-5">
+                    <StudioField label="Basispris pr. nat (øre)">
+                      <StudioInput type="number" value={listing.base_price_per_night} onChange={v => update('base_price_per_night', parseInt(v) || 0)} />
+                    </StudioField>
+                    <StudioField label="Weekend-pris pr. nat">
+                      <StudioInput type="number" value={listing.weekend_price_per_night || ''} onChange={v => update('weekend_price_per_night', parseInt(v) || null)} placeholder="Samme som basis" />
+                    </StudioField>
+                  </div>
+                  <div className="grid grid-cols-2 gap-5">
+                    <StudioField label="Rengøringsgebyr">
+                      <StudioInput type="number" value={listing.cleaning_fee || 0} onChange={v => update('cleaning_fee', parseInt(v) || 0)} />
+                    </StudioField>
+                    <StudioField label="Depositum">
+                      <StudioInput type="number" value={listing.deposit || 0} onChange={v => update('deposit', parseInt(v) || 0)} />
+                    </StudioField>
+                  </div>
+                  <StudioField label="Minimum nætter">
+                    <StudioInput type="number" value={listing.min_nights || 2} onChange={v => update('min_nights', parseInt(v) || 1)} />
+                  </StudioField>
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Check-in / Check-out" icon={<CalendarIcon className="h-4 w-4 text-primary" />}>
+                  <div className="grid grid-cols-2 gap-5">
+                    <StudioField label="Check-in tid">
+                      <Input type="time" value={listing.check_in_time || '15:00'} onChange={e => update('check_in_time', e.target.value)} className="rounded-xl bg-background/50 border-border/50" />
+                    </StudioField>
+                    <StudioField label="Check-out tid">
+                      <Input type="time" value={listing.check_out_time || '10:00'} onChange={e => update('check_out_time', e.target.value)} className="rounded-xl bg-background/50 border-border/50" />
+                    </StudioField>
+                  </div>
+                  <StudioField label="Check-in instruktioner">
+                    <StudioTextArea value={listing.checkin_info || ''} onChange={v => update('checkin_info', v)} rows={3} placeholder="Instruktioner til check-in..." />
+                  </StudioField>
+                  <StudioField label="Check-out instruktioner">
+                    <StudioTextArea value={listing.checkout_info || ''} onChange={v => update('checkout_info', v)} rows={3} placeholder="Instruktioner til check-out..." />
+                  </StudioField>
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Husregler & praktisk info" icon={<FileCheck className="h-4 w-4 text-primary" />}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <StudioField label="Husregler">
+                      <StudioTextArea value={listing.house_rules || ''} onChange={v => update('house_rules', v)} rows={4} placeholder="Ingen rygning, ingen fester..." />
+                    </StudioField>
+                    <StudioField label="Praktisk info">
+                      <StudioTextArea value={listing.practical_info || ''} onChange={v => update('practical_info', v)} rows={4} placeholder="WiFi-kode, parkering..." />
+                    </StudioField>
+                  </div>
+                </StudioContentBlock>
+              </>
+            )}
+
+            {/* ═══ KONTAKT & VIDEOGUIDES ═══ */}
+            {currentStep === 'contact' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">Kontakt & videoguides</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Kontaktoplysninger og guidemateriale</p>
+                </div>
+                <StudioContentBlock title="Videoguides" subtitle="Tilføj video-instruktioner til gæster" icon={<Play className="h-4 w-4 text-primary" />}>
+                  <p className="text-sm text-muted-foreground">Videoguide-modulet kan tilgås via Listing-siden.</p>
+                </StudioContentBlock>
+              </>
+            )}
+
+            {/* ═══ CHANNEL TABS ═══ */}
+            {currentStep === 'airbnb' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">🏠 Airbnb</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Auto-genereret fra SommerVibes masterdata</p>
+                </div>
+                <ChannelDataSection channelName="Airbnb" channelKey="airbnb" emoji="🏠" listing={listing}
+                  onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('airbnb')} aiFilling={airbnbPreparing}
+                  readinessScore={channelReadiness.airbnb.score} readinessPassed={channelReadiness.airbnb.passed} readinessMissing={channelReadiness.airbnb.missing}
+                  fields={[
+                    { key: 'channel_airbnb_title', label: 'Airbnb-titel', type: 'text', maxLength: 50, hint: 'Clickbait-titel optimeret til Airbnb', masterSource: 'Navn / Tagline', getMasterValue: () => listing.tagline || listing.description || listing.name },
+                    { key: 'channel_airbnb_highlights', label: 'Airbnb-highlights', type: 'tags', hint: 'Top-oplevelser', masterSource: 'Highlights', getMasterValue: () => listing.highlights },
+                    { key: 'channel_airbnb_description', label: 'Airbnb-beskrivelse', type: 'textarea', rows: 5, hint: 'Detaljeret beskrivelse', masterSource: 'Lang beskrivelse', getMasterValue: () => [listing.long_description, listing.about_property, listing.about_area].filter(Boolean).join('\n\n') || listing.description },
+                    { key: 'channel_airbnb_house_rules', label: 'Airbnb-husregler', type: 'textarea', rows: 3, masterSource: 'Husregler', getMasterValue: () => listing.house_rules },
+                    { key: 'channel_airbnb_checkin_notes', label: 'Check-in noter', type: 'textarea', rows: 3, masterSource: 'Check-in info', getMasterValue: () => listing.checkin_info, platformSpecific: !listing.checkin_info },
+                  ]} />
+              </>
+            )}
+
+            {currentStep === 'bookingcom' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">🅱️ Booking.com</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Auto-genereret fra SommerVibes masterdata</p>
+                </div>
+                <ChannelDataSection channelName="Booking.com" channelKey="booking" emoji="🅱️" listing={listing}
+                  onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('booking')} aiFilling={channelPreparing}
+                  readinessScore={channelReadiness.booking.score} readinessPassed={channelReadiness.booking.passed} readinessMissing={channelReadiness.booking.missing}
+                  fields={[
+                    { key: 'channel_booking_title', label: 'Booking.com-titel', type: 'text', masterSource: 'Navn', getMasterValue: () => listing.name },
+                    { key: 'channel_booking_description', label: 'Booking.com-beskrivelse', type: 'textarea', rows: 5, masterSource: 'Lang beskrivelse', getMasterValue: () => [listing.long_description, listing.about_property].filter(Boolean).join('\n\n') || listing.description },
+                    { key: 'channel_booking_room_setup', label: 'Værelseopsætning', type: 'textarea', rows: 3, platformSpecific: true, getMasterValue: () => listing.bedrooms ? `${listing.bedrooms} soveværelse(r), ${listing.bathrooms || 1} badeværelse(r), max ${listing.max_guests} gæster` : null },
+                    { key: 'channel_booking_policies', label: 'Politikker', type: 'textarea', rows: 3, platformSpecific: true, getMasterValue: () => listing.deposit ? `Depositum: ${listing.deposit} DKK` : null },
+                    { key: 'channel_booking_checkin_checkout', label: 'Check-in / Check-out', type: 'textarea', rows: 3, masterSource: 'Check-in/out tider', getMasterValue: () => { const p: string[] = []; if (listing.check_in_time) p.push(`Check-in: fra kl. ${listing.check_in_time}`); if (listing.check_out_time) p.push(`Check-out: senest kl. ${listing.check_out_time}`); if (listing.checkin_info) p.push(listing.checkin_info); return p.length ? p.join('\n') : null; } },
+                  ]} />
+              </>
+            )}
+
+            {currentStep === 'vrbo' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">🏡 Vrbo</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Auto-genereret fra SommerVibes masterdata</p>
+                </div>
+                <ChannelDataSection channelName="Vrbo" channelKey="vrbo" emoji="🏡" listing={listing}
+                  onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('vrbo')} aiFilling={channelPreparing}
+                  readinessScore={channelReadiness.vrbo.score} readinessPassed={channelReadiness.vrbo.passed} readinessMissing={channelReadiness.vrbo.missing}
+                  fields={[
+                    { key: 'channel_vrbo_title', label: 'Vrbo-titel', type: 'text', masterSource: 'Navn / Tagline', getMasterValue: () => listing.tagline || listing.name },
+                    { key: 'channel_vrbo_highlights', label: 'Vrbo-highlights', type: 'tags', masterSource: 'Highlights', getMasterValue: () => listing.highlights },
+                    { key: 'channel_vrbo_description', label: 'Vrbo-beskrivelse', type: 'textarea', rows: 5, masterSource: 'Lang beskrivelse', getMasterValue: () => [listing.long_description, listing.about_area].filter(Boolean).join('\n\n') || listing.description },
+                    { key: 'channel_vrbo_rules', label: 'Vrbo-regler', type: 'textarea', rows: 3, masterSource: 'Husregler', getMasterValue: () => listing.house_rules },
+                  ]} />
+              </>
+            )}
+
+            {/* ═══ KLARGØRING & PUBLICERING ═══ */}
+            {currentStep === 'publish' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">Klargøring & publicering</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Readiness og go-live</p>
+                </div>
+
+                <StudioContentBlock title="Listing Readiness" icon={<Rocket className="h-4 w-4 text-primary" />}>
+                  <div className="flex items-center gap-5 mb-5">
+                    <ReadinessRing score={readiness.score} size={72} strokeWidth={4} />
+                    <div>
+                      <h4 className="font-display font-semibold text-foreground text-lg">
+                        {readiness.score === 100 ? 'Alt er klar!' : readiness.score >= 80 ? 'Næsten klar!' : readiness.score >= 50 ? 'Godt på vej' : 'Mere data mangler'}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">{readiness.passed.length} af {readiness.passed.length + readiness.missing.length} felter udfyldt</p>
+                    </div>
+                  </div>
+                  {readiness.passed.length > 0 && (
+                    <div className="space-y-1 mb-4">
+                      {readiness.passed.map(p => (
+                        <div key={p} className="flex items-center gap-2 text-xs text-muted-foreground py-0.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> {p}</div>
+                      ))}
+                    </div>
+                  )}
+                  {readiness.missing.length > 0 && (
+                    <div className="space-y-1">
+                      {readiness.missing.map(m => (
+                        <div key={m} className="flex items-center gap-2 text-xs py-0.5 text-amber-500"><AlertTriangle className="h-3.5 w-3.5" /> {m}</div>
+                      ))}
+                    </div>
+                  )}
+                  {readiness.score === 100 && (
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 flex items-center gap-3 mt-4">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                      <p className="text-sm font-medium" style={{ color: 'hsl(142, 71%, 45%)' }}>Alle felter er udfyldt — listingen er klar til at gå live!</p>
+                    </div>
+                  )}
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Kanal readiness" icon={<Globe className="h-4 w-4 text-primary" />}>
+                  <div className="grid grid-cols-3 gap-4">
+                    {(['airbnb', 'booking', 'vrbo'] as const).map(ch => (
+                      <button key={ch} onClick={() => setCurrentStep(ch === 'booking' ? 'bookingcom' : ch)}
+                        className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                        <ReadinessRing score={channelReadiness[ch].score} size={48} strokeWidth={3} />
+                        <p className="text-xs font-semibold">{ch === 'airbnb' ? '🏠 Airbnb' : ch === 'booking' ? '🅱️ Booking' : '🏡 Vrbo'}</p>
+                        <p className="text-[10px] text-muted-foreground">{channelReadiness[ch].missing.length} mangler</p>
+                      </button>
+                    ))}
+                  </div>
+                </StudioContentBlock>
+
+                <StudioContentBlock title="Systeminfo" icon={<Settings className="h-4 w-4 text-primary" />}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-muted-foreground">
+                    <div><span className="font-medium text-foreground block mb-0.5">Slug</span>{listing.slug}</div>
+                    <div><span className="font-medium text-foreground block mb-0.5">ID</span><code className="font-mono text-[10px]">{listing.id}</code></div>
+                    <div><span className="font-medium text-foreground block mb-0.5">Owner ID</span><code className="font-mono text-[10px]">{listing.owner_id}</code></div>
+                  </div>
+                </StudioContentBlock>
+              </>
+            )}
+
+            {/* ═══ AKTØRER ═══ */}
+            {currentStep === 'actors' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">Aktører</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Ejer, kontaktpersoner og sekundære aktører</p>
+                </div>
+                <ListingActorsTab listingId={listing.id} ownerId={listing.owner_id} />
+              </>
+            )}
+
+            {/* ═══ MEDARBEJDERE ═══ */}
+            {currentStep === 'staff' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">Medarbejdere</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Tildelte medarbejdere til denne sag</p>
+                </div>
+                <ListingStaffTab listingId={listing.id} />
+              </>
+            )}
+
+            {/* ═══ DOKUMENTER ═══ */}
+            {currentStep === 'documents' && (
+              <>
+                <div className="mb-8">
+                  <h1 className="font-display text-2xl font-bold text-foreground">Dokumenter</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Sagens dokumenter og formularer</p>
+                </div>
+                <ListingDocumentsTab listingId={listing.id} ownerId={listing.owner_id} />
+              </>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* ═══════════════════════ AKTØRER TAB ═══════════════════════ */}
-      {topTab === 'aktoerer' && listing && (
-        <ListingActorsTab listingId={listing.id} ownerId={listing.owner_id} />
-      )}
+      {/* Preview */}
+      <StudioPreview listing={listing} open={previewOpen} onClose={() => setPreviewOpen(false)} />
 
-      {/* ═══════════════════════ MEDARBEJDERE TAB ═══════════════════════ */}
-      {topTab === 'medarbejdere' && listing && (
-        <ListingStaffTab listingId={listing.id} />
-      )}
-
-      {/* ═══════════════════════ DOKUMENTER TAB ═══════════════════════ */}
-      {topTab === 'dokumenter' && listing && (
-        <ListingDocumentsTab listingId={listing.id} ownerId={listing.owner_id} />
-      )}
-
-      {/* ═══════════════════════ PLACEHOLDER TABS ═══════════════════════ */}
-      {['tilkoeb', 'opgaver', 'noter'].includes(topTab) && (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-            {topTab === 'tilkoeb' && <ShoppingBag className="h-7 w-7" />}
-            {topTab === 'opgaver' && <ClipboardCheck className="h-7 w-7" />}
-            {topTab === 'noter' && <StickyNote className="h-7 w-7" />}
-          </div>
-          <p className="font-medium text-foreground">{TOP_TABS.find(t => t.value === topTab)?.label}</p>
-          <p className="text-sm mt-1">Kommer snart for denne listing</p>
-        </div>
-      )}
-
-      {/* ── AI DIALOG ── */}
+      {/* AI Dialog */}
       <Dialog open={aiDialogOpen} onOpenChange={v => { if (!aiImproving) setAiDialogOpen(v); }}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" /> AI-genereret indhold</DialogTitle>
           </DialogHeader>
@@ -953,40 +903,24 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           )}
           {aiPreview && !aiImproving && (
             <div className="space-y-4">
-              {aiPreview.suggestions && (
-                <div><p className="text-xs font-semibold text-muted-foreground mb-2">Vælg en titel:</p>
-                  <div className="space-y-2">{aiPreview.suggestions.map((s: string, i: number) => (
-                    <button key={i} onClick={() => { update('description', s); toast({ title: 'Titel anvendt!' }); setAiDialogOpen(false); setAiPreview(null); }}
-                      className="w-full text-left text-sm bg-muted/50 hover:bg-primary/5 hover:border-primary/30 border border-border rounded-lg p-3 text-foreground transition-colors">{s}</button>
-                  ))}</div>
+              {Object.entries(aiPreview).filter(([k]) => !k.startsWith('_')).map(([key, val]) => (
+                <div key={key} className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</p>
+                  {Array.isArray(val) ? (
+                    <div className="flex flex-wrap gap-1.5">{(val as string[]).map((v, i) => <Badge key={i} variant="outline" className="text-xs">{v}</Badge>)}</div>
+                  ) : (
+                    <p className="text-sm text-foreground whitespace-pre-line bg-muted/30 rounded-lg p-3">{String(val)}</p>
+                  )}
                 </div>
-              )}
-              {aiPreview.title && !aiPreview.suggestions && <div><p className="text-xs font-semibold text-muted-foreground mb-1">Titel</p><p className="text-sm bg-muted/50 rounded-lg p-3">{aiPreview.title}</p></div>}
-              {aiPreview.tagline && <div><p className="text-xs font-semibold text-muted-foreground mb-1">Tagline</p><p className="text-sm bg-muted/50 rounded-lg p-3">{aiPreview.tagline}</p></div>}
-              {(aiPreview.long_description || aiPreview.description) && <div><p className="text-xs font-semibold text-muted-foreground mb-1">Beskrivelse</p><p className="text-sm bg-muted/50 rounded-lg p-3 whitespace-pre-line">{aiPreview.long_description || aiPreview.description}</p></div>}
-              {aiPreview.highlights?.length > 0 && <div><p className="text-xs font-semibold text-muted-foreground mb-1">Highlights</p><div className="flex flex-wrap gap-1.5">{aiPreview.highlights.map((h: string, i: number) => <Badge key={i} variant="secondary" className="text-xs gap-1"><Star className="h-3 w-3 text-amber-500" /> {h}</Badge>)}</div></div>}
-              {aiPreview.house_rules && <div><p className="text-xs font-semibold text-muted-foreground mb-1">Husregler</p><p className="text-sm bg-muted/50 rounded-lg p-3 whitespace-pre-line">{aiPreview.house_rules}</p></div>}
-              {aiPreview.room_setup && <div><p className="text-xs font-semibold text-muted-foreground mb-1">Værelseopsætning</p><p className="text-sm bg-muted/50 rounded-lg p-3 whitespace-pre-line">{aiPreview.room_setup}</p></div>}
-              {aiPreview.policies && <div><p className="text-xs font-semibold text-muted-foreground mb-1">Politikker</p><p className="text-sm bg-muted/50 rounded-lg p-3 whitespace-pre-line">{aiPreview.policies}</p></div>}
-              {!aiPreview.suggestions && (
-                <div className="flex gap-2 pt-2">
-                  <Button onClick={applyAiSuggestions} className="flex-1 gap-1.5"><Check className="h-4 w-4" /> Anvend forslag</Button>
-                  <Button variant="outline" onClick={() => { setAiDialogOpen(false); setAiPreview(null); }}>Annuller</Button>
-                </div>
-              )}
+              ))}
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={() => { setAiDialogOpen(false); setAiPreview(null); }} className="flex-1 rounded-xl">Kassér</Button>
+                <Button onClick={applyAiSuggestions} className="flex-1 rounded-xl gap-1.5"><Check className="h-4 w-4" />Anvend</Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
-
-      {/* ── Sticky save bar ── */}
-      <StickyActionBar
-        visible={isDirty}
-        saving={saving}
-        onSave={handleSave}
-        onDiscard={() => { window.location.reload(); }}
-        hasDraft={isDirty}
-      />
     </div>
   );
 }
