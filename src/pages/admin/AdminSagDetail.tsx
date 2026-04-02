@@ -1160,6 +1160,22 @@ export default function AdminSagDetail() {
                           </div>
                         )}
 
+                        {isRapport && (
+                          <div className="space-y-3">
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tilpas rapport</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div><Label className="text-xs text-muted-foreground">Boost-pris (DKK)</Label>
+                                <Input value={editDocValues.boost_price || '2.995'} onChange={e => setEditDocValues({ ...editDocValues, boost_price: e.target.value })} /></div>
+                              <div><Label className="text-xs text-muted-foreground">Boost-beskrivelse</Label>
+                                <Input value={editDocValues.boost_description || 'Engangsbetaling — ingen binding'} onChange={e => setEditDocValues({ ...editDocValues, boost_description: e.target.value })} /></div>
+                            </div>
+                            <div><Label className="text-xs text-muted-foreground">Særlige præstationer</Label>
+                              <Textarea rows={2} value={editDocValues.custom_achievements || 'Løbende optimering af din listing'} onChange={e => setEditDocValues({ ...editDocValues, custom_achievements: e.target.value })} /></div>
+                            <div><Label className="text-xs text-muted-foreground">Næste skridt</Label>
+                              <Textarea rows={2} value={editDocValues.next_steps || 'Vi anbefaler at opgradere til Boost-pakken for at øge din synlighed og booking-rate.'} onChange={e => setEditDocValues({ ...editDocValues, next_steps: e.target.value })} /></div>
+                          </div>
+                        )}
+
                         {/* Preview */}
                         <div className="rounded-lg border border-border/20 bg-background/50 p-4">
                           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Forhåndsvisning</p>
