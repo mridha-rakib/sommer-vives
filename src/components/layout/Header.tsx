@@ -280,8 +280,14 @@ export function Header() {
                       <Link to="/admin/auth" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full rounded-xl text-muted-foreground">Admin Login</Button>
                       </Link>
+                      <Link to="/beregn-lejeindtaegt" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full rounded-xl gap-1.5">
+                          <Calculator className="w-4 h-4" />
+                          Beregn indtjening
+                        </Button>
+                      </Link>
                       <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">Udlej dit hus</Button>
+                        <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">Kom i gang</Button>
                       </Link>
                     </>
                   )}
