@@ -699,6 +699,8 @@ export default function AdminSagDetail() {
 
         {tab === 'listing' && <InlineListingEditor listing={listing} onSaved={(updated) => setListing({ ...listing, ...updated })} />}
 
+        {tab === 'integrationer' && <Beds24Integration listing={listing} onUpdate={(updated: any) => setListing({ ...listing, ...updated })} />}
+
         {tab === 'kanaler' && (
           <div className="space-y-4">
             <SectionCard title="Integration" icon={Globe}>
