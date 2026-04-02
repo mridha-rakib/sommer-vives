@@ -29,12 +29,19 @@ import { toast } from 'sonner';
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
 const STATUS_MAP: Record<string, { label: string; variant: SVariant }> = {
-  draft: { label: 'Kladde', variant: 'muted' },
-  preparing: { label: 'Klargøring', variant: 'warning' },
-  review: { label: 'Til gennemgang', variant: 'info' },
-  ready: { label: 'Klar', variant: 'success' },
-  live: { label: 'Live', variant: 'success' },
-  paused: { label: 'Pauset', variant: 'danger' },
+  udlejningstjek:  { label: 'Udlejningstjek',           variant: 'warning' },
+  foer_salg:       { label: 'Før salg',                  variant: 'info' },
+  til_leje:        { label: 'Til leje',                  variant: 'success' },
+  retur:           { label: 'Retur',                     variant: 'muted' },
+  tabt_vil_ikke:   { label: 'Tabt – Vil ikke udleje',   variant: 'danger' },
+  tabt_konkurrent: { label: 'Tabt – Til konkurrent',    variant: 'danger' },
+  // Legacy fallbacks
+  draft:     { label: 'Kladde',          variant: 'muted' },
+  preparing: { label: 'Klargøring',      variant: 'warning' },
+  review:    { label: 'Til gennemgang',   variant: 'info' },
+  ready:     { label: 'Klar',            variant: 'success' },
+  live:      { label: 'Til leje',        variant: 'success' },
+  paused:    { label: 'Pauset',          variant: 'danger' },
 };
 
 const SYNC_STATUS_MAP: Record<string, { label: string; variant: SVariant }> = {
