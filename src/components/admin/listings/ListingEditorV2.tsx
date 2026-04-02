@@ -194,6 +194,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   const [checkDialogOpen, setCheckDialogOpen] = useState(false);
   const [prepareDialogOpen, setPrepareDialogOpen] = useState(false);
   const [aiImproving, setAiImproving] = useState(false);
+  const [aiAction, setAiAction] = useState<string | null>(null);
   const [aiPreview, setAiPreview] = useState<any>(null);
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [channelDialogOpen, setChannelDialogOpen] = useState<string | null>(null);
