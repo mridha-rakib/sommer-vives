@@ -353,7 +353,9 @@ export default function AdminLeads() {
                         return (
                           <tr key={l.id} className="border-b border-border/20 hover:bg-muted/15 transition-colors cursor-pointer" onClick={() => setDrawerLead(l)}>
                             <td className="px-4 py-3">
-                              <p className="font-medium text-foreground">{l.name}</p>
+                              <ProfilePopover type="lead" id={l.id} data={l} onOpenDetail={() => setDrawerLead(l)}>
+                                <p className="font-medium text-foreground hover:text-primary transition-colors cursor-pointer inline" onClick={e => e.stopPropagation()}>{l.name}</p>
+                              </ProfilePopover>
                             </td>
                             <td className="px-4 py-3">
                               <div className="space-y-0.5">
