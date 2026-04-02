@@ -34,6 +34,14 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
 
+// Service card images
+import boostImg from '@/assets/services/boost.jpg';
+import kundedialogImg from '@/assets/services/kundedialog.png';
+import cleaningImg from '@/assets/services/cleaning.jpg';
+import qrSignImg from '@/assets/services/qr-sign.jpg';
+import portalsImg from '@/assets/services/portals.jpg';
+import commissionImg from '@/assets/services/commission.jpg';
+
 interface Service {
   icon: typeof QrCode;
   title: string;
@@ -43,6 +51,7 @@ interface Service {
   signature?: boolean;
   badge?: string;
   visual?: () => ReactNode;
+  image?: string;
 }
 
 /* ═══════════════════════════════════════════
