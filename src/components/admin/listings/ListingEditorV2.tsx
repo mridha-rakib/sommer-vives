@@ -287,38 +287,78 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
     setPrepareDialogOpen(true);
   };
 
-  // ── Action: Forbedr tekst med AI ──
-  const handleAiImprove = async () => {
+  // ── Action: AI content tool ──
+  const handleAiAction = async (action: string) => {
     if (!listing) return;
     setAiImproving(true);
+    setAiAction(action);
     setAiDialogOpen(true);
+    setAiPreview(null);
     try {
       const { data, error } = await supabase.functions.invoke('improve-listing-text', {
-        body: { listing },
+        body: { listing, action },
       });
       if (error) throw error;
       if (data?.improved) {
-        setAiPreview(data.improved);
+        setAiPreview({ ...data.improved, _action: action });
       } else if (data?.error) {
         toast({ title: 'AI-fejl', description: data.error, variant: 'destructive' });
         setAiDialogOpen(false);
       }
     } catch (e: any) {
-      toast({ title: 'Fejl', description: e.message || 'Kunne ikke forbedre tekst', variant: 'destructive' });
+      toast({ title: 'Fejl', description: e.message || 'Kunne ikke generere indhold', variant: 'destructive' });
       setAiDialogOpen(false);
     } finally {
       setAiImproving(false);
     }
   };
 
+  // legacy wrapper
+  const handleAiImprove = () => handleAiAction('improve_all');
+
   const applyAiSuggestions = () => {
     if (!aiPreview || !listing) return;
-    if (aiPreview.title) update('description', aiPreview.title);
-    if (aiPreview.tagline) update('tagline', aiPreview.tagline);
-    if (aiPreview.description) update('long_description', aiPreview.description);
-    if (aiPreview.long_description) update('long_description', aiPreview.long_description);
-    if (aiPreview.highlights?.length) update('highlights', aiPreview.highlights);
-    toast({ title: 'AI-tekst anvendt!', description: 'Husk at gemme ændringerne.' });
+    const action = aiPreview._action || 'improve_all';
+
+    if (action === 'improve_title' && aiPreview.suggestions?.length) {
+      update('description', aiPreview.suggestions[0]);
+    } else if (action === 'improve_description' && aiPreview.description) {
+      update('description', aiPreview.description);
+    } else if (action === 'improve_long_description' && aiPreview.long_description) {
+      update('long_description', aiPreview.long_description);
+    } else if (action === 'generate_highlights' && aiPreview.highlights?.length) {
+      update('highlights', aiPreview.highlights);
+    } else if (action === 'channel_airbnb') {
+      if (aiPreview.title) update('channel_airbnb_title', aiPreview.title);
+      if (aiPreview.description) update('channel_airbnb_description', aiPreview.description);
+      if (aiPreview.highlights) update('channel_airbnb_highlights', aiPreview.highlights);
+      if (aiPreview.house_rules) update('channel_airbnb_house_rules', aiPreview.house_rules);
+      if (aiPreview.checkin_notes) update('channel_airbnb_checkin_notes', aiPreview.checkin_notes);
+    } else if (action === 'channel_booking') {
+      if (aiPreview.title) update('channel_booking_title', aiPreview.title);
+      if (aiPreview.description) update('channel_booking_description', aiPreview.description);
+      if (aiPreview.room_setup) update('channel_booking_room_setup', aiPreview.room_setup);
+      if (aiPreview.policies) update('channel_booking_policies', aiPreview.policies);
+      if (aiPreview.checkin_checkout) update('channel_booking_checkin_checkout', aiPreview.checkin_checkout);
+    } else if (action === 'channel_vrbo') {
+      if (aiPreview.title) update('channel_vrbo_title', aiPreview.title);
+      if (aiPreview.description) update('channel_vrbo_description', aiPreview.description);
+      if (aiPreview.highlights) update('channel_vrbo_highlights', aiPreview.highlights);
+      if (aiPreview.rules) update('channel_vrbo_rules', aiPreview.rules);
+    } else if (action === 'translate_en' || action === 'translate_de') {
+      // Store in a toast for now — translations are read-only previews
+      toast({ title: `Oversættelse genereret (${action === 'translate_en' ? 'EN' : 'DE'})`, description: 'Kopiér tekst fra preview-dialogen.' });
+      return;
+    } else {
+      // improve_all fallback
+      if (aiPreview.title) update('description', aiPreview.title);
+      if (aiPreview.tagline) update('tagline', aiPreview.tagline);
+      if (aiPreview.description && !aiPreview.long_description) update('long_description', aiPreview.description);
+      if (aiPreview.long_description) update('long_description', aiPreview.long_description);
+      if (aiPreview.highlights?.length) update('highlights', aiPreview.highlights);
+    }
+
+    toast({ title: 'AI-indhold anvendt!', description: 'Husk at gemme ændringerne.' });
     setAiDialogOpen(false);
     setAiPreview(null);
   };
