@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/i18n';
 import { Menu, X, User, LogOut, ChevronRight, Calculator } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +16,7 @@ import { LanguageSelector } from '@/components/ui/LanguageSelector';
 
 export function Header() {
   const { user, signOut, isAdmin, isOwner } = useAuth();
+  const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -26,7 +28,6 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
@@ -34,10 +35,10 @@ export function Header() {
   const transparent = isHome && !scrolled && !mobileMenuOpen;
 
   const navigation = [
-    { name: 'Sådan virker det', href: '/#saadan-virker-det' },
-    { name: 'Sommerhuse', href: '/listings' },
-    { name: 'Priser', href: '/#priser' },
-    { name: 'Om os', href: '/about' },
+    { name: t('nav.howItWorks'), href: '/#saadan-virker-det' },
+    { name: t('nav.listings'), href: '/listings' },
+    { name: t('nav.pricing'), href: '/#priser' },
+    { name: t('nav.about'), href: '/about' },
   ];
 
   const isActiveLink = (href: string) => {
@@ -64,7 +65,7 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Desktop Navigation — pill style */}
+          {/* Desktop Navigation */}
           <div className={`hidden lg:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
             transparent
               ? 'bg-foreground/8 backdrop-blur-md border border-foreground/10'
@@ -112,7 +113,7 @@ export function Header() {
                     }`}>
                       <User className="h-3 w-3 text-primary" />
                     </div>
-                    Min konto
+                    {t('nav.myAccount')}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52 rounded-xl border-border/50 shadow-elevated">
@@ -121,14 +122,14 @@ export function Header() {
                   <DropdownMenuItem asChild className="rounded-lg">
                     <Link to="/" className="flex items-center gap-2">
                       <ChevronRight className="h-3 w-3" />
-                      Forside
+                      {t('nav.home')}
                     </Link>
                   </DropdownMenuItem>
                   {isOwner && (
                     <DropdownMenuItem asChild className="rounded-lg">
                       <Link to="/owner" className="flex items-center gap-2">
                         <ChevronRight className="h-3 w-3" />
-                        Ejerportal
+                        {t('nav.ownerPortal')}
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -136,14 +137,14 @@ export function Header() {
                     <DropdownMenuItem asChild className="rounded-lg">
                       <Link to="/admin" className="flex items-center gap-2">
                         <ChevronRight className="h-3 w-3" />
-                        Admin Portal
+                        {t('nav.adminPortal')}
                       </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={signOut} className="text-destructive rounded-lg">
                     <LogOut className="h-4 w-4 mr-2" />
-                    Log ud
+                    {t('nav.logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -167,20 +168,20 @@ export function Header() {
                     <DropdownMenuItem asChild className="rounded-lg">
                       <Link to="/auth" className="flex items-center gap-2">
                         <ChevronRight className="h-3 w-3" />
-                        Ejer Login
+                        {t('nav.ownerLogin')}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="rounded-lg">
                       <Link to="/guest/auth" className="flex items-center gap-2">
                         <ChevronRight className="h-3 w-3" />
-                        Gæste Login
+                        {t('nav.guestLogin')}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild className="rounded-lg">
                       <Link to="/admin/auth" className="flex items-center gap-2">
                         <ChevronRight className="h-3 w-3" />
-                        Admin Login
+                        {t('nav.adminLogin')}
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -192,12 +193,12 @@ export function Header() {
                       : 'text-muted-foreground hover:text-foreground'
                   }`}>
                     <Calculator className="w-3.5 h-3.5" />
-                    Beregn indtjening
+                    {t('nav.calcEarnings')}
                   </Button>
                 </Link>
                 <Link to="/kom-i-gang">
                   <Button variant="gold" size="sm" className="rounded-full text-[13px] px-5 shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">
-                    Kom i gang
+                    {t('nav.getStarted')}
                   </Button>
                 </Link>
               </>
@@ -217,7 +218,7 @@ export function Header() {
           </button>
         </div>
 
-        {/* Mobile Navigation — slide down */}
+        {/* Mobile Navigation */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
@@ -249,12 +250,17 @@ export function Header() {
                   })}
                 </div>
 
+                {/* Language selector in mobile */}
+                <div className="flex items-center justify-center mb-4 pt-2 border-t border-border/50">
+                  <LanguageSelector />
+                </div>
+
                 <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
                   {user ? (
                     <>
                       {isOwner && (
                         <Link to="/owner" onClick={() => setMobileMenuOpen(false)}>
-                          <Button variant="outline" className="w-full rounded-xl">Ejerportal</Button>
+                          <Button variant="outline" className="w-full rounded-xl">{t('nav.ownerPortal')}</Button>
                         </Link>
                       )}
                       {isAdmin && (
@@ -262,27 +268,27 @@ export function Header() {
                           <Button variant="outline" className="w-full rounded-xl">Admin</Button>
                         </Link>
                       )}
-                      <Button variant="ghost" onClick={signOut} className="w-full text-destructive rounded-xl">Log ud</Button>
+                      <Button variant="ghost" onClick={signOut} className="w-full text-destructive rounded-xl">{t('nav.logout')}</Button>
                     </>
                   ) : (
                     <>
                       <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full rounded-xl">Ejer Login</Button>
+                        <Button variant="outline" className="w-full rounded-xl">{t('nav.ownerLogin')}</Button>
                       </Link>
                       <Link to="/guest/auth" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full rounded-xl">Gæste Login</Button>
+                        <Button variant="outline" className="w-full rounded-xl">{t('nav.guestLogin')}</Button>
                       </Link>
                       <Link to="/admin/auth" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="ghost" className="w-full rounded-xl text-muted-foreground">Admin Login</Button>
+                        <Button variant="ghost" className="w-full rounded-xl text-muted-foreground">{t('nav.adminLogin')}</Button>
                       </Link>
                       <Link to="/beregn-lejeindtaegt" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="outline" className="w-full rounded-xl gap-1.5">
                           <Calculator className="w-4 h-4" />
-                          Beregn indtjening
+                          {t('nav.calcEarnings')}
                         </Button>
                       </Link>
                       <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">Kom i gang</Button>
+                        <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">{t('nav.getStarted')}</Button>
                       </Link>
                     </>
                   )}
