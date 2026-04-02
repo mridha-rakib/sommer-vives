@@ -199,15 +199,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       )}>
         {/* Logo header */}
         <div className="h-14 px-5 flex items-center justify-between border-b border-border/30">
-          <Link to="/admin" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
-              <span className="text-primary font-display text-sm font-bold">S</span>
-            </div>
-            <div>
-              <span className="font-display text-sm font-bold text-foreground block leading-none">SommerVibes</span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-0.5 block">Operations</span>
-            </div>
-          </Link>
+          <BrandLogo to="/admin" tagline="Operations" />
           <button className="md:hidden text-muted-foreground hover:text-foreground p-1 rounded-lg" onClick={() => setSidebarOpen(false)}>
             <X className="w-4 h-4" />
           </button>
