@@ -6,7 +6,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, LogOut, Menu, X, Calendar,
   MessageSquare, ListChecks, Target, Users, FolderOpen, Inbox,
-  FileText, Wallet, ChevronDown,
+  FileText, Wallet, ChevronDown, ChevronLeft,
   UserCheck, User, ExternalLink
 } from 'lucide-react';
 import { QuickCreateButtons } from '@/components/admin/QuickCreateButtons';
