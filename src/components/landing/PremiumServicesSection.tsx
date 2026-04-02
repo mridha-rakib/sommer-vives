@@ -276,7 +276,7 @@ export function PremiumServicesSection() {
             </h3>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
+          <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
             {allServices.map((s, i) => {
               const Icon = s.icon;
               return (
