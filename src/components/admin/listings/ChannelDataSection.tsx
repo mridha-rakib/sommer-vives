@@ -83,6 +83,8 @@ export function ChannelDataSection({
   const [pendingApproval, setPendingApproval] = useState<Set<string>>(new Set());
   const [approved, setApproved] = useState(!!listing[`channel_${channelKey}_ready`]);
   const [showDetails, setShowDetails] = useState(true);
+  const [showValidation, setShowValidation] = useState(true);
+  const [focusField, setFocusField] = useState<string | null>(null);
 
   // Determine field status
   const getFieldStatus = (field: ChannelField): FieldStatus => {
