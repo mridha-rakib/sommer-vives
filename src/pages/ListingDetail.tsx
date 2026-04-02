@@ -492,6 +492,32 @@ const ListingDetail = () => {
 
           <BrandDivider />
 
+          {/* Long description from admin */}
+          {listing.long_description && (
+            <div className="mb-10">
+              <h3 className="font-display text-2xl md:text-3xl font-semibold text-primary mb-3">Om dette sted</h3>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line max-w-3xl">{listing.long_description}</p>
+            </div>
+          )}
+
+          {/* About property & area side by side */}
+          {(listing.about_property || listing.about_area) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+              {listing.about_property && (
+                <div>
+                  <h3 className="font-display text-xl font-semibold text-primary mb-3">Om boligen</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{listing.about_property}</p>
+                </div>
+              )}
+              {listing.about_area && (
+                <div>
+                  <h3 className="font-display text-xl font-semibold text-primary mb-3">Om området</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{listing.about_area}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Content Sections */}
           {contentSections.length > 0 && (
             <div id="content-sections" className="mb-10">
@@ -504,6 +530,24 @@ const ListingDetail = () => {
 
           {/* Facilities */}
           {facilities.length > 0 && <FacilitiesSection facilities={facilities} />}
+
+          {/* Check-in / Check-out info */}
+          {(listing.checkin_info || listing.checkout_info) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+              {listing.checkin_info && (
+                <div>
+                  <h3 className="font-display text-xl font-semibold text-primary mb-3">Check-in</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{listing.checkin_info}</p>
+                </div>
+              )}
+              {listing.checkout_info && (
+                <div>
+                  <h3 className="font-display text-xl font-semibold text-primary mb-3">Check-out</h3>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{listing.checkout_info}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* House rules */}
           {listing.house_rules && (

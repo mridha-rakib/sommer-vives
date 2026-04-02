@@ -12,6 +12,7 @@ interface ListingData {
   slug: string;
   name: string;
   description: string | null;
+  tagline: string | null;
   address: string | null;
   region: string | null;
   max_guests: number;
@@ -21,6 +22,7 @@ interface ListingData {
   hero_image: string | null;
   images: string[] | null;
   amenities: string[] | null;
+  property_type: string | null;
 }
 
 const REGIONS = ['Alle', 'Nordsjælland', 'Vestjylland', 'Limfjorden', 'Sydsjælland', 'Fyn', 'Bornholm'];
