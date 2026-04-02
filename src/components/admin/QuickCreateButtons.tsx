@@ -74,10 +74,10 @@ function QuickSagDialog({ open, onClose }: { open: boolean; onClose: () => void 
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('properties').insert({
-      title: form.title.trim(), address: form.address.trim() || null,
-      owner_id: user?.id || '', status: 'draft', region: form.region.trim() || null,
+      title: form.title.trim(), address: form.address.trim() || 'Ikke angivet',
+      owner_id: user?.id || '', status: 'draft', region: form.region.trim() || 'Ikke angivet',
     });
-    if (error) { toast.error('Kunne ikke oprette sag'); setSaving(false); return; }
+    if (error) { toast.error('Kunne ikke oprette sag: ' + error.message); setSaving(false); return; }
     toast.success('Sag oprettet');
     setForm({ title: '', address: '', owner_name: '', region: '', notes: '' });
     setSaving(false); onClose();
