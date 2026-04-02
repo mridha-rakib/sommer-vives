@@ -1637,7 +1637,9 @@ export type Database = {
           check_out_time: string | null
           checkin_info: string | null
           checkout_info: string | null
+          city: string | null
           cleaning_fee: number | null
+          country: string | null
           created_at: string
           currency: string
           deposit: number | null
@@ -1654,10 +1656,13 @@ export type Database = {
           images: string[] | null
           internal_status: string | null
           is_active: boolean
+          latitude: number | null
           location_map_image: string | null
           location_mood_image: string | null
           long_description: string | null
+          longitude: number | null
           max_guests: number
+          max_nights: number | null
           min_nights: number | null
           name: string
           owner_id: string
@@ -1694,7 +1699,9 @@ export type Database = {
           check_out_time?: string | null
           checkin_info?: string | null
           checkout_info?: string | null
+          city?: string | null
           cleaning_fee?: number | null
+          country?: string | null
           created_at?: string
           currency?: string
           deposit?: number | null
@@ -1711,10 +1718,13 @@ export type Database = {
           images?: string[] | null
           internal_status?: string | null
           is_active?: boolean
+          latitude?: number | null
           location_map_image?: string | null
           location_mood_image?: string | null
           long_description?: string | null
+          longitude?: number | null
           max_guests?: number
+          max_nights?: number | null
           min_nights?: number | null
           name: string
           owner_id: string
@@ -1751,7 +1761,9 @@ export type Database = {
           check_out_time?: string | null
           checkin_info?: string | null
           checkout_info?: string | null
+          city?: string | null
           cleaning_fee?: number | null
+          country?: string | null
           created_at?: string
           currency?: string
           deposit?: number | null
@@ -1768,10 +1780,13 @@ export type Database = {
           images?: string[] | null
           internal_status?: string | null
           is_active?: boolean
+          latitude?: number | null
           location_map_image?: string | null
           location_mood_image?: string | null
           long_description?: string | null
+          longitude?: number | null
           max_guests?: number
+          max_nights?: number | null
           min_nights?: number | null
           name?: string
           owner_id?: string
