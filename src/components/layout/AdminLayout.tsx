@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, LogOut, Menu, X, Calendar,
-  MessageSquare, ListChecks, Target, Users, FolderOpen,
+  MessageSquare, ListChecks, Target, Users, FolderOpen, Inbox,
   FileText, Wallet, ChevronDown, Search,
   UserCheck, User, ExternalLink
 } from 'lucide-react';
