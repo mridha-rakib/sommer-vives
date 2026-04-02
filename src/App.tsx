@@ -58,6 +58,7 @@ import AdminCrmGaester from "./pages/admin/AdminCrmGaester";
 import AdminCrmArkiv from "./pages/admin/AdminCrmArkiv";
 import AdminModtagelse from "./pages/admin/AdminModtagelse";
 import AdminSager from "./pages/admin/AdminSager";
+import AdminSagDetail from "./pages/admin/AdminSagDetail";
 import AdminSagerKalender from "./pages/admin/AdminSagerKalender";
 import AdminSagerTilkoeb from "./pages/admin/AdminSagerTilkoeb";
 import AdminSagerKanaler from "./pages/admin/AdminSagerKanaler";
@@ -205,6 +206,7 @@ const App = () => (
             <Route path="/admin/crm/arkiv" element={<ProtectedRoute requireAdmin><AdminCrmArkiv /></ProtectedRoute>} />
             <Route path="/admin/modtagelse" element={<ProtectedRoute requireAdmin><AdminModtagelse /></ProtectedRoute>} />
             <Route path="/admin/sager" element={<ProtectedRoute requireAdmin><AdminSager /></ProtectedRoute>} />
+            <Route path="/admin/sager/:id" element={<ProtectedRoute requireAdmin><AdminSagDetail /></ProtectedRoute>} />
             <Route path="/admin/sager/kalender" element={<ProtectedRoute requireAdmin><AdminSagerKalender /></ProtectedRoute>} />
             <Route path="/admin/sager/tilkoeb" element={<ProtectedRoute requireAdmin><AdminSagerTilkoeb /></ProtectedRoute>} />
             <Route path="/admin/sager/kanaler" element={<ProtectedRoute requireAdmin><AdminSagerKanaler /></ProtectedRoute>} />
