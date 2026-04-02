@@ -210,6 +210,16 @@ export default function AdminLeads() {
                   <ArrowRight className="h-3 w-3 mr-2" />{STATUS_MAP[s].label}
                 </DropdownMenuItem>
               ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={async (e) => {
+                e.stopPropagation();
+                if (!confirm(`Slet lead "${lead.name}"?`)) return;
+                await supabase.from('leads').delete().eq('id', lead.id);
+                toast.success('Lead slettet');
+                load();
+              }}>
+                <X className="h-3 w-3 mr-2" />Slet
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
