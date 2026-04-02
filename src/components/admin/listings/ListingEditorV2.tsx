@@ -215,6 +215,14 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   };
 
   const readiness = useMemo(() => listing ? calcReadiness(listing) : { score: 0, missing: [], passed: [] }, [listing]);
+  const channelReadiness = useMemo(() => {
+    if (!listing) return { airbnb: { score: 0, missing: [], passed: [] }, booking: { score: 0, missing: [], passed: [] }, vrbo: { score: 0, missing: [], passed: [] } };
+    return {
+      airbnb: calcChannelReadiness(listing, 'airbnb'),
+      booking: calcChannelReadiness(listing, 'booking'),
+      vrbo: calcChannelReadiness(listing, 'vrbo'),
+    };
+  }, [listing]);
 
   const handleSave = async () => {
     if (!listing) return;
