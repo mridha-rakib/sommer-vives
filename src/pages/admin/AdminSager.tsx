@@ -4,8 +4,12 @@ import { da } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, FolderOpen, MapPin, Home, Users, ChevronRight,
-  Eye, XCircle, RotateCcw, Handshake, Rocket, Ban, CheckCircle2, Clock
+  Eye, XCircle, RotateCcw, Handshake, Rocket, Ban, CheckCircle2, Clock,
+  MoreHorizontal, Trash2
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusChip } from '@/components/admin/ui/StatusChip';
 import { EmptyState } from '@/components/admin/ui/EmptyState';
