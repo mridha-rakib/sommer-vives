@@ -18,7 +18,7 @@ export function WhyUsSection() {
   const { ref, isInView } = useScrollReveal();
 
   return (
-    <section ref={ref} id="hvorfor" className="relative py-28 md:py-36 overflow-hidden">
+    <section ref={ref} id="hvorfor" className="relative py-16 md:py-32 overflow-hidden">
       {/* Full-bleed background image */}
       <div className="absolute inset-0">
         <img
