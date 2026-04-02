@@ -180,21 +180,35 @@ export function HeroSection() {
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center gap-6 sm:gap-8 md:gap-12 py-3.5 md:py-4 flex-wrap">
-            {[
-              { icon: Star, text: 'Fremragende på Trustpilot' },
-              { icon: Flag, text: 'Dansk virksomhed' },
-              { icon: Handshake, text: 'Ingen binding' },
-              { icon: ShieldCheck, text: 'Tryghedsgaranti inkl.' },
-              { icon: MessageCircle, text: 'Dansk kundeservice' },
-            ].map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <div key={i} className="flex items-center gap-2 text-foreground/70">
-                  <Icon className="w-4 h-4 text-accent/70" strokeWidth={1.5} />
-                  <span className="text-[11px] sm:text-[12px] font-medium font-body">{item.text}</span>
-                </div>
-              );
-            })}
+            {/* Trustpilot */}
+            <div className="flex items-center gap-2 text-foreground/70">
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, j) => (
+                  <Star key={j} className="w-3 h-3 text-accent fill-accent/80" strokeWidth={0} />
+                ))}
+              </div>
+              <span className="text-[11px] sm:text-[12px] font-medium font-body">Fremragende på Trustpilot</span>
+            </div>
+            {/* Dansk virksomhed */}
+            <div className="flex items-center gap-2 text-foreground/70">
+              <span className="text-base leading-none">🇩🇰</span>
+              <span className="text-[11px] sm:text-[12px] font-medium font-body">Dansk virksomhed</span>
+            </div>
+            {/* Ingen binding */}
+            <div className="flex items-center gap-2 text-foreground/70">
+              <Handshake className="w-4 h-4 text-accent" strokeWidth={1.5} />
+              <span className="text-[11px] sm:text-[12px] font-medium font-body">Ingen binding</span>
+            </div>
+            {/* Tryghedsgaranti */}
+            <div className="flex items-center gap-2 text-foreground/70">
+              <ShieldCheck className="w-4 h-4 text-accent" strokeWidth={1.5} />
+              <span className="text-[11px] sm:text-[12px] font-medium font-body">Tryghedsgaranti inkl.</span>
+            </div>
+            {/* Dansk kundeservice */}
+            <div className="flex items-center gap-2 text-foreground/70">
+              <MessageCircle className="w-4 h-4 text-accent" strokeWidth={1.5} />
+              <span className="text-[11px] sm:text-[12px] font-medium font-body">Dansk kundeservice</span>
+            </div>
           </div>
         </div>
       </motion.div>
