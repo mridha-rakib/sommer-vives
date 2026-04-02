@@ -396,7 +396,7 @@ const services: Service[] = [
     short: 'Hvis noget opstår under udlejningen, hjælper vi med at få det løst.',
     long: 'Hvis der opstår en akut situation under en udlejning, kan SommerVibes hjælpe med at rekvirere relevante håndværkere eller fagpersoner på dine vegne. Udgifter faktureres naturligvis direkte til dig, og du vælger selv, om du vil stå for vedligeholdelsen selv eller ønsker, at vi hjælper med koordineringen. Det giver dig fleksibilitet og gør det lettere at håndtere det uforudsete.',
     expandLabel: 'Fleksibel hjælp',
-    visual: ServiceRepVisual,
+    image: repairImg,
   },
   // 11. Effektiv markedsføring
   {
