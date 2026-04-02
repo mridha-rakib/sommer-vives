@@ -448,6 +448,12 @@ export default function AdminSagDetail() {
   const [aiLoading, setAiLoading] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishFlowOpen, setPublishFlowOpen] = useState(false);
+  const [sagDocs, setSagDocs] = useState<any[]>([]);
+  const [docTemplates, setDocTemplates] = useState<any[]>([]);
+  const [editingDocId, setEditingDocId] = useState<string | null>(null);
+  const [editDocValues, setEditDocValues] = useState<Record<string, string>>({});
+  const [ownerEditOpen, setOwnerEditOpen] = useState(false);
+  const [ownerForm, setOwnerForm] = useState<any>({});
 
   useEffect(() => {
     if (!id) return;
