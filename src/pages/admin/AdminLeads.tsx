@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
+import { ProfilePopover } from '@/components/admin/ProfilePopover';
 import { da } from 'date-fns/locale';
 import {
   Search, Plus, Target, Phone, Mail, MapPin, CalendarDays,
@@ -192,7 +193,9 @@ export default function AdminLeads() {
         )}
       >
         <div className="flex items-start justify-between mb-2">
-          <h4 className="text-sm font-semibold text-foreground truncate flex-1">{lead.name}</h4>
+          <ProfilePopover type="lead" id={lead.id} data={lead} onOpenDetail={() => setDrawerLead(lead)}>
+            <h4 className="text-sm font-semibold text-foreground truncate flex-1 hover:text-primary transition-colors cursor-pointer" onClick={e => e.stopPropagation()}>{lead.name}</h4>
+          </ProfilePopover>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-6 w-6 rounded-md opacity-0 group-hover:opacity-100 transition-opacity shrink-0 -mr-1" onClick={e => e.stopPropagation()}>
@@ -350,7 +353,9 @@ export default function AdminLeads() {
                         return (
                           <tr key={l.id} className="border-b border-border/20 hover:bg-muted/15 transition-colors cursor-pointer" onClick={() => setDrawerLead(l)}>
                             <td className="px-4 py-3">
-                              <p className="font-medium text-foreground">{l.name}</p>
+                              <ProfilePopover type="lead" id={l.id} data={l} onOpenDetail={() => setDrawerLead(l)}>
+                                <p className="font-medium text-foreground hover:text-primary transition-colors cursor-pointer inline" onClick={e => e.stopPropagation()}>{l.name}</p>
+                              </ProfilePopover>
                             </td>
                             <td className="px-4 py-3">
                               <div className="space-y-0.5">

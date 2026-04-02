@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ProfilePopover } from '@/components/admin/ProfilePopover';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Eye, MoreHorizontal, MessageSquare, Edit, XCircle } from 'lucide-react';
@@ -93,7 +94,9 @@ export function BookingsTable({ bookings, compact = false, onStatusChange }: Boo
                   </TableCell>
                 )}
                 <TableCell>
-                  {booking.guest_name || booking.guest?.name || 'N/A'}
+                  <ProfilePopover type="guest" id={booking.guest_id || undefined} data={booking.guest_id ? undefined : { name: booking.guest_name || 'N/A', email: booking.guest_email || '', phone: booking.guest_phone || '' }}>
+                    <span className="hover:text-primary transition-colors cursor-pointer">{booking.guest_name || booking.guest?.name || 'N/A'}</span>
+                  </ProfilePopover>
                 </TableCell>
                 <TableCell>
                   <Badge className={statusColors[booking.status]} variant="outline">

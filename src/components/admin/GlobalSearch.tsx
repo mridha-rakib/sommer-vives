@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, Calendar, Home, User, Loader2 } from 'lucide-react';
+import { ProfilePopover } from '@/components/admin/ProfilePopover';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
@@ -222,7 +223,12 @@ export function GlobalSearch() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-medium truncate">{result.title}</span>
+                                  <ProfilePopover
+                                    type={result.type === 'booking' ? 'guest' : result.type === 'guest' ? 'guest' : result.type === 'property' ? 'owner' : 'guest'}
+                                    id={result.id}
+                                  >
+                                    <span className="font-medium truncate hover:text-primary transition-colors cursor-pointer">{result.title}</span>
+                                  </ProfilePopover>
                                   {result.caseNumber && (
                                     <Badge variant="outline" className="text-xs shrink-0">
                                       {result.caseNumber}
