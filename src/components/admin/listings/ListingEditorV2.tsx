@@ -689,6 +689,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
             { value: 'billeder', label: 'Billeder', icon: ImageIcon },
             { value: 'faciliteter', label: 'Faciliteter', icon: CheckCircle2 },
             { value: 'priser', label: 'Priser & Regler', icon: DollarSign },
+            { value: 'kalender', label: 'Kalender', icon: CalendarIcon },
             { value: 'readiness', label: 'Readiness', icon: Star },
             { value: 'kanaler', label: 'Kanaler', icon: Globe },
           ].map(tab => (
