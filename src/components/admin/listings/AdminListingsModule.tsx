@@ -1,15 +1,11 @@
 import { useState } from 'react';
 import { ListingsOverview } from './ListingsOverview';
 import { ListingEditorV2 } from './ListingEditorV2';
-import { useToast } from '@/hooks/use-toast';
+import { CreateListingDialog } from './CreateListingDialog';
 
 export function AdminListingsModule() {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  const handleCreate = () => {
-    toast({ title: 'Kommer snart', description: 'Oprettelse af ny listing kommer i næste version.' });
-  };
+  const [createOpen, setCreateOpen] = useState(false);
 
   if (editingId) {
     return (
@@ -21,9 +17,16 @@ export function AdminListingsModule() {
   }
 
   return (
-    <ListingsOverview
-      onEdit={id => setEditingId(id)}
-      onCreate={handleCreate}
-    />
+    <>
+      <ListingsOverview
+        onEdit={id => setEditingId(id)}
+        onCreate={() => setCreateOpen(true)}
+      />
+      <CreateListingDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={id => setEditingId(id)}
+      />
+    </>
   );
 }
