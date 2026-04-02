@@ -34,7 +34,7 @@ export function Header() {
   const transparent = isHome && !scrolled && !mobileMenuOpen;
 
   const navigation = [
-    { name: 'Sådan virker det', href: '/how-it-works' },
+    { name: 'Sådan virker det', href: '/#saadan-virker-det' },
     { name: 'Priser', href: '/pricing' },
     { name: 'Sommerhuse', href: '/listings' },
     { name: 'Om os', href: '/about' },

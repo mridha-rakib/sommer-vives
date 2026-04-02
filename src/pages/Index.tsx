@@ -25,7 +25,10 @@ const Index = () => {
       <HeroSection />
       <PremiumServicesSection />
       <EarningsSection />
-      <HowItWorksSection />
+      <div id="saadan-virker-det">
+        <HowItWorksSection />
+      </div>
+      <WhyUsSection />
       <TestimonialsSection />
       <div id="faq">
         <ContextualFAQ
