@@ -361,6 +361,12 @@ const ListingDetail = () => {
                     <span className="text-foreground font-medium">{listing.bathrooms}</span>
                   </div>
                 )}
+                {listing.sqm && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Areal</span>
+                    <span className="text-foreground font-medium">{listing.sqm} m²</span>
+                  </div>
+                )}
                 {(listing.check_in_time || listing.check_out_time) && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Check-in / ud</span>
