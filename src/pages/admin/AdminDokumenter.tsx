@@ -202,6 +202,36 @@ export default function AdminDokumenter() {
     toast.success('Skabelon slettet');
   };
 
+  // Standard document template CRUD
+  const openNewStdTemplate = () => {
+    setEditingStdTemplate('new');
+    setStdTemplateForm({ name: '', body_text: '', body_html: '', category: 'standard', is_active: true });
+  };
+  const openEditStdTemplate = (t: any) => {
+    setEditingStdTemplate(t);
+    setStdTemplateForm({ name: t.name, body_text: t.body_text, body_html: t.body_html, category: t.category, is_active: t.is_active });
+  };
+  const saveStdTemplate = async () => {
+    if (!stdTemplateForm.name.trim()) { toast.error('Navn er påkrævet'); return; }
+    if (editingStdTemplate === 'new') {
+      const { error } = await supabase.from('document_templates').insert(stdTemplateForm);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Skabelon oprettet');
+    } else {
+      const { error } = await supabase.from('document_templates').update(stdTemplateForm).eq('id', editingStdTemplate.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Skabelon opdateret');
+    }
+    setEditingStdTemplate(null);
+    const { data } = await supabase.from('document_templates').select('*').order('sort_order');
+    setStdTemplates(data || []);
+  };
+  const deleteStdTemplate = async (id: string) => {
+    await supabase.from('document_templates').delete().eq('id', id);
+    setStdTemplates(prev => prev.filter(t => t.id !== id));
+    toast.success('Skabelon slettet');
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
