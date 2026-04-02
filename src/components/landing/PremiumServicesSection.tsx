@@ -367,7 +367,7 @@ const services: Service[] = [
     long: 'Hos SommerVibes får du adgang til fleksible indtægtsmuligheder, der kan løfte den samlede værdi af hver booking. Det kan være betaling for sengepakker, forbrug, tidlig check-in, sen check-out og andre relevante tilvalg. Det giver dig mulighed for at skræddersy din udlejning og hente ekstra værdi ud af de detaljer, som ofte gør en reel forskel på bundlinjen.',
     expandLabel: 'Mere indtjening',
     badge: 'Populær blandt ejere',
-    visual: RevenueVisual,
+    image: revenueImg,
   },
   // 8. Nøgleservice
   {
