@@ -74,6 +74,9 @@ export function Beds24Integration({ listing, onUpdate }: Props) {
     if (error) {
       toast.error('Kunne ikke opdatere status');
     } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      const actionKey = status === 'ready' ? 'beds24_status_ready' : status === 'synced' ? 'beds24_status_synced' : status === 'error' ? 'beds24_status_error' : 'beds24_status_changed';
+      await supabase.from('audit_log').insert({ action: actionKey, entity_type: 'listing', entity_id: listing.id, actor_user_id: user?.id || null, actor_email: user?.email || null, after_data: { sync_status: status, sync_error_message: status === 'error' ? syncNotes : null } });
       toast.success(`Status ændret til "${STATUS_CFG[mapSyncStatus(status)]?.label}"`);
       onUpdate({
         sync_status: status,
