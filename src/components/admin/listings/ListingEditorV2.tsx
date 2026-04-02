@@ -1549,6 +1549,120 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
             </Field>
           </Section>
         </TabsContent>
+
+        {/* ─── 9. INTEGRATION ─── */}
+        <TabsContent value="integration" className="mt-4 space-y-5">
+          {(() => {
+            const syncStatus = listing.sync_status || 'not_connected';
+            const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode; bg: string }> = {
+              not_connected: { label: 'Ikke tilkoblet', color: 'text-muted-foreground', icon: <WifiOff className="h-4 w-4" />, bg: 'bg-muted' },
+              ready: { label: 'Klar til integration', color: 'text-blue-600', icon: <Wifi className="h-4 w-4" />, bg: 'bg-blue-50 dark:bg-blue-950/30' },
+              pending: { label: 'Venter på sync', color: 'text-amber-600', icon: <Clock className="h-4 w-4 animate-pulse" />, bg: 'bg-amber-50 dark:bg-amber-950/30' },
+              synced: { label: 'Synkroniseret', color: 'text-emerald-600', icon: <CheckCircle2 className="h-4 w-4" />, bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
+              error: { label: 'Fejl', color: 'text-destructive', icon: <AlertCircle className="h-4 w-4" />, bg: 'bg-destructive/10' },
+            };
+            const cfg = statusConfig[syncStatus] || statusConfig.not_connected;
+
+            return (
+              <>
+                {/* Status banner */}
+                <div className={`rounded-xl border border-border p-5 flex items-center justify-between ${cfg.bg}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`${cfg.color}`}>{cfg.icon}</div>
+                    <div>
+                      <p className={`font-semibold text-sm ${cfg.color}`}>{cfg.label}</p>
+                      {listing.last_sync_at && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Sidst synkroniseret: {new Date(listing.last_sync_at).toLocaleString('da-DK')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Select value={syncStatus} onValueChange={v => update('sync_status' as any, v)}>
+                    <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="not_connected">Ikke tilkoblet</SelectItem>
+                      <SelectItem value="ready">Klar til integration</SelectItem>
+                      <SelectItem value="pending">Venter på sync</SelectItem>
+                      <SelectItem value="synced">Synkroniseret</SelectItem>
+                      <SelectItem value="error">Fejl</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Error message */}
+                {syncStatus === 'error' && listing.sync_error_message && (
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
+                    <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-destructive">Sync-fejl</p>
+                      <p className="text-xs text-muted-foreground mt-1">{listing.sync_error_message}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  <Section title="Channel Manager" description="Tilslutning til ekstern partner">
+                    <Field label="Channel Manager Partner" hint="F.eks. Beds24, Guesty, Hostaway">
+                      <Select value={listing.channel_manager_partner || ''} onValueChange={v => update('channel_manager_partner' as any, v || null)}>
+                        <SelectTrigger><SelectValue placeholder="Vælg partner..." /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Ingen</SelectItem>
+                          <SelectItem value="beds24">Beds24</SelectItem>
+                          <SelectItem value="guesty">Guesty</SelectItem>
+                          <SelectItem value="hostaway">Hostaway</SelectItem>
+                          <SelectItem value="lodgify">Lodgify</SelectItem>
+                          <SelectItem value="smoobu">Smoobu</SelectItem>
+                          <SelectItem value="other">Andet</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  </Section>
+
+                  <Section title="Ekstern ID-mapping" description="ID'er der bruges til synkronisering">
+                    <Field label="Eksternt Listing-ID" hint="Listing-ID i channel manager">
+                      <Input value={listing.external_listing_id || ''} onChange={e => update('external_listing_id' as any, e.target.value || null)} placeholder="F.eks. 123456" />
+                    </Field>
+                    <Field label="Eksternt Property-ID" hint="Property-ID i channel manager">
+                      <Input value={listing.external_property_id || ''} onChange={e => update('external_property_id' as any, e.target.value || null)} placeholder="F.eks. PROP-789" />
+                    </Field>
+                  </Section>
+                </div>
+
+                {syncStatus === 'error' && (
+                  <Section title="Fejlbesked" description="Seneste fejl fra synkronisering">
+                    <Textarea
+                      value={listing.sync_error_message || ''}
+                      onChange={e => update('sync_error_message' as any, e.target.value || null)}
+                      rows={3}
+                      placeholder="Ingen fejlbesked..."
+                    />
+                  </Section>
+                )}
+
+                {/* Integration roadmap info */}
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <div className="flex items-start gap-3">
+                    <Info className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-sm text-foreground">Kommende integration</h4>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        Denne sektion forbereder listing-systemet til fremtidig tilslutning af en channel manager.
+                        Når en partner er tilkoblet, vil kalender, priser og bookinger automatisk synkroniseres
+                        mellem SommerVibes og portaler som Airbnb, Booking.com og Vrbo.
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {['Kalender-sync', 'Pris-sync', 'Booking-import', 'Status-opdatering'].map(f => (
+                          <Badge key={f} variant="secondary" className="text-[11px]">{f}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </TabsContent>
       </Tabs>
 
       {/* Floating save bar */}
