@@ -179,12 +179,12 @@ export default function AdminDashboard() {
               ) : (
                 <div className="space-y-0.5">
                   {tasks.map(t => {
-                    const st = TASK_STATUS[t.status] || TASK_STATUS.pending;
+                    const st = TASK_STATUS[t.status] || TASK_STATUS.not_started;
                     return (
                       <ListRow
                         key={t.id}
-                        title={t.task_type}
-                        subtitle={(t.property as any)?.title}
+                        title={t.title}
+                        subtitle={t.linked_name || t.description?.slice(0, 50) || undefined}
                         chip={<StatusChip label={st.label} variant={st.variant} dot />}
                       />
                     );
