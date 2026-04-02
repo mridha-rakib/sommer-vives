@@ -96,57 +96,8 @@ export function HeroSection() {
                 Du beholder overblikket — og <strong className="text-primary">85% af indtægten</strong>.
               </motion.p>
 
-              {/* Minimal revenue teaser — inline, transparent */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                className="mb-5 sm:mb-7 max-w-md"
-              >
-                <div className="flex items-center gap-2 mb-2.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-[9px] sm:text-[10px] font-bold text-primary/80 tracking-[0.15em] uppercase">
-                    +20% merindtjening kun hos os
-                  </span>
-                </div>
-                <div className="flex gap-1">
-                  {revenueItems.map((item, i) => {
-                    const Icon = item.icon;
-                    const isActive = activeItem === i;
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => setActiveItem(i)}
-                        className={`flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-all duration-500 ${
-                          isActive
-                            ? 'bg-primary/10 border border-primary/20'
-                            : 'bg-transparent border border-transparent hover:bg-foreground/5'
-                        }`}
-                      >
-                        <Icon className={`w-3.5 h-3.5 transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                        <span className={`font-display text-xs sm:text-sm font-bold transition-colors duration-300 ${isActive ? 'text-primary' : 'text-muted-foreground/70'}`}>
-                          {item.pct}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {/* Active label */}
-                <div className="h-5 mt-1.5 relative overflow-hidden">
-                  <AnimatePresence mode="wait">
-                    <motion.p
-                      key={activeItem}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-[10px] sm:text-xs text-foreground/50 font-medium text-center absolute inset-x-0"
-                    >
-                      {revenueItems[activeItem].label}
-                    </motion.p>
-                  </AnimatePresence>
-                </div>
-              </motion.div>
+
+
 
               {/* Trust bullets — hidden on very small screens */}
               <motion.div
