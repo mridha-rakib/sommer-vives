@@ -1,7 +1,7 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Phone, Mail, Clock, RotateCcw } from 'lucide-react';
+import { ArrowRight, Check, Phone, Mail, Clock, RotateCcw, Crown, Sparkles, UserCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useRef, useState } from 'react';
@@ -273,9 +273,9 @@ function StorySection() {
 function BrandDNA() {
   const { ref, isInView } = useScrollReveal();
   const values = [
-    { title: 'Kvalitet over kvantitet', desc: 'Færre ejere, mere opmærksomhed.' },
-    { title: 'Digital nytænkning', desc: 'Moderne værktøjer, fuldt overblik.' },
-    { title: 'Personlig rådgivning', desc: 'Én kontaktperson, der kender dit hus.' },
+    { title: 'Kvalitet over kvantitet', desc: 'Færre ejere, mere opmærksomhed.', icon: Crown },
+    { title: 'Digital nytænkning', desc: 'Moderne værktøjer, fuldt overblik.', icon: Sparkles },
+    { title: 'Personlig rådgivning', desc: 'Én kontaktperson, der kender dit hus.', icon: UserCheck },
   ];
 
   return (
@@ -287,7 +287,14 @@ function BrandDNA() {
         </motion.div>
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {values.map((v, i) => (
-            <motion.div key={i} {...reveal(isInView, 0.06 * i)}>
+            <motion.div key={i} {...reveal(isInView, 0.1 * i)} className="group">
+              <motion.div
+                className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4 ring-1 ring-accent/10"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
+                <v.icon className="w-5 h-5 text-accent" strokeWidth={1.5} />
+              </motion.div>
               <h3 className="font-display text-[1.05rem] font-semibold text-primary mb-1.5">{v.title}</h3>
               <p className="text-muted-foreground/65 text-[13.5px] leading-[1.7]">{v.desc}</p>
             </motion.div>
