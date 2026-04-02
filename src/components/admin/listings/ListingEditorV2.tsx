@@ -32,6 +32,7 @@ import { StudioPreview } from './studio/StudioPreview';
 // Existing components
 import { ListingCalendarPricing } from './ListingCalendarPricing';
 import { ChannelDataSection } from './ChannelDataSection';
+import { getChannelFields, calcChannelScore, type ChannelKey } from '@/lib/channel-mapping';
 import { ListingActorsTab } from './ListingActorsTab';
 import { ListingStaffTab } from './ListingStaffTab';
 import { ListingDocumentsTab } from './ListingDocumentsTab';
