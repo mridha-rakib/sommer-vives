@@ -129,13 +129,13 @@ function calcChannelReadiness(f: Partial<ListingFull>, channel: 'airbnb' | 'book
   const shared: [string, boolean, string, string][] = [
     ['Hero-billede', !!f.hero_image, 'indhold', 'Upload et hero-billede'],
     ['Min. 3 galleri-billeder', (f.images?.length || 0) >= 3, 'indhold', 'Tilføj flere billeder'],
-    ['Adresse', !!f.address, 'grunddata', 'Udfyld adressen'],
-    ['Gæstekapacitet', (f.max_guests || 0) > 0, 'grunddata', 'Angiv max gæster'],
-    ['Soveværelser', (f.bedrooms || 0) > 0, 'grunddata', 'Angiv antal soveværelser'],
+    ['Adresse', !!f.address, 'bolig', 'Udfyld adressen'],
+    ['Gæstekapacitet', (f.max_guests || 0) > 0, 'bolig', 'Angiv max gæster'],
+    ['Soveværelser', (f.bedrooms || 0) > 0, 'bolig', 'Angiv antal soveværelser'],
     ['Basispris', (f.base_price_per_night || 0) > 0, 'priser', 'Sæt en basispris'],
-    ['Check-in tid', !!f.check_in_time, 'grunddata', 'Angiv check-in tid'],
-    ['Check-out tid', !!f.check_out_time, 'grunddata', 'Angiv check-out tid'],
-    ['Faciliteter (3+)', (f.amenities?.length || 0) >= 3, 'grunddata', 'Tilføj faciliteter'],
+    ['Check-in tid', !!f.check_in_time, 'bolig', 'Angiv check-in tid'],
+    ['Check-out tid', !!f.check_out_time, 'bolig', 'Angiv check-out tid'],
+    ['Faciliteter (3+)', (f.amenities?.length || 0) >= 3, 'bolig', 'Tilføj faciliteter'],
   ];
 
   const channelChecks: Record<string, [string, boolean, string, string][]> = {
