@@ -40,7 +40,6 @@ const navSections: { label?: string; items: NavItem[] }[] = [
     label: 'Pipeline',
     items: [
       { name: 'Leads', href: '/admin/leads', icon: Target },
-      { name: 'Modtagelse', href: '/admin/modtagelse', icon: Inbox },
       { name: 'Sager', href: '/admin/sager', icon: FolderOpen },
       {
         name: 'CRM', href: '/admin/crm', icon: Users,
@@ -52,8 +51,9 @@ const navSections: { label?: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: 'Indhold',
+    label: 'Administration',
     items: [
+      { name: 'Modtagelse', href: '/admin/modtagelse', icon: Inbox },
       { name: 'Dokumenter', href: '/admin/dokumenter', icon: FileText },
       { name: 'Økonomi', href: '/admin/oekonomi', icon: Wallet },
     ],
