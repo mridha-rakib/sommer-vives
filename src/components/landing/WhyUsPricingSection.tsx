@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Star } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { Check, X, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
