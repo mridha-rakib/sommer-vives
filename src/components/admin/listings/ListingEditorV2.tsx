@@ -220,6 +220,18 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   const [newHighlight, setNewHighlight] = useState('');
   const [topTab, setTopTab] = useState('listing');
   const [subTab, setSubTab] = useState('grunddata');
+  const tabScrollRef = useRef<HTMLDivElement>(null);
+  const [showTabScrollRight, setShowTabScrollRight] = useState(false);
+
+  useEffect(() => {
+    const el = tabScrollRef.current;
+    if (!el) return;
+    const check = () => setShowTabScrollRight(el.scrollWidth - el.scrollLeft - el.clientWidth > 10);
+    check();
+    el.addEventListener('scroll', check);
+    window.addEventListener('resize', check);
+    return () => { el.removeEventListener('scroll', check); window.removeEventListener('resize', check); };
+  }, [listing]);
 
   // AI states
   const [aiImproving, setAiImproving] = useState(false);
