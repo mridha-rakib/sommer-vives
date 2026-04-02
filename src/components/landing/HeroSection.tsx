@@ -11,7 +11,7 @@ const trustPoints = [
 ];
 
 
-const channels = ['Airbnb', 'Booking.com', 'VRBO', 'Feriepartner', 'Google', 'Facebook', 'Instagram'];
+
 
 export function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -171,49 +171,28 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Bottom stats strip + channel marquee */}
+      {/* Trust bar — Landfolk-inspired */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 1.5 }}
-        className="relative z-10 bg-background/60 backdrop-blur-sm border-t border-foreground/10"
+        className="relative z-10 bg-secondary/80 backdrop-blur-sm border-t border-foreground/10"
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center gap-8 sm:gap-12 md:gap-20 py-5 md:py-7">
+          <div className="flex items-center justify-center gap-5 sm:gap-8 md:gap-12 py-3.5 md:py-4 flex-wrap">
             {[
-              { value: '15%', label: 'Kommission' },
-              { value: '5 min', label: 'At komme i gang' },
-              { value: '6 mdr.', label: 'Binding' },
-              { value: '50.200', label: 'Skattefrit' },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="font-display text-base sm:text-xl md:text-3xl font-bold text-primary">{stat.value}</div>
-                <div className="text-[8px] sm:text-[10px] md:text-xs text-foreground/50 mt-0.5 font-body tracking-wider uppercase">{stat.label}</div>
+              { emoji: '⭐', text: 'Fremragende på Trustpilot' },
+              { emoji: '🇩🇰', text: 'Dansk virksomhed' },
+              { emoji: '🤝', text: 'Ingen binding' },
+              { emoji: '🛡️', text: 'Tryghedsgaranti inkl.' },
+              { emoji: '💬', text: 'Dansk kundeservice' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-foreground/70">
+                <span className="text-sm">{item.emoji}</span>
+                <span className="text-[11px] sm:text-[12px] font-medium font-body">{item.text}</span>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Channel marquee */}
-        <div className="overflow-hidden relative border-t border-foreground/5">
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background/60 to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background/60 to-transparent z-10" />
-          <motion.div
-            animate={{ x: [0, -400] }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-            className="flex items-center gap-12 whitespace-nowrap py-3"
-          >
-            {[...Array(4)].flatMap((_, rep) =>
-              channels.map((name, i) => (
-                <span
-                  key={`${rep}-${i}`}
-                  className="text-muted-foreground/40 font-display text-xs font-bold tracking-tight"
-                >
-                  {name}
-                </span>
-              ))
-            )}
-          </motion.div>
         </div>
       </motion.div>
     </section>
