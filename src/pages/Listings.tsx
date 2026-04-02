@@ -130,7 +130,7 @@ const Listings = () => {
                       bedrooms={listing.bedrooms || undefined}
                       bathrooms={listing.bathrooms || undefined}
                       pricePerNight={listing.base_price_per_night / 100}
-                      teaser={listing.description?.substring(0, 120) || undefined}
+                      teaser={listing.tagline || listing.description?.substring(0, 120) || undefined}
                       tags={listing.amenities?.slice(0, 2) || []}
                     />
                   </motion.div>
