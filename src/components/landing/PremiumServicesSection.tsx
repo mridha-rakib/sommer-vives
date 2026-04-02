@@ -266,7 +266,7 @@ export function PremiumServicesSection() {
         </motion.div>
 
         {/* ── Full service grid — all 14 services ── */}
-        <div ref={ref2}>
+        <div ref={ref2} className="hidden md:block">
           <motion.div {...fade(isInView2)} className="mb-10">
             <span className="text-accent/40 text-[9px] font-semibold tracking-[0.35em] uppercase block mb-2">
               Komplet oversigt
