@@ -373,16 +373,25 @@ export default function AdminLeads() {
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg"><MoreHorizontal className="h-4 w-4" /></Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-44">
-                                  <DropdownMenuItem onClick={() => openEdit(l)}>Rediger</DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => setDrawerLead(l)}>Detaljer</DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  {PIPELINE_STATUSES.filter(s => s !== l.status).map(s => (
-                                    <DropdownMenuItem key={s} onClick={() => updateStatus(l.id, s)}>
-                                      <ArrowRight className="h-3 w-3 mr-2" />{STATUS_MAP[s].label}
+                                  <DropdownMenuContent align="end" className="w-44">
+                                    <DropdownMenuItem onClick={() => openEdit(l)}>Rediger</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setDrawerLead(l)}>Detaljer</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    {PIPELINE_STATUSES.filter(s => s !== l.status).map(s => (
+                                      <DropdownMenuItem key={s} onClick={() => updateStatus(l.id, s)}>
+                                        <ArrowRight className="h-3 w-3 mr-2" />{STATUS_MAP[s].label}
+                                      </DropdownMenuItem>
+                                    ))}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={async () => {
+                                      if (!confirm(`Slet lead "${l.name}"?`)) return;
+                                      await supabase.from('leads').delete().eq('id', l.id);
+                                      toast.success('Lead slettet');
+                                      load();
+                                    }}>
+                                      <X className="h-3 w-3 mr-2" />Slet
                                     </DropdownMenuItem>
-                                  ))}
-                                </DropdownMenuContent>
+                                  </DropdownMenuContent>
                               </DropdownMenu>
                             </td>
                           </tr>
