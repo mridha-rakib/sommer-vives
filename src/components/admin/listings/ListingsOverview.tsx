@@ -28,6 +28,7 @@ interface ListingSummary {
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   draft: { label: 'Kladde', className: 'bg-slate-100 text-slate-600 border-slate-200' },
+  preparing: { label: 'Under klargøring', className: 'bg-amber-50 text-amber-700 border-amber-200' },
   review: { label: 'Til gennemgang', className: 'bg-amber-50 text-amber-700 border-amber-200' },
   ready: { label: 'Klar', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   live: { label: 'Live', className: 'bg-primary/10 text-primary border-primary/20' },
