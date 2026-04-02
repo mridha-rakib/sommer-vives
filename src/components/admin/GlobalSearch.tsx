@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, Calendar, Home, User, Loader2 } from 'lucide-react';
+import { ProfilePopover } from '@/components/admin/ProfilePopover';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';

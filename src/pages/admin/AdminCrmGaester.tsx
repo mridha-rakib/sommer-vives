@@ -132,7 +132,9 @@ export default function AdminCrmGaester() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-foreground truncate">{g.name}</p>
+                      <ProfilePopover type="guest" id={g.id} data={g} onOpenDetail={() => openDrawer(g)}>
+                        <p className="text-sm font-semibold text-foreground truncate hover:text-primary transition-colors cursor-pointer" onClick={e => e.stopPropagation()}>{g.name}</p>
+                      </ProfilePopover>
                       {g.case_number && <span className="text-[10px] text-muted-foreground/60 font-mono">{g.case_number}</span>}
                     </div>
                     <div className="flex items-center gap-3 mt-0.5">
