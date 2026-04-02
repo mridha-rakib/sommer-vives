@@ -7,7 +7,7 @@ import { StatusChip } from '@/components/admin/ui/StatusChip';
 import { cn } from '@/lib/utils';
 import {
   RefreshCw, CheckCircle2, AlertTriangle, Info, Shield, Pen,
-  ChevronDown, ChevronUp, Sparkles
+  ChevronDown, ChevronUp, Sparkles, ArrowRight, CircleAlert, Lightbulb
 } from 'lucide-react';
 
 // ── Types ──
