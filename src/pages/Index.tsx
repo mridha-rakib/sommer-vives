@@ -4,6 +4,7 @@ import { PremiumServicesSection } from '@/components/landing/PremiumServicesSect
 import { ExitIntentPopup } from '@/components/landing/ExitIntentPopup';
 import { EarningsSection } from '@/components/landing/EarningsSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
+import { WhyUsSection } from '@/components/landing/WhyUsSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
 import { ContactExpertsSection } from '@/components/landing/ContactExpertsSection';
@@ -24,7 +25,10 @@ const Index = () => {
       <HeroSection />
       <PremiumServicesSection />
       <EarningsSection />
-      <HowItWorksSection />
+      <div id="saadan-virker-det">
+        <HowItWorksSection />
+      </div>
+      <WhyUsSection />
       <TestimonialsSection />
       <div id="faq">
         <ContextualFAQ
