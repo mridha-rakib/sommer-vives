@@ -54,6 +54,15 @@ const SYNC_STATUS_MAP: Record<string, { label: string; variant: SVariant }> = {
   error: { label: 'Fejl', variant: 'danger' },
 };
 
+const STAGE_OPTIONS = [
+  { key: 'udlejningstjek', label: 'Udlejningstjek' },
+  { key: 'foer_salg', label: 'Før salg' },
+  { key: 'til_leje', label: 'Til leje' },
+  { key: 'retur', label: 'Retur' },
+  { key: 'tabt_vil_ikke', label: 'Tabt – Vil ikke' },
+  { key: 'tabt_konkurrent', label: 'Tabt – Konkurrent' },
+];
+
 // ─── Smart Next Steps Engine ───
 interface NextStep {
   id: string;
@@ -552,6 +561,36 @@ export default function AdminSagDetail() {
                       <span className="text-[11px] text-muted-foreground">Ejer: <span className="font-medium text-foreground">{owner.full_name || owner.email}</span></span>
                     </>
                   )}
+                </div>
+                {/* Stage switcher */}
+                <div className="flex items-center gap-1 mt-3 flex-wrap">
+                  {STAGE_OPTIONS.map(opt => {
+                    const active = (listing.internal_status || 'draft') === opt.key;
+                    return (
+                      <button
+                        key={opt.key}
+                        disabled={active}
+                        onClick={async () => {
+                          const isLive = opt.key === 'til_leje';
+                          const { error } = await supabase.from('listings').update({
+                            internal_status: opt.key,
+                            is_active: isLive,
+                          }).eq('id', listing.id);
+                          if (error) { toast.error('Kunne ikke skifte stadie'); return; }
+                          setListing({ ...listing, internal_status: opt.key, is_active: isLive });
+                          toast.success(`Sag flyttet til "${opt.label}"${isLive ? ' — nu synlig på hjemmesiden' : ''}`);
+                        }}
+                        className={cn(
+                          'px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border',
+                          active
+                            ? 'bg-primary/10 text-primary border-primary/20'
+                            : 'text-muted-foreground border-border/30 hover:bg-muted/20 hover:text-foreground'
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
