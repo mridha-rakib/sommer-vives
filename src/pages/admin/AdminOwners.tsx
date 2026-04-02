@@ -239,10 +239,10 @@ export default function AdminOwners() {
                     ) : ownerProperties.map(p => (
                       <Card key={p.id} className="border-border/40 bg-card/60">
                         <CardContent className="py-3 px-4">
-                          <p className="text-sm font-medium text-foreground">{p.title}</p>
+                          <p className="text-sm font-medium text-foreground">{p.name}</p>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{p.region || p.address}</span>
-                            {p.case_number && <span className="text-[10px] text-muted-foreground font-mono">{p.case_number}</span>}
+                            {p.slug && <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>}
                           </div>
                           <StatusChip label={p.status === 'published' ? 'Live' : p.status} variant={p.status === 'published' ? 'success' : 'muted'} dot className="mt-2" />
                         </CardContent>
