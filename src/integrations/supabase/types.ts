@@ -1638,6 +1638,7 @@ export type Database = {
           channel_booking_ready: boolean | null
           channel_booking_room_setup: string | null
           channel_booking_title: string | null
+          channel_manager_partner: string | null
           channel_vrbo_description: string | null
           channel_vrbo_highlights: string[] | null
           channel_vrbo_photo_order: string[] | null
@@ -1655,6 +1656,8 @@ export type Database = {
           currency: string
           deposit: number | null
           description: string | null
+          external_listing_id: string | null
+          external_property_id: string | null
           extra_sections: Json
           facilities: Json
           floor_plan_images: string[] | null
@@ -1667,6 +1670,7 @@ export type Database = {
           images: string[] | null
           internal_status: string | null
           is_active: boolean
+          last_sync_at: string | null
           latitude: number | null
           location_map_image: string | null
           location_mood_image: string | null
@@ -1684,6 +1688,8 @@ export type Database = {
           slug: string
           sort_order: number
           sqm: number | null
+          sync_error_message: string | null
+          sync_status: string | null
           tagline: string | null
           updated_at: string
           weekend_price_per_night: number | null
@@ -1711,6 +1717,7 @@ export type Database = {
           channel_booking_ready?: boolean | null
           channel_booking_room_setup?: string | null
           channel_booking_title?: string | null
+          channel_manager_partner?: string | null
           channel_vrbo_description?: string | null
           channel_vrbo_highlights?: string[] | null
           channel_vrbo_photo_order?: string[] | null
@@ -1728,6 +1735,8 @@ export type Database = {
           currency?: string
           deposit?: number | null
           description?: string | null
+          external_listing_id?: string | null
+          external_property_id?: string | null
           extra_sections?: Json
           facilities?: Json
           floor_plan_images?: string[] | null
@@ -1740,6 +1749,7 @@ export type Database = {
           images?: string[] | null
           internal_status?: string | null
           is_active?: boolean
+          last_sync_at?: string | null
           latitude?: number | null
           location_map_image?: string | null
           location_mood_image?: string | null
@@ -1757,6 +1767,8 @@ export type Database = {
           slug: string
           sort_order?: number
           sqm?: number | null
+          sync_error_message?: string | null
+          sync_status?: string | null
           tagline?: string | null
           updated_at?: string
           weekend_price_per_night?: number | null
@@ -1784,6 +1796,7 @@ export type Database = {
           channel_booking_ready?: boolean | null
           channel_booking_room_setup?: string | null
           channel_booking_title?: string | null
+          channel_manager_partner?: string | null
           channel_vrbo_description?: string | null
           channel_vrbo_highlights?: string[] | null
           channel_vrbo_photo_order?: string[] | null
@@ -1801,6 +1814,8 @@ export type Database = {
           currency?: string
           deposit?: number | null
           description?: string | null
+          external_listing_id?: string | null
+          external_property_id?: string | null
           extra_sections?: Json
           facilities?: Json
           floor_plan_images?: string[] | null
@@ -1813,6 +1828,7 @@ export type Database = {
           images?: string[] | null
           internal_status?: string | null
           is_active?: boolean
+          last_sync_at?: string | null
           latitude?: number | null
           location_map_image?: string | null
           location_mood_image?: string | null
@@ -1830,6 +1846,8 @@ export type Database = {
           slug?: string
           sort_order?: number
           sqm?: number | null
+          sync_error_message?: string | null
+          sync_status?: string | null
           tagline?: string | null
           updated_at?: string
           weekend_price_per_night?: number | null
