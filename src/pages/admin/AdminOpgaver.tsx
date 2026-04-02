@@ -237,14 +237,14 @@ export default function AdminOpgaver() {
           <SummaryCard label="Færdige i uge" value={counts.doneThisWeek} icon={CheckCircle2} active={filterStatus === 'done'} onClick={() => { clearFilters(); setFilterStatus('done'); }} />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+        <div className="flex items-center gap-3 justify-between flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Søg opgaver..." className="pl-9 h-8 text-xs w-48 rounded-lg" /></div>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as any)} className="h-8 text-xs rounded-lg border border-border bg-background px-2 w-auto"><option value="all">Alle statusser</option>{STATUSES.map(s => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}</select>
-            <select value={filterPriority} onChange={e => setFilterPriority(e.target.value as any)} className="h-8 text-xs rounded-lg border border-border bg-background px-2 w-auto"><option value="all">Alle prioriteter</option>{PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_CFG[p].label}</option>)}</select>
-            <select value={filterLinked} onChange={e => setFilterLinked(e.target.value)} className="h-8 text-xs rounded-lg border border-border bg-background px-2 w-auto"><option value="all">Alle typer</option>{LINKED_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select>
-            <select value={filterSpecial} onChange={e => setFilterSpecial(e.target.value as any)} className="h-8 text-xs rounded-lg border border-border bg-background px-2 w-auto"><option value="all">Alle</option><option value="today">I dag</option><option value="overdue">Forfaldne</option></select>
-            {hasFilters && <button onClick={clearFilters} className="text-[11px] text-primary hover:underline flex items-center gap-1"><X className="h-3 w-3" />Nulstil</button>}
+            <div className="relative shrink-0"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Søg opgaver..." className="pl-9 h-8 text-xs w-44 rounded-lg" /></div>
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as any)} className="h-8 text-xs rounded-lg border border-border bg-background px-2 shrink-0 min-w-0"><option value="all">Status</option>{STATUSES.map(s => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}</select>
+            <select value={filterPriority} onChange={e => setFilterPriority(e.target.value as any)} className="h-8 text-xs rounded-lg border border-border bg-background px-2 shrink-0 min-w-0"><option value="all">Prioritet</option>{PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_CFG[p].label}</option>)}</select>
+            <select value={filterLinked} onChange={e => setFilterLinked(e.target.value)} className="h-8 text-xs rounded-lg border border-border bg-background px-2 shrink-0 min-w-0"><option value="all">Type</option>{LINKED_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select>
+            <select value={filterSpecial} onChange={e => setFilterSpecial(e.target.value as any)} className="h-8 text-xs rounded-lg border border-border bg-background px-2 shrink-0 min-w-0"><option value="all">Dato</option><option value="today">I dag</option><option value="overdue">Forfaldne</option></select>
+            {hasFilters && <button onClick={clearFilters} className="text-[11px] text-primary hover:underline flex items-center gap-1 shrink-0"><X className="h-3 w-3" />Nulstil</button>}
           </div>
           <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-0.5 shrink-0">
             <button onClick={() => setView('list')} className={cn('px-2.5 py-1 rounded-md text-xs font-medium transition-all', view === 'list' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground')}><List className="h-3.5 w-3.5" /></button>
