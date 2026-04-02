@@ -206,6 +206,7 @@ const App = () => (
             <Route path="/admin/crm/arkiv" element={<ProtectedRoute requireAdmin><AdminCrmArkiv /></ProtectedRoute>} />
             <Route path="/admin/modtagelse" element={<ProtectedRoute requireAdmin><AdminModtagelse /></ProtectedRoute>} />
             <Route path="/admin/sager" element={<ProtectedRoute requireAdmin><AdminSager /></ProtectedRoute>} />
+            <Route path="/admin/sager/:id" element={<ProtectedRoute requireAdmin><AdminSagDetail /></ProtectedRoute>} />
             <Route path="/admin/sager/kalender" element={<ProtectedRoute requireAdmin><AdminSagerKalender /></ProtectedRoute>} />
             <Route path="/admin/sager/tilkoeb" element={<ProtectedRoute requireAdmin><AdminSagerTilkoeb /></ProtectedRoute>} />
             <Route path="/admin/sager/kanaler" element={<ProtectedRoute requireAdmin><AdminSagerKanaler /></ProtectedRoute>} />
