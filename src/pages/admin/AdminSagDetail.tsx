@@ -516,7 +516,7 @@ export default function AdminSagDetail() {
     setAiLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('improve-listing-text', {
-        body: { listing_id: listing.id },
+        body: { listing, action: 'improve_all' },
       });
       if (error) throw error;
       toast.success('AI-tekst genereret — opdater listing manuelt');
