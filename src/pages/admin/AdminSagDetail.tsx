@@ -553,6 +553,36 @@ export default function AdminSagDetail() {
                     </>
                   )}
                 </div>
+                {/* Stage switcher */}
+                <div className="flex items-center gap-1 mt-3 flex-wrap">
+                  {STAGE_OPTIONS.map(opt => {
+                    const active = (listing.internal_status || 'draft') === opt.key;
+                    return (
+                      <button
+                        key={opt.key}
+                        disabled={active}
+                        onClick={async () => {
+                          const isLive = opt.key === 'til_leje';
+                          const { error } = await supabase.from('listings').update({
+                            internal_status: opt.key,
+                            is_active: isLive,
+                          }).eq('id', listing.id);
+                          if (error) { toast.error('Kunne ikke skifte stadie'); return; }
+                          setListing({ ...listing, internal_status: opt.key, is_active: isLive });
+                          toast.success(`Sag flyttet til "${opt.label}"${isLive ? ' — nu synlig på hjemmesiden' : ''}`);
+                        }}
+                        className={cn(
+                          'px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border',
+                          active
+                            ? 'bg-primary/10 text-primary border-primary/20'
+                            : 'text-muted-foreground border-border/30 hover:bg-muted/20 hover:text-foreground'
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Right: Readiness ring */}
