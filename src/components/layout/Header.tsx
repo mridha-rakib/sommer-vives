@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
-import { Menu, X, User, LogOut, ChevronRight } from 'lucide-react';
+import { Menu, X, User, LogOut, ChevronRight, Calculator } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -35,10 +35,9 @@ export function Header() {
 
   const navigation = [
     { name: 'Sådan virker det', href: '/#saadan-virker-det' },
-    { name: 'Priser', href: '/pricing' },
     { name: 'Sommerhuse', href: '/listings' },
+    { name: 'Priser', href: '/pricing' },
     { name: 'Om os', href: '/about' },
-    { name: 'Beregn indtjening', href: '/beregn-lejeindtaegt', highlight: true },
   ];
 
   const isActiveLink = (href: string) => {
@@ -73,23 +72,18 @@ export function Header() {
           }`}>
             {navigation.map((item) => {
               const active = isActiveLink(item.href);
-              const hl = (item as any).highlight;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={`relative px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-300 ${
-                    hl && !active
+                    active
                       ? transparent
-                        ? 'text-primary/90 hover:text-primary hover:bg-primary/10'
-                        : 'text-primary/80 hover:text-primary hover:bg-primary/8'
-                      : active
-                        ? transparent
-                          ? 'text-primary bg-primary/15'
-                          : 'text-primary bg-primary/10'
-                        : transparent
-                          ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/8'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        ? 'text-primary bg-primary/15'
+                        : 'text-primary bg-primary/10'
+                      : transparent
+                        ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/8'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
                   {item.name}
@@ -191,18 +185,19 @@ export function Header() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Link to="/book-vurdering">
-                  <Button variant="ghost" size="sm" className={`rounded-full text-[13px] px-4 ${
+                <Link to="/beregn-lejeindtaegt">
+                  <Button variant="ghost" size="sm" className={`rounded-full text-[13px] px-4 gap-1.5 ${
                     transparent
                       ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}>
-                    Book udlejningstjek
+                    <Calculator className="w-3.5 h-3.5" />
+                    Beregn indtjening
                   </Button>
                 </Link>
                 <Link to="/kom-i-gang">
                   <Button variant="gold" size="sm" className="rounded-full text-[13px] px-5 shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">
-                    Udlej dit hus
+                    Kom i gang
                   </Button>
                 </Link>
               </>
@@ -280,8 +275,14 @@ export function Header() {
                       <Link to="/admin/auth" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full rounded-xl text-muted-foreground">Admin Login</Button>
                       </Link>
+                      <Link to="/beregn-lejeindtaegt" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full rounded-xl gap-1.5">
+                          <Calculator className="w-4 h-4" />
+                          Beregn indtjening
+                        </Button>
+                      </Link>
                       <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
-                        <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">Udlej dit hus</Button>
+                        <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">Kom i gang</Button>
                       </Link>
                     </>
                   )}
