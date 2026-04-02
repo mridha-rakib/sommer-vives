@@ -1,7 +1,7 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Phone, Mail, Clock, RotateCcw } from 'lucide-react';
+import { ArrowRight, Check, Phone, Mail, Clock, RotateCcw, Crown, Sparkles, UserCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useRef, useState } from 'react';
