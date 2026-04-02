@@ -1426,6 +1426,56 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_actors: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          listing_id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          relation: string | null
+          role: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          listing_id: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          relation?: string | null
+          role?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          listing_id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          relation?: string | null
+          role?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_actors_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_blocks: {
         Row: {
           created_at: string
@@ -1601,6 +1651,50 @@ export type Database = {
             foreignKeyName: "listing_seo_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_staff: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: string
+          staff_email: string | null
+          staff_name: string
+          staff_phone: string | null
+          staff_role: string
+          staff_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: string
+          staff_email?: string | null
+          staff_name: string
+          staff_phone?: string | null
+          staff_role: string
+          staff_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: string
+          staff_email?: string | null
+          staff_name?: string
+          staff_phone?: string | null
+          staff_role?: string
+          staff_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_staff_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
           },
