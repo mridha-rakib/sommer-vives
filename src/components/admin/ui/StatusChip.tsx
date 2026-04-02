@@ -26,7 +26,7 @@ const dotColors = {
   muted: 'bg-muted-foreground',
 };
 
-export function StatusChip({ label, variant = 'default', size = 'sm', dot }: StatusChipProps) {
+export function StatusChip({ label, variant = 'default', size = 'sm', dot, className }: StatusChipProps) {
   return (
     <span className={cn(
       'inline-flex items-center gap-1.5 rounded-full border font-medium',
