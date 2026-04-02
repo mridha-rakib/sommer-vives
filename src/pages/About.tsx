@@ -1,11 +1,11 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Phone, Mail, Clock, Play, RotateCcw } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Check, Phone, Mail, Clock, RotateCcw } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { useRef, useState, useEffect } from 'react';
-import emilPortrait from '@/assets/emil-portrait.jpg';
+import { useRef, useState } from 'react';
+import emilHeadshot from '@/assets/emil-headshot.jpg';
 import emilHeadshot from '@/assets/emil-headshot.jpg';
 import kvieSoeDrone from '@/assets/kvie-soe-drone.jpg';
 import {
