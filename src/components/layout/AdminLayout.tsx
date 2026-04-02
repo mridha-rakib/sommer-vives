@@ -73,7 +73,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('admin-sidebar-collapsed') === 'true');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    localStorage.setItem('admin-sidebar-collapsed', String(collapsed));
+  }, [collapsed]);
 
   const isActive = (href: string) => {
     if (href === '/admin') return location.pathname === '/admin';
