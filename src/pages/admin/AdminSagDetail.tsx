@@ -497,6 +497,7 @@ export default function AdminSagDetail() {
     { key: 'integrationer', label: 'Integrationer', icon: Plug },
     { key: 'kanaler', label: 'Kanaler', icon: Radio },
     { key: 'kalender', label: 'Kalender', icon: CalendarIcon },
+    { key: 'priser', label: 'Priser', icon: DollarSign },
     { key: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
     { key: 'dokumenter', label: 'Dokumenter', icon: FileText },
     { key: 'opgaver', label: 'Opgaver', icon: ListChecks },
@@ -803,26 +804,166 @@ export default function AdminSagDetail() {
         )}
 
         {tab === 'kalender' && (
-          <SectionCard title="Kalender & bookings" icon={CalendarIcon}>
-            {bookings.length === 0 ? (
-              <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen bookings endnu</p>
-            ) : (
-              <div className="space-y-2">
-                {bookings.map(b => (
-                  <div key={b.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{b.guest_name || b.case_number || b.id.slice(0, 8)}</p>
-                      <p className="text-[11px] text-muted-foreground">{format(new Date(b.check_in), 'd. MMM', { locale: da })} → {format(new Date(b.check_out), 'd. MMM yyyy', { locale: da })}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-foreground">{fmt(Number(b.total_amount))}</p>
-                      <StatusChip label={b.status || 'pending'} variant={b.status === 'confirmed' ? 'success' : b.status === 'cancelled' ? 'danger' : 'warning'} />
-                    </div>
+          <div className="space-y-4">
+            {/* Sync source bar */}
+            <div className="rounded-xl border border-border/40 bg-card/60 overflow-hidden">
+              <div className="px-5 py-3 border-b border-border/30">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">Tilgængelighed — Datakilde</p>
+              </div>
+              <div className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-lg border border-border/30 bg-muted/10 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Kilde</p>
+                  <p className="text-xs font-semibold text-foreground">{listing.channel_manager_partner === 'beds24' ? 'Beds24' : 'SommerVibes'}</p>
+                </div>
+                <div className="rounded-lg border border-border/30 bg-muted/10 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Sync status</p>
+                  <StatusChip label={listing.sync_status === 'synced' ? 'Synkroniseret' : listing.sync_status === 'pending' ? 'Venter' : 'Manuel'} variant={listing.sync_status === 'synced' ? 'success' : listing.sync_status === 'pending' ? 'warning' : 'muted'} dot size="sm" />
+                </div>
+                <div className="rounded-lg border border-border/30 bg-muted/10 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Sidst synket</p>
+                  <p className="text-xs font-medium text-foreground">{listing.last_sync_at ? format(new Date(listing.last_sync_at), "d. MMM HH:mm", { locale: da }) : '—'}</p>
+                </div>
+                <div className="rounded-lg border border-border/30 bg-muted/10 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Partner-ID</p>
+                  <p className="text-xs font-medium text-foreground font-mono">{listing.external_property_id || '—'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Date legend */}
+            <div className="rounded-xl border border-border/40 bg-card/60 overflow-hidden">
+              <div className="px-5 py-3 border-b border-border/30">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">Datoforklaring</p>
+              </div>
+              <div className="px-5 py-3 flex flex-wrap gap-4">
+                {[
+                  { color: 'bg-emerald-500', label: 'Tilgængelig' },
+                  { color: 'bg-primary', label: 'Booket' },
+                  { color: 'bg-muted-foreground', label: 'Blokeret' },
+                  { color: 'bg-amber-500', label: 'Ejer-brug' },
+                  { color: 'bg-blue-500', label: 'Synket fra partner' },
+                ].map(l => (
+                  <div key={l.label} className="flex items-center gap-1.5">
+                    <span className={cn('w-2.5 h-2.5 rounded-sm', l.color)} />
+                    <span className="text-[11px] text-muted-foreground">{l.label}</span>
                   </div>
                 ))}
               </div>
-            )}
-          </SectionCard>
+            </div>
+
+            {/* Bookings list */}
+            <SectionCard title="Bookings" icon={CalendarIcon}>
+              {bookings.length === 0 ? (
+                <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen bookings endnu</p>
+              ) : (
+                <div className="space-y-2">
+                  {bookings.map(b => (
+                    <div key={b.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{b.guest_name || b.case_number || b.id.slice(0, 8)}</p>
+                        <p className="text-[11px] text-muted-foreground">{format(new Date(b.check_in), 'd. MMM', { locale: da })} → {format(new Date(b.check_out), 'd. MMM yyyy', { locale: da })}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-foreground">{fmt(Number(b.total_amount))}</p>
+                        <StatusChip label={b.status || 'pending'} variant={b.status === 'confirmed' ? 'success' : b.status === 'cancelled' ? 'danger' : 'warning'} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          </div>
+        )}
+
+        {tab === 'priser' && (
+          <div className="space-y-4">
+            {/* Pricing source bar */}
+            <div className="rounded-xl border border-border/40 bg-card/60 overflow-hidden">
+              <div className="px-5 py-3 border-b border-border/30">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">Prisstyring — Datakilde</p>
+              </div>
+              <div className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="rounded-lg border border-border/30 bg-muted/10 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Priskilde</p>
+                  <p className="text-xs font-semibold text-foreground">{listing.channel_manager_partner === 'beds24' ? 'Beds24 (fremtidigt)' : 'SommerVibes'}</p>
+                </div>
+                <div className="rounded-lg border border-border/30 bg-muted/10 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Sync status</p>
+                  <StatusChip label={listing.sync_status === 'synced' ? 'Synkroniseret' : 'Manuel'} variant={listing.sync_status === 'synced' ? 'success' : 'muted'} dot size="sm" />
+                </div>
+                <div className="rounded-lg border border-border/30 bg-muted/10 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Sidst synket</p>
+                  <p className="text-xs font-medium text-foreground">{listing.last_sync_at ? format(new Date(listing.last_sync_at), "d. MMM HH:mm", { locale: da }) : '—'}</p>
+                </div>
+                <div className="rounded-lg border border-border/30 bg-muted/10 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Partner-kontrol</p>
+                  <StatusChip label="SommerVibes styrer" variant="info" dot size="sm" />
+                </div>
+              </div>
+            </div>
+
+            {/* Price sections */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <SectionCard title="Basispris" icon={DollarSign}>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Pr. nat (hverdag)</span>
+                    <span className="text-sm font-bold text-foreground">{listing.base_price_per_night ? fmt(listing.base_price_per_night / 100) : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Weekend-pris</span>
+                    <span className="text-sm font-medium text-foreground">{listing.weekend_price_per_night ? fmt(listing.weekend_price_per_night / 100) : 'Auto (×1.25)'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Rengøring</span>
+                    <span className="text-sm font-medium text-foreground">{listing.cleaning_fee ? fmt(listing.cleaning_fee / 100) : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Depositum</span>
+                    <span className="text-sm font-medium text-foreground">{listing.deposit ? fmt(listing.deposit / 100) : '—'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Min. ophold</span>
+                    <span className="text-sm font-medium text-foreground">{listing.min_nights || 2} nætter</span>
+                  </div>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Sæsonpriser" icon={CalendarIcon}>
+                <p className="text-[11px] text-muted-foreground mb-3">Sæsonregler styres under Priser-modulet og synkes automatisk til Beds24 ved publicering.</p>
+                <div className="rounded-lg border border-border/20 bg-muted/10 p-3 text-center">
+                  <p className="text-xs text-muted-foreground/50 italic">Sæsonregler vises her når de er oprettet</p>
+                </div>
+              </SectionCard>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <SectionCard title="Specialperioder" icon={Tag}>
+                <p className="text-[11px] text-muted-foreground mb-3">Daglige prisoverrides for helligdage, events eller særlige perioder.</p>
+                <div className="rounded-lg border border-border/20 bg-muted/10 p-3 text-center">
+                  <p className="text-xs text-muted-foreground/50 italic">Ingen specialperioder konfigureret</p>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Partner-prisstyring" icon={Plug}>
+                <p className="text-[11px] text-muted-foreground mb-3">Når Beds24-sync er aktiv, kan priser styres fra partner eller internt.</p>
+                <div className="rounded-xl border border-border/30 bg-muted/10 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Priskontrol</span>
+                    <StatusChip label="SommerVibes → Beds24" variant="info" size="sm" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Retning</span>
+                    <span className="text-[11px] text-muted-foreground">Push (SV styrer priser)</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Auto-sync</span>
+                    <StatusChip label="Ikke aktiv" variant="muted" size="sm" />
+                  </div>
+                </div>
+              </SectionCard>
+            </div>
+          </div>
         )}
 
         {tab === 'tilkoeb' && (
