@@ -325,12 +325,6 @@ function StorySection() {
   );
 }
 
-function FounderVideoSection() {
-  const { ref, isInView } = useScrollReveal();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [hasEnded, setHasEnded] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const v = videoRef.current;
