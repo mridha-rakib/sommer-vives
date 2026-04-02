@@ -114,7 +114,87 @@ export function ChannelDataSection({
     return { autofilled, missing, needsApproval, platformSpecific, overridden, total: fields.length };
   }, [fields, listing, overrides, autofilledFields, pendingApproval]);
 
-  // Auto-fill from master data
+  // Validation issues
+  const validationIssues = useMemo<ValidationIssue[]>(() => {
+    const issues: ValidationIssue[] = [];
+    const MIN_LENGTHS: Record<string, number> = {
+      title: 10, description: 50, highlights: 0, tags: 0,
+    };
+
+    fields.forEach(field => {
+      const value = listing[field.key];
+      const masterVal = field.getMasterValue();
+      const hasValue = Array.isArray(value) ? value.length > 0 : !!value?.toString().trim();
+      const strLen = Array.isArray(value) ? value.length : (value?.toString().trim().length || 0);
+      const minLen = field.minLength || (field.type === 'textarea' ? 30 : field.type === 'text' ? 5 : 0);
+
+      if (!hasValue) {
+        if (field.platformSpecific) {
+          issues.push({
+            fieldKey: field.key, fieldLabel: field.label,
+            severity: 'manual_needed',
+            message: `${field.label} er påkrævet af ${channelName} og skal udfyldes manuelt`,
+            suggestion: field.hint || undefined,
+            canAutoFill: false,
+          });
+        } else {
+          issues.push({
+            fieldKey: field.key, fieldLabel: field.label,
+            severity: 'missing',
+            message: `${field.label} mangler helt`,
+            suggestion: masterVal
+              ? `Kan udfyldes automatisk fra ${field.masterSource || 'SommerVibes masterdata'}`
+              : 'Ingen masterdata tilgængelig – skal udfyldes manuelt',
+            canAutoFill: !!masterVal,
+          });
+        }
+      } else if (field.type !== 'tags' && strLen < minLen) {
+        issues.push({
+          fieldKey: field.key, fieldLabel: field.label,
+          severity: 'weak',
+          message: `${field.label} er for kort (${strLen} tegn – anbefalet min. ${minLen})`,
+          suggestion: `Udvid indholdet for bedre synlighed på ${channelName}`,
+          canAutoFill: false,
+        });
+      } else if (field.type === 'tags' && Array.isArray(value) && value.length < 2) {
+        issues.push({
+          fieldKey: field.key, fieldLabel: field.label,
+          severity: 'weak',
+          message: `Kun ${value.length} highlight – anbefalet mindst 3`,
+          suggestion: masterVal && Array.isArray(masterVal) && masterVal.length > value.length
+            ? `${(masterVal as string[]).length} tilgængelige fra masterdata`
+            : undefined,
+          canAutoFill: !!(masterVal && Array.isArray(masterVal) && masterVal.length > (value as string[]).length),
+        });
+      }
+
+      // Check max length compliance
+      if (field.maxLength && !Array.isArray(value) && strLen > field.maxLength) {
+        issues.push({
+          fieldKey: field.key, fieldLabel: field.label,
+          severity: 'platform_mismatch',
+          message: `${field.label} overskrider ${channelName}-grænsen (${strLen}/${field.maxLength} tegn)`,
+          suggestion: `Forkort teksten til max ${field.maxLength} tegn`,
+          canAutoFill: false,
+        });
+      }
+    });
+
+    return issues;
+  }, [fields, listing, channelName]);
+
+  const handleScrollToField = (fieldKey: string) => {
+    setShowDetails(true);
+    setFocusField(fieldKey);
+    setTimeout(() => {
+      const el = document.getElementById(`field-${channelKey}-${fieldKey}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el?.querySelector('input,textarea')?.dispatchEvent(new Event('focus'));
+      setFocusField(null);
+    }, 150);
+  };
+
+
   const handleAutoFill = () => {
     const newAutofilled = new Set(autofilledFields);
     const newPending = new Set(pendingApproval);
