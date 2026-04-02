@@ -1,5 +1,6 @@
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { HeroSection } from '@/components/landing/HeroSection';
+import { EarningsSection } from '@/components/landing/EarningsSection';
 import { PremiumServicesSection } from '@/components/landing/PremiumServicesSection';
 import { ExitIntentPopup } from '@/components/landing/ExitIntentPopup';
 import { PropertyTypesSection } from '@/components/landing/PropertyTypesSection';
@@ -22,6 +23,7 @@ const Index = () => {
     <PublicLayout>
       <ExitIntentPopup />
       <HeroSection />
+      <EarningsSection />
       <PremiumServicesSection />
       <PropertyTypesSection />
       <HowItWorksSection />
