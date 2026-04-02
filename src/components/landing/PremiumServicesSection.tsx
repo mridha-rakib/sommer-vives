@@ -48,7 +48,7 @@ export function PremiumServicesSection() {
             animate={isInView ? { scale: 1 } : {}}
             transition={{ duration: 1.2, ease: 'easeOut' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--primary))/0.92] via-[hsl(var(--primary))/0.65] to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1a2e1a]/95 via-[#1a2e1a]/70 to-transparent" />
           <motion.div {...fade(isInView, 0.1)} className="absolute inset-0 flex flex-col justify-center px-7 md:px-12 lg:px-16">
             <div className="max-w-[440px]">
               <span className="text-accent/50 text-[9px] font-semibold tracking-[0.35em] uppercase block mb-3">
