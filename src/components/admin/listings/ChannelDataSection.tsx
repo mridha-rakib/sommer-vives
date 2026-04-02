@@ -418,7 +418,7 @@ export function ChannelDataSection({
             const value = listing[field.key];
 
             return (
-              <div key={field.key} className="space-y-1.5">
+              <div key={field.key} id={`field-${channelKey}-${field.key}`} className={cn('space-y-1.5 rounded-lg transition-all', focusField === field.key && 'ring-2 ring-primary/30 bg-primary/5 p-3 -m-1.5')}>
                 {/* Label row with status */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
