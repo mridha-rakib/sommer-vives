@@ -129,9 +129,10 @@ function QuickOpgaveDialog({ open, onClose }: { open: boolean; onClose: () => vo
     if (!title.trim()) { toast.error('Titel er påkrævet'); return; }
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
+    const validLinkedType = linkedType && linkedType !== '_none' ? linkedType : null;
     const { error } = await supabase.from('system_tasks' as any).insert({
       title: title.trim(), description: description.trim() || null, priority,
-      linked_type: linkedType || null, linked_name: linkedName.trim() || null,
+      linked_type: validLinkedType, linked_name: validLinkedType ? (linkedName.trim() || null) : null,
       due_date: dueDate || null, assigned_to: user?.id || null,
       created_by: user?.id || null, source: 'manual',
     });
