@@ -387,7 +387,7 @@ const services: Service[] = [
     long: 'Hos SommerVibes står du ikke alene med spørgsmål om udlejning, drift, priser, booking eller optimering af din bolig. Du har løbende adgang til sparring og ærlig rådgivning fra en rådgiver, der kender samarbejdet og din bolig. Det skaber nærvær, overblik og tryghed i en hverdag, hvor det skal være nemt at komme videre.',
     expandLabel: 'Tæt sparring',
     badge: 'Inkluderet service',
-    visual: RaadgiverVisual,
+    image: supportImg,
   },
   // 10. Service & reparation
   {
