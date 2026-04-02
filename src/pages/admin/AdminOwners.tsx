@@ -244,7 +244,7 @@ export default function AdminOwners() {
                             <span className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{p.region || p.address}</span>
                             {p.slug && <span className="text-[10px] text-muted-foreground font-mono">{p.slug}</span>}
                           </div>
-                          <StatusChip label={p.status === 'published' ? 'Live' : p.status} variant={p.status === 'published' ? 'success' : 'muted'} dot className="mt-2" />
+                          <StatusChip label={p.is_active ? 'Live' : 'Inaktiv'} variant={p.is_active ? 'success' : 'muted'} dot className="mt-2" />
                         </CardContent>
                       </Card>
                     ))
