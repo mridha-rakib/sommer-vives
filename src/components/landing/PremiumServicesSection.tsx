@@ -143,31 +143,24 @@ function ExtrasGrid() {
   const { ref, isInView } = useScrollReveal();
 
   return (
-    <div ref={ref} className="mt-24 md:mt-32">
-      <motion.div {...fade(isInView)} className="text-center mb-14">
-        <span className="text-accent/40 font-body text-[10px] font-semibold tracking-[0.35em] uppercase block mb-4">
+    <div ref={ref} className="mt-28 md:mt-36">
+      <motion.div {...fade(isInView)} className="flex items-center gap-4 mb-12">
+        <div className="w-8 h-px bg-accent/20" />
+        <span className="text-accent/35 font-body text-[10px] font-semibold tracking-[0.35em] uppercase">
           Yderligere fordele
         </span>
-        <h3 className="font-display text-[1.5rem] md:text-[1.8rem] font-semibold text-white leading-[1.12]">
-          Alt hvad du behøver
-          <span className="text-accent italic font-normal"> — samlet ét sted</span>
-        </h3>
       </motion.div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-14 gap-y-10">
         {extras.map((item, i) => {
           const Icon = item.icon;
           return (
-            <motion.div
-              key={i}
-              {...fade(isInView, 0.06 * i)}
-              className="group rounded-2xl bg-white/[0.04] border border-white/[0.06] p-7 hover:bg-white/[0.07] transition-colors duration-500"
-            >
-              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-5">
-                <Icon className="w-5 h-5 text-accent" strokeWidth={1.5} />
+            <motion.div key={i} {...fade(isInView, 0.05 * i)} className="flex gap-4">
+              <Icon className="w-5 h-5 text-accent/60 mt-0.5 shrink-0" strokeWidth={1.5} />
+              <div>
+                <h4 className="font-display text-[15px] font-semibold text-white/85 mb-1">{item.title}</h4>
+                <p className="text-white/40 text-[13px] leading-[1.65]">{item.desc}</p>
               </div>
-              <h4 className="font-display text-[1rem] font-semibold text-white/90 mb-2">{item.title}</h4>
-              <p className="text-white/45 text-[13.5px] leading-[1.65]">{item.desc}</p>
             </motion.div>
           );
         })}
