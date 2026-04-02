@@ -46,7 +46,6 @@ const navSections: { label?: string; items: NavItem[] }[] = [
         children: [
           { name: 'Udlejere', href: '/admin/crm/udlejere', icon: UserCheck },
           { name: 'Gæster', href: '/admin/crm/gaester', icon: User },
-          { name: 'Arkiv', href: '/admin/crm/arkiv', icon: Archive },
         ],
       },
     ],
