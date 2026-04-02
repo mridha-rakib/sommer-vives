@@ -174,7 +174,7 @@ function FounderFactsSection() {
             <p className="text-accent/55 text-[13px] font-medium tracking-wide mb-6">Grundlægger & Udlejningschef</p>
 
             <p className="text-muted-foreground/80 leading-[1.8] mb-7 text-[14.5px]">
-              Uddannet ejendomsmægler og selv sommerhus-ejer. Emil grundlagde SommerVibes med én ambition: at give husejere en bedre, mere personlig og mere gennemsigtig oplevelse.
+              Uddannet ejendomsmægler og selv sommerhus-ejer. Vi grundlagde SommerVibes med én ambition: at give husejere en bedre, mere personlig og mere gennemsigtig oplevelse.
             </p>
 
             <div className="space-y-2.5 mb-8">
