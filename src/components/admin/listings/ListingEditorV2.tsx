@@ -584,19 +584,30 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           {/* ── BILLEDER ── */}
           {subTab === 'billeder' && (
             <div className="space-y-6">
-              <ListingImageUpload
-                listingSlug={listing.slug}
-                images={listing.images || []}
-                heroImage={listing.hero_image || ''}
-                bedroomImages={(listing.bedroom_images as BedroomImage[]) || []}
-                imageLabels={((listing.image_labels as any) || []) as ImageLabel[]}
-                comboHeroImages={listing.combo_hero_images || []}
-                onImagesChange={imgs => update('images', imgs)}
-                onHeroChange={url => update('hero_image', url)}
-                onBedroomImagesChange={bi => update('bedroom_images' as any, bi)}
-                onImageLabelsChange={labels => update('image_labels' as any, labels)}
-                onComboHeroChange={imgs => update('combo_hero_images' as any, imgs)}
-              />
+              <Section title="Upload billeder" description="Træk og slip eller klik for at uploade">
+                <ListingImageUpload
+                  listingSlug={listing.slug}
+                  onUploaded={url => update('images', [...(listing.images || []), url])}
+                />
+              </Section>
+              <Section title="Galleri" description="Sortér, tagge og administrer billeder">
+                <SortableImageGallery
+                  images={listing.images || []}
+                  heroImage={listing.hero_image || ''}
+                  bedroomImages={((listing as any).bedroom_images as BedroomImage[]) || []}
+                  imageLabels={((listing as any).image_labels as ImageLabel[]) || []}
+                  comboHeroImages={((listing as any).combo_hero_images as string[]) || []}
+                  onImagesChange={imgs => update('images', imgs)}
+                  onHeroChange={url => update('hero_image', url)}
+                  onBedroomImagesChange={bi => update('bedroom_images' as any, bi)}
+                  onImageLabelsChange={labels => update('image_labels' as any, labels)}
+                  onComboHeroToggle={url => {
+                    const current = ((listing as any).combo_hero_images as string[]) || [];
+                    const next = current.includes(url) ? current.filter(u => u !== url) : [...current, url];
+                    update('combo_hero_images' as any, next);
+                  }}
+                />
+              </Section>
             </div>
           )}
 
