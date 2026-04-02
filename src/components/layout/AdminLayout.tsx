@@ -114,6 +114,50 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     const groupActive = isGroupActive(item);
     const expanded = hasChildren && isExpanded(item);
 
+    if (collapsed) {
+      // Collapsed: icon-only with tooltip
+      if (hasChildren) {
+        // Show first child link or parent
+        const firstChild = item.children?.[0];
+        const target = firstChild || item;
+        const targetActive = firstChild ? isActive(firstChild.href) : active;
+        return (
+          <div key={item.name}>
+            <Link
+              to={target.href}
+              onClick={() => setSidebarOpen(false)}
+              title={item.name}
+              className={cn(
+                'flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200',
+                (groupActive || targetActive)
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground'
+              )}
+            >
+              <item.icon className="w-4 h-4" />
+            </Link>
+          </div>
+        );
+      }
+      return (
+        <div key={item.name}>
+          <Link
+            to={item.href}
+            onClick={() => setSidebarOpen(false)}
+            title={item.name}
+            className={cn(
+              'flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200',
+              active
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground'
+            )}
+          >
+            <item.icon className="w-4 h-4" />
+          </Link>
+        </div>
+      );
+    }
+
     return (
       <div key={item.name}>
         {hasChildren ? (
