@@ -191,12 +191,12 @@ function FounderFactsSection() {
             <div className="flex flex-wrap gap-2.5">
               <a href="tel:+4512345678">
                 <Button variant="outline" size="sm" className="gap-2 text-[12.5px] border-border/30 hover:border-accent/20 hover:bg-accent/[0.04] transition-all duration-300">
-                  <Phone className="w-3.5 h-3.5 text-accent/55" /> Ring til Emil
+                  <Phone className="w-3.5 h-3.5 text-accent/55" /> Ring til os
                 </Button>
               </a>
               <a href="mailto:emil@sommervibes.dk">
                 <Button variant="outline" size="sm" className="gap-2 text-[12.5px] border-border/30 hover:border-accent/20 hover:bg-accent/[0.04] transition-all duration-300">
-                  <Mail className="w-3.5 h-3.5 text-accent/55" /> Skriv til Emil
+                  <Mail className="w-3.5 h-3.5 text-accent/55" /> Skriv til os
                 </Button>
               </a>
             </div>
