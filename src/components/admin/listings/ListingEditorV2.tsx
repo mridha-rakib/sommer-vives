@@ -186,6 +186,8 @@ const TOP_TABS = [
   { value: 'kalender', label: 'Kalender', icon: CalendarIcon },
   { value: 'priser', label: 'Priser', icon: DollarSign },
   { value: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
+  { value: 'aktoerer', label: 'Aktører', icon: Users },
+  { value: 'medarbejdere', label: 'Medarbejdere', icon: Briefcase },
   { value: 'dokumenter', label: 'Dokumenter', icon: FileText },
   { value: 'opgaver', label: 'Opgaver', icon: ClipboardCheck },
   { value: 'noter', label: 'Noter', icon: StickyNote },
