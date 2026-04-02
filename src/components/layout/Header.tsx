@@ -38,7 +38,7 @@ export function Header() {
     { name: 'Priser', href: '/pricing' },
     { name: 'Sommerhuse', href: '/listings' },
     { name: 'Om os', href: '/about' },
-    
+    { name: 'Beregn indtjening', href: '/beregn-lejeindtaegt', highlight: true },
   ];
 
   const isActiveLink = (href: string) => location.pathname === href;
@@ -70,18 +70,23 @@ export function Header() {
           }`}>
             {navigation.map((item) => {
               const active = isActiveLink(item.href);
+              const hl = (item as any).highlight;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={`relative px-4 py-1.5 rounded-full text-[13px] font-medium transition-all duration-300 ${
-                    active
+                    hl && !active
                       ? transparent
-                        ? 'text-primary bg-primary/15'
-                        : 'text-primary bg-primary/10'
-                      : transparent
-                        ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/8'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        ? 'text-primary/90 hover:text-primary hover:bg-primary/10'
+                        : 'text-primary/80 hover:text-primary hover:bg-primary/8'
+                      : active
+                        ? transparent
+                          ? 'text-primary bg-primary/15'
+                          : 'text-primary bg-primary/10'
+                        : transparent
+                          ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/8'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
                   {item.name}
