@@ -113,10 +113,47 @@ export default function AdminLeads() {
   };
 
   const convertToOwner = async (lead: any) => {
-    toast.success(`${lead.name} konverteres til ejer…`);
-    await updateStatus(lead.id, 'won');
-    setDrawerLead(null);
-    navigate('/admin/crm/udlejere');
+    if (!lead.email) { toast.error('Lead mangler email — kan ikke oprette ejer'); return; }
+
+    const toastId = toast.loading(`Konverterer ${lead.name} til ejer…`);
+
+    try {
+      // 1. Create owner profile via auth signup (generates profile via trigger)
+      // We insert directly into profiles since handle_new_user trigger only fires on auth signup
+      // Instead, create a property first and link later when owner signs up
+      // For now: create a property stub linked to no auth user, and store lead info
+
+      // Create property (sag)
+      const { data: property, error: propErr } = await supabase.from('properties').insert({
+        title: `${lead.name} — Ny ejendom`,
+        address: lead.region || 'Ikke angivet',
+        region: lead.region || 'Ikke angivet',
+        owner_id: '00000000-0000-0000-0000-000000000000', // placeholder until owner signs up
+        status: 'draft',
+        setup_status: 'new',
+      }).select('id, case_number').single();
+
+      if (propErr) throw propErr;
+
+      // Update lead as won + link converted info
+      const { error: leadErr } = await supabase.from('leads').update({
+        status: 'won',
+        notes: [
+          lead.notes,
+          `\n--- Konverteret ${new Date().toLocaleDateString('da-DK')} ---`,
+          `Sag oprettet: ${property.case_number || property.id}`,
+        ].filter(Boolean).join('\n'),
+      }).eq('id', lead.id);
+
+      if (leadErr) throw leadErr;
+
+      toast.success(`${lead.name} konverteret — sag ${property.case_number || 'oprettet'}`, { id: toastId });
+      setDrawerLead(null);
+      load();
+    } catch (err: any) {
+      console.error('Convert error:', err);
+      toast.error(`Fejl ved konvertering: ${err.message}`, { id: toastId });
+    }
   };
 
   // ─── Drag & drop helpers ───
