@@ -821,8 +821,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           ))}
         </TabsList>
 
-        {/* ─── 1. GRUNDDATA ─── */}
-        <TabsContent value="grunddata" className="mt-4 space-y-5">
+        {/* ─── TAB 1: BOLIG ─── */}
+        <TabsContent value="bolig" className="mt-6 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <Section title="Navne & Titler" description="Intern og offentlig titel">
               <Field label="Internt navn" hint="Bruges kun i admin">
