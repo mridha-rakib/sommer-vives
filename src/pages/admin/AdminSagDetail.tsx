@@ -30,6 +30,7 @@ import { Beds24MappingSection } from '@/components/admin/Beds24MappingSection';
 import { Beds24ReadinessEngine } from '@/components/admin/Beds24ReadinessEngine';
 import { Beds24PublishDialog } from '@/components/admin/Beds24PublishDialog';
 import { Beds24SyncLog } from '@/components/admin/Beds24SyncLog';
+import { PublishFlowModal } from '@/components/admin/PublishFlowModal';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
@@ -446,6 +447,7 @@ export default function AdminSagDetail() {
   const [tab, setTab] = useState('overblik');
   const [aiLoading, setAiLoading] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
+  const [publishFlowOpen, setPublishFlowOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -613,7 +615,10 @@ export default function AdminSagDetail() {
 
           {/* ─── Primary Actions Bar ─── */}
           <div className="px-6 pb-5 flex flex-wrap gap-2">
-            <Button size="sm" className="rounded-xl gap-1.5" onClick={() => setTab('listing')}>
+            <Button size="sm" className="rounded-xl gap-1.5" onClick={() => setPublishFlowOpen(true)}>
+              <Globe className="h-3.5 w-3.5" />Publicér listing
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('listing')}>
               <Pencil className="h-3.5 w-3.5" />Redigér listing
             </Button>
             <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('overblik')}>
@@ -621,9 +626,6 @@ export default function AdminSagDetail() {
             </Button>
             <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={handleImproveText} disabled={aiLoading}>
               <Sparkles className="h-3.5 w-3.5" />{aiLoading ? 'AI arbejder…' : 'Forbedr tekst med AI'}
-            </Button>
-            <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('kanaler')}>
-              <Globe className="h-3.5 w-3.5" />Forbered Airbnb
             </Button>
           </div>
 
@@ -907,6 +909,12 @@ export default function AdminSagDetail() {
           </SectionCard>
         )}
       </div>
+      <PublishFlowModal
+        listing={listing}
+        open={publishFlowOpen}
+        onClose={() => setPublishFlowOpen(false)}
+        onPublished={(updated) => setListing({ ...listing, ...updated })}
+      />
     </AdminLayout>
   );
 }
