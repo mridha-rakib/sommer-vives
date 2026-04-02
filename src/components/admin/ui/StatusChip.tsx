@@ -1,5 +1,7 @@
 import { cn } from '@/lib/utils';
 
+export type StatusVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'muted';
+
 export interface StatusChipProps {
   label: string;
   variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'muted';
