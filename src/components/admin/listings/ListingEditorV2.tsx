@@ -872,10 +872,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               </Field>
             </div>
           </Section>
-        </TabsContent>
 
-        {/* ─── 2. BESKRIVELSE ─── */}
-        <TabsContent value="beskrivelse" className="mt-4 space-y-5">
+          {/* ── Beskrivelse ── */}
           <Section title="Kort beskrivelse" description="Vises i listing-kortet og søgeresultater">
             <Textarea value={listing.description || ''} onChange={e => update('description', e.target.value)} rows={3} placeholder="En kort, fængende beskrivelse..." />
           </Section>
