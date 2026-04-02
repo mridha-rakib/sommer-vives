@@ -1,61 +1,53 @@
 import { useState, useEffect } from 'react';
 import { formatDKK } from '@/lib/status-badges';
-import { 
-  Home, Calendar, Users, TrendingUp, DollarSign, 
-  AlertCircle, CheckCircle, Clock, XCircle, ArrowUpRight,
-  Building2, UserCheck, Plus
+import {
+  Target, MessageSquare, Calendar, ListChecks, FileSignature,
+  FolderOpen, ArrowUpRight, Plus, TrendingUp, Users,
+  Clock, CheckCircle, Building2, AlertCircle, UserCheck, DollarSign
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatCard } from '@/components/admin/StatCard';
-import { BookingsTable } from '@/components/admin/BookingsTable';
 import { ActivityLog } from '@/components/admin/ActivityLog';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { supabase } from '@/integrations/supabase/client';
-import { Booking } from '@/types/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CreateBookingDialog } from '@/components/admin/CreateBookingDialog';
-import { CreatePropertyDialog } from '@/components/admin/CreatePropertyDialog';
-import { CreateGuestDialog } from '@/components/admin/CreateGuestDialog';
+import { Badge } from '@/components/ui/badge';
 
 export default function AdminDashboard() {
-  const { stats, loading: statsLoading, refresh: refreshStats } = useAdminStats();
-  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
-  const [bookingsLoading, setBookingsLoading] = useState(true);
-  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
-  const [propertyDialogOpen, setPropertyDialogOpen] = useState(false);
-  const [guestDialogOpen, setGuestDialogOpen] = useState(false);
-
-  const loadUpcomingBookings = async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const { data } = await supabase
-      .from('bookings')
-      .select(`
-        *,
-        property:properties(id, title, case_number),
-        guest:guests(id, name, case_number)
-      `)
-      .gte('check_in', today)
-      .neq('status', 'cancelled')
-      .order('check_in', { ascending: true })
-      .limit(10);
-    
-    setUpcomingBookings((data as unknown as Booking[]) || []);
-    setBookingsLoading(false);
-  };
+  const { stats, loading: statsLoading } = useAdminStats();
+  const [leads, setLeads] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [agreements, setAgreements] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadUpcomingBookings();
+    const load = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const [leadsRes, tasksRes, agreementsRes, msgRes] = await Promise.all([
+        supabase.from('leads').select('*').order('created_at', { ascending: false }).limit(5),
+        supabase.from('tasks').select('*, property:properties(title)').eq('scheduled_date', today).limit(8),
+        supabase.from('agreements').select('*, owner:profiles(full_name, email)').eq('status', 'signed').order('signed_at', { ascending: false }).limit(5),
+        supabase.from('chat_messages').select('id', { count: 'exact' }).eq('is_read', false),
+      ]);
+      setLeads(leadsRes.data || []);
+      setTasks(tasksRes.data || []);
+      setAgreements(agreementsRes.data || []);
+      setUnreadCount(msgRes.count || 0);
+      setLoading(false);
+    };
+    load();
   }, []);
 
-  const handleDialogSuccess = () => {
-    refreshStats();
-    loadUpcomingBookings();
-  };
-
-  const formatCurrency = formatDKK;
+  const quickActions = [
+    { label: 'Nyt lead', href: '/admin/leads', icon: Target },
+    { label: 'Ny opgave', href: '/admin/opgaver', icon: ListChecks },
+    { label: 'Ny besked', href: '/admin/beskeder', icon: MessageSquare },
+    { label: 'Se kalender', href: '/admin/kalender', icon: Calendar },
+  ];
 
   return (
     <AdminLayout>
@@ -63,161 +55,124 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Overblik over dit sommerhusbureau</p>
+            <h1 className="text-2xl font-bold text-foreground">Overblik</h1>
+            <p className="text-sm text-muted-foreground">Dit daglige kontrolcenter</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setGuestDialogOpen(true)}>
-              <Users className="h-4 w-4 mr-2" />
-              Ny gæst
-            </Button>
-            <Button variant="outline" onClick={() => setBookingDialogOpen(true)}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Ny booking
-            </Button>
-            <Button onClick={() => setPropertyDialogOpen(true)}>
-              <Home className="h-4 w-4 mr-2" />
-              Ny bolig
-            </Button>
+            {quickActions.map(a => (
+              <Button key={a.label} variant="outline" size="sm" asChild className="gap-1.5 text-xs">
+                <Link to={a.href}>
+                  <a.icon className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">{a.label}</span>
+                </Link>
+              </Button>
+            ))}
           </div>
         </div>
 
-        <CreateBookingDialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen} onSuccess={handleDialogSuccess} />
-        <CreatePropertyDialog open={propertyDialogOpen} onOpenChange={setPropertyDialogOpen} onSuccess={handleDialogSuccess} />
-        <CreateGuestDialog open={guestDialogOpen} onOpenChange={setGuestDialogOpen} onSuccess={handleDialogSuccess} />
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {/* KPI strip */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {statsLoading ? (
-            [...Array(6)].map((_, i) => (
-              <Card key={i} className="p-4">
-                <Skeleton className="h-4 w-20 mb-2" />
-                <Skeleton className="h-8 w-16" />
-              </Card>
-            ))
+            [...Array(6)].map((_, i) => <Card key={i} className="p-4"><Skeleton className="h-4 w-20 mb-2" /><Skeleton className="h-8 w-16" /></Card>)
           ) : stats && (
             <>
-              <StatCard
-                title="Boliger"
-                value={stats.totalProperties}
-                subtitle={`${stats.activeProperties} aktive`}
-                icon={Building2}
-                variant="default"
-              />
-              <StatCard
-                title="Bookinger"
-                value={stats.totalBookings}
-                icon={Calendar}
-                variant="info"
-              />
-              <StatCard
-                title="Kommende (30d)"
-                value={stats.upcomingBookings}
-                icon={Clock}
-                variant="success"
-              />
-              <StatCard
-                title="Afholdte (30d)"
-                value={stats.pastBookings}
-                icon={CheckCircle}
-                variant="default"
-              />
-              <StatCard
-                title="Annullerede"
-                value={stats.cancelledBookings}
-                icon={XCircle}
-                variant="danger"
-              />
-              <StatCard
-                title="Ejere"
-                value={stats.totalOwners}
-                icon={UserCheck}
-                variant="default"
-              />
+              <StatCard title="Nye leads" value={leads.length} icon={Target} variant="info" />
+              <StatCard title="Ulæste beskeder" value={unreadCount} icon={MessageSquare} variant={unreadCount > 0 ? 'warning' : 'default'} />
+              <StatCard title="Opgaver i dag" value={tasks.length} icon={ListChecks} variant="default" />
+              <StatCard title="Aktive sager" value={stats.activeProperties} icon={FolderOpen} variant="success" />
+              <StatCard title="Ejere" value={stats.totalOwners} icon={UserCheck} variant="default" />
+              <StatCard title="Platform-omsætning" value={formatDKK(stats.platformEarnings)} icon={TrendingUp} variant="success" />
             </>
           )}
         </div>
 
-        {/* Revenue Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {statsLoading ? (
-            [...Array(3)].map((_, i) => (
-              <Card key={i} className="p-4">
-                <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-10 w-32" />
-              </Card>
-            ))
-          ) : stats && (
-            <>
-              <StatCard
-                title="Samlet omsætning"
-                value={formatCurrency(stats.totalRevenue)}
-                icon={TrendingUp}
-                variant="success"
-              />
-              <StatCard
-                title="Platform-indtjening"
-                value={formatCurrency(stats.platformEarnings)}
-                icon={DollarSign}
-                variant="info"
-              />
-              <StatCard
-                title="Skadespulje"
-                value={formatCurrency(stats.damagePoolTotal)}
-                subtitle="3% af platform-indtjening"
-                icon={AlertCircle}
-                variant="warning"
-              />
-            </>
-          )}
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Upcoming Bookings */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-semibold">Kommende bookinger</CardTitle>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/admin/bookings">
-                    Se alle
-                    <ArrowUpRight className="h-4 w-4 ml-1" />
-                  </Link>
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                {bookingsLoading ? (
-                  <div className="p-4 space-y-3">
-                    {[...Array(5)].map((_, i) => (
-                      <Skeleton key={i} className="h-12 w-full" />
-                    ))}
+        {/* Main grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Leads */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" /> Nye leads
+              </CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/leads" className="text-xs">Se alle <ArrowUpRight className="h-3 w-3 ml-1" /></Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {loading ? <Skeleton className="h-20 w-full" /> : leads.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">Ingen nye leads</p>
+              ) : leads.map(l => (
+                <div key={l.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{l.name}</p>
+                    <p className="text-xs text-muted-foreground">{l.source} · {l.region || 'Ukendt'}</p>
                   </div>
-                ) : (
-                  <BookingsTable bookings={upcomingBookings} compact />
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  <Badge variant="secondary" className="text-[10px]">{l.status}</Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
-          {/* Activity Log */}
-          <div>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-semibold">Seneste aktivitet</CardTitle>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/admin/audit-log">
-                    Se alle
-                    <ArrowUpRight className="h-4 w-4 ml-1" />
-                  </Link>
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <ActivityLog limit={10} />
-              </CardContent>
-            </Card>
-          </div>
+          {/* Tasks today */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <ListChecks className="h-4 w-4 text-primary" /> Opgaver i dag
+              </CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/opgaver" className="text-xs">Se alle <ArrowUpRight className="h-3 w-3 ml-1" /></Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {loading ? <Skeleton className="h-20 w-full" /> : tasks.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">Ingen opgaver i dag</p>
+              ) : tasks.map(t => (
+                <div key={t.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{t.task_type}</p>
+                    <p className="text-xs text-muted-foreground">{(t.property as any)?.title || 'Ukendt'}</p>
+                  </div>
+                  <Badge variant={t.status === 'pending' ? 'secondary' : 'default'} className="text-[10px]">{t.status}</Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Recent agreements */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <FileSignature className="h-4 w-4 text-primary" /> Nyligt underskrevne
+              </CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin/modtagelse" className="text-xs">Se alle <ArrowUpRight className="h-3 w-3 ml-1" /></Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {loading ? <Skeleton className="h-20 w-full" /> : agreements.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">Ingen nye aftaler</p>
+              ) : agreements.map(a => (
+                <div key={a.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{a.owner_name || (a.owner as any)?.full_name || 'Ukendt'}</p>
+                    <p className="text-xs text-muted-foreground">{a.property_title || 'Aftale'}</p>
+                  </div>
+                  <Badge className="text-[10px] bg-emerald-100 text-emerald-700 border-0">Underskrevet</Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Activity log */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-semibold">Seneste aktivitet</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActivityLog limit={10} />
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
