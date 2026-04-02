@@ -1591,10 +1591,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               },
             ]}
           />
-        </TabsContent>
 
-        {/* ─── 9. INTEGRATION ─── */}
-        <TabsContent value="integration" className="mt-4 space-y-5">
+          {/* ── Integration ── */}
           {(() => {
             const syncStatus = listing.sync_status || 'not_connected';
             const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode; bg: string }> = {
