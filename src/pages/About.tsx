@@ -100,8 +100,231 @@ function HeroSection() {
 }
 
 /* ═══════════════════════════════════════════════════
-   2. FOUNDER VIDEO — Emil intro with autoplay + replay
+   2. FOUNDER VIDEO — Soft storytelling about Emil + brand
    ═══════════════════════════════════════════════════ */
+function FounderVideoSection() {
+  const { ref, isInView } = useScrollReveal();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasEnded, setHasEnded] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const onEnd = () => { setIsPlaying(false); setHasEnded(true); };
+    const onPlay = () => { setIsPlaying(true); setHasEnded(false); };
+    v.addEventListener('ended', onEnd);
+    v.addEventListener('play', onPlay);
+    return () => {
+      v.removeEventListener('ended', onEnd);
+      v.removeEventListener('play', onPlay);
+    };
+  }, []);
+
+  const play = () => { videoRef.current?.play(); };
+  const replay = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play();
+    }
+  };
+
+  return (
+    <section ref={ref} className="py-16 md:py-24 bg-background relative">
+      <div className="container mx-auto px-5 md:px-10">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center max-w-[1100px] mx-auto">
+          {/* Video */}
+          <motion.div {...reveal(isInView)} className="lg:col-span-7">
+            <div className="relative rounded-[1.25rem] overflow-hidden bg-card/60 ring-1 ring-white/[0.04] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
+              <video
+                ref={videoRef}
+                src="/videos/ewk-intro.mp4"
+                poster={emilPortrait}
+                playsInline
+                muted
+                preload="metadata"
+                className="w-full aspect-[16/10] object-cover object-top"
+              />
+
+              <AnimatePresence>
+                {!isPlaying && !hasEnded && (
+                  <motion.button
+                    key="play"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    onClick={play}
+                    className="absolute inset-0 flex items-center justify-center bg-background/30 group cursor-pointer"
+                  >
+                    <div className="relative">
+                      <div className="absolute -inset-5 rounded-full bg-accent/8 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                      <div className="relative w-16 h-16 md:w-[72px] md:h-[72px] rounded-full bg-accent/90 flex items-center justify-center shadow-[0_10px_50px_-10px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300">
+                        <Play className="w-5 h-5 md:w-6 md:h-6 text-primary fill-primary ml-0.5" />
+                      </div>
+                    </div>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              {/* Always-visible sticky replay button */}
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isPlaying || hasEnded ? 1 : 0 }}
+                transition={{ duration: 0.3 }}
+                onClick={replay}
+                className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-card/80 backdrop-blur-md ring-1 ring-white/[0.08] flex items-center justify-center cursor-pointer hover:scale-105 hover:ring-accent/20 transition-all duration-300 z-10"
+                title="Se igen"
+              >
+                <RotateCcw className="w-4 h-4 text-accent/70" />
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* Soft storytelling */}
+          <motion.div {...reveal(isInView, 0.15)} className="lg:col-span-5">
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød Emil</span>
+            <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-5">
+              Mennesket bag
+              <span className="block text-accent italic font-normal mt-1">SommerVibes</span>
+            </h2>
+
+            <p className="text-muted-foreground/80 leading-[1.8] mb-5 text-[14.5px]">
+              Da Emil selv blev sommerhus-ejer, oplevede han det samme som mange andre — et bureau, der føltes distanceret, ugennemsigtigt og upersonligt.
+            </p>
+            <p className="text-muted-foreground/80 leading-[1.8] mb-7 text-[14.5px]">
+              I stedet for at acceptere det, byggede han SommerVibes: et bureau, hvor husejere kender deres rådgiver ved navn, har fuldt overblik over alt — og aldrig føler sig som et nummer i rækken.
+            </p>
+
+            <div className="border-l-[1.5px] border-accent/20 pl-5 py-1">
+              <p className="text-primary/70 font-display text-[0.95rem] italic leading-[1.7]">
+                "Jeg ville skabe det bureau, jeg selv savnede som husejer."
+              </p>
+              <p className="text-accent/40 text-[10px] mt-2 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann</p>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   2b. FOUNDER FACTS — Portrait + credentials
+   ═══════════════════════════════════════════════════ */
+function FounderFactsSection() {
+  const { ref, isInView } = useScrollReveal();
+  return (
+    <section ref={ref} className="py-16 md:py-24 bg-card/30 relative">
+      <div className="container mx-auto px-5 md:px-10">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center max-w-[1060px] mx-auto">
+          <motion.div {...reveal(isInView)} className="lg:col-span-5 flex justify-center">
+            <div className="rounded-[1.25rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.35)] ring-1 ring-white/[0.03] max-w-[320px]">
+              <img src={emilHeadshot} alt="Emil Weng Klockmann" className="w-full aspect-[4/5] object-cover object-top" loading="lazy" />
+            </div>
+          </motion.div>
+
+          <motion.div {...reveal(isInView, 0.12)} className="lg:col-span-7">
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød grundlæggeren</span>
+            <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-1.5">
+              Emil Weng Klockmann
+            </h2>
+            <p className="text-accent/55 text-[13px] font-medium tracking-wide mb-6">Grundlægger & Udlejningschef</p>
+
+            <p className="text-muted-foreground/80 leading-[1.8] mb-7 text-[14.5px]">
+              Uddannet ejendomsmægler og selv sommerhus-ejer. Emil grundlagde SommerVibes med én ambition: at give husejere en bedre, mere personlig og mere gennemsigtig oplevelse.
+            </p>
+
+            <div className="space-y-2.5 mb-8">
+              {['Uddannet ejendomsmægler', 'Selv sommerhus-ejer', 'Personlig rådgiver fra dag ét', 'Digital og moderne tilgang'].map((point, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div className="w-[16px] h-[16px] rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-[9px] h-[9px] text-accent/60" />
+                  </div>
+                  <span className="text-muted-foreground/70 text-[13px]">{point}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2.5">
+              <a href="tel:+4512345678">
+                <Button variant="outline" size="sm" className="gap-2 text-[12.5px] border-border/30 hover:border-accent/20 hover:bg-accent/[0.04] transition-all duration-300">
+                  <Phone className="w-3.5 h-3.5 text-accent/55" /> Ring til Emil
+                </Button>
+              </a>
+              <a href="mailto:emil@sommervibes.dk">
+                <Button variant="outline" size="sm" className="gap-2 text-[12.5px] border-border/30 hover:border-accent/20 hover:bg-accent/[0.04] transition-all duration-300">
+                  <Mail className="w-3.5 h-3.5 text-accent/55" /> Skriv til Emil
+                </Button>
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   3. STORY — Positive brand storytelling
+   ═══════════════════════════════════════════════════ */
+function StorySection() {
+  const { ref, isInView } = useScrollReveal();
+  return (
+    <section ref={ref} className="py-16 md:py-24 bg-background relative">
+      <div className="container mx-auto px-5 md:px-10">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center max-w-[1060px] mx-auto">
+          <motion.div
+            initial={{ opacity: 0, x: -16 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="lg:col-span-5 relative"
+          >
+            <div className="rounded-[1.25rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.35)] ring-1 ring-white/[0.03]">
+              <img src={kvieSoeDrone} alt="Sommerhusområde ved Kvie Sø set fra drone" className="w-full aspect-[4/5] object-cover" loading="lazy" />
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 16 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 1, delay: 0.1, ease: "easeOut" }}
+            className="lg:col-span-7"
+          >
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-5">Vores tilgang</span>
+            <h2 className="font-display text-[1.7rem] md:text-[2.2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-8">
+              Vi gør udlejning
+              <span className="block text-accent italic font-normal mt-1">enklere og bedre</span>
+            </h2>
+
+            <div className="space-y-5 mb-8">
+              <p className="text-muted-foreground/80 leading-[1.8] text-[15px]">
+                Vi tror på, at sommerhusudlejning bør være enkel, gennemsigtig og personlig. At du som husejer fortjener fuldt overblik, en fast kontaktperson og en oplevelse, der matcher dit hus.
+              </p>
+              <p className="text-muted-foreground/80 leading-[1.8] text-[15px]">
+                <strong className="text-primary/85 font-medium">Derfor byggede vi SommerVibes</strong> — et moderne bureau, der kombinerer digital nytænkning med ordentlig, personlig service og en fair aftale.
+              </p>
+            </div>
+
+            <div className="border-l-[1.5px] border-accent/20 pl-6 py-1 mb-8">
+              <p className="text-primary/75 font-display text-[1.05rem] md:text-[1.15rem] italic leading-[1.7]">
+                "Vores ambition er at være det bedste bureau for de ejere, vi samarbejder med — ikke det største."
+              </p>
+              <p className="text-accent/45 text-[11px] mt-3 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann</p>
+            </div>
+
+            <Link to="/how-it-works">
+              <Button variant="outline" size="sm" className="gap-2 group text-[12.5px] border-border/30 hover:border-accent/25 hover:bg-accent/[0.04] transition-all duration-300">
+                Se hvordan det virker <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform duration-300" />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FounderVideoSection() {
   const { ref, isInView } = useScrollReveal();
   const videoRef = useRef<HTMLVideoElement>(null);
