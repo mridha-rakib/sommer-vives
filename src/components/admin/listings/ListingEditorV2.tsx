@@ -117,6 +117,68 @@ function calcReadiness(f: Partial<ListingFull>): { score: number; missing: strin
   return { score: Math.round((passed.length / checks.length) * 100), missing, passed };
 }
 
+type ChannelReadinessResult = { score: number; missing: { field: string; tab: string; action: string }[]; passed: string[] };
+
+function calcChannelReadiness(f: Partial<ListingFull>, channel: 'airbnb' | 'booking' | 'vrbo'): ChannelReadinessResult {
+  const shared: [string, boolean, string, string][] = [
+    ['Hero-billede', !!f.hero_image, 'indhold', 'Upload et hero-billede'],
+    ['Min. 3 galleri-billeder', (f.images?.length || 0) >= 3, 'indhold', 'Tilføj flere billeder'],
+    ['Adresse', !!f.address, 'grunddata', 'Udfyld adressen'],
+    ['Gæstekapacitet', (f.max_guests || 0) > 0, 'grunddata', 'Angiv max gæster'],
+    ['Soveværelser', (f.bedrooms || 0) > 0, 'grunddata', 'Angiv antal soveværelser'],
+    ['Basispris', (f.base_price_per_night || 0) > 0, 'priser', 'Sæt en basispris'],
+    ['Check-in tid', !!f.check_in_time, 'grunddata', 'Angiv check-in tid'],
+    ['Check-out tid', !!f.check_out_time, 'grunddata', 'Angiv check-out tid'],
+    ['Faciliteter (3+)', (f.amenities?.length || 0) >= 3, 'grunddata', 'Tilføj faciliteter'],
+  ];
+
+  const channelChecks: Record<string, [string, boolean, string, string][]> = {
+    airbnb: [
+      ['Airbnb-titel', !!(f.channel_airbnb_title && f.channel_airbnb_title.length >= 5), 'kanaler', 'Skriv en Airbnb-titel'],
+      ['Airbnb-beskrivelse', !!(f.channel_airbnb_description && f.channel_airbnb_description.length >= 20), 'kanaler', 'Skriv en Airbnb-beskrivelse'],
+      ['Airbnb-husregler', !!(f.channel_airbnb_house_rules && f.channel_airbnb_house_rules.length > 5), 'kanaler', 'Tilføj husregler til Airbnb'],
+      ['Airbnb-highlights', (f.channel_airbnb_highlights?.length || 0) >= 2, 'kanaler', 'Tilføj mindst 2 highlights'],
+      ['Airbnb check-in noter', !!(f.channel_airbnb_checkin_notes && f.channel_airbnb_checkin_notes.length > 5), 'kanaler', 'Beskriv check-in procedure'],
+    ],
+    booking: [
+      ['Booking.com-titel', !!(f.channel_booking_title && f.channel_booking_title.length >= 5), 'kanaler', 'Skriv en Booking.com-titel'],
+      ['Booking.com-beskrivelse', !!(f.channel_booking_description && f.channel_booking_description.length >= 20), 'kanaler', 'Skriv en beskrivelse'],
+      ['Værelseopsætning', !!(f.channel_booking_room_setup && f.channel_booking_room_setup.length > 3), 'kanaler', 'Beskriv værelserne'],
+      ['Politikker', !!(f.channel_booking_policies && f.channel_booking_policies.length > 5), 'kanaler', 'Tilføj aflysningspolitik'],
+      ['Check-in/out info', !!(f.channel_booking_checkin_checkout && f.channel_booking_checkin_checkout.length > 5), 'kanaler', 'Udfyld check-in/out info'],
+    ],
+    vrbo: [
+      ['Vrbo-titel', !!(f.channel_vrbo_title && f.channel_vrbo_title.length >= 5), 'kanaler', 'Skriv en Vrbo-titel'],
+      ['Vrbo-beskrivelse', !!(f.channel_vrbo_description && f.channel_vrbo_description.length >= 20), 'kanaler', 'Skriv en Vrbo-beskrivelse'],
+      ['Vrbo-highlights', (f.channel_vrbo_highlights?.length || 0) >= 2, 'kanaler', 'Tilføj mindst 2 highlights'],
+      ['Vrbo-regler', !!(f.channel_vrbo_rules && f.channel_vrbo_rules.length > 5), 'kanaler', 'Tilføj husregler til Vrbo'],
+    ],
+  };
+
+  const all = [...shared, ...channelChecks[channel]];
+  const passed = all.filter(([, ok]) => ok).map(([name]) => name);
+  const missing = all.filter(([, ok]) => !ok).map(([name, , tab, action]) => ({ field: name, tab, action }));
+  return { score: Math.round((passed.length / all.length) * 100), missing, passed };
+}
+
+function ReadinessRing({ score, size = 48, strokeWidth = 3 }: { score: number; size?: number; strokeWidth?: number }) {
+  const r = (size - strokeWidth) / 2;
+  const c = 2 * Math.PI * r;
+  const color = score >= 80 ? 'hsl(142, 71%, 45%)' : score >= 50 ? 'hsl(38, 92%, 50%)' : 'hsl(0, 84%, 60%)';
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="-rotate-90" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth={strokeWidth} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth}
+          strokeDasharray={`${(score / 100) * c} ${c}`} strokeLinecap="round" />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-xs font-bold text-foreground">{score}%</span>
+      </div>
+    </div>
+  );
+}
+
 export function ListingEditorV2({ listingId, onBack }: Props) {
   const { toast } = useToast();
   const [listing, setListing] = useState<ListingFull | null>(null);
@@ -153,6 +215,14 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   };
 
   const readiness = useMemo(() => listing ? calcReadiness(listing) : { score: 0, missing: [], passed: [] }, [listing]);
+  const channelReadiness = useMemo(() => {
+    if (!listing) return { airbnb: { score: 0, missing: [], passed: [] }, booking: { score: 0, missing: [], passed: [] }, vrbo: { score: 0, missing: [], passed: [] } };
+    return {
+      airbnb: calcChannelReadiness(listing, 'airbnb'),
+      booking: calcChannelReadiness(listing, 'booking'),
+      vrbo: calcChannelReadiness(listing, 'vrbo'),
+    };
+  }, [listing]);
 
   const handleSave = async () => {
     if (!listing) return;
@@ -955,11 +1025,71 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
 
         {/* ─── 7. DISTRIBUTION & KANALER ─── */}
         <TabsContent value="kanaler" className="mt-4 space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-display text-lg font-semibold text-foreground">Distribution & kanaler</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">Klargør og publicer din listing til eksterne platforme</p>
+          <div>
+            <h3 className="font-display text-lg font-semibold text-foreground">Distribution & kanaler</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Klargør og publicer din listing til eksterne platforme</p>
+          </div>
+
+          {/* ── Readiness Dashboard ── */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <h4 className="font-display text-sm font-semibold text-foreground mb-4">Readiness overblik</h4>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Global */}
+              <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30">
+                <ReadinessRing score={readiness.score} size={56} strokeWidth={4} />
+                <div className="text-center">
+                  <p className="text-xs font-semibold text-foreground">Global</p>
+                  <p className="text-[10px] text-muted-foreground">{readiness.missing.length} mangler</p>
+                </div>
+              </div>
+              {/* Per-channel */}
+              {([
+                { key: 'airbnb' as const, label: 'Airbnb', icon: '🏠' },
+                { key: 'booking' as const, label: 'Booking.com', icon: '🅱️' },
+                { key: 'vrbo' as const, label: 'Vrbo', icon: '🏡' },
+              ] as const).map(ch => {
+                const cr = channelReadiness[ch.key];
+                return (
+                  <div key={ch.key} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setChannelDialogOpen(ch.key)}>
+                    <ReadinessRing score={cr.score} size={56} strokeWidth={4} />
+                    <div className="text-center">
+                      <p className="text-xs font-semibold text-foreground">{ch.icon} {ch.label}</p>
+                      <p className="text-[10px] text-muted-foreground">{cr.missing.length} mangler</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+
+            {/* Next best action */}
+            {(() => {
+              const allChannelMissing = [
+                ...channelReadiness.airbnb.missing.map(m => ({ ...m, channel: 'Airbnb' })),
+                ...channelReadiness.booking.missing.map(m => ({ ...m, channel: 'Booking.com' })),
+                ...channelReadiness.vrbo.missing.map(m => ({ ...m, channel: 'Vrbo' })),
+              ];
+              const next = allChannelMissing[0];
+              if (!next) return (
+                <div className="mt-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-3 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <p className="text-xs text-emerald-600 font-medium">Alle kanaler er 100% klar! 🎉</p>
+                </div>
+              );
+              return (
+                <div className="mt-4 rounded-lg bg-primary/5 border border-primary/20 p-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-foreground">Næste handling</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{next.action} — {next.channel}</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" className="text-[10px] h-7 shrink-0" onClick={() => setActiveTab(next.tab)}>
+                    Gå til {next.tab}
+                  </Button>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Channel cards grid */}
@@ -1113,74 +1243,67 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5 text-primary" />
-                  {channelDialogOpen === 'airbnb' ? 'Airbnb' : channelDialogOpen === 'booking' ? 'Booking.com' : 'Vrbo'} — Detaljer
+                  {channelDialogOpen === 'airbnb' ? 'Airbnb' : channelDialogOpen === 'booking' ? 'Booking.com' : 'Vrbo'} — Readiness
                 </DialogTitle>
               </DialogHeader>
               {channelDialogOpen && (() => {
                 const ch = channelDialogOpen as 'airbnb' | 'booking' | 'vrbo';
-                const title = (listing as any)[`channel_${ch}_title`] as string | null;
-                const desc = (listing as any)[`channel_${ch}_description`] as string | null;
+                const cr = channelReadiness[ch];
                 const ready = (listing as any)[`channel_${ch}_ready`] as boolean | null;
-                const missing: string[] = [];
-                if (!title || title.length < 5) missing.push('Kanaltitel (min 5 tegn)');
-                if (!desc || desc.length < 20) missing.push('Kanalbeskrivelse (min 20 tegn)');
-                if (!listing.hero_image) missing.push('Hero-billede');
-                if ((listing.images?.length || 0) < 3) missing.push('Mindst 3 galleri-billeder');
-                if ((listing.amenities?.length || 0) < 3) missing.push('Mindst 3 faciliteter');
-                if (!listing.address) missing.push('Adresse');
-                if ((listing.max_guests || 0) < 1) missing.push('Gæstekapacitet');
-                if ((listing.base_price_per_night || 0) <= 0) missing.push('Basispris');
-                if (!listing.check_in_time) missing.push('Check-in tid');
-                if (!listing.check_out_time) missing.push('Check-out tid');
-                if (!listing.house_rules) missing.push('Husregler');
+                const chLabel = ch === 'airbnb' ? 'Airbnb' : ch === 'booking' ? 'Booking.com' : 'Vrbo';
 
                 return (
-                  <div className="space-y-4">
-                    {/* Title & desc preview */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground">Kanaltitel</p>
-                      <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground">
-                        {title || <span className="italic text-muted-foreground">Ikke udfyldt</span>}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground">Kanalbeskrivelse</p>
-                      <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground whitespace-pre-line">
-                        {desc || <span className="italic text-muted-foreground">Ikke udfyldt</span>}
+                  <div className="space-y-5">
+                    {/* Score header */}
+                    <div className="flex items-center gap-4">
+                      <ReadinessRing score={cr.score} size={64} strokeWidth={4} />
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {cr.score === 100 ? `${chLabel} er 100% klar!` : cr.score >= 80 ? 'Næsten klar!' : cr.score >= 50 ? 'Godt på vej' : 'Flere felter mangler'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{cr.passed.length} af {cr.passed.length + cr.missing.length} krav opfyldt</p>
                       </div>
                     </div>
 
-                    {/* Image readiness */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground">Billeder</p>
-                      <div className="flex gap-2">
-                        {listing.images?.slice(0, 5).map((img, i) => (
-                          <div key={i} className="w-14 h-14 rounded-lg overflow-hidden border border-border">
-                            <img src={img} alt="" className="w-full h-full object-cover" />
-                          </div>
-                        ))}
-                        {(!listing.images || listing.images.length === 0) && (
-                          <p className="text-xs text-muted-foreground italic">Ingen billeder</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Missing fields */}
-                    {missing.length > 0 && (
-                      <div className="space-y-1.5">
-                        <p className="text-xs font-semibold text-amber-500">⚠ Manglende felter ({missing.length})</p>
-                        {missing.map(m => (
-                          <div key={m} className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" /> {m}
+                    {/* Passed checklist */}
+                    {cr.passed.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">Opfyldt</p>
+                        {cr.passed.map(p => (
+                          <div key={p} className="flex items-center gap-2 text-xs text-muted-foreground py-0.5">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" /> {p}
                           </div>
                         ))}
                       </div>
                     )}
 
-                    {missing.length === 0 && (
+                    {/* Missing with actions */}
+                    {cr.missing.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Mangler</p>
+                        {cr.missing.map(m => (
+                          <div key={m.field} className="flex items-center justify-between gap-2 py-1 px-2 rounded-lg hover:bg-muted/30 transition-colors">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+                              <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                              <span className="truncate">{m.field}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-[10px] h-6 px-2 text-primary shrink-0"
+                              onClick={() => { setActiveTab(m.tab); setChannelDialogOpen(null); }}
+                            >
+                              {m.action} →
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {cr.score === 100 && (
                       <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-3 flex items-center gap-2">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                        <p className="text-xs text-emerald-500 font-medium">Alle påkrævede felter er udfyldt!</p>
+                        <p className="text-xs text-emerald-600 font-medium">Alle påkrævede felter er udfyldt!</p>
                       </div>
                     )}
 
@@ -1189,7 +1312,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                         className="flex-1 gap-1.5"
                         onClick={() => { handlePrepareChannel(ch); setChannelDialogOpen(null); }}
                       >
-                        <Sparkles className="h-4 w-4" /> Forbered {channelDialogOpen === 'airbnb' ? 'Airbnb' : channelDialogOpen === 'booking' ? 'Booking.com' : 'Vrbo'}
+                        <Sparkles className="h-4 w-4" /> AI-forbered {chLabel}
                       </Button>
                       <Button
                         variant={ready ? 'secondary' : 'outline'}
