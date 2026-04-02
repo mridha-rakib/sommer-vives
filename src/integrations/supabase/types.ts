@@ -1690,16 +1690,19 @@ export type Database = {
           checkout_info: string | null
           city: string | null
           cleaning_fee: number | null
+          combo_hero_images: string[] | null
           country: string | null
           created_at: string
           currency: string
           deposit: number | null
           description: string | null
+          draft_content: Json | null
           external_listing_id: string | null
           external_property_id: string | null
           extra_sections: Json
           facilities: Json
           floor_plan_images: string[] | null
+          getting_around: string | null
           hero_image: string | null
           highlights: string[] | null
           house_rules: string | null
@@ -1711,8 +1714,10 @@ export type Database = {
           is_active: boolean
           last_sync_at: string | null
           latitude: number | null
+          location_description: string | null
           location_map_image: string | null
           location_mood_image: string | null
+          location_title: string | null
           long_description: string | null
           longitude: number | null
           max_guests: number
@@ -1722,15 +1727,21 @@ export type Database = {
           owner_id: string
           practical_info: string | null
           property_type: string | null
+          published_at: string | null
           readiness_score: number | null
           region: string | null
+          revision_history: Json | null
           slug: string
           sort_order: number
           sqm: number | null
           sync_error_message: string | null
           sync_status: string | null
           tagline: string | null
+          teaser: string | null
           updated_at: string
+          video_url: string | null
+          video_url_de: string | null
+          video_url_en: string | null
           weekend_price_per_night: number | null
         }
         Insert: {
@@ -1769,16 +1780,19 @@ export type Database = {
           checkout_info?: string | null
           city?: string | null
           cleaning_fee?: number | null
+          combo_hero_images?: string[] | null
           country?: string | null
           created_at?: string
           currency?: string
           deposit?: number | null
           description?: string | null
+          draft_content?: Json | null
           external_listing_id?: string | null
           external_property_id?: string | null
           extra_sections?: Json
           facilities?: Json
           floor_plan_images?: string[] | null
+          getting_around?: string | null
           hero_image?: string | null
           highlights?: string[] | null
           house_rules?: string | null
@@ -1790,8 +1804,10 @@ export type Database = {
           is_active?: boolean
           last_sync_at?: string | null
           latitude?: number | null
+          location_description?: string | null
           location_map_image?: string | null
           location_mood_image?: string | null
+          location_title?: string | null
           long_description?: string | null
           longitude?: number | null
           max_guests?: number
@@ -1801,15 +1817,21 @@ export type Database = {
           owner_id: string
           practical_info?: string | null
           property_type?: string | null
+          published_at?: string | null
           readiness_score?: number | null
           region?: string | null
+          revision_history?: Json | null
           slug: string
           sort_order?: number
           sqm?: number | null
           sync_error_message?: string | null
           sync_status?: string | null
           tagline?: string | null
+          teaser?: string | null
           updated_at?: string
+          video_url?: string | null
+          video_url_de?: string | null
+          video_url_en?: string | null
           weekend_price_per_night?: number | null
         }
         Update: {
@@ -1848,16 +1870,19 @@ export type Database = {
           checkout_info?: string | null
           city?: string | null
           cleaning_fee?: number | null
+          combo_hero_images?: string[] | null
           country?: string | null
           created_at?: string
           currency?: string
           deposit?: number | null
           description?: string | null
+          draft_content?: Json | null
           external_listing_id?: string | null
           external_property_id?: string | null
           extra_sections?: Json
           facilities?: Json
           floor_plan_images?: string[] | null
+          getting_around?: string | null
           hero_image?: string | null
           highlights?: string[] | null
           house_rules?: string | null
@@ -1869,8 +1894,10 @@ export type Database = {
           is_active?: boolean
           last_sync_at?: string | null
           latitude?: number | null
+          location_description?: string | null
           location_map_image?: string | null
           location_mood_image?: string | null
+          location_title?: string | null
           long_description?: string | null
           longitude?: number | null
           max_guests?: number
@@ -1880,15 +1907,21 @@ export type Database = {
           owner_id?: string
           practical_info?: string | null
           property_type?: string | null
+          published_at?: string | null
           readiness_score?: number | null
           region?: string | null
+          revision_history?: Json | null
           slug?: string
           sort_order?: number
           sqm?: number | null
           sync_error_message?: string | null
           sync_status?: string | null
           tagline?: string | null
+          teaser?: string | null
           updated_at?: string
+          video_url?: string | null
+          video_url_de?: string | null
+          video_url_en?: string | null
           weekend_price_per_night?: number | null
         }
         Relationships: []
