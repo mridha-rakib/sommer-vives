@@ -1072,8 +1072,18 @@ export default function AdminSagDetail() {
                 };
                 const st = statusMap[sd.status] || statusMap.draft;
                 const isAftale = sd.category === 'aftale';
-                const icon = isAftale ? Shield : FileText;
+                const isRapport = sd.category === 'rapport';
+                const icon = isAftale ? Shield : isRapport ? Zap : FileText;
                 const IconComp = icon;
+
+                // Compute dynamic stats for rapport
+                const totalBookings = bookings.length;
+                const confirmedBookings = bookings.filter((b: any) => b.status === 'confirmed' || b.status === 'completed' || b.status === 'checked_in' || b.status === 'checked_out').length;
+                const totalRevenue = bookings.reduce((s: number, b: any) => s + (Number(b.total_amount) || 0), 0);
+                const totalGuests = bookings.reduce((s: number, b: any) => s + (Number(b.guests_count) || 0), 0);
+                const avgBookingValue = totalBookings > 0 ? Math.round(totalRevenue / totalBookings) : 0;
+                const totalNights = bookings.reduce((s: number, b: any) => s + (Number(b.nights) || 0), 0);
+                const activeChannels = listing?.is_active ? 1 : 0;
 
                 // Resolve placeholders
                 const resolveBody = (html: string, custom: Record<string, string> = {}) => {
@@ -1088,6 +1098,19 @@ export default function AdminSagDetail() {
                     commission_percent: custom.commission_percent || '15',
                     binding_months: custom.binding_months || '6',
                     notice_days: custom.notice_days || '30',
+                    report_date: format(new Date(), 'd. MMMM yyyy', { locale: da }),
+                    total_bookings: String(totalBookings),
+                    confirmed_bookings: String(confirmedBookings),
+                    total_revenue: totalRevenue.toLocaleString('da-DK'),
+                    total_guests: String(totalGuests),
+                    avg_booking_value: avgBookingValue.toLocaleString('da-DK'),
+                    total_nights: String(totalNights),
+                    active_channels: String(activeChannels),
+                    readiness_score: String(listing?.readiness_score || 0),
+                    custom_achievements: custom.custom_achievements || 'Løbende optimering af din listing',
+                    boost_price: custom.boost_price || '2.995',
+                    boost_description: custom.boost_description || 'Engangsbetaling — ingen binding',
+                    next_steps: custom.next_steps || 'Vi anbefaler at opgradere til Boost-pakken for at øge din synlighed og booking-rate.',
                     ...custom,
                   };
                   let resolved = html;
@@ -1107,7 +1130,7 @@ export default function AdminSagDetail() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-foreground">{sd.title}</p>
-                          <p className="text-[11px] text-muted-foreground">{isAftale ? 'Aftale' : 'Standard dokument'} · {format(new Date(sd.created_at), 'd. MMM yyyy', { locale: da })}</p>
+                          <p className="text-[11px] text-muted-foreground">{isAftale ? 'Aftale' : isRapport ? 'Statusrapport' : 'Standard dokument'} · {format(new Date(sd.created_at), 'd. MMM yyyy', { locale: da })}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -1134,6 +1157,22 @@ export default function AdminSagDetail() {
                               <Input type="number" min={0} value={editDocValues.binding_months || '6'} onChange={e => setEditDocValues({ ...editDocValues, binding_months: e.target.value })} /></div>
                             <div><Label className="text-xs text-muted-foreground">Opsigelse (dage)</Label>
                               <Input type="number" min={0} value={editDocValues.notice_days || '30'} onChange={e => setEditDocValues({ ...editDocValues, notice_days: e.target.value })} /></div>
+                          </div>
+                        )}
+
+                        {isRapport && (
+                          <div className="space-y-3">
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tilpas rapport</p>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div><Label className="text-xs text-muted-foreground">Boost-pris (DKK)</Label>
+                                <Input value={editDocValues.boost_price || '2.995'} onChange={e => setEditDocValues({ ...editDocValues, boost_price: e.target.value })} /></div>
+                              <div><Label className="text-xs text-muted-foreground">Boost-beskrivelse</Label>
+                                <Input value={editDocValues.boost_description || 'Engangsbetaling — ingen binding'} onChange={e => setEditDocValues({ ...editDocValues, boost_description: e.target.value })} /></div>
+                            </div>
+                            <div><Label className="text-xs text-muted-foreground">Særlige præstationer</Label>
+                              <Textarea rows={2} value={editDocValues.custom_achievements || 'Løbende optimering af din listing'} onChange={e => setEditDocValues({ ...editDocValues, custom_achievements: e.target.value })} /></div>
+                            <div><Label className="text-xs text-muted-foreground">Næste skridt</Label>
+                              <Textarea rows={2} value={editDocValues.next_steps || 'Vi anbefaler at opgradere til Boost-pakken for at øge din synlighed og booking-rate.'} onChange={e => setEditDocValues({ ...editDocValues, next_steps: e.target.value })} /></div>
                           </div>
                         )}
 
