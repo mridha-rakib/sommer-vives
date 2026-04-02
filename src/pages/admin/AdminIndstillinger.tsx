@@ -1,8 +1,9 @@
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Settings, UserCircle, Building2, FileText, Link2, Bell, Type } from 'lucide-react';
+import { UserCircle, Building2, FileText, Link2, Bell, Type, ArrowRight } from 'lucide-react';
 
 const sections = [
   { title: 'Brugerprofil', description: 'Din admin-profil og loginoplysninger', icon: UserCircle, href: '/admin/indstillinger/profil' },
@@ -16,30 +17,29 @@ const sections = [
 export default function AdminIndstillinger() {
   return (
     <AdminLayout>
-      <div className="space-y-5">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Indstillinger</h1>
-          <p className="text-sm text-muted-foreground">Administrér bruger, virksomhed, skabeloner og integrationer</p>
-        </div>
+      <div className="space-y-6">
+        <AdminPageHeader title="Indstillinger" subtitle="Administrér bruger, virksomhed, skabeloner og integrationer" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sections.map(s => (
-            <Card key={s.title} className="hover:bg-muted/20 transition-colors cursor-pointer group">
-              <CardContent className="p-5">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
-                    <s.icon className="h-5 w-5 text-primary" />
+            <Link key={s.title} to={s.href}>
+              <Card className="border-border/40 bg-card/60 hover:bg-card/80 hover:border-border/60 transition-all cursor-pointer group h-full">
+                <CardContent className="p-5">
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-primary/8 border border-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/12 transition-colors">
+                      <s.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-foreground">{s.title}</h3>
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{s.description}</p>
+                      <span className="inline-flex items-center gap-1 text-xs text-primary mt-3 font-medium group-hover:gap-1.5 transition-all">
+                        Åbn <ArrowRight className="h-3 w-3" />
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-foreground">{s.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">{s.description}</p>
-                    <Button variant="link" size="sm" className="h-auto p-0 mt-2 text-xs text-primary" asChild>
-                      <Link to={s.href}>Åbn →</Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>
