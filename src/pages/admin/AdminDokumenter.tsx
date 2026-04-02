@@ -109,12 +109,14 @@ export default function AdminDokumenter() {
       supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500),
       supabase.from('agreements').select('*').order('created_at', { ascending: false }).limit(500),
       supabase.from('agreement_templates').select('*').order('created_at', { ascending: false }),
+      supabase.from('document_templates').select('*').order('sort_order'),
       supabase.from('properties').select('id, title, case_number'),
       supabase.from('profiles').select('id, full_name, email'),
-    ]).then(([docRes, agrRes, tplRes, propRes, profRes]) => {
+    ]).then(([docRes, agrRes, tplRes, stdTplRes, propRes, profRes]) => {
       setDocuments(docRes.data || []);
       setAgreements(agrRes.data || []);
       setTemplates(tplRes.data || []);
+      setStdTemplates(stdTplRes.data || []);
       const pMap: Record<string, string> = {};
       (propRes.data || []).forEach((p: any) => { pMap[p.id] = p.title || p.case_number || p.id.slice(0, 8); });
       setPropertyMap(pMap);
