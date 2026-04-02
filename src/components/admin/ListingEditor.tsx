@@ -173,7 +173,7 @@ export function ListingEditor({ listing, onBack }: Props) {
             {saving ? (
               <span className="flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Gemmer…</span>
             ) : lastSaved ? (
-              <span className="flex items-center gap-1 text-emerald-600"><Check className="h-3 w-3" /> Gemt {lastSaved.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}</span>
+              <span className="flex items-center gap-1 text-primary"><Check className="h-3 w-3" /> Gemt {lastSaved.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}</span>
             ) : (
               <span>Ændringer gemmes automatisk</span>
             )}
@@ -419,7 +419,7 @@ export function ListingEditor({ listing, onBack }: Props) {
         <div className="flex items-center gap-3">
           {saving && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
           {lastSaved && !saving && (
-            <span className="text-xs text-emerald-600 flex items-center gap-1"><Check className="h-3 w-3" /> Gemt</span>
+            <span className="text-xs text-primary flex items-center gap-1"><Check className="h-3 w-3" /> Gemt</span>
           )}
           <Button size="sm" onClick={() => persist(form)} disabled={saving} className="gap-1.5 text-xs">
             Gem nu
