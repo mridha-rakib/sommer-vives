@@ -316,7 +316,90 @@ export function ChannelDataSection({
         )}
       </div>
 
-      {/* Toggle details */}
+      {/* ── Mangler før klar ── */}
+      {validationIssues.length > 0 && (
+        <div className="border-b border-border/50">
+          <button
+            onClick={() => setShowValidation(!showValidation)}
+            className="w-full px-5 py-3 flex items-center justify-between hover:bg-muted/10 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <CircleAlert className="h-4 w-4 text-destructive" />
+              <span className="text-sm font-semibold text-foreground">Mangler før klar</span>
+              <span className="text-[10px] font-bold tabular-nums rounded-full bg-destructive/10 text-destructive px-2 py-0.5">
+                {validationIssues.length}
+              </span>
+            </div>
+            {showValidation ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+          </button>
+
+          {showValidation && (
+            <div className="px-5 pb-4 space-y-2">
+              {validationIssues.map((issue) => {
+                const severityCfg: Record<ValidationSeverity, { icon: typeof AlertTriangle; color: string; bgColor: string; label: string }> = {
+                  missing: { icon: CircleAlert, color: 'text-destructive', bgColor: 'bg-destructive/5 border-destructive/15', label: 'Mangler' },
+                  weak: { icon: AlertTriangle, color: 'text-amber-500', bgColor: 'bg-amber-500/5 border-amber-500/15', label: 'Svag' },
+                  platform_mismatch: { icon: Info, color: 'text-primary', bgColor: 'bg-primary/5 border-primary/15', label: 'Platform-krav' },
+                  manual_needed: { icon: Pen, color: 'text-muted-foreground', bgColor: 'bg-muted/50 border-border', label: 'Manuel input' },
+                };
+                const cfg = severityCfg[issue.severity];
+                const Icon = cfg.icon;
+
+                return (
+                  <div key={issue.fieldKey + issue.severity} className={cn('rounded-lg border p-3 flex items-start gap-3', cfg.bgColor)}>
+                    <Icon className={cn('h-4 w-4 mt-0.5 shrink-0', cfg.color)} />
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-foreground">{issue.fieldLabel}</span>
+                        <span className={cn('text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded', cfg.color)}>{cfg.label}</span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">{issue.message}</p>
+                      {issue.suggestion && (
+                        <p className="text-[11px] text-muted-foreground/80 flex items-center gap-1">
+                          <Lightbulb className="h-3 w-3 shrink-0" /> {issue.suggestion}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {issue.canAutoFill && (
+                        <Button
+                          size="sm" variant="outline"
+                          className="text-[10px] h-6 px-2 gap-1"
+                          onClick={() => {
+                            const field = fields.find(f => f.key === issue.fieldKey);
+                            if (field) {
+                              const val = field.getMasterValue();
+                              if (val) onUpdate(field.key, val);
+                            }
+                          }}
+                        >
+                          <RefreshCw className="h-2.5 w-2.5" /> Auto-udfyld
+                        </Button>
+                      )}
+                      <Button
+                        size="sm" variant="ghost"
+                        className="text-[10px] h-6 px-2 gap-1 text-muted-foreground"
+                        onClick={() => handleScrollToField(issue.fieldKey)}
+                      >
+                        <ArrowRight className="h-2.5 w-2.5" /> Gå til felt
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Ready state */}
+      {validationIssues.length === 0 && readinessScore >= 80 && (
+        <div className="px-5 py-3 border-b border-border/50 flex items-center gap-2 bg-emerald-500/5">
+          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          <span className="text-xs font-semibold text-emerald-600">{channelName} er klar til publicering</span>
+        </div>
+      )}
+
       <button
         onClick={() => setShowDetails(!showDetails)}
         className="w-full px-5 py-2 flex items-center justify-between text-xs text-muted-foreground hover:bg-muted/10 transition-colors border-b border-border/30"
