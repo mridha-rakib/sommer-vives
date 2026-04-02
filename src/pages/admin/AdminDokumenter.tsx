@@ -98,16 +98,26 @@ export default function AdminDokumenter() {
   const [pageTab, setPageTab] = useState<PageTab>('documents');
   const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
   const [templateForm, setTemplateForm] = useState({ name: '', body_text: '', body_html: '', version: '1.0', is_active: true });
+  const [propertyMap, setPropertyMap] = useState<Record<string, string>>({});
+  const [profileMap, setProfileMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     Promise.all([
       supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500),
       supabase.from('agreements').select('*').order('created_at', { ascending: false }).limit(500),
       supabase.from('agreement_templates').select('*').order('created_at', { ascending: false }),
-    ]).then(([docRes, agrRes, tplRes]) => {
+      supabase.from('properties').select('id, title, case_number'),
+      supabase.from('profiles').select('id, full_name, email'),
+    ]).then(([docRes, agrRes, tplRes, propRes, profRes]) => {
       setDocuments(docRes.data || []);
       setAgreements(agrRes.data || []);
       setTemplates(tplRes.data || []);
+      const pMap: Record<string, string> = {};
+      (propRes.data || []).forEach((p: any) => { pMap[p.id] = p.title || p.case_number || p.id.slice(0, 8); });
+      setPropertyMap(pMap);
+      const prMap: Record<string, string> = {};
+      (profRes.data || []).forEach((p: any) => { prMap[p.id] = p.full_name || p.email || p.id.slice(0, 8); });
+      setProfileMap(prMap);
       setLoading(false);
     });
   }, []);
@@ -534,12 +544,26 @@ export default function AdminDokumenter() {
                 {/* Preview area */}
                 {selected.file_url && (
                   <div className="py-5 border-b border-border/30">
-                    <div className={`rounded-xl h-48 flex items-center justify-center ${getMimeColor(selected.mime_type)} border border-border/20`}>
-                      <div className="text-center">
-                        <span className="text-3xl font-bold opacity-30 block">{getMimeIcon(selected.mime_type)}</span>
-                        <p className="text-xs text-muted-foreground mt-2">Forhåndsvisning</p>
+                    {selected.mime_type?.includes('pdf') ? (
+                      <iframe
+                        src={selected.file_url}
+                        className="w-full h-64 rounded-xl border border-border/20"
+                        title="Dokument preview"
+                      />
+                    ) : selected.mime_type?.includes('image') ? (
+                      <img
+                        src={selected.file_url}
+                        alt={selected.title}
+                        className="w-full max-h-64 object-contain rounded-xl border border-border/20"
+                      />
+                    ) : (
+                      <div className={`rounded-xl h-48 flex items-center justify-center ${getMimeColor(selected.mime_type)} border border-border/20`}>
+                        <div className="text-center">
+                          <span className="text-3xl font-bold opacity-30 block">{getMimeIcon(selected.mime_type)}</span>
+                          <p className="text-xs text-muted-foreground mt-2">Forhåndsvisning ikke tilgængelig</p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm" className="flex-1 rounded-xl text-xs gap-1.5 h-9" asChild>
                         <a href={selected.file_url} target="_blank" rel="noreferrer">
@@ -587,25 +611,37 @@ export default function AdminDokumenter() {
                 <div className="py-5 border-b border-border/30 space-y-3">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">Tilknytninger</p>
                   {selected.property_id && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <button
+                      onClick={() => { setSelected(null); navigate(`/admin/sager/${selected.property_id}`); }}
+                      className="flex items-center gap-2 text-sm w-full rounded-lg px-2 py-1.5 hover:bg-muted/20 transition-colors group/link"
+                    >
                       <FolderIcon className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-foreground">Sag</span>
-                      <span className="text-muted-foreground text-xs truncate">{selected.property_id}</span>
-                    </div>
+                      <span className="text-foreground font-medium">Sag</span>
+                      <span className="text-primary text-xs truncate group-hover/link:underline">{propertyMap[selected.property_id] || selected._agreement?.property_title || selected.property_id.slice(0, 8)}</span>
+                      <ExternalLink className="w-3 h-3 text-muted-foreground ml-auto opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                    </button>
                   )}
                   {selected.owner_id && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <button
+                      onClick={() => { setSelected(null); navigate(`/admin/crm/udlejere`); }}
+                      className="flex items-center gap-2 text-sm w-full rounded-lg px-2 py-1.5 hover:bg-muted/20 transition-colors group/link"
+                    >
                       <User className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-foreground">Ejer</span>
-                      <span className="text-muted-foreground text-xs truncate">{selected.owner_id}</span>
-                    </div>
+                      <span className="text-foreground font-medium">Ejer</span>
+                      <span className="text-primary text-xs truncate group-hover/link:underline">{profileMap[selected.owner_id] || selected._agreement?.owner_name || selected.owner_id.slice(0, 8)}</span>
+                      <ExternalLink className="w-3 h-3 text-muted-foreground ml-auto opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                    </button>
                   )}
                   {selected.booking_id && (
-                    <div className="flex items-center gap-2 text-sm">
+                    <button
+                      onClick={() => { setSelected(null); navigate(`/admin/bookings`); }}
+                      className="flex items-center gap-2 text-sm w-full rounded-lg px-2 py-1.5 hover:bg-muted/20 transition-colors group/link"
+                    >
                       <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-foreground">Booking</span>
-                      <span className="text-muted-foreground text-xs truncate">{selected.booking_id}</span>
-                    </div>
+                      <span className="text-foreground font-medium">Booking</span>
+                      <span className="text-primary text-xs truncate group-hover/link:underline">{selected.booking_id.slice(0, 8)}</span>
+                      <ExternalLink className="w-3 h-3 text-muted-foreground ml-auto opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                    </button>
                   )}
                   {!selected.property_id && !selected.owner_id && !selected.booking_id && (
                     <p className="text-xs text-muted-foreground/60">Ingen tilknytninger endnu</p>
