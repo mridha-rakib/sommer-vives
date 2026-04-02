@@ -97,12 +97,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+          from: { height: "0", opacity: "0" },
+          to: { height: "var(--radix-accordion-content-height)", opacity: "1" },
         },
         "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+          from: { height: "var(--radix-accordion-content-height)", opacity: "1" },
+          to: { height: "0", opacity: "0" },
         },
         "fade-in": {
           from: { opacity: "0" },
@@ -112,12 +112,17 @@ export default {
           from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "subtle-glow": {
+          "0%, 100%": { boxShadow: "0 0 20px hsla(38, 70%, 50%, 0.12)" },
+          "50%": { boxShadow: "0 0 30px hsla(38, 70%, 50%, 0.22)" },
+        },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "accordion-down": "accordion-down 0.35s cubic-bezier(0.33,1,0.68,1)",
+        "accordion-up": "accordion-up 0.3s cubic-bezier(0.33,1,0.68,1)",
         "fade-in": "fade-in 0.6s ease-out forwards",
         "fade-in-up": "fade-in-up 0.6s ease-out forwards",
+        "subtle-glow": "subtle-glow 3s ease-in-out infinite",
       },
     },
   },
