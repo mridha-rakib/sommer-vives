@@ -43,7 +43,7 @@ function CalculatorDialog({ open, onClose }: { open: boolean; onClose: () => voi
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-[520px] bg-primary border-white/10 text-white p-0 gap-0 rounded-2xl overflow-hidden">
+      <DialogContent className="sm:max-w-[520px] bg-background border-white/10 text-white p-0 gap-0 rounded-2xl overflow-hidden">
         <div className="p-6 md:p-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -143,7 +143,7 @@ export function EarningsSection() {
 
   return (
     <>
-      <section ref={ref} className="py-24 md:py-32 bg-primary overflow-hidden">
+      <section ref={ref} className="py-24 md:py-32 bg-background overflow-hidden">
         <div className="container mx-auto px-5 md:px-10 max-w-[1140px]">
           {/* Editorial hero — image + text */}
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center mb-20 md:mb-28">
