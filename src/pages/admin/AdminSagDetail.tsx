@@ -455,6 +455,35 @@ export default function AdminSagDetail() {
   const [ownerEditOpen, setOwnerEditOpen] = useState(false);
   const [ownerForm, setOwnerForm] = useState<any>({});
 
+  const loadSagDocs = useCallback(async (listingId: string, ownerId: string) => {
+    const [{ data: sd }, { data: tpls }] = await Promise.all([
+      supabase.from('sag_documents').select('*').eq('listing_id', listingId).order('created_at'),
+      supabase.from('document_templates').select('*').eq('is_active', true).order('sort_order'),
+    ]);
+    setSagDocs(sd || []);
+    setDocTemplates(tpls || []);
+
+    // Auto-generate missing sag documents from templates
+    if (tpls && tpls.length > 0 && sd !== null) {
+      const existingTemplateIds = (sd || []).map((d: any) => d.template_id);
+      const missing = tpls.filter((t: any) => !existingTemplateIds.includes(t.id));
+      if (missing.length > 0) {
+        const inserts = missing.map((t: any) => ({
+          listing_id: listingId,
+          template_id: t.id,
+          owner_id: ownerId,
+          title: t.name,
+          category: t.category,
+          body_html: t.body_html,
+          custom_values: {},
+          status: 'draft',
+        }));
+        const { data: newDocs } = await supabase.from('sag_documents').insert(inserts).select();
+        if (newDocs) setSagDocs(prev => [...prev, ...newDocs]);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!id) return;
     const load = async () => {
@@ -473,11 +502,12 @@ export default function AdminSagDetail() {
         setDocuments(docs || []);
         setAddons(adds || []);
         setBookings(bks || []);
+        loadSagDocs(id, l.owner_id);
       }
       setLoading(false);
     };
     load();
-  }, [id]);
+  }, [id, loadSagDocs]);
 
   const nextSteps = useMemo(() => listing ? computeNextSteps(listing) : [], [listing]);
 
