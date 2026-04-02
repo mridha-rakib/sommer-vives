@@ -167,7 +167,7 @@ function FounderFactsSection() {
           </motion.div>
 
           <motion.div {...reveal(isInView, 0.12)} className="lg:col-span-7">
-            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød grundlæggeren</span>
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Vores grundlægger</span>
             <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-1.5">
               Emil Weng Klockmann
             </h2>
