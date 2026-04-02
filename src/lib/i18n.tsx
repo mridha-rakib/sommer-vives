@@ -457,7 +457,7 @@ const translations: AllTranslations = {
     'hero.advisorTitle': 'Vermietungsleiter',
     'hero.trustpilot': 'Hervorragend auf Trustpilot',
     'hero.danish': 'Dänisches Unternehmen',
-    'hero.noBinding': 'Keine Bindung',
+    'hero.noBinding': 'Flexible Vereinbarung',
     'hero.guarantee': 'Sicherheitsgarantie inkl.',
     'hero.support': 'Dänischer Kundenservice',
 
