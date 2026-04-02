@@ -6,8 +6,7 @@ import { EarningsSection } from '@/components/landing/EarningsSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { WhyUsSection } from '@/components/landing/WhyUsSection';
 import { PricingSection } from '@/components/landing/PricingSection';
-import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
-import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
+import { TestimonialsFAQSection } from '@/components/landing/TestimonialsFAQSection';
 import { ContactExpertsSection } from '@/components/landing/ContactExpertsSection';
 import { useTranslation } from '@/lib/i18n';
 
@@ -38,12 +37,11 @@ const Index = () => {
       </div>
       <WhyUsSection />
       <PricingSection />
-      <TestimonialsSection />
       <div id="faq">
-        <ContextualFAQ
-          heading={t('faq.heading')}
-          subheading={t('faq.subheading')}
-          items={homeFAQs}
+        <TestimonialsFAQSection
+          faqItems={homeFAQs}
+          faqHeading={t('faq.heading')}
+          faqSubheading={t('faq.subheading')}
         />
       </div>
       <ContactExpertsSection />
