@@ -30,7 +30,7 @@ function QuickLeadDialog({ open, onClose }: { open: boolean; onClose: () => void
     if (form.phone.trim()) payload.phone = form.phone.trim();
     if (form.region.trim()) payload.region = form.region.trim();
     if (form.notes.trim()) payload.notes = form.notes.trim();
-    const { error } = await supabase.from('leads').insert(payload);
+    const { error } = await supabase.from('leads').insert(payload as any);
     if (error) { toast.error('Kunne ikke oprette lead: ' + error.message); setSaving(false); return; }
     toast.success('Lead oprettet');
     setForm({ name: '', email: '', phone: '', source: 'contact', region: '', notes: '' });
