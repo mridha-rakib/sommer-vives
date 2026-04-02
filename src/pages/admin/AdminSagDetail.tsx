@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Beds24Integration } from '@/components/admin/Beds24Integration';
 import { Beds24MappingSection } from '@/components/admin/Beds24MappingSection';
+import { Beds24ReadinessEngine } from '@/components/admin/Beds24ReadinessEngine';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
@@ -742,6 +743,16 @@ export default function AdminSagDetail() {
 
         {tab === 'integrationer' && (
           <div className="space-y-4">
+            <Beds24ReadinessEngine
+              listing={listing}
+              onNavigateTab={(t) => setTab(t)}
+              onStatusReady={async () => {
+                const { error } = await supabase.from('listings').update({ sync_status: 'ready' }).eq('id', listing.id);
+                if (error) { toast.error('Kunne ikke opdatere status'); return; }
+                setListing({ ...listing, sync_status: 'ready' });
+                toast.success('Listing markeret som klar til Beds24');
+              }}
+            />
             <Beds24Integration listing={listing} onUpdate={(updated: any) => setListing({ ...listing, ...updated })} />
             <Beds24MappingSection listing={listing} />
           </div>
