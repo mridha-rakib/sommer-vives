@@ -41,7 +41,10 @@ export function Header() {
     { name: 'Beregn indtjening', href: '/beregn-lejeindtaegt', highlight: true },
   ];
 
-  const isActiveLink = (href: string) => location.pathname === href;
+  const isActiveLink = (href: string) => {
+    if (href.startsWith('/#')) return location.pathname === '/' && location.hash === href.slice(1);
+    return location.pathname === href;
+  };
 
   return (
     <header
