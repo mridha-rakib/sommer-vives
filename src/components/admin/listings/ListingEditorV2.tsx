@@ -958,15 +958,14 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* ── Floating save bar ── */}
-      {isDirty && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background px-6 py-3 rounded-full shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-4">
-          <span className="text-sm">Du har ændringer der ikke er gemt</span>
-          <Button size="sm" variant="secondary" onClick={handleSave} disabled={saving} className="gap-1.5">
-            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Gem nu
-          </Button>
-        </div>
-      )}
+      {/* ── Sticky save bar ── */}
+      <StickyActionBar
+        visible={isDirty}
+        saving={saving}
+        onSave={handleSave}
+        onDiscard={() => { loadListing(); setIsDirty(false); }}
+        hasDraft={isDirty}
+      />
     </div>
   );
 }
