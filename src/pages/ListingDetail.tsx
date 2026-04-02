@@ -273,41 +273,54 @@ const ListingDetail = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-14 mb-0">
             {/* Left – main content */}
             <div className="lg:col-span-3">
-              <h1 className="font-display text-2xl md:text-3xl font-semibold text-primary mb-4 leading-tight">
+              <h1 className="font-display text-2xl md:text-3xl font-semibold text-primary mb-2 leading-tight">
                 {listing.name}
               </h1>
+              {listing.tagline && (
+                <p className="text-primary/70 font-display text-lg italic mb-4">{listing.tagline}</p>
+              )}
               {listing.description && (
                 <p className="text-muted-foreground leading-relaxed text-[17px] whitespace-pre-line max-w-2xl">
                   {listing.description}
                 </p>
               )}
 
-              {/* Highlight features */}
-              <div className="relative mt-8 space-y-5 border-t border-border/40 pt-6">
-                {[
-                  { icon: TreePine, title: 'Naturskøn beliggenhed', desc: 'Omgivet af naturens ro — perfekt til afslapning.' },
-                  { icon: Lock, title: 'Nem indtjekning', desc: 'Tjek ind uden vært med smartlås eller nøgleboks.' },
-                  { icon: Leaf, title: 'Fred og ro', desc: 'Et roligt og fredfyldt opholdssted for hele familien.' },
-                ].map((h, i) => (
-                  <motion.div
-                    key={i}
-                    className="relative z-10 flex items-start gap-4"
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: i * 0.08 }}
-                  >
-                    <motion.div className="shrink-0 mt-0.5" whileHover={{ scale: 1.15, rotate: 8 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 12 }}>
-                      <h.icon className="h-7 w-7 text-foreground/70" />
+              {/* Highlights from DB or fallback */}
+              {(listing.highlights && listing.highlights.length > 0) ? (
+                <div className="relative mt-8 space-y-4 border-t border-border/40 pt-6">
+                  {listing.highlights.map((h, i) => (
+                    <motion.div
+                      key={i}
+                      className="relative z-10 flex items-center gap-3"
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: i * 0.08 }}
+                    >
+                      <Star className="h-5 w-5 text-primary/60 shrink-0" />
+                      <p className="text-[15px] font-medium text-foreground">{h}</p>
                     </motion.div>
-                    <div>
-                      <p className="text-[15px] font-medium text-foreground">{h.title}</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">{h.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="relative mt-8 space-y-5 border-t border-border/40 pt-6">
+                  {[
+                    { icon: TreePine, title: 'Naturskøn beliggenhed', desc: 'Omgivet af naturens ro — perfekt til afslapning.' },
+                    { icon: Lock, title: 'Nem indtjekning', desc: 'Tjek ind uden vært med smartlås eller nøgleboks.' },
+                    { icon: Leaf, title: 'Fred og ro', desc: 'Et roligt og fredfyldt opholdssted for hele familien.' },
+                  ].map((h, i) => (
+                    <motion.div key={i} className="relative z-10 flex items-start gap-4"
+                      initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.08 }}>
+                      <h.icon className="h-7 w-7 text-foreground/70 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[15px] font-medium text-foreground">{h.title}</p>
+                        <p className="text-sm text-muted-foreground mt-0.5">{h.desc}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
 
               {/* Scroll hint */}
               {contentSections.length > 0 && (
