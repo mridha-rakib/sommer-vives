@@ -26,16 +26,22 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  new: { label: 'Ny', cls: 'bg-blue-100 text-blue-700' },
-  contacted: { label: 'Kontaktet', cls: 'bg-amber-100 text-amber-700' },
-  meeting_booked: { label: 'Møde booket', cls: 'bg-violet-100 text-violet-700' },
-  qualified: { label: 'Kvalificeret', cls: 'bg-emerald-100 text-emerald-700' },
-  converted: { label: 'Konverteret', cls: 'bg-green-100 text-green-700' },
+  new: { label: 'Modtaget', cls: 'bg-blue-100 text-blue-700' },
+  contacted: { label: 'Under behandling', cls: 'bg-amber-100 text-amber-700' },
+  meeting_booked: { label: 'Under behandling', cls: 'bg-violet-100 text-violet-700' },
+  qualified: { label: 'Under behandling', cls: 'bg-emerald-100 text-emerald-700' },
+  waiting: { label: 'Afventer svar', cls: 'bg-orange-100 text-orange-700' },
+  won: { label: 'Vundet', cls: 'bg-green-100 text-green-700' },
+  converted: { label: 'Vundet', cls: 'bg-green-100 text-green-700' },
   lost: { label: 'Tabt', cls: 'bg-slate-100 text-slate-500' },
 };
 
 const SOURCE_MAP: Record<string, string> = {
   website: 'Hjemmeside',
+  beregn_lejeindtaegt: 'Beregn lejeindtægt',
+  vil_udleje: 'Vil udleje',
+  udlejningstjek: 'Udlejningstjek',
+  contact: 'Kontaktformular',
   referral: 'Anbefaling',
   social: 'SoMe',
   phone: 'Telefon',
