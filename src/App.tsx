@@ -55,7 +55,7 @@ import AdminOpgaver from "./pages/admin/AdminOpgaver";
 import AdminLeads from "./pages/admin/AdminLeads";
 import AdminOwners from "./pages/admin/AdminOwners";
 import AdminCrmGaester from "./pages/admin/AdminCrmGaester";
-import AdminCrmArkiv from "./pages/admin/AdminCrmArkiv";
+
 import AdminModtagelse from "./pages/admin/AdminModtagelse";
 import AdminSager from "./pages/admin/AdminSager";
 import AdminSagDetail from "./pages/admin/AdminSagDetail";
@@ -203,7 +203,7 @@ const App = () => (
             <Route path="/admin/leads" element={<ProtectedRoute requireAdmin><AdminLeads /></ProtectedRoute>} />
             <Route path="/admin/crm/udlejere" element={<ProtectedRoute requireAdmin><AdminOwners /></ProtectedRoute>} />
             <Route path="/admin/crm/gaester" element={<ProtectedRoute requireAdmin><AdminCrmGaester /></ProtectedRoute>} />
-            <Route path="/admin/crm/arkiv" element={<ProtectedRoute requireAdmin><AdminCrmArkiv /></ProtectedRoute>} />
+            <Route path="/admin/crm/arkiv" element={<Navigate to="/admin/leads" replace />} />
             <Route path="/admin/modtagelse" element={<ProtectedRoute requireAdmin><AdminModtagelse /></ProtectedRoute>} />
             <Route path="/admin/sager" element={<ProtectedRoute requireAdmin><AdminSager /></ProtectedRoute>} />
             <Route path="/admin/sager/:id" element={<ProtectedRoute requireAdmin><AdminSagDetail /></ProtectedRoute>} />
