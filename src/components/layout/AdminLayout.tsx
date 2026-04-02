@@ -224,14 +224,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
         {/* User */}
         <div className="p-3 border-t border-border/30">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-muted/20">
-            <img src={emilAvatar} alt="Emil W. Klockmann" className="w-8 h-8 rounded-full object-cover border border-primary/20" />
+          <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-muted/20">
+            <img src={emilAvatar} alt="Emil W. Klockmann" className="w-10 h-10 rounded-full object-cover border-2 border-primary/25" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">Emil W. Klockmann</p>
-              <p className="text-[10px] text-muted-foreground">Udlejningschef</p>
+              <p className="text-sm font-semibold text-foreground truncate">Emil W. Klockmann</p>
+              <p className="text-[11px] text-muted-foreground">Udlejningschef</p>
             </div>
             <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-foreground p-1.5 h-auto rounded-lg">
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-4 h-4" />
             </Button>
           </div>
         </div>
