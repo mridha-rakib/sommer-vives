@@ -1486,69 +1486,146 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
           </Dialog>
 
           {/* ── Airbnb Content ── */}
-          <Section title="🏠 Airbnb-indhold" description="Alle felter der sendes til Airbnb. Rediger manuelt eller lad AI generere.">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Airbnb-titel" hint="Max 50 tegn">
-                <Input value={listing.channel_airbnb_title || ''} onChange={e => update('channel_airbnb_title', e.target.value)} placeholder="Charming Beachfront Summer House" maxLength={50} />
-                <div className="text-[10px] text-muted-foreground text-right">{(listing.channel_airbnb_title || '').length}/50</div>
-              </Field>
-              <Field label="Airbnb-highlights" hint="Komma-separeret liste">
-                <Input value={(listing.channel_airbnb_highlights || []).join(', ')} onChange={e => update('channel_airbnb_highlights' as any, e.target.value.split(',').map(s => s.trim()).filter(Boolean))} placeholder="Havudsigt, Sauna, Privat strand" />
-              </Field>
-            </div>
-            <Field label="Airbnb-beskrivelse">
-              <Textarea value={listing.channel_airbnb_description || ''} onChange={e => update('channel_airbnb_description', e.target.value)} rows={4} placeholder="Beskrivelse optimeret til Airbnb-gæster..." />
-            </Field>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Airbnb-husregler" hint="Regler specifikt til Airbnb">
-                <Textarea value={listing.channel_airbnb_house_rules || ''} onChange={e => update('channel_airbnb_house_rules' as any, e.target.value)} rows={3} placeholder="Ingen fester, røgfrit..." />
-              </Field>
-              <Field label="Airbnb check-in noter" hint="Instruktioner til gæster">
-                <Textarea value={listing.channel_airbnb_checkin_notes || ''} onChange={e => update('channel_airbnb_checkin_notes' as any, e.target.value)} rows={3} placeholder="Nøgleboks ved hoveddøren..." />
-              </Field>
-            </div>
-          </Section>
+          <ChannelDataSection
+            channelName="Airbnb"
+            channelKey="airbnb"
+            emoji="🏠"
+            listing={listing}
+            onUpdate={(key, value) => { update(key as any, value); }}
+            onAiFill={() => handlePrepareChannel('airbnb')}
+            aiFilling={airbnbPreparing}
+            readinessScore={channelReadiness.airbnb.score}
+            readinessPassed={channelReadiness.airbnb.passed}
+            readinessMissing={channelReadiness.airbnb.missing}
+            fields={[
+              {
+                key: 'channel_airbnb_title', label: 'Airbnb-titel', type: 'text', maxLength: 50,
+                hint: 'Clickbait-titel optimeret til Airbnb',
+                masterSource: 'Navn / Tagline',
+                getMasterValue: () => listing.tagline || listing.description || listing.name,
+              },
+              {
+                key: 'channel_airbnb_highlights', label: 'Airbnb-highlights', type: 'tags',
+                hint: 'Top-oplevelser gæsten kan forvente',
+                masterSource: 'Highlights',
+                getMasterValue: () => listing.highlights,
+              },
+              {
+                key: 'channel_airbnb_description', label: 'Airbnb-beskrivelse', type: 'textarea', rows: 5,
+                hint: 'Detaljeret beskrivelse optimeret til Airbnb-gæster',
+                masterSource: 'Lang beskrivelse + Om ejendommen + Om området',
+                getMasterValue: () => [listing.long_description, listing.about_property, listing.about_area].filter(Boolean).join('\n\n') || listing.description,
+              },
+              {
+                key: 'channel_airbnb_house_rules', label: 'Airbnb-husregler', type: 'textarea', rows: 3,
+                hint: 'Husregler specifikt formateret til Airbnb',
+                masterSource: 'Husregler',
+                getMasterValue: () => listing.house_rules,
+              },
+              {
+                key: 'channel_airbnb_checkin_notes', label: 'Airbnb check-in noter', type: 'textarea', rows: 3,
+                hint: 'Instruktioner til gæster ved ankomst',
+                masterSource: 'Check-in info',
+                getMasterValue: () => listing.checkin_info,
+                platformSpecific: !listing.checkin_info,
+              },
+            ]}
+          />
 
           {/* ── Booking.com Content ── */}
-          <Section title="🅱️ Booking.com-indhold" description="Felter tilpasset Booking.com's format og krav.">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Booking.com-titel">
-                <Input value={listing.channel_booking_title || ''} onChange={e => update('channel_booking_title', e.target.value)} placeholder="Titel til Booking.com" />
-              </Field>
-              <Field label="Værelseopsætning" hint="Beskrivelse af rum-typer">
-                <Input value={listing.channel_booking_room_setup || ''} onChange={e => update('channel_booking_room_setup' as any, e.target.value)} placeholder="1x Master, 2x Twin, 1x Sofa bed" />
-              </Field>
-            </div>
-            <Field label="Booking.com-beskrivelse">
-              <Textarea value={listing.channel_booking_description || ''} onChange={e => update('channel_booking_description', e.target.value)} rows={4} placeholder="Beskrivelse til Booking.com..." />
-            </Field>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Politikker" hint="Aflysning, depositum osv.">
-                <Textarea value={listing.channel_booking_policies || ''} onChange={e => update('channel_booking_policies' as any, e.target.value)} rows={3} placeholder="Gratis afbestilling op til 48 timer..." />
-              </Field>
-              <Field label="Check-in / Check-out" hint="Tider og procedure">
-                <Textarea value={listing.channel_booking_checkin_checkout || ''} onChange={e => update('channel_booking_checkin_checkout' as any, e.target.value)} rows={3} placeholder="Check-in: 15:00-20:00, Check-out: senest 10:00" />
-              </Field>
-            </div>
-          </Section>
+          <ChannelDataSection
+            channelName="Booking.com"
+            channelKey="booking"
+            emoji="🅱️"
+            listing={listing}
+            onUpdate={(key, value) => { update(key as any, value); }}
+            onAiFill={() => handlePrepareChannel('booking')}
+            aiFilling={channelPreparing}
+            readinessScore={channelReadiness.booking.score}
+            readinessPassed={channelReadiness.booking.passed}
+            readinessMissing={channelReadiness.booking.missing}
+            fields={[
+              {
+                key: 'channel_booking_title', label: 'Booking.com-titel', type: 'text',
+                hint: 'Titel optimeret til Booking.com',
+                masterSource: 'Navn',
+                getMasterValue: () => listing.name,
+              },
+              {
+                key: 'channel_booking_description', label: 'Booking.com-beskrivelse', type: 'textarea', rows: 5,
+                hint: 'Faktuel beskrivelse til Booking.com',
+                masterSource: 'Lang beskrivelse + Om ejendommen',
+                getMasterValue: () => [listing.long_description, listing.about_property].filter(Boolean).join('\n\n') || listing.description,
+              },
+              {
+                key: 'channel_booking_room_setup', label: 'Værelseopsætning', type: 'textarea', rows: 3,
+                hint: 'Beskriv hvert værelse og sengeopsætning',
+                platformSpecific: true,
+                getMasterValue: () => {
+                  if (!listing.bedrooms) return null;
+                  return `${listing.bedrooms} soveværelse(r), ${listing.bathrooms || 1} badeværelse(r), max ${listing.max_guests} gæster`;
+                },
+              },
+              {
+                key: 'channel_booking_policies', label: 'Politikker', type: 'textarea', rows: 3,
+                hint: 'Aflysnings- og depositumspolitik',
+                platformSpecific: true,
+                getMasterValue: () => listing.deposit ? `Depositum: ${listing.deposit} DKK` : null,
+              },
+              {
+                key: 'channel_booking_checkin_checkout', label: 'Check-in / Check-out', type: 'textarea', rows: 3,
+                hint: 'Tider og procedure for ankomst/afrejse',
+                masterSource: 'Check-in/out tider',
+                getMasterValue: () => {
+                  const parts: string[] = [];
+                  if (listing.check_in_time) parts.push(`Check-in: fra kl. ${listing.check_in_time}`);
+                  if (listing.check_out_time) parts.push(`Check-out: senest kl. ${listing.check_out_time}`);
+                  if (listing.checkin_info) parts.push(listing.checkin_info);
+                  return parts.length ? parts.join('\n') : null;
+                },
+              },
+            ]}
+          />
 
           {/* ── Vrbo Content ── */}
-          <Section title="🏡 Vrbo-indhold" description="Felter tilpasset Vrbo's platform.">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Vrbo-titel">
-                <Input value={listing.channel_vrbo_title || ''} onChange={e => update('channel_vrbo_title', e.target.value)} placeholder="Titel til Vrbo" />
-              </Field>
-              <Field label="Vrbo-highlights" hint="Komma-separeret">
-                <Input value={(listing.channel_vrbo_highlights || []).join(', ')} onChange={e => update('channel_vrbo_highlights' as any, e.target.value.split(',').map(s => s.trim()).filter(Boolean))} placeholder="Ocean view, Hot tub, Private deck" />
-              </Field>
-            </div>
-            <Field label="Vrbo-beskrivelse">
-              <Textarea value={listing.channel_vrbo_description || ''} onChange={e => update('channel_vrbo_description', e.target.value)} rows={4} placeholder="Beskrivelse til Vrbo..." />
-            </Field>
-            <Field label="Vrbo-regler">
-              <Textarea value={listing.channel_vrbo_rules || ''} onChange={e => update('channel_vrbo_rules' as any, e.target.value)} rows={3} placeholder="Husregler specifikt til Vrbo..." />
-            </Field>
-          </Section>
+          <ChannelDataSection
+            channelName="Vrbo"
+            channelKey="vrbo"
+            emoji="🏡"
+            listing={listing}
+            onUpdate={(key, value) => { update(key as any, value); }}
+            onAiFill={() => handlePrepareChannel('vrbo')}
+            aiFilling={channelPreparing}
+            readinessScore={channelReadiness.vrbo.score}
+            readinessPassed={channelReadiness.vrbo.passed}
+            readinessMissing={channelReadiness.vrbo.missing}
+            fields={[
+              {
+                key: 'channel_vrbo_title', label: 'Vrbo-titel', type: 'text',
+                hint: 'Titel til Vrbo',
+                masterSource: 'Navn / Tagline',
+                getMasterValue: () => listing.tagline || listing.name,
+              },
+              {
+                key: 'channel_vrbo_highlights', label: 'Vrbo-highlights', type: 'tags',
+                hint: 'Nøgle-oplevelser',
+                masterSource: 'Highlights',
+                getMasterValue: () => listing.highlights,
+              },
+              {
+                key: 'channel_vrbo_description', label: 'Vrbo-beskrivelse', type: 'textarea', rows: 5,
+                hint: 'Detaljeret beskrivelse til Vrbo',
+                masterSource: 'Lang beskrivelse + Om området',
+                getMasterValue: () => [listing.long_description, listing.about_area].filter(Boolean).join('\n\n') || listing.description,
+              },
+              {
+                key: 'channel_vrbo_rules', label: 'Vrbo-regler', type: 'textarea', rows: 3,
+                hint: 'Husregler specifikt til Vrbo',
+                masterSource: 'Husregler',
+                getMasterValue: () => listing.house_rules,
+              },
+            ]}
+          />
         </TabsContent>
 
         {/* ─── 9. INTEGRATION ─── */}
