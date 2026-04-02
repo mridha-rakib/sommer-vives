@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -6,7 +6,8 @@ import {
   ArrowLeft, Home, MapPin, Users, Bed, Bath, CheckCircle2, Clock, FolderOpen,
   Radio, Globe, FileText, ListChecks, MessageSquare, ShoppingBag,
   Calendar as CalendarIcon, Eye, Pencil, ExternalLink, Image,
-  Tag, DollarSign, Wifi, AlertCircle, ChevronRight, StickyNote
+  Tag, DollarSign, Wifi, AlertCircle, ChevronRight, StickyNote,
+  Sparkles, Rocket, Zap, Camera, Info, ArrowRight
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusChip } from '@/components/admin/ui/StatusChip';
@@ -16,8 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
@@ -32,24 +33,81 @@ const STATUS_MAP: Record<string, { label: string; variant: SVariant }> = {
 
 const SYNC_STATUS_MAP: Record<string, { label: string; variant: SVariant }> = {
   not_connected: { label: 'Ikke tilkoblet', variant: 'muted' },
-  ready: { label: 'Klar til integration', variant: 'info' },
-  pending: { label: 'Venter på sync', variant: 'warning' },
+  ready: { label: 'Klar', variant: 'info' },
+  pending: { label: 'Venter', variant: 'warning' },
   synced: { label: 'Synkroniseret', variant: 'success' },
   error: { label: 'Fejl', variant: 'danger' },
 };
 
+// ─── Smart Next Steps Engine ───
+interface NextStep {
+  id: string;
+  label: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  icon: any;
+  tab?: string;
+}
+
+function computeNextSteps(listing: any): NextStep[] {
+  const steps: NextStep[] = [];
+
+  if (!listing.description) {
+    steps.push({ id: 'desc', label: 'Tilføj beskrivelse', description: 'Mangler kort beskrivelse til listingen', priority: 'high', icon: FileText, tab: 'listing' });
+  }
+  if (!listing.long_description) {
+    steps.push({ id: 'longdesc', label: 'Tilføj lang beskrivelse', description: 'Giver gæster det fulde overblik', priority: 'medium', icon: FileText, tab: 'listing' });
+  }
+  if ((listing.images?.length || 0) < 5) {
+    const missing = 5 - (listing.images?.length || 0);
+    steps.push({ id: 'images', label: `Upload ${missing} flere billeder`, description: `${listing.images?.length || 0}/5 minimum billeder`, priority: 'high', icon: Camera, tab: 'listing' });
+  }
+  if ((listing.images?.length || 0) >= 5 && (listing.images?.length || 0) < 15) {
+    steps.push({ id: 'moreimages', label: 'Tilføj flere billeder', description: `${listing.images?.length} billeder — 15+ anbefales`, priority: 'low', icon: Camera, tab: 'listing' });
+  }
+  if (!listing.base_price_per_night) {
+    steps.push({ id: 'price', label: 'Sæt pris per nat', description: 'Pris er påkrævet før publicering', priority: 'high', icon: DollarSign, tab: 'listing' });
+  }
+  if (!listing.house_rules) {
+    steps.push({ id: 'rules', label: 'Tilføj husregler', description: 'Sæt klare regler for gæster', priority: 'medium', icon: AlertCircle, tab: 'listing' });
+  }
+  if (!listing.checkin_info && !listing.check_in_time) {
+    steps.push({ id: 'checkin', label: 'Tilføj check-in info', description: 'Gæster har brug for ankomst-info', priority: 'medium', icon: Clock, tab: 'listing' });
+  }
+  if (!listing.hero_image) {
+    steps.push({ id: 'hero', label: 'Vælg hovedbillede', description: 'Sæt et hero-billede til listingen', priority: 'high', icon: Image, tab: 'listing' });
+  }
+  if (!(listing.amenities?.length > 0)) {
+    steps.push({ id: 'amenities', label: 'Tilføj faciliteter', description: 'WiFi, pool, parkering osv.', priority: 'medium', icon: Wifi, tab: 'listing' });
+  }
+  if (!listing.channel_airbnb_ready) {
+    steps.push({ id: 'airbnb', label: 'Forbered Airbnb', description: 'Kanalspecifikt indhold mangler', priority: 'low', icon: Globe, tab: 'kanaler' });
+  }
+  if (!listing.channel_booking_ready) {
+    steps.push({ id: 'booking', label: 'Forbered Booking.com', description: 'Kanalspecifikt indhold mangler', priority: 'low', icon: Globe, tab: 'kanaler' });
+  }
+  if (!(listing.highlights?.length > 0)) {
+    steps.push({ id: 'highlights', label: 'Tilføj highlights', description: 'Fremhæv ejendommens styrker', priority: 'low', icon: Tag, tab: 'listing' });
+  }
+
+  // Sort by priority
+  const prio: Record<string, number> = { high: 0, medium: 1, low: 2 };
+  return steps.sort((a, b) => prio[a.priority] - prio[b.priority]);
+}
+
+// ─── Subcomponents ───
 function ReadinessRing({ score }: { score: number }) {
   const circumference = 2 * Math.PI * 40;
   const offset = circumference - (score / 100) * circumference;
   const color = score >= 80 ? 'text-emerald-500' : score >= 50 ? 'text-amber-400' : 'text-red-400';
   return (
-    <div className="relative w-24 h-24">
-      <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/30" />
-        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="6" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className={color} />
+    <div className="relative w-20 h-20">
+      <svg className="w-20 h-20 -rotate-90" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="7" className="text-muted/30" />
+        <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="7" strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className={color} />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xl font-bold text-foreground">{score}%</span>
+        <span className="text-lg font-bold text-foreground">{score}%</span>
       </div>
     </div>
   );
@@ -90,6 +148,53 @@ function ChannelCard({ name, ready, title, description }: { name: string; ready:
   );
 }
 
+function ChannelDotsLarge({ airbnb, booking, vrbo }: { airbnb: boolean | null; booking: boolean | null; vrbo: boolean | null }) {
+  const Dot = ({ active, label }: { active: boolean | null; label: string }) => (
+    <div className="flex items-center gap-1.5">
+      <span className={cn('w-2.5 h-2.5 rounded-full', active ? 'bg-emerald-500' : 'bg-muted-foreground/30')} />
+      <span className="text-[11px] text-muted-foreground">{label}</span>
+    </div>
+  );
+  return (
+    <div className="flex items-center gap-3 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-1.5">
+      <Dot active={airbnb} label="Airbnb" />
+      <Dot active={booking} label="Booking" />
+      <Dot active={vrbo} label="Vrbo" />
+    </div>
+  );
+}
+
+function MiniStat({ label, value, ok }: { label: string; value: string | number; ok: boolean }) {
+  return (
+    <div className={cn('rounded-lg border p-2.5 text-center', ok ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/30 bg-muted/10')}>
+      <p className={cn('text-sm font-bold', ok ? 'text-emerald-400' : 'text-muted-foreground')}>{value}</p>
+      <p className="text-[10px] text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+function QuickStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-border/40 bg-card/60 p-4 text-center">
+      <p className="text-2xl font-bold text-foreground">{value}</p>
+      <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+function TimelineItem({ label, date }: { label: string; date: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-2 h-2 rounded-full bg-primary/40 shrink-0" />
+      <div className="flex-1">
+        <p className="text-xs text-foreground">{label}</p>
+        <p className="text-[11px] text-muted-foreground">{format(new Date(date), "d. MMMM yyyy 'kl.' HH:mm", { locale: da })}</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ───
 export default function AdminSagDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -101,6 +206,7 @@ export default function AdminSagDetail() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('overblik');
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -126,6 +232,24 @@ export default function AdminSagDetail() {
     load();
   }, [id]);
 
+  const nextSteps = useMemo(() => listing ? computeNextSteps(listing) : [], [listing]);
+
+  const handleImproveText = async () => {
+    if (!listing) return;
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-listing-text', {
+        body: { listing_id: listing.id },
+      });
+      if (error) throw error;
+      toast.success('AI-tekst genereret — opdater listing manuelt');
+    } catch (e: any) {
+      toast.error(`AI-fejl: ${e.message}`);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const tabs = [
     { key: 'overblik', label: 'Overblik', icon: Eye },
     { key: 'listing', label: 'Listing', icon: Home },
@@ -142,10 +266,8 @@ export default function AdminSagDetail() {
       <AdminLayout>
         <div className="space-y-6">
           <Skeleton className="h-10 w-48 rounded-xl" />
-          <Skeleton className="h-48 rounded-2xl" />
-          <div className="grid grid-cols-3 gap-4">
-            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
-          </div>
+          <Skeleton className="h-56 rounded-2xl" />
+          <div className="grid grid-cols-3 gap-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}</div>
         </div>
       </AdminLayout>
     );
@@ -171,24 +293,110 @@ export default function AdminSagDetail() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* Back + header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/admin/sager')} className="h-9 w-9 rounded-xl shrink-0">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-foreground truncate">{listing.name}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <StatusChip label={st.label} variant={st.variant} dot />
-              {listing.region && <span className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{listing.region}</span>}
+
+        {/* ═══════ TOP HERO SECTION ═══════ */}
+        <div className="rounded-2xl border border-border/40 bg-card/60 overflow-hidden">
+          {/* Cover band */}
+          <div className="h-32 bg-muted/30 overflow-hidden relative">
+            {cover ? <img src={cover} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Home className="h-10 w-10 text-muted-foreground/15" /></div>}
+            <div className="absolute inset-0 bg-gradient-to-t from-card/95 via-card/50 to-transparent" />
+            {/* Back button */}
+            <Button variant="ghost" size="icon" onClick={() => navigate('/admin/sager')} className="absolute top-3 left-3 h-8 w-8 rounded-lg bg-background/60 backdrop-blur-sm hover:bg-background/80">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            {/* Channel dots */}
+            <div className="absolute top-3 right-3">
+              <ChannelDotsLarge airbnb={listing.channel_airbnb_ready} booking={listing.channel_booking_ready} vrbo={listing.channel_vrbo_ready} />
             </div>
           </div>
-          <Button size="sm" className="rounded-xl gap-1.5" onClick={() => navigate(`/admin/sager`)}>
-            <Pencil className="h-3.5 w-3.5" />Rediger listing
-          </Button>
+
+          {/* Core info row */}
+          <div className="px-6 pb-5 -mt-10 relative">
+            <div className="flex flex-col lg:flex-row lg:items-end gap-5">
+              {/* Left: Name + status + owner */}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-bold text-foreground truncate">{listing.name}</h1>
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <StatusChip label={st.label} variant={st.variant} dot size="md" />
+                  {listing.region && <span className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{listing.region}</span>}
+                  {owner && (
+                    <>
+                      <span className="text-muted-foreground/30">·</span>
+                      <span className="text-[11px] text-muted-foreground">Ejer: <span className="font-medium text-foreground">{owner.full_name || owner.email}</span></span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Right: Readiness ring */}
+              <div className="flex items-center gap-4 shrink-0">
+                <ReadinessRing score={score} />
+                <div className="hidden sm:block">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Readiness</p>
+                  <p className={cn('text-sm font-bold', score >= 80 ? 'text-emerald-400' : score >= 50 ? 'text-amber-400' : 'text-red-400')}>
+                    {score >= 80 ? 'Klar til publicering' : score >= 50 ? 'Næsten klar' : 'Kræver opmærksomhed'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Primary Actions Bar ─── */}
+          <div className="px-6 pb-5 flex flex-wrap gap-2">
+            <Button size="sm" className="rounded-xl gap-1.5" onClick={() => setTab('listing')}>
+              <Pencil className="h-3.5 w-3.5" />Redigér listing
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('overblik')}>
+              <Rocket className="h-3.5 w-3.5" />Klargør listing
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={handleImproveText} disabled={aiLoading}>
+              <Sparkles className="h-3.5 w-3.5" />{aiLoading ? 'AI arbejder…' : 'Forbedr tekst med AI'}
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('kanaler')}>
+              <Globe className="h-3.5 w-3.5" />Forbered Airbnb
+            </Button>
+          </div>
+
+          {/* ─── Smart Next Steps ─── */}
+          {nextSteps.length > 0 && (
+            <div className="px-6 pb-5">
+              <div className="rounded-xl border border-primary/15 bg-primary/5 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="h-4 w-4 text-primary" />
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wide">Næste skridt</p>
+                  <span className="text-[10px] text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full font-medium">{nextSteps.length} mangler</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {nextSteps.slice(0, 6).map(step => (
+                    <button
+                      key={step.id}
+                      onClick={() => step.tab && setTab(step.tab)}
+                      className={cn(
+                        'flex items-start gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-sm',
+                        step.priority === 'high'
+                          ? 'border-red-500/20 bg-red-500/5 hover:border-red-500/30'
+                          : step.priority === 'medium'
+                          ? 'border-amber-500/15 bg-amber-500/5 hover:border-amber-500/25'
+                          : 'border-border/30 bg-card/40 hover:border-border/50'
+                      )}
+                    >
+                      <step.icon className={cn(
+                        'h-4 w-4 mt-0.5 shrink-0',
+                        step.priority === 'high' ? 'text-red-400' : step.priority === 'medium' ? 'text-amber-400' : 'text-muted-foreground'
+                      )} />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-foreground">{step.label}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{step.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Tabs */}
+        {/* ═══════ TABS ═══════ */}
         <div className="flex gap-1 overflow-x-auto pb-1">
           {tabs.map(t => (
             <button
@@ -206,26 +414,11 @@ export default function AdminSagDetail() {
           ))}
         </div>
 
-        {/* ═══════════════════════ TAB CONTENT ═══════════════════════ */}
+        {/* ═══════ TAB CONTENT ═══════ */}
 
         {tab === 'overblik' && (
           <div className="space-y-6">
-            {/* Hero banner */}
-            <div className="rounded-2xl border border-border/40 overflow-hidden bg-card/60">
-              <div className="h-48 bg-muted/30 overflow-hidden relative">
-                {cover ? <img src={cover} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Home className="h-12 w-12 text-muted-foreground/15" /></div>}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold text-foreground">{listing.name}</h2>
-                    <p className="text-xs text-muted-foreground">{listing.address || listing.region}</p>
-                  </div>
-                  <ChannelDotsLarge airbnb={listing.channel_airbnb_ready} booking={listing.channel_booking_ready} vrbo={listing.channel_vrbo_ready} />
-                </div>
-              </div>
-            </div>
-
-            {/* Readiness + key info */}
+            {/* Key info grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <SectionCard title="Readiness" icon={CheckCircle2}>
                 <div className="flex items-center justify-center py-2">
@@ -460,51 +653,5 @@ export default function AdminSagDetail() {
         )}
       </div>
     </AdminLayout>
-  );
-}
-
-function MiniStat({ label, value, ok }: { label: string; value: string | number; ok: boolean }) {
-  return (
-    <div className={cn('rounded-lg border p-2.5 text-center', ok ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border/30 bg-muted/10')}>
-      <p className={cn('text-sm font-bold', ok ? 'text-emerald-400' : 'text-muted-foreground')}>{value}</p>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
-    </div>
-  );
-}
-
-function QuickStat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl border border-border/40 bg-card/60 p-4 text-center">
-      <p className="text-2xl font-bold text-foreground">{value}</p>
-      <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
-    </div>
-  );
-}
-
-function ChannelDotsLarge({ airbnb, booking, vrbo }: { airbnb: boolean | null; booking: boolean | null; vrbo: boolean | null }) {
-  const Dot = ({ active, label }: { active: boolean | null; label: string }) => (
-    <div className="flex items-center gap-1.5">
-      <span className={cn('w-2.5 h-2.5 rounded-full', active ? 'bg-emerald-500' : 'bg-muted-foreground/30')} />
-      <span className="text-[11px] text-muted-foreground">{label}</span>
-    </div>
-  );
-  return (
-    <div className="flex items-center gap-3 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-1.5">
-      <Dot active={airbnb} label="Airbnb" />
-      <Dot active={booking} label="Booking" />
-      <Dot active={vrbo} label="Vrbo" />
-    </div>
-  );
-}
-
-function TimelineItem({ label, date }: { label: string; date: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-2 h-2 rounded-full bg-primary/40 shrink-0" />
-      <div className="flex-1">
-        <p className="text-xs text-foreground">{label}</p>
-        <p className="text-[11px] text-muted-foreground">{format(new Date(date), "d. MMMM yyyy 'kl.' HH:mm", { locale: da })}</p>
-      </div>
-    </div>
   );
 }
