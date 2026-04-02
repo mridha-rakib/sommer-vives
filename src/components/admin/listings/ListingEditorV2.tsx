@@ -130,6 +130,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [channelDialogOpen, setChannelDialogOpen] = useState<string | null>(null);
   const [channelPreparing, setChannelPreparing] = useState(false);
+  const [airbnbPreparing, setAirbnbPreparing] = useState(false);
+  const [airbnbAiUsed, setAirbnbAiUsed] = useState(false);
 
   useEffect(() => {
     const load = async () => {
