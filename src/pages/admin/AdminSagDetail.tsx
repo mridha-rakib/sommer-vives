@@ -775,7 +775,7 @@ export default function AdminSagDetail() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <QuickStat label="Bookings" value={bookings.length} />
               <QuickStat label="Opgaver" value={tasks.length} />
-              <QuickStat label="Dokumenter" value={documents.length} />
+              <QuickStat label="Dokumenter" value={sagDocs.length + documents.length} />
               <QuickStat label="Tilkøb" value={addons.length} />
             </div>
           </div>
