@@ -731,12 +731,13 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               </>
             )}
 
-            {/* ═══ CHANNEL TABS ═══ */}
+            {/* ═══ CHANNEL REVIEW STAGES ═══ */}
             {currentStep === 'airbnb' && (
               <>
-                <div className="mb-8">
-                  <h1 className="font-display text-2xl font-bold text-foreground">🏠 Airbnb</h1>
-                  <p className="text-sm text-muted-foreground mt-1">Auto-genereret fra SommerVibes masterdata</p>
+                <div className="mb-6">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Kanal-review</p>
+                  <h1 className="font-display text-xl font-bold text-foreground">Airbnb</h1>
+                  <p className="text-xs text-muted-foreground mt-1">Gennemgå og godkend auto-genereret indhold fra din SommerVibes-listing</p>
                 </div>
                 <ChannelDataSection channelName="Airbnb" channelKey="airbnb" emoji="🏠" listing={listing}
                   onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('airbnb')} aiFilling={airbnbPreparing}
@@ -753,9 +754,10 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
 
             {currentStep === 'bookingcom' && (
               <>
-                <div className="mb-8">
-                  <h1 className="font-display text-2xl font-bold text-foreground">🅱️ Booking.com</h1>
-                  <p className="text-sm text-muted-foreground mt-1">Auto-genereret fra SommerVibes masterdata</p>
+                <div className="mb-6">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Kanal-review</p>
+                  <h1 className="font-display text-xl font-bold text-foreground">Booking.com</h1>
+                  <p className="text-xs text-muted-foreground mt-1">Gennemgå og godkend auto-genereret indhold fra din SommerVibes-listing</p>
                 </div>
                 <ChannelDataSection channelName="Booking.com" channelKey="booking" emoji="🅱️" listing={listing}
                   onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('booking')} aiFilling={channelPreparing}
@@ -772,9 +774,10 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
 
             {currentStep === 'vrbo' && (
               <>
-                <div className="mb-8">
-                  <h1 className="font-display text-2xl font-bold text-foreground">🏡 Vrbo</h1>
-                  <p className="text-sm text-muted-foreground mt-1">Auto-genereret fra SommerVibes masterdata</p>
+                <div className="mb-6">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2">Kanal-review</p>
+                  <h1 className="font-display text-xl font-bold text-foreground">Vrbo</h1>
+                  <p className="text-xs text-muted-foreground mt-1">Gennemgå og godkend auto-genereret indhold fra din SommerVibes-listing</p>
                 </div>
                 <ChannelDataSection channelName="Vrbo" channelKey="vrbo" emoji="🏡" listing={listing}
                   onUpdate={(key, value) => update(key as any, value)} onAiFill={() => handlePrepareChannel('vrbo')} aiFilling={channelPreparing}
