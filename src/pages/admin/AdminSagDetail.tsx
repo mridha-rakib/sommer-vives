@@ -1072,8 +1072,18 @@ export default function AdminSagDetail() {
                 };
                 const st = statusMap[sd.status] || statusMap.draft;
                 const isAftale = sd.category === 'aftale';
-                const icon = isAftale ? Shield : FileText;
+                const isRapport = sd.category === 'rapport';
+                const icon = isAftale ? Shield : isRapport ? Zap : FileText;
                 const IconComp = icon;
+
+                // Compute dynamic stats for rapport
+                const totalBookings = bookings.length;
+                const confirmedBookings = bookings.filter((b: any) => b.status === 'confirmed' || b.status === 'completed' || b.status === 'checked_in' || b.status === 'checked_out').length;
+                const totalRevenue = bookings.reduce((s: number, b: any) => s + (Number(b.total_amount) || 0), 0);
+                const totalGuests = bookings.reduce((s: number, b: any) => s + (Number(b.guests_count) || 0), 0);
+                const avgBookingValue = totalBookings > 0 ? Math.round(totalRevenue / totalBookings) : 0;
+                const totalNights = bookings.reduce((s: number, b: any) => s + (Number(b.nights) || 0), 0);
+                const activeChannels = listing?.is_active ? 1 : 0;
 
                 // Resolve placeholders
                 const resolveBody = (html: string, custom: Record<string, string> = {}) => {
@@ -1088,6 +1098,19 @@ export default function AdminSagDetail() {
                     commission_percent: custom.commission_percent || '15',
                     binding_months: custom.binding_months || '6',
                     notice_days: custom.notice_days || '30',
+                    report_date: format(new Date(), 'd. MMMM yyyy', { locale: da }),
+                    total_bookings: String(totalBookings),
+                    confirmed_bookings: String(confirmedBookings),
+                    total_revenue: totalRevenue.toLocaleString('da-DK'),
+                    total_guests: String(totalGuests),
+                    avg_booking_value: avgBookingValue.toLocaleString('da-DK'),
+                    total_nights: String(totalNights),
+                    active_channels: String(activeChannels),
+                    readiness_score: String(listing?.readiness_score || 0),
+                    custom_achievements: custom.custom_achievements || 'Løbende optimering af din listing',
+                    boost_price: custom.boost_price || '2.995',
+                    boost_description: custom.boost_description || 'Engangsbetaling — ingen binding',
+                    next_steps: custom.next_steps || 'Vi anbefaler at opgradere til Boost-pakken for at øge din synlighed og booking-rate.',
                     ...custom,
                   };
                   let resolved = html;
