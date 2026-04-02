@@ -89,7 +89,7 @@ export default function AdminDashboard() {
       const [leadsRes, allLeadsRes, tasksRes, agreementsRes, msgCountRes, msgsRes, docsRes, onbRes] = await Promise.all([
         supabase.from('leads').select('*').in('status', ['new', 'contacted']).order('created_at', { ascending: false }).limit(5),
         supabase.from('leads').select('id, status'),
-        supabase.from('tasks').select('*, property:properties(title)').eq('scheduled_date', todayStr).order('created_at', { ascending: false }).limit(8),
+        supabase.from('system_tasks' as any).select('*').neq('status', 'done').order('created_at', { ascending: false }).limit(8),
         supabase.from('agreements').select('*').eq('status', 'signed').order('signed_at', { ascending: false }).limit(5),
         supabase.from('chat_messages').select('id', { count: 'exact' }).eq('is_read', false),
         supabase.from('chat_messages').select('id, message, sender_name, sender_type, created_at').order('created_at', { ascending: false }).limit(5),
