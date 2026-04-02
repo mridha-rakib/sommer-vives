@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
 import { StatusChip, type StatusVariant } from '@/components/admin/ui/StatusChip';
@@ -10,14 +11,19 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   FileText, Search, Download, Eye, FolderOpen, Grid3X3, List, Filter,
   FileSignature, Receipt, Upload, ShieldCheck, File, CalendarDays,
-  User, FolderOpen as FolderIcon, ExternalLink, Link2, Clock, MoreHorizontal
+  User, FolderOpen as FolderIcon, ExternalLink, Link2, Clock, MoreHorizontal,
+  AlertTriangle, Pencil, Copy, Plus, Trash2, BookTemplate
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 /* ── Config ── */
 type DocType = 'formidlingsaftale' | 'owner_upload' | 'invoice' | 'statement' | 'id_personal' | 'internal' | 'other';
@@ -39,6 +45,7 @@ const STATUS_CFG: Record<string, { label: string; variant: StatusVariant }> = {
   archived: { label: 'Arkiveret',  variant: 'muted' },
   pending:  { label: 'Afventer',   variant: 'warning' },
   signed:   { label: 'Underskrevet', variant: 'success' },
+  sent:     { label: 'Sendt',      variant: 'info' },
   expired:  { label: 'Udløbet',    variant: 'danger' },
 };
 
@@ -75,24 +82,64 @@ function getMimeColor(mime: string | null) {
   return 'bg-muted/40 text-muted-foreground';
 }
 
+type PageTab = 'documents' | 'templates';
+
 export default function AdminDokumenter() {
+  const navigate = useNavigate();
   const [documents, setDocuments] = useState<any[]>([]);
+  const [agreements, setAgreements] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [selected, setSelected] = useState<any | null>(null);
+  const [pageTab, setPageTab] = useState<PageTab>('documents');
+  const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
+  const [templateForm, setTemplateForm] = useState({ name: '', body_text: '', body_html: '', version: '1.0', is_active: true });
 
   useEffect(() => {
-    supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500)
-      .then(({ data }) => { setDocuments(data || []); setLoading(false); });
+    Promise.all([
+      supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500),
+      supabase.from('agreements').select('*').order('created_at', { ascending: false }).limit(500),
+      supabase.from('agreement_templates').select('*').order('created_at', { ascending: false }),
+    ]).then(([docRes, agrRes, tplRes]) => {
+      setDocuments(docRes.data || []);
+      setAgreements(agrRes.data || []);
+      setTemplates(tplRes.data || []);
+      setLoading(false);
+    });
   }, []);
 
-  const types = useMemo(() => [...new Set(documents.map(d => d.document_type))], [documents]);
+  // Merge agreements into a unified document list
+  const allDocs = useMemo(() => {
+    const agreementDocs = agreements.map(a => ({
+      id: a.id,
+      title: `Formidlingsaftale — ${a.owner_name || a.property_title || 'Ukendt ejer'}`,
+      document_type: 'agreement',
+      status: a.status,
+      created_at: a.created_at,
+      file_url: a.pdf_url,
+      file_size: null,
+      mime_type: a.pdf_url ? 'application/pdf' : null,
+      owner_id: a.owner_id,
+      property_id: a.property_id,
+      booking_id: null,
+      _source: 'agreement' as const,
+      _agreement: a,
+    }));
+    const normalDocs = documents.map(d => ({ ...d, _source: 'document' as const, _agreement: null }));
+    return [...normalDocs, ...agreementDocs].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [documents, agreements]);
+
+  // Pending agreements count (draft or sent but not signed)
+  const pendingAgreements = agreements.filter(a => a.status === 'draft' || a.status === 'sent');
+
+  const types = useMemo(() => [...new Set(allDocs.map(d => d.document_type))], [allDocs]);
 
   const filtered = useMemo(() => {
-    return documents.filter(d => {
+    return allDocs.filter(d => {
       if (typeFilter !== 'all' && d.document_type !== typeFilter) return false;
       if (statusFilter !== 'all' && d.status !== statusFilter) return false;
       if (search) {
@@ -101,33 +148,94 @@ export default function AdminDokumenter() {
       }
       return true;
     });
-  }, [documents, typeFilter, statusFilter, search]);
+  }, [allDocs, typeFilter, statusFilter, search]);
 
   const counts = useMemo(() => ({
-    total: documents.length,
-    active: documents.filter(d => d.status === 'active').length,
-    draft: documents.filter(d => d.status === 'draft').length,
+    total: allDocs.length,
+    active: allDocs.filter(d => d.status === 'active' || d.status === 'signed').length,
+    draft: allDocs.filter(d => d.status === 'draft').length,
     types: types.length,
-  }), [documents, types]);
+  }), [allDocs, types]);
+
+  // Template CRUD
+  const openNewTemplate = () => {
+    setEditingTemplate('new');
+    setTemplateForm({ name: '', body_text: '', body_html: '', version: '1.0', is_active: true });
+  };
+  const openEditTemplate = (t: any) => {
+    setEditingTemplate(t);
+    setTemplateForm({ name: t.name, body_text: t.body_text, body_html: t.body_html, version: t.version, is_active: t.is_active });
+  };
+  const saveTemplate = async () => {
+    if (!templateForm.name.trim()) { toast.error('Navn er påkrævet'); return; }
+    if (editingTemplate === 'new') {
+      const { error } = await supabase.from('agreement_templates').insert(templateForm);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Skabelon oprettet');
+    } else {
+      const { error } = await supabase.from('agreement_templates').update(templateForm).eq('id', editingTemplate.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success('Skabelon opdateret');
+    }
+    setEditingTemplate(null);
+    const { data } = await supabase.from('agreement_templates').select('*').order('created_at', { ascending: false });
+    setTemplates(data || []);
+  };
+  const deleteTemplate = async (id: string) => {
+    await supabase.from('agreement_templates').delete().eq('id', id);
+    setTemplates(prev => prev.filter(t => t.id !== id));
+    toast.success('Skabelon slettet');
+  };
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <AdminPageHeader
           title="Dokumenter"
-          subtitle="Dokumentbibliotek for sager, ejere, gæster og leads"
+          subtitle="Dokumentbibliotek, aftaler og skabeloner"
           actions={
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-1">
-              {counts.total} dokumenter
-            </Badge>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center rounded-xl border border-border/40 overflow-hidden">
+                <button onClick={() => setPageTab('documents')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all', pageTab === 'documents' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
+                  <FileText className="h-3.5 w-3.5" />Dokumenter
+                </button>
+                <button onClick={() => setPageTab('templates')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all border-l border-border/40', pageTab === 'templates' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
+                  <Copy className="h-3.5 w-3.5" />Skabeloner
+                </button>
+              </div>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-1">
+                {counts.total} dokumenter
+              </Badge>
+            </div>
           }
         />
 
+        {/* ── Pending agreements alert ── */}
+        {pendingAgreements.length > 0 && pageTab === 'documents' && (
+          <div className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
+            <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">
+                {pendingAgreements.length} {pendingAgreements.length === 1 ? 'aftale afventer' : 'aftaler afventer'} behandling
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {pendingAgreements.filter(a => a.status === 'draft').length > 0 && `${pendingAgreements.filter(a => a.status === 'draft').length} kladde(r)`}
+                {pendingAgreements.filter(a => a.status === 'draft').length > 0 && pendingAgreements.filter(a => a.status === 'sent').length > 0 && ' · '}
+                {pendingAgreements.filter(a => a.status === 'sent').length > 0 && `${pendingAgreements.filter(a => a.status === 'sent').length} sendt og afventer signatur`}
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10" onClick={() => setTypeFilter('agreement')}>
+              Vis aftaler
+            </Button>
+          </div>
+        )}
+
+        {pageTab === 'documents' && (<>
         {/* ── KPIs ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {([
             { label: 'Alle dokumenter', value: counts.total, icon: FolderOpen },
-            { label: 'Aktive', value: counts.active, icon: FileText },
+            { label: 'Aktive / signerede', value: counts.active, icon: FileText },
             { label: 'Kladder', value: counts.draft, icon: File },
             { label: 'Dokumenttyper', value: counts.types, icon: Grid3X3 },
           ]).map(kpi => (
@@ -306,6 +414,93 @@ export default function AdminDokumenter() {
                 </div>
               );
             })}
+          </div>
+        )}
+        </>)}
+
+        {/* ═══════ TEMPLATES TAB ═══════ */}
+        {pageTab === 'templates' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Aftale-skabeloner</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Skabeloner til formidlingsaftaler med dynamiske felter</p>
+              </div>
+              <Button size="sm" className="gap-1.5 rounded-xl" onClick={openNewTemplate}>
+                <Plus className="h-3.5 w-3.5" />Ny skabelon
+              </Button>
+            </div>
+
+            {templates.length === 0 ? (
+              <div className="rounded-xl border border-border/40 bg-card/40 p-16 text-center">
+                <Copy className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm font-medium text-muted-foreground">Ingen skabeloner endnu</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Opret din første aftale-skabelon</p>
+                <Button size="sm" variant="outline" className="mt-4 rounded-xl gap-1.5" onClick={openNewTemplate}>
+                  <Plus className="h-3.5 w-3.5" />Opret skabelon
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {templates.map(t => (
+                  <div key={t.id} className="flex items-center gap-4 rounded-xl border border-border/40 bg-card/60 hover:bg-card/80 transition-all px-4 py-3 group">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                      <FileSignature className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{t.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] text-muted-foreground">v{t.version}</span>
+                        <span className="text-muted-foreground/30">·</span>
+                        <StatusChip label={t.is_active ? 'Aktiv' : 'Inaktiv'} variant={t.is_active ? 'success' : 'muted'} dot size="sm" />
+                        <span className="text-muted-foreground/30">·</span>
+                        <span className="text-[11px] text-muted-foreground">{new Date(t.updated_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg" onClick={() => openEditTemplate(t)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg text-destructive" onClick={() => deleteTemplate(t.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Template editor sheet */}
+            <Sheet open={!!editingTemplate} onOpenChange={open => !open && setEditingTemplate(null)}>
+              <SheetContent className="sm:max-w-lg bg-card border-border/50 overflow-y-auto">
+                <SheetHeader className="pb-4 border-b border-border/30">
+                  <SheetTitle>{editingTemplate === 'new' ? 'Ny skabelon' : 'Rediger skabelon'}</SheetTitle>
+                </SheetHeader>
+                <div className="py-5 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Skabelonnavn</Label>
+                    <Input value={templateForm.name} onChange={e => setTemplateForm(f => ({ ...f, name: e.target.value }))} placeholder="Standard formidlingsaftale" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Version</Label>
+                    <Input value={templateForm.version} onChange={e => setTemplateForm(f => ({ ...f, version: e.target.value }))} placeholder="1.0" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Aftaletekst</Label>
+                    <p className="text-[11px] text-muted-foreground">Brug placeholders som {"{{owner_name}}"}, {"{{property_address}}"}, {"{{commission_rate}}"}, {"{{binding_months}}"}</p>
+                    <Textarea value={templateForm.body_text} onChange={e => setTemplateForm(f => ({ ...f, body_text: e.target.value }))} rows={12} placeholder="Mellem {{owner_name}} (herefter &quot;Udlejer&quot;) og SommerDrøm ApS..." />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Label className="text-sm">Aktiv</Label>
+                    <input type="checkbox" checked={templateForm.is_active} onChange={e => setTemplateForm(f => ({ ...f, is_active: e.target.checked }))} className="rounded" />
+                  </div>
+                  <div className="flex gap-2 pt-3">
+                    <Button onClick={saveTemplate} className="flex-1 rounded-xl">Gem skabelon</Button>
+                    <Button variant="outline" onClick={() => setEditingTemplate(null)} className="rounded-xl">Annuller</Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         )}
       </div>
