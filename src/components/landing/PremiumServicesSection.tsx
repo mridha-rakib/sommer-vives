@@ -424,7 +424,7 @@ const services: Service[] = [
     long: 'Skulle en gæst forårsage skade under et ophold, tilbyder vi via vores samarbejdspartner på udlejningsforsikring en løsning med selvrisiko på 3.000 kr. Vi anbefaler samtidig, at du også har en relevant udvidet udlejningsforsikring gennem dit eget forsikringsselskab, så du står bedst muligt dækket. Hos SommerVibes er tryghed ikke en sidebemærkning — det er en vigtig del af samarbejdet.',
     expandLabel: 'Ekstra tryghed',
     badge: 'Ro i maven',
-    visual: TryghedVisual,
+    image: shieldImg,
   },
   // 14. Fuld fleksibilitet
   {
