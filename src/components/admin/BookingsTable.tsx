@@ -98,7 +98,6 @@ export function BookingsTable({ bookings, compact = false, onStatusChange }: Boo
                     <span className="hover:text-primary transition-colors cursor-pointer">{booking.guest_name || booking.guest?.name || 'N/A'}</span>
                   </ProfilePopover>
                 </TableCell>
-                </TableCell>
                 <TableCell>
                   <Badge className={statusColors[booking.status]} variant="outline">
                     {statusLabels[booking.status]}
