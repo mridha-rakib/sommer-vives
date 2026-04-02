@@ -38,6 +38,7 @@ export function Header() {
     { name: t('nav.howItWorks'), href: '/#saadan-virker-det' },
     { name: t('nav.listings'), href: '/listings' },
     { name: t('nav.pricing'), href: '/#priser' },
+    { name: t('nav.faq'), href: '/#faq' },
     { name: t('nav.about'), href: '/about' },
   ];
 
@@ -196,6 +197,11 @@ export function Header() {
                     {t('nav.calcEarnings')}
                   </Button>
                 </Link>
+                <Link to="/book-vurdering">
+                  <Button variant="outline" size="sm" className="rounded-full text-[13px] px-4 border-primary/30 text-primary hover:bg-primary/10">
+                    {t('hero.cta2')}
+                  </Button>
+                </Link>
                 <Link to="/kom-i-gang">
                   <Button variant="gold" size="sm" className="rounded-full text-[13px] px-5 shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">
                     {t('nav.getStarted')}
@@ -285,6 +291,11 @@ export function Header() {
                         <Button variant="outline" className="w-full rounded-xl gap-1.5">
                           <Calculator className="w-4 h-4" />
                           {t('nav.calcEarnings')}
+                        </Button>
+                      </Link>
+                      <Link to="/book-vurdering" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full rounded-xl border-primary/30 text-primary">
+                          {t('hero.cta2')}
                         </Button>
                       </Link>
                       <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
