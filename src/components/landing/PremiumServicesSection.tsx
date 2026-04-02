@@ -460,6 +460,12 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           <X className="w-4 h-4 text-foreground" strokeWidth={1.5} />
         </button>
 
+        {service.image && (
+          <div className="rounded-xl overflow-hidden mb-5 -mx-2">
+            <img src={service.image} alt={service.title} className="w-full h-40 object-cover rounded-xl" />
+          </div>
+        )}
+
         {service.badge && (
           <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase text-primary/70 mb-4">
             <Sparkles className="w-2.5 h-2.5" strokeWidth={1.5} />
@@ -467,13 +473,15 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           </span>
         )}
 
-        <div className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center mb-5 ${
-          service.signature
-            ? 'bg-primary/12 border border-primary/20'
-            : 'bg-secondary border border-border/50'
-        }`}>
-          <service.icon className="w-5 h-5 text-primary" strokeWidth={1.4} />
-        </div>
+        {!service.image && (
+          <div className={`w-[52px] h-[52px] rounded-2xl flex items-center justify-center mb-5 ${
+            service.signature
+              ? 'bg-primary/12 border border-primary/20'
+              : 'bg-secondary border border-border/50'
+          }`}>
+            <service.icon className="w-5 h-5 text-primary" strokeWidth={1.4} />
+          </div>
+        )}
 
         <h3 className="font-display text-xl font-bold text-foreground mb-2 leading-snug">
           {service.title}
@@ -485,7 +493,7 @@ function DetailSheet({ service, onClose }: { service: Service; onClose: () => vo
           </p>
         )}
 
-        {service.visual && (
+        {service.visual && !service.image && (
           <div className="mb-5">{service.visual()}</div>
         )}
 
