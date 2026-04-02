@@ -9,7 +9,7 @@ interface BrandLogoProps {
 }
 
 export function BrandLogo({ tagline, to = '/', size = 'sm', className }: BrandLogoProps) {
-  const textSize = size === 'md' ? 'text-lg' : 'text-sm';
+  const textSize = size === 'md' ? 'text-xl' : 'text-base';
   const sunSize = size === 'md' ? 'w-[0.65em] h-[0.65em]' : 'w-[0.6em] h-[0.6em]';
 
   const logo = (
@@ -33,7 +33,7 @@ export function BrandLogo({ tagline, to = '/', size = 'sm', className }: BrandLo
         mmer<span className="text-primary italic">Vibes</span>
       </span>
       {tagline && (
-        <span className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60 font-semibold mt-0.5 leading-none">
+        <span className="text-[11px] uppercase tracking-[0.25em] text-primary/70 font-semibold mt-1 leading-none">
           {tagline}
         </span>
       )}
