@@ -204,6 +204,7 @@ const LISTING_SUB_TABS = [
   { value: 'beskrivelse', label: 'Beskrivelse', icon: FileText },
   { value: 'billeder', label: 'Billeder', icon: ImageIcon },
   { value: 'faciliteter', label: 'Faciliteter', icon: Tag },
+  { value: 'sektioner', label: 'Sektioner', icon: Puzzle },
   { value: 'priser_sub', label: 'Priser', icon: DollarSign },
   { value: 'klargoering', label: 'Klargøring', icon: FileCheck },
 ];
