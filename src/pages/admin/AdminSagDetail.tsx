@@ -444,6 +444,7 @@ export default function AdminSagDetail() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('overblik');
   const [aiLoading, setAiLoading] = useState(false);
+  const [publishOpen, setPublishOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
