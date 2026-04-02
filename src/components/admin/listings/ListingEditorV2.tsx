@@ -1146,10 +1146,8 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               <div><span className="font-medium text-foreground block">Owner ID</span><code className="font-mono">{listing.owner_id}</code></div>
             </div>
           </Section>
-        </TabsContent>
 
-        {/* ─── 7. DISTRIBUTION & KANALER ─── */}
-        <TabsContent value="kanaler" className="mt-4 space-y-5">
+          {/* ── Kanaler ── */}
           <div>
             <h3 className="font-display text-lg font-semibold text-foreground">Distribution & kanaler</h3>
             <p className="text-xs text-muted-foreground mt-0.5">Klargør og publicer din listing til eksterne platforme</p>
