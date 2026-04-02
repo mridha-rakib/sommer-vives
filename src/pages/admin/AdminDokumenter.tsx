@@ -1,89 +1,445 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
-import { StatusChip } from '@/components/admin/ui/StatusChip';
+import { StatusChip, type StatusVariant } from '@/components/admin/ui/StatusChip';
 import { EmptyState } from '@/components/admin/ui/EmptyState';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileText, Search, Download, Eye, FolderOpen } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  FileText, Search, Download, Eye, FolderOpen, Grid3X3, List, Filter,
+  FileSignature, Receipt, Upload, ShieldCheck, File, CalendarDays,
+  User, FolderOpen as FolderIcon, ExternalLink, Link2, Clock, MoreHorizontal
+} from 'lucide-react';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
+
+/* ── Config ── */
+type DocType = 'formidlingsaftale' | 'owner_upload' | 'invoice' | 'statement' | 'id_personal' | 'internal' | 'other';
+
+const DOC_TYPE_CFG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  formidlingsaftale: { label: 'Formidlingsaftale', icon: FileSignature, color: 'text-emerald-400' },
+  agreement:         { label: 'Formidlingsaftale', icon: FileSignature, color: 'text-emerald-400' },
+  owner_upload:      { label: 'Ejer-upload',       icon: Upload,        color: 'text-blue-400' },
+  invoice:           { label: 'Faktura',            icon: Receipt,       color: 'text-amber-400' },
+  statement:         { label: 'Opgørelse',          icon: FileText,      color: 'text-violet-400' },
+  id_personal:       { label: 'ID / Personligt',    icon: ShieldCheck,   color: 'text-rose-400' },
+  internal:          { label: 'Internt dokument',   icon: File,          color: 'text-muted-foreground' },
+  other:             { label: 'Andet',              icon: FileText,      color: 'text-muted-foreground' },
+};
+
+const STATUS_CFG: Record<string, { label: string; variant: StatusVariant }> = {
+  active:   { label: 'Aktiv',      variant: 'success' },
+  draft:    { label: 'Kladde',     variant: 'muted' },
+  archived: { label: 'Arkiveret',  variant: 'muted' },
+  pending:  { label: 'Afventer',   variant: 'warning' },
+  signed:   { label: 'Underskrevet', variant: 'success' },
+  expired:  { label: 'Udløbet',    variant: 'danger' },
+};
+
+function getDocCfg(type: string) {
+  return DOC_TYPE_CFG[type] || DOC_TYPE_CFG.other;
+}
+
+function getStatusCfg(status: string) {
+  return STATUS_CFG[status] || { label: status, variant: 'muted' as StatusVariant };
+}
+
+function formatFileSize(bytes: number | null) {
+  if (!bytes) return '—';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getMimeIcon(mime: string | null) {
+  if (!mime) return 'DOC';
+  if (mime.includes('pdf')) return 'PDF';
+  if (mime.includes('image')) return 'IMG';
+  if (mime.includes('word') || mime.includes('document')) return 'DOC';
+  if (mime.includes('sheet') || mime.includes('excel')) return 'XLS';
+  return 'FIL';
+}
+
+function getMimeColor(mime: string | null) {
+  if (!mime) return 'bg-muted/40 text-muted-foreground';
+  if (mime.includes('pdf')) return 'bg-red-500/10 text-red-400';
+  if (mime.includes('image')) return 'bg-blue-500/10 text-blue-400';
+  if (mime.includes('word') || mime.includes('document')) return 'bg-blue-500/10 text-blue-400';
+  if (mime.includes('sheet') || mime.includes('excel')) return 'bg-emerald-500/10 text-emerald-400';
+  return 'bg-muted/40 text-muted-foreground';
+}
 
 export default function AdminDokumenter() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [selected, setSelected] = useState<any | null>(null);
 
   useEffect(() => {
-    supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(200)
+    supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500)
       .then(({ data }) => { setDocuments(data || []); setLoading(false); });
   }, []);
 
-  const filtered = documents.filter(d => {
-    if (tab !== 'all' && d.document_type !== tab) return false;
-    if (search && !d.title?.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const types = useMemo(() => [...new Set(documents.map(d => d.document_type))], [documents]);
 
-  const types = [...new Set(documents.map(d => d.document_type))];
+  const filtered = useMemo(() => {
+    return documents.filter(d => {
+      if (typeFilter !== 'all' && d.document_type !== typeFilter) return false;
+      if (statusFilter !== 'all' && d.status !== statusFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return d.title?.toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [documents, typeFilter, statusFilter, search]);
+
+  const counts = useMemo(() => ({
+    total: documents.length,
+    active: documents.filter(d => d.status === 'active').length,
+    draft: documents.filter(d => d.status === 'draft').length,
+    types: types.length,
+  }), [documents, types]);
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <AdminPageHeader title="Dokumenter" subtitle="Alle dokumenter tilknyttet sager, ejere, gæster og leads" />
+        <AdminPageHeader
+          title="Dokumenter"
+          subtitle="Dokumentbibliotek for sager, ejere, gæster og leads"
+          actions={
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-1">
+              {counts.total} dokumenter
+            </Badge>
+          }
+        />
 
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Søg i dokumenter..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 rounded-xl bg-card/60 border-border/40" />
+        {/* ── KPIs ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {([
+            { label: 'Alle dokumenter', value: counts.total, icon: FolderOpen },
+            { label: 'Aktive', value: counts.active, icon: FileText },
+            { label: 'Kladder', value: counts.draft, icon: File },
+            { label: 'Dokumenttyper', value: counts.types, icon: Grid3X3 },
+          ]).map(kpi => (
+            <div key={kpi.label} className="rounded-xl border border-border/40 bg-card/60 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <kpi.icon className="w-4 h-4 text-muted-foreground" />
+                <span className="text-[11px] text-muted-foreground font-medium">{kpi.label}</span>
+              </div>
+              <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Filters ── */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Søg dokumenter..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 h-9 bg-muted/20 border-border/40 rounded-xl text-sm"
+            />
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            <button onClick={() => setTab('all')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'all' ? 'bg-primary/10 text-primary border border-primary/20' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent'}`}>Alle</button>
-            {types.map(t => (
-              <button key={t} onClick={() => setTab(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all capitalize ${tab === t ? 'bg-primary/10 text-primary border border-primary/20' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent'}`}>{t}</button>
-            ))}
+
+          <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-auto">
+            <TabsList className="h-9 bg-muted/20 border border-border/30 rounded-xl p-0.5">
+              <TabsTrigger value="all" className="text-xs rounded-lg px-3 h-7">Alle</TabsTrigger>
+              <TabsTrigger value="active" className="text-xs rounded-lg px-3 h-7">Aktive</TabsTrigger>
+              <TabsTrigger value="draft" className="text-xs rounded-lg px-3 h-7">Kladder</TabsTrigger>
+              <TabsTrigger value="archived" className="text-xs rounded-lg px-3 h-7">Arkiv</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 rounded-xl border-border/40 text-xs gap-1.5">
+                <Filter className="w-3.5 h-3.5" />
+                {typeFilter === 'all' ? 'Alle typer' : getDocCfg(typeFilter).label}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem onClick={() => setTypeFilter('all')}>Alle typer</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {types.map(t => {
+                const cfg = getDocCfg(t);
+                return (
+                  <DropdownMenuItem key={t} onClick={() => setTypeFilter(t)}>
+                    <cfg.icon className={`w-3.5 h-3.5 mr-2 ${cfg.color}`} />
+                    {cfg.label}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* View toggle */}
+          <div className="flex items-center border border-border/30 rounded-xl overflow-hidden bg-muted/20 ml-auto">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <Grid3X3 className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
+        {/* ── Content ── */}
         {loading ? (
-          <div className="space-y-2">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}</div>
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-44 rounded-xl" />)}
+            </div>
+          ) : (
+            <div className="space-y-2">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>
+          )
         ) : filtered.length === 0 ? (
-          <Card className="border-border/40 bg-card/60">
-            <CardContent className="p-0">
-              <EmptyState icon={FolderOpen} title="Ingen dokumenter fundet" description="Tilpas dine filtre eller upload et dokument" />
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {filtered.map(d => (
-              <Card key={d.id} className="border-border/40 bg-card/60 hover:bg-card/80 transition-all">
-                <CardContent className="py-3.5 px-5 flex items-center gap-4">
-                  <div className="w-9 h-9 rounded-xl bg-muted/40 flex items-center justify-center shrink-0">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+          <div className="rounded-xl border border-border/40 bg-card/40 p-16 text-center">
+            <FolderOpen className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-sm font-medium text-muted-foreground">Ingen dokumenter fundet</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Tilpas dine filtre eller upload et nyt dokument</p>
+          </div>
+        ) : viewMode === 'grid' ? (
+          /* ── Grid view ── */
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {filtered.map(d => {
+              const cfg = getDocCfg(d.document_type);
+              const sCfg = getStatusCfg(d.status);
+              return (
+                <div
+                  key={d.id}
+                  onClick={() => setSelected(d)}
+                  className="rounded-xl border border-border/40 bg-card/60 hover:bg-card/80 hover:border-border/60 transition-all cursor-pointer group overflow-hidden"
+                >
+                  {/* Preview area */}
+                  <div className={`h-28 flex flex-col items-center justify-center gap-2 ${getMimeColor(d.mime_type)} border-b border-border/20`}>
+                    <span className="text-lg font-bold opacity-60">{getMimeIcon(d.mime_type)}</span>
+                    <cfg.icon className={`w-5 h-5 ${cfg.color} opacity-40`} />
                   </div>
+                  {/* Info */}
+                  <div className="p-3">
+                    <p className="text-xs font-medium text-foreground truncate mb-1">{d.title}</p>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(d.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}
+                      </span>
+                      <StatusChip label={sCfg.label} variant={sCfg.variant} size="sm" />
+                    </div>
+                    {d.file_size && (
+                      <span className="text-[10px] text-muted-foreground/50 block mt-1">{formatFileSize(d.file_size)}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* ── List view ── */
+          <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/30 overflow-hidden">
+            {filtered.map(d => {
+              const cfg = getDocCfg(d.document_type);
+              const sCfg = getStatusCfg(d.status);
+              return (
+                <div
+                  key={d.id}
+                  onClick={() => setSelected(d)}
+                  className="flex items-center gap-4 px-4 py-3 hover:bg-muted/15 transition-colors cursor-pointer group"
+                >
+                  {/* File icon */}
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${getMimeColor(d.mime_type)}`}>
+                    {getMimeIcon(d.mime_type)}
+                  </div>
+
+                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{d.title}</p>
-                    <p className="text-[11px] text-muted-foreground">{d.document_type} · {new Date(d.created_at).toLocaleDateString('da-DK')}</p>
-                  </div>
-                  <StatusChip label={d.status} variant="muted" />
-                  {d.file_url && (
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg" asChild>
-                        <a href={d.file_url} target="_blank" rel="noreferrer"><Eye className="h-3.5 w-3.5" /></a>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg" asChild>
-                        <a href={d.file_url} download><Download className="h-3.5 w-3.5" /></a>
-                      </Button>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <cfg.icon className={`w-3 h-3 ${cfg.color}`} />
+                      <span className="text-[11px] text-muted-foreground">{cfg.label}</span>
+                      {d.file_size && (
+                        <>
+                          <span className="text-muted-foreground/30">·</span>
+                          <span className="text-[11px] text-muted-foreground/60">{formatFileSize(d.file_size)}</span>
+                        </>
+                      )}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                  </div>
+
+                  {/* Meta */}
+                  <div className="hidden sm:flex items-center gap-3 shrink-0">
+                    <StatusChip label={sCfg.label} variant={sCfg.variant} dot size="sm" />
+                    <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                      {new Date(d.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {d.file_url && (
+                      <>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                          <a href={d.file_url} target="_blank" rel="noreferrer"><Eye className="h-3.5 w-3.5" /></a>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg" asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                          <a href={d.file_url} download><Download className="h-3.5 w-3.5" /></a>
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
+
+      {/* ── Detail drawer ── */}
+      <Sheet open={!!selected} onOpenChange={open => !open && setSelected(null)}>
+        <SheetContent className="sm:max-w-lg bg-card border-border/50 overflow-y-auto">
+          {selected && (() => {
+            const cfg = getDocCfg(selected.document_type);
+            const sCfg = getStatusCfg(selected.status);
+            return (
+              <>
+                <SheetHeader className="pb-5 border-b border-border/30">
+                  <div className="flex items-start gap-4">
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${getMimeColor(selected.mime_type)}`}>
+                      {getMimeIcon(selected.mime_type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <SheetTitle className="text-base font-semibold text-foreground leading-tight">{selected.title}</SheetTitle>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <cfg.icon className={`w-3.5 h-3.5 ${cfg.color}`} />
+                        <span className="text-xs text-muted-foreground">{cfg.label}</span>
+                      </div>
+                      <div className="mt-2">
+                        <StatusChip label={sCfg.label} variant={sCfg.variant} dot />
+                      </div>
+                    </div>
+                  </div>
+                </SheetHeader>
+
+                {/* Preview area */}
+                {selected.file_url && (
+                  <div className="py-5 border-b border-border/30">
+                    <div className={`rounded-xl h-48 flex items-center justify-center ${getMimeColor(selected.mime_type)} border border-border/20`}>
+                      <div className="text-center">
+                        <span className="text-3xl font-bold opacity-30 block">{getMimeIcon(selected.mime_type)}</span>
+                        <p className="text-xs text-muted-foreground mt-2">Forhåndsvisning</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <Button variant="outline" size="sm" className="flex-1 rounded-xl text-xs gap-1.5 h-9" asChild>
+                        <a href={selected.file_url} target="_blank" rel="noreferrer">
+                          <Eye className="w-3.5 h-3.5" /> Åbn
+                        </a>
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1 rounded-xl text-xs gap-1.5 h-9" asChild>
+                        <a href={selected.file_url} download>
+                          <Download className="w-3.5 h-3.5" /> Download
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Metadata */}
+                <div className="py-5 border-b border-border/30 space-y-4">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">Dokumentdetaljer</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-1">Type</p>
+                      <div className="flex items-center gap-1.5">
+                        <cfg.icon className={`w-3.5 h-3.5 ${cfg.color}`} />
+                        <span className="text-sm font-medium text-foreground">{cfg.label}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-1">Oprettet</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {new Date(selected.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-1">Filstørrelse</p>
+                      <p className="text-sm font-medium text-foreground">{formatFileSize(selected.file_size)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-1">Format</p>
+                      <p className="text-sm font-medium text-foreground">{selected.mime_type || 'Ukendt'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Linked entities */}
+                <div className="py-5 border-b border-border/30 space-y-3">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">Tilknytninger</p>
+                  {selected.property_id && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <FolderIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-foreground">Sag</span>
+                      <span className="text-muted-foreground text-xs truncate">{selected.property_id}</span>
+                    </div>
+                  )}
+                  {selected.owner_id && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-foreground">Ejer</span>
+                      <span className="text-muted-foreground text-xs truncate">{selected.owner_id}</span>
+                    </div>
+                  )}
+                  {selected.booking_id && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <CalendarDays className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-foreground">Booking</span>
+                      <span className="text-muted-foreground text-xs truncate">{selected.booking_id}</span>
+                    </div>
+                  )}
+                  {!selected.property_id && !selected.owner_id && !selected.booking_id && (
+                    <p className="text-xs text-muted-foreground/60">Ingen tilknytninger endnu</p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="py-5 space-y-2">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-3">Handlinger</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
+                      <Link2 className="w-3.5 h-3.5" /> Knyt til sag
+                    </Button>
+                    <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
+                      <User className="w-3.5 h-3.5" /> Knyt til ejer
+                    </Button>
+                    <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
+                      <ExternalLink className="w-3.5 h-3.5" /> Del link
+                    </Button>
+                    <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
+                      <FolderOpen className="w-3.5 h-3.5" /> Arkivér
+                    </Button>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
     </AdminLayout>
   );
 }
