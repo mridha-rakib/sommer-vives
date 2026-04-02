@@ -190,18 +190,19 @@ export function Header() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Link to="/book-vurdering">
-                  <Button variant="ghost" size="sm" className={`rounded-full text-[13px] px-4 ${
+                <Link to="/beregn-lejeindtaegt">
+                  <Button variant="ghost" size="sm" className={`rounded-full text-[13px] px-4 gap-1.5 ${
                     transparent
                       ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}>
-                    Book udlejningstjek
+                    <Calculator className="w-3.5 h-3.5" />
+                    Beregn indtjening
                   </Button>
                 </Link>
                 <Link to="/kom-i-gang">
                   <Button variant="gold" size="sm" className="rounded-full text-[13px] px-5 shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">
-                    Udlej dit hus
+                    Kom i gang
                   </Button>
                 </Link>
               </>
