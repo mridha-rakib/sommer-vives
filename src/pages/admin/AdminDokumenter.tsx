@@ -89,6 +89,7 @@ export default function AdminDokumenter() {
   const [documents, setDocuments] = useState<any[]>([]);
   const [agreements, setAgreements] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);
+  const [stdTemplates, setStdTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -97,7 +98,9 @@ export default function AdminDokumenter() {
   const [selected, setSelected] = useState<any | null>(null);
   const [pageTab, setPageTab] = useState<PageTab>('documents');
   const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
+  const [editingStdTemplate, setEditingStdTemplate] = useState<any | null>(null);
   const [templateForm, setTemplateForm] = useState({ name: '', body_text: '', body_html: '', version: '1.0', is_active: true });
+  const [stdTemplateForm, setStdTemplateForm] = useState({ name: '', body_text: '', body_html: '', category: 'standard', is_active: true });
   const [propertyMap, setPropertyMap] = useState<Record<string, string>>({});
   const [profileMap, setProfileMap] = useState<Record<string, string>>({});
 
