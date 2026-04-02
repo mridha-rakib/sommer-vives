@@ -230,7 +230,7 @@ export function PremiumServicesSection() {
   const { ref: ref2, isInView: isInView2 } = useScrollReveal();
 
   return (
-    <section className="py-20 md:py-28 bg-background">
+    <section className="py-14 md:py-28 bg-background">
       <div className="container mx-auto px-5 md:px-10 max-w-[1100px]">
 
         {/* ── Hero: image with text overlay ── */}
@@ -238,7 +238,7 @@ export function PremiumServicesSection() {
           <motion.img
             src={heroInterior}
             alt="Moderne skandinavisk sommerhus"
-            className="w-full aspect-[2.4/1] min-h-[280px] max-h-[420px] object-cover"
+            className="w-full aspect-[16/9] md:aspect-[2.4/1] min-h-[200px] max-h-[420px] object-cover"
             initial={{ scale: 1.04 }}
             animate={isInView ? { scale: 1 } : {}}
             transition={{ duration: 1.2, ease: 'easeOut' }}
@@ -266,7 +266,7 @@ export function PremiumServicesSection() {
         </motion.div>
 
         {/* ── Full service grid — all 14 services ── */}
-        <div ref={ref2}>
+        <div ref={ref2} className="hidden md:block">
           <motion.div {...fade(isInView2)} className="mb-10">
             <span className="text-accent/40 text-[9px] font-semibold tracking-[0.35em] uppercase block mb-2">
               Komplet oversigt
@@ -276,7 +276,7 @@ export function PremiumServicesSection() {
             </h3>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
+          <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
             {allServices.map((s, i) => {
               const Icon = s.icon;
               return (

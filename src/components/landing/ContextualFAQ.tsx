@@ -30,7 +30,7 @@ export function ContextualFAQ({
   const { ref, isInView } = useScrollReveal();
 
   return (
-    <section ref={ref} className={`py-24 md:py-32 bg-background overflow-hidden ${className}`}>
+    <section ref={ref} className={`py-16 md:py-32 bg-background overflow-hidden ${className}`}>
       <div className="container mx-auto px-5 md:px-10 max-w-[680px]">
         <motion.div
           initial={{ opacity: 0, y: 16 }}

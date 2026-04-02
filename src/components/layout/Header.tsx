@@ -65,7 +65,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation — pill style */}
-          <div className={`hidden md:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
+          <div className={`hidden lg:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
             transparent
               ? 'bg-foreground/8 backdrop-blur-md border border-foreground/10'
               : 'bg-muted/50 border border-border/50'
@@ -93,7 +93,7 @@ export function Header() {
           </div>
 
           {/* Right side actions */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
             <LanguageSelector />
             {user ? (
               <DropdownMenu>
@@ -206,7 +206,7 @@ export function Header() {
 
           {/* Mobile menu button */}
           <button
-            className={`md:hidden p-2 rounded-xl transition-colors ${
+            className={`lg:hidden p-2 rounded-xl transition-colors ${
               transparent
                 ? 'text-foreground hover:bg-foreground/10'
                 : 'text-foreground hover:bg-muted'
@@ -225,7 +225,7 @@ export function Header() {
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
-              className="md:hidden overflow-hidden"
+              className="lg:hidden overflow-hidden"
             >
               <div className="pb-5 pt-2">
                 <div className="flex flex-col gap-1 mb-4">
