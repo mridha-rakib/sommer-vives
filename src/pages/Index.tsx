@@ -4,8 +4,7 @@ import { PremiumServicesSection } from '@/components/landing/PremiumServicesSect
 import { ExitIntentPopup } from '@/components/landing/ExitIntentPopup';
 import { EarningsSection } from '@/components/landing/EarningsSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
-import { WhyUsSection } from '@/components/landing/WhyUsSection';
-import { PricingSection } from '@/components/landing/PricingSection';
+import { WhyUsPricingSection } from '@/components/landing/WhyUsPricingSection';
 import { TestimonialsFAQSection } from '@/components/landing/TestimonialsFAQSection';
 import { ContactExpertsSection } from '@/components/landing/ContactExpertsSection';
 import { useTranslation } from '@/lib/i18n';
@@ -35,8 +34,7 @@ const Index = () => {
       <div id="saadan-virker-det">
         <HowItWorksSection />
       </div>
-      <WhyUsSection />
-      <PricingSection />
+      <WhyUsPricingSection />
       <div id="faq">
         <TestimonialsFAQSection
           faqItems={homeFAQs}
