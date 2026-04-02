@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Settings, LogOut, Menu, X, Calendar,
   MessageSquare, ListChecks, Target, Users, FolderOpen,
   FileText, Wallet, ChevronDown, Search,
-  UserCheck, User, Archive, ExternalLink
+  UserCheck, User, ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
