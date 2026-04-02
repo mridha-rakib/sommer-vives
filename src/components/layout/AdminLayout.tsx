@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Settings, LogOut, Menu, X, Calendar,
-  MessageSquare, ListChecks, Target, Users, Inbox, FolderOpen,
-  FileText, Wallet, ChevronDown, ChevronRight, Search,
-  UserCheck, User, Archive, CalendarDays, ShoppingBag, Radio, ExternalLink
+  MessageSquare, ListChecks, Target, Users, FolderOpen,
+  FileText, Wallet, ChevronDown, Search,
+  UserCheck, User, Archive, ExternalLink
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
@@ -29,17 +29,18 @@ const navSections: { label?: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: 'Kommunikation',
+    label: 'Daglig drift',
     items: [
-      { name: 'Beskeder', href: '/admin/beskeder', icon: MessageSquare },
       { name: 'Kalender', href: '/admin/kalender', icon: Calendar },
       { name: 'Opgaver', href: '/admin/opgaver', icon: ListChecks },
+      { name: 'Beskeder', href: '/admin/beskeder', icon: MessageSquare },
     ],
   },
   {
     label: 'Pipeline',
     items: [
       { name: 'Leads', href: '/admin/leads', icon: Target },
+      { name: 'Sager', href: '/admin/sager', icon: FolderOpen },
       {
         name: 'CRM', href: '/admin/crm', icon: Users,
         children: [
@@ -48,21 +49,11 @@ const navSections: { label?: string; items: NavItem[] }[] = [
           { name: 'Arkiv', href: '/admin/crm/arkiv', icon: Archive },
         ],
       },
-      { name: 'Modtagelse', href: '/admin/modtagelse', icon: Inbox },
     ],
   },
   {
-    label: 'Drift',
+    label: 'Indhold',
     items: [
-      {
-        name: 'Sager', href: '/admin/sager', icon: FolderOpen,
-        children: [
-          { name: 'Alle sager', href: '/admin/sager', icon: FolderOpen },
-          { name: 'Kalender', href: '/admin/sager/kalender', icon: CalendarDays },
-          { name: 'Tilkøb', href: '/admin/sager/tilkoeb', icon: ShoppingBag },
-          { name: 'Kanaler', href: '/admin/sager/kanaler', icon: Radio },
-        ],
-      },
       { name: 'Dokumenter', href: '/admin/dokumenter', icon: FileText },
       { name: 'Økonomi', href: '/admin/oekonomi', icon: Wallet },
     ],
