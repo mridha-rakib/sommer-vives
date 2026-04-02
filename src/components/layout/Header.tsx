@@ -293,6 +293,11 @@ export function Header() {
                           {t('nav.calcEarnings')}
                         </Button>
                       </Link>
+                      <Link to="/book-vurdering" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full rounded-xl border-primary/30 text-primary">
+                          {t('hero.cta2')}
+                        </Button>
+                      </Link>
                       <Link to="/kom-i-gang" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="gold" className="w-full rounded-xl shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">{t('nav.getStarted')}</Button>
                       </Link>
