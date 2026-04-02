@@ -36,7 +36,7 @@ const Listings = () => {
     const load = async () => {
       const { data } = await supabase
         .from('listings')
-        .select('id, slug, name, description, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, hero_image, images, amenities')
+        .select('id, slug, name, description, tagline, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, hero_image, images, amenities, property_type')
         .eq('is_active', true)
         .order('sort_order');
       setListings((data as unknown as ListingData[]) || []);
