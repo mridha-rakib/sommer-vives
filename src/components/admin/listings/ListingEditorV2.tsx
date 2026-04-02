@@ -1243,74 +1243,67 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5 text-primary" />
-                  {channelDialogOpen === 'airbnb' ? 'Airbnb' : channelDialogOpen === 'booking' ? 'Booking.com' : 'Vrbo'} — Detaljer
+                  {channelDialogOpen === 'airbnb' ? 'Airbnb' : channelDialogOpen === 'booking' ? 'Booking.com' : 'Vrbo'} — Readiness
                 </DialogTitle>
               </DialogHeader>
               {channelDialogOpen && (() => {
                 const ch = channelDialogOpen as 'airbnb' | 'booking' | 'vrbo';
-                const title = (listing as any)[`channel_${ch}_title`] as string | null;
-                const desc = (listing as any)[`channel_${ch}_description`] as string | null;
+                const cr = channelReadiness[ch];
                 const ready = (listing as any)[`channel_${ch}_ready`] as boolean | null;
-                const missing: string[] = [];
-                if (!title || title.length < 5) missing.push('Kanaltitel (min 5 tegn)');
-                if (!desc || desc.length < 20) missing.push('Kanalbeskrivelse (min 20 tegn)');
-                if (!listing.hero_image) missing.push('Hero-billede');
-                if ((listing.images?.length || 0) < 3) missing.push('Mindst 3 galleri-billeder');
-                if ((listing.amenities?.length || 0) < 3) missing.push('Mindst 3 faciliteter');
-                if (!listing.address) missing.push('Adresse');
-                if ((listing.max_guests || 0) < 1) missing.push('Gæstekapacitet');
-                if ((listing.base_price_per_night || 0) <= 0) missing.push('Basispris');
-                if (!listing.check_in_time) missing.push('Check-in tid');
-                if (!listing.check_out_time) missing.push('Check-out tid');
-                if (!listing.house_rules) missing.push('Husregler');
+                const chLabel = ch === 'airbnb' ? 'Airbnb' : ch === 'booking' ? 'Booking.com' : 'Vrbo';
 
                 return (
-                  <div className="space-y-4">
-                    {/* Title & desc preview */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground">Kanaltitel</p>
-                      <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground">
-                        {title || <span className="italic text-muted-foreground">Ikke udfyldt</span>}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground">Kanalbeskrivelse</p>
-                      <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground whitespace-pre-line">
-                        {desc || <span className="italic text-muted-foreground">Ikke udfyldt</span>}
+                  <div className="space-y-5">
+                    {/* Score header */}
+                    <div className="flex items-center gap-4">
+                      <ReadinessRing score={cr.score} size={64} strokeWidth={4} />
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {cr.score === 100 ? `${chLabel} er 100% klar!` : cr.score >= 80 ? 'Næsten klar!' : cr.score >= 50 ? 'Godt på vej' : 'Flere felter mangler'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{cr.passed.length} af {cr.passed.length + cr.missing.length} krav opfyldt</p>
                       </div>
                     </div>
 
-                    {/* Image readiness */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-semibold text-muted-foreground">Billeder</p>
-                      <div className="flex gap-2">
-                        {listing.images?.slice(0, 5).map((img, i) => (
-                          <div key={i} className="w-14 h-14 rounded-lg overflow-hidden border border-border">
-                            <img src={img} alt="" className="w-full h-full object-cover" />
-                          </div>
-                        ))}
-                        {(!listing.images || listing.images.length === 0) && (
-                          <p className="text-xs text-muted-foreground italic">Ingen billeder</p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Missing fields */}
-                    {missing.length > 0 && (
-                      <div className="space-y-1.5">
-                        <p className="text-xs font-semibold text-amber-500">⚠ Manglende felter ({missing.length})</p>
-                        {missing.map(m => (
-                          <div key={m} className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <AlertTriangle className="h-3 w-3 text-amber-400 shrink-0" /> {m}
+                    {/* Passed checklist */}
+                    {cr.passed.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">Opfyldt</p>
+                        {cr.passed.map(p => (
+                          <div key={p} className="flex items-center gap-2 text-xs text-muted-foreground py-0.5">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" /> {p}
                           </div>
                         ))}
                       </div>
                     )}
 
-                    {missing.length === 0 && (
+                    {/* Missing with actions */}
+                    {cr.missing.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Mangler</p>
+                        {cr.missing.map(m => (
+                          <div key={m.field} className="flex items-center justify-between gap-2 py-1 px-2 rounded-lg hover:bg-muted/30 transition-colors">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
+                              <AlertTriangle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                              <span className="truncate">{m.field}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-[10px] h-6 px-2 text-primary shrink-0"
+                              onClick={() => { setActiveTab(m.tab); setChannelDialogOpen(null); }}
+                            >
+                              {m.action} →
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {cr.score === 100 && (
                       <div className="rounded-lg bg-emerald-500/5 border border-emerald-500/20 p-3 flex items-center gap-2">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                        <p className="text-xs text-emerald-500 font-medium">Alle påkrævede felter er udfyldt!</p>
+                        <p className="text-xs text-emerald-600 font-medium">Alle påkrævede felter er udfyldt!</p>
                       </div>
                     )}
 
@@ -1319,7 +1312,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                         className="flex-1 gap-1.5"
                         onClick={() => { handlePrepareChannel(ch); setChannelDialogOpen(null); }}
                       >
-                        <Sparkles className="h-4 w-4" /> Forbered {channelDialogOpen === 'airbnb' ? 'Airbnb' : channelDialogOpen === 'booking' ? 'Booking.com' : 'Vrbo'}
+                        <Sparkles className="h-4 w-4" /> AI-forbered {chLabel}
                       </Button>
                       <Button
                         variant={ready ? 'secondary' : 'outline'}
