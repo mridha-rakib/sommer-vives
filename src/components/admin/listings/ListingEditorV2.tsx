@@ -18,7 +18,8 @@ import {
   Star, AlertTriangle, Info, ClipboardCheck, Rocket, Sparkles, Zap,
   CircleDot, Circle, Check, Languages, Wand2, FileText,
   Link2, RefreshCw, WifiOff, Wifi, Clock, AlertCircle,
-  Eye, Settings, Tag, Puzzle, FileCheck, StickyNote, Calendar as CalendarIcon, ShoppingBag
+  Eye, Settings, Tag, Puzzle, FileCheck, StickyNote, Calendar as CalendarIcon, ShoppingBag,
+  Users, Briefcase
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
