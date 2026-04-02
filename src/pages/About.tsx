@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useRef, useState, useEffect } from 'react';
 import emilPortrait from '@/assets/emil-portrait.jpg';
-import heroHouse from '@/assets/hero-house.jpg';
+import emilHeadshot from '@/assets/emil-headshot.jpg';
+import kvieSoeDrone from '@/assets/kvie-soe-drone.jpg';
 import {
   Accordion,
   AccordionContent,
@@ -27,21 +28,17 @@ const reveal = (isInView: boolean, delay = 0) => ({
 });
 
 /* ═══════════════════════════════════════════════════
-   1. HERO — Brand-led with cinematic background video (like landing page)
+   1. HERO — Brand-led with cinematic background video
    ═══════════════════════════════════════════════════ */
 function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
 
   return (
     <section className="relative min-h-[88vh] flex items-center overflow-hidden">
-      {/* Background video — same pattern as landing page */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/10" />
         <video
-          autoPlay
-          loop
-          muted
-          playsInline
+          autoPlay loop muted playsInline
           onLoadedData={() => setVideoLoaded(true)}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
         >
@@ -52,33 +49,20 @@ function HeroSection() {
         )}
       </div>
 
-      {/* Content — side by side */}
       <div className="relative z-10 container mx-auto px-5 md:px-10 py-32 md:py-0">
         <div className="max-w-[1140px] mx-auto">
           <div className="max-w-[620px]">
-            <motion.span
-              {...fade(0.05)}
-              className="inline-block text-accent/50 font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-5"
-            >
+            <motion.span {...fade(0.05)} className="inline-block text-accent/50 font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-5">
               Om SommerVibes
             </motion.span>
-
-            <motion.h1
-              {...fade(0.15)}
-              className="font-display text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[3.8rem] font-bold leading-[1.05] tracking-[-0.02em] mb-6"
-            >
+            <motion.h1 {...fade(0.15)} className="font-display text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[3.8rem] font-bold leading-[1.05] tracking-[-0.02em] mb-6">
               Vi bygger fremtidens
               <br />
               <span className="text-accent italic font-normal">sommerhusbureau</span>
             </motion.h1>
-
-            <motion.p
-              {...fade(0.3)}
-              className="text-[15px] md:text-[16px] text-muted-foreground/85 leading-[1.8] mb-9 max-w-[480px]"
-            >
+            <motion.p {...fade(0.3)} className="text-[15px] md:text-[16px] text-muted-foreground/85 leading-[1.8] mb-9 max-w-[480px]">
               SommerVibes er et moderne, grundlægger-drevet bureau — mere personligt end de store, mere digitalt, mere gennemsigtigt. Bygget for husejere, der fortjener en bedre oplevelse.
             </motion.p>
-
             <motion.div {...fade(0.45)} className="flex flex-col sm:flex-row gap-3">
               <Link to="/kom-i-gang">
                 <Button variant="gold" size="lg" className="gap-2.5 group px-8 h-12 text-[13.5px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.3)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.4)] transition-shadow duration-500">
@@ -99,27 +83,23 @@ function HeroSection() {
 }
 
 /* ═══════════════════════════════════════════════════
-   2. FOUNDER VIDEO — Emil intro with autoplay + replay
+   2. FOUNDER VIDEO — Soft storytelling + always-visible replay
    ═══════════════════════════════════════════════════ */
 function FounderVideoSection() {
   const { ref, isInView } = useScrollReveal();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasEnded, setHasEnded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     const onEnd = () => { setIsPlaying(false); setHasEnded(true); };
-    const onLoaded = () => setIsLoaded(true);
     const onPlay = () => { setIsPlaying(true); setHasEnded(false); };
     v.addEventListener('ended', onEnd);
-    v.addEventListener('loadeddata', onLoaded);
     v.addEventListener('play', onPlay);
     return () => {
       v.removeEventListener('ended', onEnd);
-      v.removeEventListener('loadeddata', onLoaded);
       v.removeEventListener('play', onPlay);
     };
   }, []);
@@ -137,19 +117,16 @@ function FounderVideoSection() {
       <div className="container mx-auto px-5 md:px-10">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center max-w-[1100px] mx-auto">
           {/* Video */}
-          <motion.div
-            {...reveal(isInView)}
-            className="lg:col-span-7"
-          >
+          <motion.div {...reveal(isInView)} className="lg:col-span-7">
             <div className="relative rounded-[1.25rem] overflow-hidden bg-card/60 ring-1 ring-white/[0.04] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.5)]">
               <video
                 ref={videoRef}
-                src="/videos/ewk-2.mp4"
+                src="/videos/ewk-intro.mp4"
                 poster={emilPortrait}
                 playsInline
                 muted
                 preload="metadata"
-                className="w-full aspect-video object-cover"
+                className="w-full aspect-[16/10] object-cover object-top"
               />
 
               <AnimatePresence>
@@ -171,30 +148,66 @@ function FounderVideoSection() {
                     </div>
                   </motion.button>
                 )}
-
-                {hasEnded && (
-                  <motion.button
-                    key="replay"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    onClick={replay}
-                    className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-card/80 backdrop-blur-md ring-1 ring-white/[0.08] flex items-center justify-center cursor-pointer hover:scale-105 hover:ring-accent/20 transition-all duration-300"
-                    title="Se igen"
-                  >
-                    <RotateCcw className="w-4 h-4 text-accent/70" />
-                  </motion.button>
-                )}
               </AnimatePresence>
+
+              {/* Always-visible sticky replay button */}
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isPlaying || hasEnded ? 1 : 0 }}
+                transition={{ duration: 0.3 }}
+                onClick={replay}
+                className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-card/80 backdrop-blur-md ring-1 ring-white/[0.08] flex items-center justify-center cursor-pointer hover:scale-105 hover:ring-accent/20 transition-all duration-300 z-10"
+                title="Se igen"
+              >
+                <RotateCcw className="w-4 h-4 text-accent/70" />
+              </motion.button>
             </div>
           </motion.div>
 
-          {/* Founder intro */}
-          <motion.div
-            {...reveal(isInView, 0.15)}
-            className="lg:col-span-5"
-          >
+          {/* Soft storytelling */}
+          <motion.div {...reveal(isInView, 0.15)} className="lg:col-span-5">
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød Emil</span>
+            <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-5">
+              Mennesket bag
+              <span className="block text-accent italic font-normal mt-1">SommerVibes</span>
+            </h2>
+
+            <p className="text-muted-foreground/80 leading-[1.8] mb-5 text-[14.5px]">
+              Da Emil selv blev sommerhus-ejer, oplevede han det samme som mange andre — et bureau, der føltes distanceret, ugennemsigtigt og upersonligt.
+            </p>
+            <p className="text-muted-foreground/80 leading-[1.8] mb-7 text-[14.5px]">
+              I stedet for at acceptere det, byggede han SommerVibes: et bureau, hvor husejere kender deres rådgiver ved navn, har fuldt overblik over alt — og aldrig føler sig som et nummer i rækken.
+            </p>
+
+            <div className="border-l-[1.5px] border-accent/20 pl-5 py-1">
+              <p className="text-primary/70 font-display text-[0.95rem] italic leading-[1.7]">
+                "Jeg ville skabe det bureau, jeg selv savnede som husejer."
+              </p>
+              <p className="text-accent/40 text-[10px] mt-2 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann</p>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   2b. FOUNDER FACTS — Portrait + credentials
+   ═══════════════════════════════════════════════════ */
+function FounderFactsSection() {
+  const { ref, isInView } = useScrollReveal();
+  return (
+    <section ref={ref} className="py-16 md:py-24 bg-card/30 relative">
+      <div className="container mx-auto px-5 md:px-10">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center max-w-[1060px] mx-auto">
+          <motion.div {...reveal(isInView)} className="lg:col-span-5 flex justify-center">
+            <div className="rounded-[1.25rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.35)] ring-1 ring-white/[0.03] max-w-[320px]">
+              <img src={emilHeadshot} alt="Emil Weng Klockmann" className="w-full aspect-[4/5] object-cover object-top" loading="lazy" />
+            </div>
+          </motion.div>
+
+          <motion.div {...reveal(isInView, 0.12)} className="lg:col-span-7">
             <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Mød grundlæggeren</span>
             <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-1.5">
               Emil Weng Klockmann
@@ -236,7 +249,7 @@ function FounderVideoSection() {
 }
 
 /* ═══════════════════════════════════════════════════
-   3. STORY — One strong editorial block
+   3. STORY — Positive brand storytelling
    ═══════════════════════════════════════════════════ */
 function StorySection() {
   const { ref, isInView } = useScrollReveal();
@@ -251,17 +264,8 @@ function StorySection() {
             className="lg:col-span-5 relative"
           >
             <div className="rounded-[1.25rem] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.35)] ring-1 ring-white/[0.03]">
-              <img src={heroHouse} alt="Dansk sommerhus i naturskønne omgivelser" className="w-full aspect-[4/5] object-cover" loading="lazy" />
+              <img src={kvieSoeDrone} alt="Sommerhusområde ved Kvie Sø set fra drone" className="w-full aspect-[4/5] object-cover" loading="lazy" />
             </div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="absolute -bottom-3 -right-3 bg-accent text-primary px-5 py-2.5 rounded-xl shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)]"
-            >
-              <span className="font-display font-bold text-[14px]">Kun 15%</span>
-              <span className="block text-[10px] opacity-70 tracking-wide">i kommission</span>
-            </motion.div>
           </motion.div>
 
           <motion.div
@@ -270,24 +274,24 @@ function StorySection() {
             transition={{ duration: 1, delay: 0.1, ease: "easeOut" }}
             className="lg:col-span-7"
           >
-            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-5">Vores historie</span>
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-5">Vores tilgang</span>
             <h2 className="font-display text-[1.7rem] md:text-[2.2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-8">
-              Fra frustration
-              <span className="block text-accent italic font-normal mt-1">til en bedre løsning</span>
+              Vi gør udlejning
+              <span className="block text-accent italic font-normal mt-1">enklere og bedre</span>
             </h2>
 
             <div className="space-y-5 mb-8">
               <p className="text-muted-foreground/80 leading-[1.8] text-[15px]">
-                Store bureauer fokuserer på volumen. Husejere bliver et nummer i rækken — uden gennemsigtighed, uden personlig kontakt, uden reel omsorg for deres hus.
+                Vi tror på, at sommerhusudlejning bør være enkel, gennemsigtig og personlig. At du som husejer fortjener fuldt overblik, en fast kontaktperson og en oplevelse, der matcher dit hus.
               </p>
               <p className="text-muted-foreground/80 leading-[1.8] text-[15px]">
-                <strong className="text-primary/85 font-medium">SommerVibes blev skabt som svaret på det, vi selv savnede</strong> — et moderne bureau med personlig service, digitalt overblik og en fair kommissionsmodel.
+                <strong className="text-primary/85 font-medium">Derfor byggede vi SommerVibes</strong> — et moderne bureau, der kombinerer digital nytænkning med ordentlig, personlig service og en fair aftale.
               </p>
             </div>
 
             <div className="border-l-[1.5px] border-accent/20 pl-6 py-1 mb-8">
               <p className="text-primary/75 font-display text-[1.05rem] md:text-[1.15rem] italic leading-[1.7]">
-                "Vores ambition er ikke at være det største bureau — men det bedste for de ejere, vi samarbejder med."
+                "Vores ambition er at være det bedste bureau for de ejere, vi samarbejder med — ikke det største."
               </p>
               <p className="text-accent/45 text-[11px] mt-3 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann</p>
             </div>
@@ -437,6 +441,7 @@ export default function About() {
     <PublicLayout>
       <HeroSection />
       <FounderVideoSection />
+      <FounderFactsSection />
       <StorySection />
       <BrandDNA />
       <ContactCloseSection />
