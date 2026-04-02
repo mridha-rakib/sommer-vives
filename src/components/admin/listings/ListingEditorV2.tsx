@@ -32,6 +32,11 @@ interface ListingFull {
   channel_airbnb_ready: boolean | null; channel_booking_ready: boolean | null; channel_vrbo_ready: boolean | null;
   channel_airbnb_title: string | null; channel_booking_title: string | null; channel_vrbo_title: string | null;
   channel_airbnb_description: string | null; channel_booking_description: string | null; channel_vrbo_description: string | null;
+  channel_airbnb_highlights: string[] | null; channel_airbnb_image_order: string[] | null;
+  channel_airbnb_house_rules: string | null; channel_airbnb_checkin_notes: string | null;
+  channel_booking_room_setup: string | null; channel_booking_facilities_mapping: Record<string, any> | null;
+  channel_booking_policies: string | null; channel_booking_checkin_checkout: string | null;
+  channel_vrbo_highlights: string[] | null; channel_vrbo_rules: string | null; channel_vrbo_photo_order: string[] | null;
   readiness_score: number | null; internal_status: string | null;
   checkin_info: string | null; checkout_info: string | null;
   image_captions: Record<string, string> | null;
