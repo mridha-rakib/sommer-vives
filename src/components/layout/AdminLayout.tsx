@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import emilAvatar from '@/assets/emil-klockmann.jpg';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
