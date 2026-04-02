@@ -5,6 +5,7 @@ import { ExitIntentPopup } from '@/components/landing/ExitIntentPopup';
 import { EarningsSection } from '@/components/landing/EarningsSection';
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection';
 import { WhyUsSection } from '@/components/landing/WhyUsSection';
+import { PricingSection } from '@/components/landing/PricingSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
 import { ContactExpertsSection } from '@/components/landing/ContactExpertsSection';
