@@ -363,7 +363,12 @@ export default function AdminDokumenter() {
     const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500);
     setDocuments(data || []);
   };
+
+  return (
     <AdminLayout>
+      {/* Hidden file input */}
+      <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv" onChange={handleFileUpload} />
+
       <div className="space-y-6">
         <AdminPageHeader
           title="Dokumenter"
