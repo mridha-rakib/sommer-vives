@@ -232,7 +232,7 @@ const COMMON_AMENITIES = [
 
 // ─── Inline Listing Editor ───
 // Premium Airbnb-style editor with animations, next/prev nav, celebrations
-function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (data: any) => void }) {
+function InlineListingEditor({ listing, onSaved, staffList }: { listing: any; onSaved: (data: any) => void; staffList?: any[] }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -258,8 +258,10 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     facilities: (listing.facilities || []) as { category: string; items: { name: string; description?: string; included: boolean }[] }[],
     location_title: listing.location_title || '', location_description: listing.location_description || '',
     getting_around: listing.getting_around || '',
-    contact_name: listing.contact_name || '', contact_role: listing.contact_role || '',
-    contact_email: listing.contact_email || '', contact_phone: listing.contact_phone || '',
+    contact_name: listing.contact_name || (() => { const a = staffList?.find((s: any) => s.staff_role === 'annoncerende'); return a?.staff_name || ''; })(),
+    contact_role: listing.contact_role || (() => { const a = staffList?.find((s: any) => s.staff_role === 'annoncerende'); return a ? 'Udlejningsrådgiver' : ''; })(),
+    contact_email: listing.contact_email || (() => { const a = staffList?.find((s: any) => s.staff_role === 'annoncerende'); return a?.staff_email || ''; })(),
+    contact_phone: listing.contact_phone || (() => { const a = staffList?.find((s: any) => s.staff_role === 'annoncerende'); return a?.staff_phone || ''; })(),
     contact_text: listing.contact_text || '', contact_image: listing.contact_image || '',
     reviews_title: listing.reviews_title || '', reviews_rating: listing.reviews_rating || 0,
     reviews_count: listing.reviews_count || 0,
@@ -1450,7 +1452,7 @@ export default function AdminSagDetail() {
           </div>
         )}
 
-        {tab === 'listing' && <InlineListingEditor listing={listing} onSaved={(updated) => setListing({ ...listing, ...updated })} />}
+        {tab === 'listing' && <InlineListingEditor listing={listing} staffList={staff} onSaved={(updated) => setListing({ ...listing, ...updated })} />}
 
         {tab === 'integrationer' && (
           <div className="space-y-4">
