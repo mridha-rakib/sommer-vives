@@ -262,6 +262,7 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     setSaving(true);
     const payload: Record<string, any> = {
       name: data.name, description: data.description || null,
+      long_description: data.long_description || null,
       address: data.address || null, region: data.region || null, city: data.city || null,
       max_guests: data.max_guests, bedrooms: data.bedrooms, bathrooms: data.bathrooms,
       base_price_per_night: Math.round(data.base_price_per_night * 100),
@@ -280,6 +281,32 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     setSaving(false);
     if (error) { toast.error(`Fejl: ${error.message}`); } else { setLastSaved(new Date()); onSaved(payload); }
   }, [listing.id, onSaved]);
+
+  // Image upload handler
+  const handleImageUpload = useCallback(async (files: FileList) => {
+    setUploadingImage(true);
+    const newUrls: string[] = [];
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const filePath = `${listing.owner_id}/${listing.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('listing-images').upload(filePath, file, { contentType: file.type });
+      if (error) { toast.error(`Upload fejl: ${file.name}`); continue; }
+      const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(filePath);
+      newUrls.push(urlData.publicUrl);
+    }
+    if (newUrls.length > 0) {
+      const updated = [...formRef.current.images, ...newUrls];
+      setForm(prev => ({ ...prev, images: updated }));
+      // Auto-set hero if none
+      if (!formRef.current.hero_image && newUrls[0]) {
+        setForm(prev => ({ ...prev, hero_image: newUrls[0] }));
+      }
+      scheduleSave();
+      toast.success(`${newUrls.length} billede${newUrls.length > 1 ? 'r' : ''} uploadet`);
+    }
+    setUploadingImage(false);
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  }, [listing.owner_id, listing.id, scheduleSave]);
 
   const scheduleSave = useCallback(() => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
