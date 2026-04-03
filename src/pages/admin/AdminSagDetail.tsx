@@ -1501,7 +1501,8 @@ export default function AdminSagDetail() {
                 })}
               </div>
             )}
-          </SectionCard>
+           </SectionCard>
+          </>
         )}
 
 
