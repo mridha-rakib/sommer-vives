@@ -766,9 +766,14 @@ export default function AdminDokumenter() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-sm">HTML indhold</Label>
+                    <Label className="text-sm">Indhold</Label>
                     <p className="text-[11px] text-muted-foreground">Brug placeholders som {"{{owner_name}}"}, {"{{property_name}}"}, {"{{commission_percent}}"} osv.</p>
-                    <Textarea value={stdTemplateForm.body_html} onChange={e => setStdTemplateForm(f => ({ ...f, body_html: e.target.value }))} rows={12} placeholder="<h1>Titel</h1><p>{{owner_name}}...</p>" />
+                    <RichTextEditor
+                      content={stdTemplateForm.body_html}
+                      onChange={html => setStdTemplateForm(f => ({ ...f, body_html: html }))}
+                      placeholder="Skriv skabelonindhold her..."
+                      minHeight="250px"
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm">Klartekst (kort)</Label>
