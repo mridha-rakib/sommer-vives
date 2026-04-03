@@ -242,7 +242,127 @@ export default function AdminDokumenter() {
     toast.success('Skabelon slettet');
   };
 
-  return (
+  // ── Document Editor ──
+  const openNewDoc = () => {
+    setEditorDoc(null);
+    setEditorForm({ title: '', document_type: 'internal', body_html: '', status: 'draft' });
+    setEditorOpen(true);
+  };
+
+  const openEditDoc = (doc: any) => {
+    setEditorDoc(doc);
+    setEditorForm({
+      title: doc.title || '',
+      document_type: doc.document_type || 'internal',
+      body_html: doc.body_html || '',
+      status: doc.status || 'draft',
+    });
+    setEditorOpen(true);
+  };
+
+  const openFromTemplate = (tpl: any) => {
+    setEditorDoc(null);
+    setEditorForm({
+      title: tpl.name,
+      document_type: tpl.category === 'aftale' ? 'formidlingsaftale' : 'internal',
+      body_html: tpl.body_html || `<p>${tpl.body_text}</p>`,
+      status: 'draft',
+    });
+    setEditorOpen(true);
+    setPageTab('documents');
+    toast.success('Skabelon indlæst i editoren');
+  };
+
+  const saveEditorDoc = async () => {
+    if (!editorForm.title.trim()) { toast.error('Titel er påkrævet'); return; }
+    setEditorSaving(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error('Du skal være logget ind'); setEditorSaving(false); return; }
+
+    if (editorDoc) {
+      // Update existing
+      const { error } = await supabase.from('documents').update({
+        title: editorForm.title.trim(),
+        document_type: editorForm.document_type,
+        status: editorForm.status,
+      }).eq('id', editorDoc.id);
+      if (error) { toast.error(error.message); setEditorSaving(false); return; }
+      toast.success('Dokument opdateret');
+    } else {
+      // Create new
+      const { error } = await supabase.from('documents').insert({
+        title: editorForm.title.trim(),
+        document_type: editorForm.document_type,
+        status: editorForm.status,
+        owner_id: user.id,
+      });
+      if (error) { toast.error(error.message); setEditorSaving(false); return; }
+      toast.success('Dokument oprettet');
+    }
+
+    setEditorSaving(false);
+    setEditorOpen(false);
+    // Refresh
+    const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500);
+    setDocuments(data || []);
+  };
+
+  const deleteDocument = async (id: string) => {
+    const { error } = await supabase.from('documents').delete().eq('id', id);
+    if (error) { toast.error(error.message); return; }
+    setDocuments(prev => prev.filter(d => d.id !== id));
+    setSelected(null);
+    toast.success('Dokument slettet');
+  };
+
+  // ── File Upload ──
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error('Du skal være logget ind'); return; }
+
+    setUploading(true);
+    const ext = file.name.split('.').pop() || 'bin';
+    const filePath = `${user.id}/${Date.now()}-${file.name}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('listing-images')
+      .upload(filePath, file, { contentType: file.type });
+
+    if (uploadError) {
+      toast.error(`Upload fejl: ${uploadError.message}`);
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(filePath);
+
+    let docType = 'other';
+    if (file.type.includes('pdf')) docType = 'other';
+    else if (file.type.includes('word') || file.type.includes('document') || ext === 'docx' || ext === 'doc') docType = 'owner_upload';
+    else if (file.type.includes('image')) docType = 'id_personal';
+    else if (file.type.includes('sheet') || file.type.includes('excel')) docType = 'statement';
+
+    const { error: dbError } = await supabase.from('documents').insert({
+      title: file.name,
+      document_type: docType,
+      status: 'active',
+      owner_id: user.id,
+      file_url: urlData.publicUrl,
+      file_size: file.size,
+      mime_type: file.type,
+    });
+
+    if (dbError) { toast.error(dbError.message); } else { toast.success(`"${file.name}" uploadet`); }
+
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500);
+    setDocuments(data || []);
+  };
     <AdminLayout>
       <div className="space-y-6">
         <AdminPageHeader
