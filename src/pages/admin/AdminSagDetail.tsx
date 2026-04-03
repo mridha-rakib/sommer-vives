@@ -1347,18 +1347,7 @@ export default function AdminSagDetail() {
         {tab === 'overblik' && (
           <div className="space-y-6">
             {/* Key info grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <SectionCard title="Readiness" icon={CheckCircle2}>
-                <div className="flex items-center justify-center py-2">
-                  <ReadinessRing score={score} />
-                </div>
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  <MiniStat label="Billeder" value={listing.images?.length || 0} ok={(listing.images?.length || 0) >= 5} />
-                  <MiniStat label="Beskrivelse" value={listing.description ? '✓' : '—'} ok={!!listing.description} />
-                  <MiniStat label="Pris" value={listing.base_price_per_night ? '✓' : '—'} ok={!!listing.base_price_per_night} />
-                  <MiniStat label="Regler" value={listing.house_rules ? '✓' : '—'} ok={!!listing.house_rules} />
-                </div>
-              </SectionCard>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               <SectionCard title="Nøgletal" icon={Home}>
                 <div className="space-y-2.5">
