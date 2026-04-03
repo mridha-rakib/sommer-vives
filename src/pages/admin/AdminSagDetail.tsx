@@ -231,10 +231,13 @@ const COMMON_AMENITIES = [
 ];
 
 // ─── Inline Listing Editor ───
-// Airbnb-style two-panel editor: left sidebar nav, right content panel
+// Premium Airbnb-style editor with animations, next/prev nav, celebrations
 function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (data: any) => void }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [sectionAnimDir, setSectionAnimDir] = useState<'left' | 'right'>('right');
+  const [animKey, setAnimKey] = useState(0);
   const [form, setForm] = useState(() => ({
     name: listing.name || '', description: listing.description || '', address: listing.address || '',
     region: listing.region || '', city: listing.city || '', tagline: listing.tagline || '',
@@ -274,6 +277,7 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
   const formRef = useRef(form);
   formRef.current = form;
   const [activeSection, setActiveSection] = useState('hero');
+  const [celebration, setCelebration] = useState<string | null>(null);
 
   const persistFn = useCallback(async (data: typeof form) => {
     setSaving(true);
@@ -380,7 +384,6 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     upd('amenities', has ? form.amenities.filter((x: string) => x !== a) : [...form.amenities, a]);
   };
 
-  // Section helpers
   const addContentSection = () => upd('extra_sections', [...form.extra_sections, { title: '', body: '', image: '' }]);
   const updateContentSection = (idx: number, field: string, value: string) => {
     const updated = [...form.extra_sections]; (updated[idx] as any)[field] = value; upd('extra_sections', updated);
@@ -402,34 +405,71 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
   };
   const removeListItem = (field: string, idx: number) => upd(field, (form as any)[field].filter((_: any, i: number) => i !== idx));
 
-  // Sections config with completion indicators
-  const sections = [
-    { id: 'hero', icon: Camera, label: 'Billeder', subtitle: `${form.images.length} billeder`, done: form.images.length >= 5 },
-    { id: 'intro', icon: Type, label: 'Titel & beskrivelse', subtitle: form.name || 'Ikke udfyldt', done: !!form.name && !!form.description },
-    { id: 'details', icon: Home, label: 'Boligoplysninger', subtitle: `${form.max_guests} gæster · ${form.bedrooms} sov.`, done: form.max_guests > 0 },
-    { id: 'highlights', icon: Sparkles, label: 'Highlights', subtitle: `${form.highlights.length} highlights`, done: form.highlights.length >= 2 },
-    { id: 'content', icon: FileText, label: 'Indholdssektioner', subtitle: `${form.extra_sections.length} sektioner`, done: form.extra_sections.length > 0 },
-    { id: 'bedrooms', icon: Bed, label: 'Soveværelser', subtitle: `${form.bedroom_images.length} værelser`, done: form.bedroom_images.length > 0 },
-    { id: 'facilities', icon: Wifi, label: 'Faciliteter', subtitle: `${form.facilities.reduce((s: number, c: any) => s + c.items.length, 0)} faciliteter`, done: form.facilities.length > 0 },
-    { id: 'included', icon: Tag, label: 'Inkluderet & Extras', subtitle: `${form.included_items.length} inkl.`, done: form.included_items.length > 0 },
-    { id: 'location', icon: MapPin, label: 'Beliggenhed', subtitle: form.address || 'Ikke udfyldt', done: !!form.address },
-    { id: 'reviews', icon: Sparkles, label: 'Anmeldelser', subtitle: `${form.reviews_entries.length} anm.`, done: form.reviews_entries.length > 0 },
-    { id: 'contact', icon: User, label: 'Kontakt', subtitle: form.contact_name || 'Ikke udfyldt', done: !!form.contact_name },
-    { id: 'checkin', icon: Clock, label: 'Ankomst & Regler', subtitle: `${form.check_in_time} / ${form.check_out_time}`, done: !!form.check_in_time },
-    { id: 'pricing', icon: DollarSign, label: 'Priser', subtitle: form.base_price_per_night ? `${form.base_price_per_night} kr/nat` : 'Ikke sat', done: form.base_price_per_night > 0 },
-  ];
+  // Sections config
+  const sections = useMemo(() => [
+    { id: 'hero', icon: Camera, label: 'Billeder', subtitle: `${form.images.length} billeder`, done: form.images.length >= 5, emoji: '📸' },
+    { id: 'intro', icon: Type, label: 'Titel & beskrivelse', subtitle: form.name || 'Ikke udfyldt', done: !!form.name && !!form.description, emoji: '✏️' },
+    { id: 'details', icon: Home, label: 'Boligoplysninger', subtitle: `${form.max_guests} gæster · ${form.bedrooms} sov.`, done: form.max_guests > 0, emoji: '🏠' },
+    { id: 'highlights', icon: Sparkles, label: 'Highlights', subtitle: `${form.highlights.length} highlights`, done: form.highlights.length >= 2, emoji: '⭐' },
+    { id: 'content', icon: FileText, label: 'Indholdssektioner', subtitle: `${form.extra_sections.length} sektioner`, done: form.extra_sections.length > 0, emoji: '📝' },
+    { id: 'bedrooms', icon: Bed, label: 'Soveværelser', subtitle: `${form.bedroom_images.length} værelser`, done: form.bedroom_images.length > 0, emoji: '🛏️' },
+    { id: 'facilities', icon: Wifi, label: 'Faciliteter', subtitle: `${form.facilities.reduce((s: number, c: any) => s + c.items.length, 0)} faciliteter`, done: form.facilities.length > 0, emoji: '🏊' },
+    { id: 'included', icon: Tag, label: 'Inkluderet & Extras', subtitle: `${form.included_items.length} inkl.`, done: form.included_items.length > 0, emoji: '✅' },
+    { id: 'location', icon: MapPin, label: 'Beliggenhed', subtitle: form.address || 'Ikke udfyldt', done: !!form.address, emoji: '📍' },
+    { id: 'reviews', icon: Sparkles, label: 'Anmeldelser', subtitle: `${form.reviews_entries.length} anm.`, done: form.reviews_entries.length > 0, emoji: '💬' },
+    { id: 'contact', icon: User, label: 'Kontakt', subtitle: form.contact_name || 'Ikke udfyldt', done: !!form.contact_name, emoji: '👤' },
+    { id: 'checkin', icon: Clock, label: 'Ankomst & Regler', subtitle: `${form.check_in_time} / ${form.check_out_time}`, done: !!form.check_in_time, emoji: '🔑' },
+    { id: 'pricing', icon: DollarSign, label: 'Priser', subtitle: form.base_price_per_night ? `${form.base_price_per_night} kr/nat` : 'Ikke sat', done: form.base_price_per_night > 0, emoji: '💰' },
+  ], [form]);
 
   const completedCount = sections.filter(s => s.done).length;
+  const currentIdx = sections.findIndex(s => s.id === activeSection);
+  const canGoNext = currentIdx < sections.length - 1;
+  const canGoPrev = currentIdx > 0;
 
-  // ── Panel header for right side ──
-  const PanelTitle = ({ title, subtitle }: { title: string; subtitle?: string }) => (
+  // Navigate sections with animation direction
+  const goToSection = useCallback((id: string) => {
+    const newIdx = sections.findIndex(s => s.id === id);
+    setSectionAnimDir(newIdx > currentIdx ? 'right' : 'left');
+    setAnimKey(k => k + 1);
+    setActiveSection(id);
+    contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentIdx, sections]);
+
+  const goNext = useCallback(() => { if (canGoNext) goToSection(sections[currentIdx + 1].id); }, [canGoNext, currentIdx, goToSection, sections]);
+  const goPrev = useCallback(() => { if (canGoPrev) goToSection(sections[currentIdx - 1].id); }, [canGoPrev, currentIdx, goToSection, sections]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goPrev(); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [goNext, goPrev]);
+
+  // Celebrate completion
+  useEffect(() => {
+    if (completedCount === sections.length && !celebration) {
+      setCelebration('🎉');
+      setTimeout(() => setCelebration(null), 3000);
+    }
+  }, [completedCount, sections.length, celebration]);
+
+  const PanelTitle = ({ title, subtitle, emoji }: { title: string; subtitle?: string; emoji?: string }) => (
     <div className="mb-8">
-      <h2 className="text-xl font-bold text-foreground">{title}</h2>
-      {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+      <div className="flex items-center gap-3">
+        {emoji && <span className="text-2xl">{emoji}</span>}
+        <div>
+          <h2 className="text-xl font-bold text-foreground">{title}</h2>
+          {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
+        </div>
+      </div>
     </div>
   );
 
-  // ── Field wrapper for consistent spacing ──
   const Field = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
     <div className="space-y-2">
       <Label className="text-sm font-medium text-foreground">{label}</Label>
@@ -438,42 +478,102 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     </div>
   );
 
-  // ── Render active section ──
+  const EmptyAddBlock = ({ onClick, icon: Icon, text, hint }: { onClick: () => void; icon: any; text: string; hint?: string }) => (
+    <button onClick={onClick}
+      className="w-full rounded-2xl border-2 border-dashed border-border/30 hover:border-primary/40 bg-gradient-to-br from-transparent to-primary/[0.02] hover:to-primary/[0.06] p-8 text-center transition-all group">
+      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 group-hover:bg-primary/15 transition-all">
+        <Icon className="w-6 h-6 text-primary/50 group-hover:text-primary/80 transition-colors" />
+      </div>
+      <p className="text-sm font-medium text-foreground/80 group-hover:text-foreground">{text}</p>
+      {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
+    </button>
+  );
+
+  // Navigation footer for each section
+  const NavFooter = () => (
+    <div className="mt-12 pt-6 border-t border-border/20 flex items-center justify-between">
+      <div>
+        {canGoPrev && (
+          <button onClick={goPrev}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+            <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span>{sections[currentIdx - 1]?.label}</span>
+          </button>
+        )}
+      </div>
+      <div className="flex items-center gap-2 text-[10px] text-muted-foreground/50">
+        <span>←→ piletaster</span>
+      </div>
+      <div>
+        {canGoNext && (
+          <button onClick={goNext}
+            className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group">
+            <span>{sections[currentIdx + 1]?.label}</span>
+            <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   const renderSection = () => {
+    const currentSection = sections.find(s => s.id === activeSection);
+    const emoji = currentSection?.emoji;
+
     switch (activeSection) {
       case 'hero':
         return (
           <>
-            <PanelTitle title="Billeder & Galleri" subtitle="Upload mindst 5 billeder — vi anbefaler 15+ for den bedste oplevelse." />
+            <PanelTitle title="Billeder & Galleri" subtitle="Upload mindst 5 billeder — vi anbefaler 15+ for den bedste oplevelse." emoji={emoji} />
             <input ref={imageInputRef} type="file" className="hidden" multiple accept="image/*" onChange={e => e.target.files && handleImageUpload(e.target.files)} />
-            <div
-              className="rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/50 bg-muted/5 hover:bg-primary/5 transition-all p-10 text-center cursor-pointer group"
-              onClick={() => imageInputRef.current?.click()}
-              onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-primary/60', 'bg-primary/10'); }}
-              onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); }}
-              onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); if (e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files); }}
-            >
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
-                <Upload className="w-7 h-7 text-primary/60" />
-              </div>
-              <p className="text-base font-semibold text-foreground">{uploadingImage ? 'Uploader...' : 'Træk billeder hertil'}</p>
-              <p className="text-sm text-muted-foreground mt-1">eller klik for at vælge · JPG, PNG, WebP</p>
-            </div>
 
-            {form.hero_image && (
-              <div className="mt-6 rounded-2xl overflow-hidden border border-primary/20 aspect-video relative group">
-                <img src={form.hero_image} alt="" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <Badge className="absolute bottom-3 left-3 bg-primary text-primary-foreground">⭐ Hovedbillede</Badge>
+            {form.images.length === 0 ? (
+              <div
+                className="rounded-2xl border-2 border-dashed border-border/30 hover:border-primary/50 bg-gradient-to-br from-primary/[0.02] to-primary/[0.06] transition-all p-16 text-center cursor-pointer group"
+                onClick={() => imageInputRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-primary/60', 'bg-primary/10'); }}
+                onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); }}
+                onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); if (e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files); }}
+              >
+                <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
+                  <Camera className="w-9 h-9 text-primary/40 group-hover:text-primary/70 transition-colors" />
+                </div>
+                <p className="text-lg font-semibold text-foreground/80 group-hover:text-foreground">{uploadingImage ? 'Uploader...' : 'Træk billeder hertil'}</p>
+                <p className="text-sm text-muted-foreground mt-2">eller klik for at vælge · JPG, PNG, WebP</p>
+                <p className="text-xs text-muted-foreground/50 mt-4">💡 Tip: Brug landskabsbilleder i høj opløsning for bedste resultat</p>
               </div>
-            )}
+            ) : (
+              <>
+                {/* Upload more button */}
+                <div
+                  className="rounded-2xl border-2 border-dashed border-border/30 hover:border-primary/40 bg-muted/5 hover:bg-primary/5 transition-all p-6 text-center cursor-pointer group mb-6"
+                  onClick={() => imageInputRef.current?.click()}
+                  onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-primary/60', 'bg-primary/10'); }}
+                  onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); }}
+                  onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); if (e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files); }}
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <Upload className="w-5 h-5 text-primary/50" />
+                    <span className="text-sm font-medium text-foreground/80">{uploadingImage ? 'Uploader...' : 'Upload flere billeder'}</span>
+                  </div>
+                </div>
 
-            {form.images.length > 0 && (
-              <div className="mt-6">
-                <p className="text-sm font-medium text-foreground mb-3">{form.images.length} billeder · Klik for at vælge hovedbillede</p>
+                {/* Hero image large */}
+                {form.hero_image && (
+                  <div className="rounded-2xl overflow-hidden border border-primary/20 aspect-video relative group mb-6">
+                    <img src={form.hero_image} alt="" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <Badge className="absolute bottom-4 left-4 bg-primary text-primary-foreground text-xs px-3 py-1">⭐ Hovedbillede</Badge>
+                    <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-lg">
+                      {form.images.length} billeder
+                    </div>
+                  </div>
+                )}
+
+                {/* Grid */}
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {form.images.map((img: string, i: number) => (
-                    <div key={i} className={cn("relative group rounded-xl overflow-hidden border-2 aspect-[4/3] bg-muted cursor-pointer transition-all hover:scale-[1.02]",
+                    <div key={i} className={cn("relative group rounded-xl overflow-hidden border-2 aspect-[4/3] bg-muted cursor-pointer transition-all hover:scale-[1.03] hover:shadow-lg",
                       form.hero_image === img ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-primary/30')}
                       onClick={() => upd('hero_image', img)}
                     >
@@ -487,131 +587,154 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
                     </div>
                   ))}
                 </div>
-              </div>
+
+                {/* Progress hint */}
+                {form.images.length < 5 && (
+                  <div className="mt-4 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 flex items-center gap-3">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+                    <p className="text-xs text-foreground">Upload mindst <strong>{5 - form.images.length} flere</strong> billeder for at nå minimum. Vi anbefaler 15+.</p>
+                  </div>
+                )}
+                {form.images.length >= 5 && form.images.length < 15 && (
+                  <div className="mt-4 rounded-xl bg-primary/5 border border-primary/15 px-4 py-3 flex items-center gap-3">
+                    <Info className="h-4 w-4 text-primary shrink-0" />
+                    <p className="text-xs text-muted-foreground">{form.images.length} billeder ✓ — Listings med 15+ billeder får 40% flere bookings.</p>
+                  </div>
+                )}
+              </>
             )}
+            <NavFooter />
           </>
         );
 
       case 'intro':
         return (
           <>
-            <PanelTitle title="Titel & Beskrivelse" subtitle="Det første gæsten ser — gør det fængende og personligt." />
+            <PanelTitle title="Titel & Beskrivelse" subtitle="Det første gæsten ser — gør det fængende og personligt." emoji={emoji} />
             <div className="space-y-6">
               <Field label="Listingens navn">
-                <Input value={form.name} onChange={e => upd('name', e.target.value)} placeholder="Skovhytten" className="text-lg font-semibold h-12" />
+                <Input value={form.name} onChange={e => upd('name', e.target.value)} placeholder="Skovhytten" className="text-lg font-semibold h-12 rounded-xl" />
+                <p className="text-[11px] text-muted-foreground/60 mt-1">{form.name.length}/50 tegn</p>
               </Field>
               <Field label="Tagline" hint="En kort one-liner der fanger essensen">
-                <Input value={form.tagline} onChange={e => upd('tagline', e.target.value)} placeholder="Hyggelig skovhytte ved Kvie Sø" className="h-11" />
+                <Input value={form.tagline} onChange={e => upd('tagline', e.target.value)} placeholder="Hyggelig skovhytte ved Kvie Sø" className="h-11 rounded-xl" />
               </Field>
               <Field label="Kort beskrivelse" hint="Gæstens første indtryk — 2-3 sætninger">
-                <Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={3} placeholder="Velkommen til…" className="resize-none" />
+                <Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={3} placeholder="Velkommen til…" className="resize-none rounded-xl" />
+                <p className="text-[11px] text-muted-foreground/60 mt-1">{form.description.length}/500 tegn</p>
               </Field>
               <Field label="Detaljeret beskrivelse" hint="Fortæl hele historien om boligen og oplevelsen">
-                <Textarea value={form.long_description} onChange={e => upd('long_description', e.target.value)} rows={6} placeholder="Denne charmerende bolig byder på…" className="resize-none" />
+                <Textarea value={form.long_description} onChange={e => upd('long_description', e.target.value)} rows={6} placeholder="Denne charmerende bolig byder på…" className="resize-none rounded-xl" />
               </Field>
             </div>
+            <NavFooter />
           </>
         );
 
       case 'details':
         return (
           <>
-            <PanelTitle title="Boligoplysninger" subtitle="Grundlæggende fakta om boligen." />
+            <PanelTitle title="Boligoplysninger" subtitle="Grundlæggende fakta om boligen." emoji={emoji} />
             <div className="space-y-6">
               <Field label="Boligtype">
-                <Input value={form.property_type} onChange={e => upd('property_type', e.target.value)} placeholder="Sommerhus, Hytte, Lejlighed..." className="h-11" />
+                <Input value={form.property_type} onChange={e => upd('property_type', e.target.value)} placeholder="Sommerhus, Hytte, Lejlighed..." className="h-11 rounded-xl" />
               </Field>
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-3 gap-4">
                 {[
                   { label: 'Max gæster', key: 'max_guests', icon: Users },
                   { label: 'Soveværelser', key: 'bedrooms', icon: Bed },
                   { label: 'Badeværelser', key: 'bathrooms', icon: Bath },
                 ].map(item => (
-                  <div key={item.key} className="rounded-2xl border border-border/40 p-5 text-center space-y-3 hover:border-primary/30 transition-colors">
-                    <item.icon className="h-6 w-6 text-muted-foreground mx-auto" />
+                  <div key={item.key} className="rounded-2xl border border-border/30 p-5 text-center space-y-3 hover:border-primary/30 hover:shadow-sm transition-all">
+                    <item.icon className="h-6 w-6 text-muted-foreground/60 mx-auto" />
                     <p className="text-xs font-medium text-muted-foreground">{item.label}</p>
                     <div className="flex items-center justify-center gap-3">
                       <button onClick={() => upd(item.key, Math.max(0, (form as any)[item.key] - 1))}
-                        className="w-9 h-9 rounded-full border border-border hover:border-primary flex items-center justify-center text-lg text-muted-foreground hover:text-foreground transition-colors">−</button>
-                      <span className="text-xl font-bold text-foreground w-8 text-center">{(form as any)[item.key]}</span>
+                        className="w-10 h-10 rounded-full border border-border/50 hover:border-primary hover:bg-primary/5 flex items-center justify-center text-lg text-muted-foreground hover:text-foreground transition-all active:scale-90">−</button>
+                      <span className="text-2xl font-bold text-foreground w-8 text-center tabular-nums">{(form as any)[item.key]}</span>
                       <button onClick={() => upd(item.key, (form as any)[item.key] + 1)}
-                        className="w-9 h-9 rounded-full border border-border hover:border-primary flex items-center justify-center text-lg text-muted-foreground hover:text-foreground transition-colors">+</button>
+                        className="w-10 h-10 rounded-full border border-border/50 hover:border-primary hover:bg-primary/5 flex items-center justify-center text-lg text-muted-foreground hover:text-foreground transition-all active:scale-90">+</button>
                     </div>
                   </div>
                 ))}
               </div>
               <Field label="Adresse">
-                <Input value={form.address} onChange={e => upd('address', e.target.value)} placeholder="Skovvej 12, 6800 Varde" className="h-11" />
+                <Input value={form.address} onChange={e => upd('address', e.target.value)} placeholder="Skovvej 12, 6800 Varde" className="h-11 rounded-xl" />
               </Field>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Region"><Input value={form.region} onChange={e => upd('region', e.target.value)} placeholder="Vestjylland" /></Field>
-                <Field label="By"><Input value={form.city} onChange={e => upd('city', e.target.value)} placeholder="Varde" /></Field>
+                <Field label="Region"><Input value={form.region} onChange={e => upd('region', e.target.value)} placeholder="Vestjylland" className="rounded-xl" /></Field>
+                <Field label="By"><Input value={form.city} onChange={e => upd('city', e.target.value)} placeholder="Varde" className="rounded-xl" /></Field>
               </div>
             </div>
+            <NavFooter />
           </>
         );
 
       case 'highlights':
         return (
           <>
-            <PanelTitle title="Highlights" subtitle="De 3-5 vigtigste USP'er. Vises som ikoner under intro-teksten." />
+            <PanelTitle title="Highlights" subtitle="De 3-5 vigtigste USP'er. Vises som ikoner under intro-teksten." emoji={emoji} />
             <div className="space-y-3">
               {form.highlights.map((h: string, i: number) => (
-                <div key={i} className="flex items-center gap-3 group">
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-sm font-bold text-primary">{i + 1}</div>
-                  <Input value={h} onChange={e => updateListItem('highlights', i, e.target.value)} placeholder="F.eks. Privat sø, Brændeovn, Skovudsigt..." className="flex-1 h-11" />
+                <div key={i} className="flex items-center gap-3 group animate-in slide-in-from-left-2 duration-200" style={{ animationDelay: `${i * 50}ms` }}>
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-sm font-bold text-primary">{i + 1}</div>
+                  <Input value={h} onChange={e => updateListItem('highlights', i, e.target.value)} placeholder="F.eks. Privat sø, Brændeovn, Skovudsigt..." className="flex-1 h-11 rounded-xl" />
                   <Button size="sm" variant="ghost" onClick={() => removeListItem('highlights', i)} className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <Trash2 className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </div>
               ))}
               {form.highlights.length < 5 && (
-                <button onClick={() => addListItem('highlights')}
-                  className="w-full rounded-xl border-2 border-dashed border-border/40 hover:border-primary/40 p-4 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
-                  <Plus className="h-4 w-4" /> Tilføj highlight
-                </button>
+                <EmptyAddBlock onClick={() => addListItem('highlights')} icon={Sparkles} text="Tilføj highlight" hint="F.eks. Privat sø, Brændeovn, Skovudsigt" />
               )}
             </div>
+            <NavFooter />
           </>
         );
 
       case 'content':
         return (
           <>
-            <PanelTitle title="Indholdssektioner" subtitle="Redaktionelle blokke med billede + tekst — vises som karusellen på listingen." />
+            <PanelTitle title="Indholdssektioner" subtitle="Redaktionelle blokke med billede + tekst — vises som karusellen på listingen." emoji={emoji} />
             <div className="space-y-4">
               {form.extra_sections.map((section, i) => (
-                <div key={i} className="rounded-2xl border border-border/40 overflow-hidden group hover:border-primary/20 transition-colors">
-                  <div className="flex items-center justify-between px-5 py-3 bg-muted/5">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sektion {i + 1}</span>
+                <div key={i} className="rounded-2xl border border-border/30 overflow-hidden group hover:border-primary/20 hover:shadow-sm transition-all">
+                  <div className="flex items-center justify-between px-5 py-3 bg-muted/5 border-b border-border/20">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">📖</span>
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sektion {i + 1}</span>
+                    </div>
                     <Button size="sm" variant="ghost" onClick={() => removeContentSection(i)} className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100">
                       <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
                     </Button>
                   </div>
                   <div className="p-5 space-y-4">
-                    <Input value={section.title} onChange={e => updateContentSection(i, 'title', e.target.value)} placeholder="Sektionens overskrift" className="text-base font-semibold h-11" />
-                    <Textarea value={section.body} onChange={e => updateContentSection(i, 'body', e.target.value)} rows={4} placeholder="Beskrivende tekst…" className="resize-none" />
+                    <Input value={section.title} onChange={e => updateContentSection(i, 'title', e.target.value)} placeholder="Sektionens overskrift" className="text-base font-semibold h-11 rounded-xl" />
+                    <Textarea value={section.body} onChange={e => updateContentSection(i, 'body', e.target.value)} rows={4} placeholder="Beskrivende tekst…" className="resize-none rounded-xl" />
                     <Field label="Billede URL (valgfrit)">
-                      <Input value={section.image || ''} onChange={e => updateContentSection(i, 'image', e.target.value)} placeholder="https://..." className="text-sm" />
+                      <Input value={section.image || ''} onChange={e => updateContentSection(i, 'image', e.target.value)} placeholder="https://..." className="text-sm rounded-xl" />
                     </Field>
+                    {section.image && (
+                      <div className="rounded-xl overflow-hidden aspect-video bg-muted border border-border/20">
+                        <img src={section.image} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
-              <button onClick={addContentSection}
-                className="w-full rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 p-6 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
-                <Plus className="h-4 w-4" /> Tilføj indholdssektion
-              </button>
+              <EmptyAddBlock onClick={addContentSection} icon={FileText} text="Tilføj indholdssektion" hint="Billede + tekst blok til listingen" />
             </div>
+            <NavFooter />
           </>
         );
 
       case 'bedrooms':
         return (
           <>
-            <PanelTitle title="Soveværelser" subtitle="Fortæl gæsten hvad de kan forvente i hvert værelse." />
+            <PanelTitle title="Soveværelser" subtitle="Fortæl gæsten hvad de kan forvente i hvert værelse." emoji={emoji} />
             <div className="space-y-4">
               {form.bedroom_images.map((br, i) => (
-                <div key={i} className="rounded-2xl border border-border/40 p-5 space-y-4 group hover:border-primary/20 transition-colors">
+                <div key={i} className="rounded-2xl border border-border/30 p-5 space-y-4 group hover:border-primary/20 hover:shadow-sm transition-all">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><Bed className="h-5 w-5 text-primary/60" /></div>
@@ -619,28 +742,31 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
                     </div>
                     <Button size="sm" variant="ghost" onClick={() => removeBedroom(i)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
                   </div>
-                  <Field label="Beskrivelse"><Textarea value={br.description || ''} onChange={e => updateBedroom(i, 'description', e.target.value)} rows={2} placeholder="1 dobbeltseng, natborde, garderobeskab..." className="resize-none" /></Field>
-                  <Field label="Billede URL"><Input value={br.url} onChange={e => updateBedroom(i, 'url', e.target.value)} placeholder="https://..." className="text-sm" /></Field>
+                  <Field label="Beskrivelse"><Textarea value={br.description || ''} onChange={e => updateBedroom(i, 'description', e.target.value)} rows={2} placeholder="1 dobbeltseng, natborde, garderobeskab..." className="resize-none rounded-xl" /></Field>
+                  <Field label="Billede URL"><Input value={br.url} onChange={e => updateBedroom(i, 'url', e.target.value)} placeholder="https://..." className="text-sm rounded-xl" /></Field>
+                  {br.url && (
+                    <div className="rounded-xl overflow-hidden aspect-video bg-muted border border-border/20">
+                      <img src={br.url} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
               ))}
-              <button onClick={addBedroom}
-                className="w-full rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 p-6 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
-                <Plus className="h-4 w-4" /> Tilføj soveværelse
-              </button>
+              <EmptyAddBlock onClick={addBedroom} icon={Bed} text="Tilføj soveværelse" hint="Beskriv hvert værelse med billede og detaljer" />
             </div>
+            <NavFooter />
           </>
         );
 
       case 'facilities':
         return (
           <>
-            <PanelTitle title="Faciliteter" subtitle="Hvad tilbyder boligen? Organisér i kategorier ligesom Airbnb." />
+            <PanelTitle title="Faciliteter" subtitle="Hvad tilbyder boligen? Vælg fra listen eller tilføj dine egne." emoji={emoji} />
             <div className="space-y-2 mb-6">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Hurtig-tilføj</p>
               <div className="flex flex-wrap gap-2">
                 {COMMON_AMENITIES.filter(a => !form.amenities.includes(a)).slice(0, 12).map(a => (
                   <button key={a} onClick={() => toggleAm(a)}
-                    className="text-sm px-3 py-1.5 rounded-full border border-border/40 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all">
+                    className="text-sm px-3 py-1.5 rounded-full border border-border/30 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all active:scale-95">
                     + {a}
                   </button>
                 ))}
@@ -648,8 +774,8 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
               {form.amenities.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
                   {form.amenities.map((a: string) => (
-                    <span key={a} className="text-sm px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5">
-                      {a} <button onClick={() => toggleAm(a)} className="hover:text-destructive"><X className="h-3 w-3" /></button>
+                    <span key={a} className="text-sm px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5 animate-in zoom-in-95 duration-200">
+                      {a} <button onClick={() => toggleAm(a)} className="hover:text-destructive transition-colors"><X className="h-3 w-3" /></button>
                     </span>
                   ))}
                 </div>
@@ -659,8 +785,8 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
             <p className="text-sm font-medium text-foreground mb-4">Kategoriserede faciliteter</p>
             <div className="space-y-3">
               {form.facilities.map((cat, ci) => (
-                <div key={ci} className="rounded-2xl border border-border/40 overflow-hidden group">
-                  <div className="flex items-center gap-3 px-5 py-3 bg-muted/5 cursor-pointer">
+                <div key={ci} className="rounded-2xl border border-border/30 overflow-hidden group hover:shadow-sm transition-all">
+                  <div className="flex items-center gap-3 px-5 py-3 bg-muted/5 border-b border-border/20">
                     <Input value={cat.category} onChange={e => { const u = [...form.facilities]; u[ci].category = e.target.value; upd('facilities', u); }}
                       className="flex-1 text-sm font-semibold border-0 p-0 h-auto bg-transparent focus-visible:ring-0" />
                     <Badge variant="secondary" className="text-[10px]">{cat.items.length}</Badge>
@@ -671,7 +797,7 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
                       <div key={ii} className="flex items-center gap-3">
                         <Switch checked={item.included} onCheckedChange={v => { const u = [...form.facilities]; (u[ci].items[ii] as any).included = v; upd('facilities', u); }} className="scale-75" />
                         <Input value={item.name} onChange={e => { const u = [...form.facilities]; (u[ci].items[ii] as any).name = e.target.value; upd('facilities', u); }}
-                          placeholder="Facilitetsnavn" className="flex-1 text-sm h-9" />
+                          placeholder="Facilitetsnavn" className="flex-1 text-sm h-9 rounded-lg" />
                         <Button size="sm" variant="ghost" onClick={() => { const u = [...form.facilities]; u[ci].items.splice(ii, 1); upd('facilities', u); }}
                           className="h-7 w-7 p-0 opacity-50 hover:opacity-100"><X className="h-3 w-3" /></Button>
                       </div>
@@ -681,30 +807,28 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
                   </div>
                 </div>
               ))}
-              <button onClick={() => upd('facilities', [...form.facilities, { category: 'Ny kategori', items: [] }])}
-                className="w-full rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 p-4 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
-                <Plus className="h-4 w-4" /> Tilføj kategori
-              </button>
+              <EmptyAddBlock onClick={() => upd('facilities', [...form.facilities, { category: 'Ny kategori', items: [] }])} icon={Wifi} text="Tilføj kategori" hint="Organisér faciliteter i kategorier" />
             </div>
+            <NavFooter />
           </>
         );
 
       case 'included':
         return (
           <>
-            <PanelTitle title="Inkluderet & Extras" subtitle="Hvad er med i prisen, hvad skal gæsten medbringe, og hvad kan tilkøbes?" />
+            <PanelTitle title="Inkluderet & Extras" subtitle="Hvad er med i prisen, hvad skal gæsten medbringe, og hvad kan tilkøbes?" emoji={emoji} />
             {[
-              { field: 'included_items', title: '✅ Inkluderet i opholdet', placeholder: 'Kaffestation, toiletpapir...' },
-              { field: 'bring_yourself_items', title: '🎒 Medbring selv', placeholder: 'Sengelinned, håndklæder...' },
-              { field: 'purchasable_items', title: '🛒 Kan tilkøbes', placeholder: 'Brænde, slutrengøring...' },
-            ].map(({ field, title, placeholder }) => (
+              { field: 'included_items', title: '✅ Inkluderet i opholdet', placeholder: 'Kaffestation, toiletpapir...', icon: CheckCircle2 },
+              { field: 'bring_yourself_items', title: '🎒 Medbring selv', placeholder: 'Sengelinned, håndklæder...', icon: Info },
+              { field: 'purchasable_items', title: '🛒 Kan tilkøbes', placeholder: 'Brænde, slutrengøring...', icon: ShoppingBag },
+            ].map(({ field, title, placeholder, icon: Icon }) => (
               <div key={field} className="mb-8">
                 <p className="text-sm font-semibold text-foreground mb-3">{title}</p>
                 <div className="space-y-2">
                   {(form as any)[field].map((item: string, i: number) => (
                     <div key={i} className="flex items-center gap-3 group">
                       <span className="w-6 h-6 rounded-full bg-muted/30 flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">{i + 1}</span>
-                      <Input value={item} onChange={e => updateListItem(field, i, e.target.value)} placeholder={placeholder} className="flex-1 h-10" />
+                      <Input value={item} onChange={e => updateListItem(field, i, e.target.value)} placeholder={placeholder} className="flex-1 h-10 rounded-lg" />
                       <Button size="sm" variant="ghost" onClick={() => removeListItem(field, i)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
                     </div>
                   ))}
@@ -713,111 +837,126 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
                 </div>
               </div>
             ))}
+            <NavFooter />
           </>
         );
 
       case 'location':
         return (
           <>
-            <PanelTitle title="Beliggenhed" subtitle="Fortæl gæsten om området og hvordan de finder boligen." />
+            <PanelTitle title="Beliggenhed" subtitle="Fortæl gæsten om området og hvordan de finder boligen." emoji={emoji} />
             <div className="space-y-6">
-              <Field label="Overskrift"><Input value={form.location_title} onChange={e => upd('location_title', e.target.value)} placeholder="Midt i naturen ved Kvie Sø" className="h-11" /></Field>
-              <Field label="Beskrivelse af området"><Textarea value={form.location_description} onChange={e => upd('location_description', e.target.value)} rows={4} placeholder="Boligen ligger i rolige omgivelser..." className="resize-none" /></Field>
-              <Field label="Transport & omgivelser"><Textarea value={form.getting_around} onChange={e => upd('getting_around', e.target.value)} rows={3} placeholder="Nærmeste supermarked 5 min i bil..." className="resize-none" /></Field>
+              <Field label="Overskrift"><Input value={form.location_title} onChange={e => upd('location_title', e.target.value)} placeholder="Midt i naturen ved Kvie Sø" className="h-11 rounded-xl" /></Field>
+              <Field label="Beskrivelse af området"><Textarea value={form.location_description} onChange={e => upd('location_description', e.target.value)} rows={4} placeholder="Boligen ligger i rolige omgivelser..." className="resize-none rounded-xl" /></Field>
+              <Field label="Transport & omgivelser"><Textarea value={form.getting_around} onChange={e => upd('getting_around', e.target.value)} rows={3} placeholder="Nærmeste supermarked 5 min i bil..." className="resize-none rounded-xl" /></Field>
             </div>
+            <NavFooter />
           </>
         );
 
       case 'reviews':
         return (
           <>
-            <PanelTitle title="Anmeldelser" subtitle="Social proof fra gæster — vises på listingen." />
+            <PanelTitle title="Anmeldelser" subtitle="Social proof fra gæster — vises på listingen." emoji={emoji} />
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-4">
-                <Field label="Overordnet titel"><Input value={form.reviews_title} onChange={e => upd('reviews_title', e.target.value)} placeholder="Gæster elsker dette sted" /></Field>
-                <Field label="Rating (0-5)"><Input type="number" step={0.01} min={0} max={5} value={form.reviews_rating} onChange={e => upd('reviews_rating', parseFloat(e.target.value) || 0)} /></Field>
-                <Field label="Antal"><Input type="number" min={0} value={form.reviews_count} onChange={e => upd('reviews_count', parseInt(e.target.value) || 0)} /></Field>
+                <Field label="Overordnet titel"><Input value={form.reviews_title} onChange={e => upd('reviews_title', e.target.value)} placeholder="Gæster elsker dette sted" className="rounded-xl" /></Field>
+                <Field label="Rating (0-5)"><Input type="number" step={0.01} min={0} max={5} value={form.reviews_rating} onChange={e => upd('reviews_rating', parseFloat(e.target.value) || 0)} className="rounded-xl" /></Field>
+                <Field label="Antal"><Input type="number" min={0} value={form.reviews_count} onChange={e => upd('reviews_count', parseInt(e.target.value) || 0)} className="rounded-xl" /></Field>
               </div>
               <div className="space-y-4">
                 {form.reviews_entries.map((review, i) => (
-                  <div key={i} className="rounded-2xl border border-border/40 p-5 space-y-3 group hover:border-primary/20 transition-colors">
+                  <div key={i} className="rounded-2xl border border-border/30 p-5 space-y-3 group hover:border-primary/20 hover:shadow-sm transition-all">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-foreground">Anmeldelse {i + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">💬</span>
+                        <span className="text-sm font-semibold text-foreground">Anmeldelse {i + 1}</span>
+                      </div>
                       <Button size="sm" variant="ghost" onClick={() => removeReview(i)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
                     </div>
-                    <Textarea value={review.text} onChange={e => updateReview(i, 'text', e.target.value)} rows={2} placeholder="Det er et smukt sted i skoven…" className="resize-none" />
+                    <Textarea value={review.text} onChange={e => updateReview(i, 'text', e.target.value)} rows={2} placeholder="Det er et smukt sted i skoven…" className="resize-none rounded-xl" />
                     <div className="grid grid-cols-3 gap-3">
-                      <Input value={review.author} onChange={e => updateReview(i, 'author', e.target.value)} placeholder="Mariella" />
-                      <Input value={review.location || ''} onChange={e => updateReview(i, 'location', e.target.value)} placeholder="Houten, NL" />
-                      <Input value={review.date || ''} onChange={e => updateReview(i, 'date', e.target.value)} placeholder="dec. 2025" />
+                      <Input value={review.author} onChange={e => updateReview(i, 'author', e.target.value)} placeholder="Mariella" className="rounded-lg" />
+                      <Input value={review.location || ''} onChange={e => updateReview(i, 'location', e.target.value)} placeholder="Houten, NL" className="rounded-lg" />
+                      <Input value={review.date || ''} onChange={e => updateReview(i, 'date', e.target.value)} placeholder="dec. 2025" className="rounded-lg" />
                     </div>
                   </div>
                 ))}
-                <button onClick={addReview}
-                  className="w-full rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 p-4 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
-                  <Plus className="h-4 w-4" /> Tilføj anmeldelse
-                </button>
+                <EmptyAddBlock onClick={addReview} icon={Sparkles} text="Tilføj anmeldelse" hint="Tilføj social proof fra gæster" />
               </div>
             </div>
+            <NavFooter />
           </>
         );
 
       case 'contact':
         return (
           <>
-            <PanelTitle title="Kontakt" subtitle="Kontaktpersonen der vises i bunden af listingen." />
+            <PanelTitle title="Kontakt" subtitle="Kontaktpersonen der vises i bunden af listingen." emoji={emoji} />
             <div className="space-y-6">
+              {form.contact_image && (
+                <div className="flex items-center gap-4 mb-2">
+                  <img src={form.contact_image} alt="" className="w-16 h-16 rounded-2xl object-cover border border-border/30" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{form.contact_name || 'Kontaktperson'}</p>
+                    <p className="text-xs text-muted-foreground">{form.contact_role || 'Udlejningschef'}</p>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Navn"><Input value={form.contact_name} onChange={e => upd('contact_name', e.target.value)} placeholder="Emil Klockmann" className="h-11" /></Field>
-                <Field label="Rolle"><Input value={form.contact_role} onChange={e => upd('contact_role', e.target.value)} placeholder="Udlejningschef" className="h-11" /></Field>
+                <Field label="Navn"><Input value={form.contact_name} onChange={e => upd('contact_name', e.target.value)} placeholder="Emil Klockmann" className="h-11 rounded-xl" /></Field>
+                <Field label="Rolle"><Input value={form.contact_role} onChange={e => upd('contact_role', e.target.value)} placeholder="Udlejningschef" className="h-11 rounded-xl" /></Field>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="E-mail"><Input value={form.contact_email} onChange={e => upd('contact_email', e.target.value)} placeholder="ek@klockmann.dk" className="h-11" /></Field>
-                <Field label="Telefon"><Input value={form.contact_phone} onChange={e => upd('contact_phone', e.target.value)} placeholder="+45 42 44 07 27" className="h-11" /></Field>
+                <Field label="E-mail"><Input value={form.contact_email} onChange={e => upd('contact_email', e.target.value)} placeholder="ek@klockmann.dk" className="h-11 rounded-xl" /></Field>
+                <Field label="Telefon"><Input value={form.contact_phone} onChange={e => upd('contact_phone', e.target.value)} placeholder="+45 42 44 07 27" className="h-11 rounded-xl" /></Field>
               </div>
-              <Field label="Kontakttekst"><Textarea value={form.contact_text} onChange={e => upd('contact_text', e.target.value)} rows={3} placeholder="Har du spørgsmål? Skriv til mig…" className="resize-none" /></Field>
-              <Field label="Profilbillede URL"><Input value={form.contact_image} onChange={e => upd('contact_image', e.target.value)} placeholder="https://..." /></Field>
+              <Field label="Kontakttekst"><Textarea value={form.contact_text} onChange={e => upd('contact_text', e.target.value)} rows={3} placeholder="Har du spørgsmål? Skriv til mig…" className="resize-none rounded-xl" /></Field>
+              <Field label="Profilbillede URL"><Input value={form.contact_image} onChange={e => upd('contact_image', e.target.value)} placeholder="https://..." className="rounded-xl" /></Field>
             </div>
+            <NavFooter />
           </>
         );
 
       case 'checkin':
         return (
           <>
-            <PanelTitle title="Ankomst & Regler" subtitle="Check-in info, husregler og praktisk information." />
+            <PanelTitle title="Ankomst & Regler" subtitle="Check-in info, husregler og praktisk information." emoji={emoji} />
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 {[
                   { label: 'Check-in', key: 'check_in_time', icon: '🔑' },
                   { label: 'Check-out', key: 'check_out_time', icon: '👋' },
                 ].map(t => (
-                  <div key={t.key} className="rounded-2xl border border-border/40 p-5 text-center space-y-2 hover:border-primary/30 transition-colors">
-                    <span className="text-2xl">{t.icon}</span>
+                  <div key={t.key} className="rounded-2xl border border-border/30 p-6 text-center space-y-3 hover:border-primary/30 hover:shadow-sm transition-all">
+                    <span className="text-3xl">{t.icon}</span>
                     <p className="text-xs font-medium text-muted-foreground">{t.label}</p>
-                    <Input value={(form as any)[t.key]} onChange={e => upd(t.key, e.target.value)} className="text-center text-lg font-bold h-12" />
+                    <Input value={(form as any)[t.key]} onChange={e => upd(t.key, e.target.value)} className="text-center text-xl font-bold h-12 rounded-xl" />
                   </div>
                 ))}
               </div>
-              <Field label="Ankomst-info"><Textarea value={form.checkin_info} onChange={e => upd('checkin_info', e.target.value)} rows={3} placeholder="Nøgleboks ved hoveddøren..." className="resize-none" /></Field>
-              <Field label="Afrejse-info"><Textarea value={form.checkout_info} onChange={e => upd('checkout_info', e.target.value)} rows={3} placeholder="Tøm køleskab, tænd opvaskemaskine..." className="resize-none" /></Field>
-              <Field label="Husregler"><Textarea value={form.house_rules} onChange={e => upd('house_rules', e.target.value)} rows={3} placeholder="Ingen rygning, max 8 gæster…" className="resize-none" /></Field>
-              <Field label="Praktisk info"><Textarea value={form.practical_info} onChange={e => upd('practical_info', e.target.value)} rows={3} placeholder="WiFi: SommerNet, kode: 1234…" className="resize-none" /></Field>
+              <Field label="Ankomst-info"><Textarea value={form.checkin_info} onChange={e => upd('checkin_info', e.target.value)} rows={3} placeholder="Nøgleboks ved hoveddøren..." className="resize-none rounded-xl" /></Field>
+              <Field label="Afrejse-info"><Textarea value={form.checkout_info} onChange={e => upd('checkout_info', e.target.value)} rows={3} placeholder="Tøm køleskab, tænd opvaskemaskine..." className="resize-none rounded-xl" /></Field>
+              <Field label="Husregler"><Textarea value={form.house_rules} onChange={e => upd('house_rules', e.target.value)} rows={3} placeholder="Ingen rygning, max 8 gæster…" className="resize-none rounded-xl" /></Field>
+              <Field label="Praktisk info"><Textarea value={form.practical_info} onChange={e => upd('practical_info', e.target.value)} rows={3} placeholder="WiFi: SommerNet, kode: 1234…" className="resize-none rounded-xl" /></Field>
             </div>
+            <NavFooter />
           </>
         );
 
       case 'pricing':
         return (
           <>
-            <PanelTitle title="Priser & Ophold" subtitle="Basispris, weekendtillæg og opholdskrav." />
+            <PanelTitle title="Priser & Ophold" subtitle="Basispris, weekendtillæg og opholdskrav." emoji={emoji} />
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { label: 'Pris pr. nat', key: 'base_price_per_night', suffix: 'kr' },
-                  { label: 'Weekend-pris', key: 'weekend_price_per_night', suffix: 'kr' },
-                  { label: 'Rengøring', key: 'cleaning_fee', suffix: 'kr' },
+                  { label: 'Pris pr. nat', key: 'base_price_per_night', suffix: 'kr', emoji: '💰' },
+                  { label: 'Weekend-pris', key: 'weekend_price_per_night', suffix: 'kr', emoji: '🌙' },
+                  { label: 'Rengøring', key: 'cleaning_fee', suffix: 'kr', emoji: '🧹' },
                 ].map(p => (
-                  <div key={p.key} className="rounded-2xl border border-border/40 p-5 text-center space-y-2 hover:border-primary/30 transition-colors">
+                  <div key={p.key} className="rounded-2xl border border-border/30 p-5 text-center space-y-2 hover:border-primary/30 hover:shadow-sm transition-all">
+                    <span className="text-xl">{p.emoji}</span>
                     <p className="text-xs font-medium text-muted-foreground">{p.label}</p>
                     <div className="flex items-center justify-center gap-1">
                       <Input type="number" min={0} step={50} value={(form as any)[p.key]}
@@ -829,10 +968,10 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
                 ))}
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Min. nætter"><Input type="number" min={1} value={form.min_nights} onChange={e => upd('min_nights', parseInt(e.target.value) || 1)} className="h-11" /></Field>
-                <Field label="Max nætter"><Input type="number" min={1} value={form.max_nights} onChange={e => upd('max_nights', parseInt(e.target.value) || 30)} className="h-11" /></Field>
+                <Field label="Min. nætter"><Input type="number" min={1} value={form.min_nights} onChange={e => upd('min_nights', parseInt(e.target.value) || 1)} className="h-11 rounded-xl" /></Field>
+                <Field label="Max nætter"><Input type="number" min={1} value={form.max_nights} onChange={e => upd('max_nights', parseInt(e.target.value) || 30)} className="h-11 rounded-xl" /></Field>
               </div>
-              <div className="flex items-center gap-4 rounded-2xl border border-border/40 p-5">
+              <div className="flex items-center gap-4 rounded-2xl border border-border/30 p-5 hover:shadow-sm transition-all">
                 <Switch checked={form.is_active} onCheckedChange={v => upd('is_active', v)} />
                 <div>
                   <p className="text-sm font-medium text-foreground">Synlig på SommerVibes.dk</p>
@@ -840,6 +979,7 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
                 </div>
               </div>
             </div>
+            <NavFooter />
           </>
         );
 
@@ -850,64 +990,78 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
   return (
     <div className="flex gap-0 -mx-4 md:-mx-8 -mt-2">
       {/* ── LEFT SIDEBAR ── */}
-      <div className="w-72 shrink-0 border-r border-border/30 bg-card/30 sticky top-0 self-start h-[calc(100vh-8rem)] overflow-y-auto">
-        {/* Status bar */}
-        <div className="p-4 border-b border-border/30">
+      <div className="w-72 shrink-0 border-r border-border/20 bg-card/20 sticky top-0 self-start h-[calc(100vh-8rem)] overflow-y-auto">
+        {/* Progress header */}
+        <div className="p-4 border-b border-border/20">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</span>
-            <span className="text-xs text-muted-foreground">{completedCount}/{sections.length}</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {celebration ? '🎉 Komplet!' : 'Fremskridt'}
+            </span>
+            <span className={cn("text-xs font-bold tabular-nums", completedCount === sections.length ? 'text-primary' : 'text-muted-foreground')}>
+              {completedCount}/{sections.length}
+            </span>
           </div>
-          <div className="w-full bg-muted/30 rounded-full h-1.5">
-            <div className="bg-primary h-1.5 rounded-full transition-all duration-500" style={{ width: `${(completedCount / sections.length) * 100}%` }} />
+          <div className="w-full bg-muted/20 rounded-full h-2 overflow-hidden">
+            <div className={cn("h-2 rounded-full transition-all duration-700 ease-out", completedCount === sections.length ? 'bg-emerald-500' : 'bg-primary')}
+              style={{ width: `${(completedCount / sections.length) * 100}%` }} />
           </div>
           <div className="flex items-center gap-2 mt-3 text-[11px] text-muted-foreground">
             {saving ? <><Clock className="h-3 w-3 animate-spin" /> Gemmer…</>
-              : lastSaved ? <><CheckCircle2 className="h-3 w-3 text-primary" /> Auto-gemt</>
+              : lastSaved ? <><CheckCircle2 className="h-3 w-3 text-primary" /> Auto-gemt {format(lastSaved, 'HH:mm')}</>
               : <><CheckCircle2 className="h-3 w-3" /> Auto-gem aktiv</>}
           </div>
         </div>
 
-        {/* Preview + cover */}
+        {/* Preview thumbnail */}
         {form.hero_image && (
-          <div className="p-4 border-b border-border/30">
-            <div className="rounded-xl overflow-hidden aspect-video bg-muted">
+          <div className="p-4 border-b border-border/20">
+            <div className="rounded-xl overflow-hidden aspect-video bg-muted shadow-sm">
               <img src={form.hero_image} alt="" className="w-full h-full object-cover" />
             </div>
             <p className="text-sm font-semibold text-foreground mt-2 truncate">{form.name || 'Unavngivet listing'}</p>
-            <p className="text-[11px] text-muted-foreground">{form.images.length} billeder</p>
+            <p className="text-[11px] text-muted-foreground">{form.images.length} billeder · {form.region || '—'}</p>
           </div>
         )}
 
         {/* Section nav */}
         <nav className="p-2 space-y-0.5">
-          {sections.map((s) => (
-            <button key={s.id} onClick={() => setActiveSection(s.id)}
+          {sections.map((s, idx) => (
+            <button key={s.id} onClick={() => goToSection(s.id)}
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group',
                 activeSection === s.id
-                  ? 'bg-primary/10 text-foreground'
-                  : 'text-muted-foreground hover:bg-muted/20 hover:text-foreground'
+                  ? 'bg-primary/10 text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:bg-muted/15 hover:text-foreground'
               )}>
-              <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
-                activeSection === s.id ? 'bg-primary/20' : 'bg-muted/20 group-hover:bg-muted/40')}>
-                <s.icon className="h-4 w-4" />
+              <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all text-sm',
+                activeSection === s.id ? 'bg-primary/20 scale-105' : 'bg-muted/15 group-hover:bg-muted/30')}>
+                {s.emoji}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{s.label}</p>
                 <p className="text-[10px] text-muted-foreground truncate">{s.subtitle}</p>
               </div>
-              {s.done && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
+              {s.done && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
             </button>
           ))}
         </nav>
+
+        {/* Keyboard hint */}
+        <div className="p-4 border-t border-border/20">
+          <p className="text-[10px] text-muted-foreground/40 text-center">←→ piletaster til navigation</p>
+        </div>
       </div>
 
       {/* ── RIGHT CONTENT PANEL ── */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col">
         {/* Top action bar */}
-        <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border/30 px-8 py-3 flex items-center justify-between">
-          <div className="text-sm font-medium text-foreground">
-            {sections.find(s => s.id === activeSection)?.label}
+        <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border/20 px-8 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-lg">{sections.find(s => s.id === activeSection)?.emoji}</span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">{sections.find(s => s.id === activeSection)?.label}</p>
+              <p className="text-[10px] text-muted-foreground">Trin {currentIdx + 1} af {sections.length}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {listing.slug && (
@@ -918,15 +1072,17 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
             <Button size="sm" variant="outline" className="rounded-xl gap-1.5 text-xs h-8" onClick={handleTransferToChannels}>
               <Send className="h-3.5 w-3.5" /> Platforme
             </Button>
-            <Button size="sm" className="rounded-xl gap-1.5 text-xs h-8" onClick={handlePublish} disabled={publishing}>
+            <Button size="sm" className="rounded-xl gap-1.5 text-xs h-8 bg-primary hover:bg-primary/90" onClick={handlePublish} disabled={publishing}>
               <Globe className="h-3.5 w-3.5" /> {publishing ? 'Publicerer…' : 'Publicér'}
             </Button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-8 max-w-2xl">
-          {renderSection()}
+        {/* Content with transition */}
+        <div ref={contentRef} className="flex-1 overflow-y-auto">
+          <div key={animKey} className="p-8 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {renderSection()}
+          </div>
         </div>
       </div>
     </div>
