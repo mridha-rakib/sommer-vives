@@ -232,7 +232,7 @@ const COMMON_AMENITIES = [
 
 // ─── Inline Listing Editor ───
 // Premium Airbnb-style editor with animations, next/prev nav, celebrations
-function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (data: any) => void }) {
+function InlineListingEditor({ listing, onSaved, staffList }: { listing: any; onSaved: (data: any) => void; staffList?: any[] }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
