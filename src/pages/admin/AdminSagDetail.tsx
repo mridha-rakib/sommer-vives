@@ -8,7 +8,7 @@ import {
   Calendar as CalendarIcon, Eye, Pencil, ExternalLink, Image,
   Tag, DollarSign, Wifi, AlertCircle, ChevronRight, StickyNote,
   Sparkles, Rocket, Zap, Camera, Info, ArrowRight, X, Plus,
-  AlertTriangle, Settings, Type, Plug, RefreshCw, Send, Link2, Download, User, Shield
+  AlertTriangle, Settings, Type, Plug, RefreshCw, Send, Link2, Download, User, Shield, Upload, UserPlus, Trash2
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusChip } from '@/components/admin/ui/StatusChip';
@@ -233,6 +233,8 @@ const COMMON_AMENITIES = [
 // ─── Inline Listing Editor ───
 function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (data: any) => void }) {
   const [editSection, setEditSection] = useState(0);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(() => ({
     name: listing.name || '', description: listing.description || '', address: listing.address || '',
     region: listing.region || '', city: listing.city || '', tagline: listing.tagline || '',
@@ -247,6 +249,7 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     practical_info: listing.practical_info || '', checkin_info: listing.checkin_info || '',
     checkout_info: listing.checkout_info || '',
     hero_image: listing.hero_image || '', amenities: listing.amenities || [], images: listing.images || [],
+    long_description: listing.long_description || '',
   }));
   const [newAmenity, setNewAmenity] = useState('');
   const [saving, setSaving] = useState(false);
@@ -259,6 +262,7 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     setSaving(true);
     const payload: Record<string, any> = {
       name: data.name, description: data.description || null,
+      long_description: data.long_description || null,
       address: data.address || null, region: data.region || null, city: data.city || null,
       max_guests: data.max_guests, bedrooms: data.bedrooms, bathrooms: data.bathrooms,
       base_price_per_night: Math.round(data.base_price_per_night * 100),
@@ -282,6 +286,31 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => persistFn(formRef.current), 2000);
   }, [persistFn]);
+
+  // Image upload handler
+  const handleImageUpload = useCallback(async (files: FileList) => {
+    setUploadingImage(true);
+    const newUrls: string[] = [];
+    for (const file of Array.from(files)) {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const filePath = `${listing.owner_id}/${listing.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('listing-images').upload(filePath, file, { contentType: file.type });
+      if (error) { toast.error(`Upload fejl: ${file.name}`); continue; }
+      const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(filePath);
+      newUrls.push(urlData.publicUrl);
+    }
+    if (newUrls.length > 0) {
+      const updated = [...formRef.current.images, ...newUrls];
+      setForm(prev => ({ ...prev, images: updated }));
+      if (!formRef.current.hero_image && newUrls[0]) {
+        setForm(prev => ({ ...prev, hero_image: newUrls[0] }));
+      }
+      scheduleSave();
+      toast.success(`${newUrls.length} billede${newUrls.length > 1 ? 'r' : ''} uploadet`);
+    }
+    setUploadingImage(false);
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  }, [listing.owner_id, listing.id, scheduleSave]);
 
   useEffect(() => () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); }, []);
 
@@ -348,27 +377,65 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
           <div className="flex items-center gap-3 pt-2"><Label className="text-sm">Aktiv</Label><Switch checked={form.is_active} onCheckedChange={v => upd('is_active', v)} /></div>
         </>)}
         {editSection === 1 && (<>
-          <EF label="Hovedbeskrivelse" hint="Beskriv boligen og stemningen"><Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={6} placeholder="Velkommen til…" /></EF>
+          <EF label="Kort beskrivelse" hint="Beskriv boligen og stemningen (vises som intro)"><Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={4} placeholder="Velkommen til…" /></EF>
+          <EF label="Lang beskrivelse" hint="Detaljeret beskrivelse med fuldt overblik"><Textarea value={form.long_description} onChange={e => upd('long_description', e.target.value)} rows={8} placeholder="Denne charmerende bolig byder på…" /></EF>
           <EF label="Husregler"><Textarea value={form.house_rules} onChange={e => upd('house_rules', e.target.value)} rows={3} placeholder="Ingen rygning…" /></EF>
           <EF label="Praktisk info"><Textarea value={form.practical_info} onChange={e => upd('practical_info', e.target.value)} rows={3} placeholder="WiFi: SommerNet…" /></EF>
         </>)}
         {editSection === 2 && (<>
-          <EF label="Hero-billede"><Input value={form.hero_image} onChange={e => upd('hero_image', e.target.value)} placeholder="https://…" /></EF>
-          {form.hero_image && <div className="rounded-xl overflow-hidden border border-border h-40"><img src={form.hero_image} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /></div>}
-          <Label className="text-sm font-medium">Galleri</Label>
+          {/* Hidden file input */}
+          <input ref={imageInputRef} type="file" className="hidden" multiple accept="image/*" onChange={e => e.target.files && handleImageUpload(e.target.files)} />
+
+          {/* Upload area */}
+          <div
+            className="rounded-xl border-2 border-dashed border-border/50 hover:border-primary/40 bg-muted/10 hover:bg-primary/5 transition-all p-6 text-center cursor-pointer"
+            onClick={() => imageInputRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-primary/60', 'bg-primary/10'); }}
+            onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); }}
+            onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); if (e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files); }}
+          >
+            <Upload className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm font-medium text-foreground">{uploadingImage ? 'Uploader...' : 'Træk billeder hertil eller klik for at uploade'}</p>
+            <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP — op til 10 billeder ad gangen</p>
+          </div>
+
+          {/* Hero selector */}
+          <EF label="Hero-billede" hint="Vælg hovedbillede — klik på et galleri-billede for at sætte det som hero">
+            {form.hero_image ? (
+              <div className="rounded-xl overflow-hidden border border-primary/30 h-40 relative group">
+                <img src={form.hero_image} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+                <div className="absolute top-2 left-2"><Badge className="bg-primary/90 text-primary-foreground text-[10px]">Hero</Badge></div>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground/50 italic py-2">Intet hero-billede valgt — upload eller klik et billede</p>
+            )}
+          </EF>
+
+          {/* Gallery grid */}
+          <Label className="text-sm font-medium">Galleri ({form.images.filter((i: string) => i.trim()).length} billeder)</Label>
           {form.images.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {form.images.map((img: string, i: number) => (
-                <div key={i} className="relative group rounded-xl overflow-hidden border border-border aspect-[4/3] bg-muted">
+                <div key={i} className={cn("relative group rounded-xl overflow-hidden border aspect-[4/3] bg-muted cursor-pointer transition-all",
+                  form.hero_image === img ? 'border-primary/50 ring-2 ring-primary/20' : 'border-border hover:border-primary/30')}
+                  onClick={() => upd('hero_image', img)}
+                >
                   {img ? <img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /> : <div className="flex items-center justify-center h-full text-xs text-muted-foreground">Tom</div>}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                    <button onClick={() => upd('images', form.images.filter((_: string, idx: number) => idx !== i))} className="opacity-0 group-hover:opacity-100 bg-white/90 text-destructive rounded-full p-1.5"><X className="h-3.5 w-3.5" /></button>
+                  {form.hero_image === img && <div className="absolute top-1 left-1"><Badge className="bg-primary/90 text-primary-foreground text-[9px] px-1.5 py-0.5">Hero</Badge></div>}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1">
+                    <button onClick={(e) => { e.stopPropagation(); upd('images', form.images.filter((_: string, idx: number) => idx !== i)); }} className="opacity-0 group-hover:opacity-100 bg-white/90 text-destructive rounded-full p-1.5"><X className="h-3.5 w-3.5" /></button>
                   </div>
+                  <div className="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100">{i + 1}</div>
                 </div>
               ))}
             </div>
           )}
-          <Button variant="outline" size="sm" onClick={() => upd('images', [...form.images, ''])} className="gap-1.5 w-full"><Plus className="h-3.5 w-3.5" /> Tilføj billede</Button>
+
+          {/* Manual URL add */}
+          <div className="flex gap-2">
+            <Input placeholder="Eller tilføj billede-URL manuelt..." onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) { upd('images', [...form.images, (e.target as HTMLInputElement).value.trim()]); (e.target as HTMLInputElement).value = ''; } }} className="flex-1" />
+            <Button variant="outline" size="sm" onClick={() => imageInputRef.current?.click()} className="gap-1.5 shrink-0"><Upload className="h-3.5 w-3.5" /> Upload</Button>
+          </div>
         </>)}
         {editSection === 3 && (<>
           <Label className="text-sm font-medium mb-2 block">Hurtigvalg</Label>
@@ -454,6 +521,10 @@ export default function AdminSagDetail() {
   const [editDocValues, setEditDocValues] = useState<Record<string, string>>({});
   const [ownerEditOpen, setOwnerEditOpen] = useState(false);
   const [ownerForm, setOwnerForm] = useState<any>({});
+  // Actors state
+  const [actors, setActors] = useState<any[]>([]);
+  const [actorForm, setActorForm] = useState({ name: '', role: 'kontakt', email: '', phone: '', notes: '' });
+  const [addingActor, setAddingActor] = useState(false);
 
   const loadSagDocs = useCallback(async (listingId: string, ownerId: string) => {
     const [{ data: sd }, { data: tpls }] = await Promise.all([
@@ -490,18 +561,20 @@ export default function AdminSagDetail() {
       const { data: l } = await supabase.from('listings').select('*').eq('id', id).single();
       setListing(l);
       if (l) {
-        const [{ data: prof }, { data: ts }, { data: docs }, { data: adds }, { data: bks }] = await Promise.all([
+        const [{ data: prof }, { data: ts }, { data: docs }, { data: adds }, { data: bks }, { data: acts }] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', l.owner_id).single(),
           supabase.from('tasks').select('*').in('property_id', [id]).order('scheduled_date'),
           supabase.from('documents').select('*').eq('owner_id', l.owner_id).limit(20),
           supabase.from('add_ons').select('*').eq('listing_id', id),
           supabase.from('bookings').select('*').eq('property_id', id).order('check_in', { ascending: false }).limit(20),
+          supabase.from('listing_actors').select('*').eq('listing_id', id).order('sort_order'),
         ]);
         setOwner(prof);
         setTasks(ts || []);
         setDocuments(docs || []);
         setAddons(adds || []);
         setBookings(bks || []);
+        setActors(acts || []);
         loadSagDocs(id, l.owner_id);
       }
       setLoading(false);
@@ -536,6 +609,7 @@ export default function AdminSagDetail() {
     { key: 'priser', label: 'Priser', icon: DollarSign },
     { key: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
     { key: 'dokumenter', label: 'Dokumenter', icon: FileText },
+    { key: 'aktorer', label: 'Aktører', icon: UserPlus },
     { key: 'opgaver', label: 'Opgaver', icon: ListChecks },
     { key: 'noter', label: 'Noter', icon: StickyNote },
   ];
@@ -1241,6 +1315,100 @@ export default function AdminSagDetail() {
             )}
           </SectionCard>
         )}
+
+        {tab === 'aktorer' && (
+          <SectionCard title="Aktører & kontakter" icon={UserPlus}>
+            {/* Add actor form */}
+            {addingActor ? (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 mb-4 space-y-3">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider">Tilføj aktør</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">Navn *</Label>
+                    <Input value={actorForm.name} onChange={e => setActorForm(f => ({ ...f, name: e.target.value }))} placeholder="Navn" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Rolle</Label>
+                    <select value={actorForm.role} onChange={e => setActorForm(f => ({ ...f, role: e.target.value }))}
+                      className="w-full h-9 rounded-xl border border-border/40 bg-muted/20 px-3 text-sm text-foreground">
+                      <option value="kontakt">Kontaktperson</option>
+                      <option value="rengoring">Rengøring</option>
+                      <option value="handvaerker">Håndværker</option>
+                      <option value="aegtefaelle">Ægtefælle / medejer</option>
+                      <option value="noegleholder">Nøgleholder</option>
+                      <option value="vicevært">Vicevært</option>
+                      <option value="andet">Andet</option>
+                    </select></div>
+                  <div><Label className="text-xs text-muted-foreground">E-mail</Label>
+                    <Input type="email" value={actorForm.email} onChange={e => setActorForm(f => ({ ...f, email: e.target.value }))} placeholder="email@eksempel.dk" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Telefon</Label>
+                    <Input value={actorForm.phone} onChange={e => setActorForm(f => ({ ...f, phone: e.target.value }))} placeholder="+45 12345678" /></div>
+                </div>
+                <div><Label className="text-xs text-muted-foreground">Note</Label>
+                  <Textarea value={actorForm.notes} onChange={e => setActorForm(f => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Kontekst, relation, tilgængelighed..." /></div>
+                <div className="flex gap-2 justify-end">
+                  <Button size="sm" variant="ghost" onClick={() => setAddingActor(false)}>Annuller</Button>
+                  <Button size="sm" onClick={async () => {
+                    if (!actorForm.name.trim()) { toast.error('Navn er påkrævet'); return; }
+                    const { data: newActor, error } = await supabase.from('listing_actors').insert({
+                      listing_id: id!,
+                      name: actorForm.name.trim(),
+                      role: actorForm.role,
+                      email: actorForm.email || null,
+                      phone: actorForm.phone || null,
+                      notes: actorForm.notes || null,
+                      sort_order: actors.length,
+                    }).select().single();
+                    if (error) { toast.error(error.message); return; }
+                    setActors(prev => [...prev, newActor]);
+                    setActorForm({ name: '', role: 'kontakt', email: '', phone: '', notes: '' });
+                    setAddingActor(false);
+                    toast.success('Aktør tilføjet');
+                  }}>Tilføj</Button>
+                </div>
+              </div>
+            ) : (
+              <Button size="sm" variant="outline" className="mb-4 gap-1.5 rounded-xl" onClick={() => setAddingActor(true)}>
+                <Plus className="h-3.5 w-3.5" />Tilføj aktør
+              </Button>
+            )}
+
+            {actors.length === 0 && !addingActor ? (
+              <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen aktører tilknyttet — tilføj ægtefæller, rengøringspersonale, håndværkere mv.</p>
+            ) : (
+              <div className="space-y-2">
+                {actors.map(a => {
+                  const roleLabels: Record<string, string> = {
+                    kontakt: 'Kontaktperson', rengoring: 'Rengøring', handvaerker: 'Håndværker',
+                    aegtefaelle: 'Ægtefælle / medejer', noegleholder: 'Nøgleholder', vicevært: 'Vicevært', andet: 'Andet',
+                  };
+                  return (
+                    <div key={a.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center gap-3 group">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">{a.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge variant="outline" className="text-[10px]">{roleLabels[a.role] || a.role}</Badge>
+                          {a.email && <span className="text-[11px] text-muted-foreground">{a.email}</span>}
+                          {a.phone && <span className="text-[11px] text-muted-foreground">{a.phone}</span>}
+                        </div>
+                        {a.notes && <p className="text-[11px] text-muted-foreground mt-1">{a.notes}</p>}
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 text-destructive"
+                        onClick={async () => {
+                          await supabase.from('listing_actors').delete().eq('id', a.id);
+                          setActors(prev => prev.filter(x => x.id !== a.id));
+                          toast.success('Aktør fjernet');
+                        }}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </SectionCard>
+        )}
+
 
         {tab === 'opgaver' && (
           <SectionCard title="Opgaver" icon={ListChecks}>
