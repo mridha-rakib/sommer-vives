@@ -1182,7 +1182,7 @@ export default function AdminSagDetail() {
     load();
   }, [id, loadSagDocs]);
 
-  const nextSteps = useMemo(() => listing ? computeNextSteps(listing) : [], [listing]);
+  
 
   const handleImproveText = async () => {
     if (!listing) return;
