@@ -561,18 +561,20 @@ export default function AdminSagDetail() {
       const { data: l } = await supabase.from('listings').select('*').eq('id', id).single();
       setListing(l);
       if (l) {
-        const [{ data: prof }, { data: ts }, { data: docs }, { data: adds }, { data: bks }] = await Promise.all([
+        const [{ data: prof }, { data: ts }, { data: docs }, { data: adds }, { data: bks }, { data: acts }] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', l.owner_id).single(),
           supabase.from('tasks').select('*').in('property_id', [id]).order('scheduled_date'),
           supabase.from('documents').select('*').eq('owner_id', l.owner_id).limit(20),
           supabase.from('add_ons').select('*').eq('listing_id', id),
           supabase.from('bookings').select('*').eq('property_id', id).order('check_in', { ascending: false }).limit(20),
+          supabase.from('listing_actors').select('*').eq('listing_id', id).order('sort_order'),
         ]);
         setOwner(prof);
         setTasks(ts || []);
         setDocuments(docs || []);
         setAddons(adds || []);
         setBookings(bks || []);
+        setActors(acts || []);
         loadSagDocs(id, l.owner_id);
       }
       setLoading(false);
