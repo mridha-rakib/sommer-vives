@@ -1452,7 +1452,7 @@ export default function AdminSagDetail() {
           </div>
         )}
 
-        {tab === 'listing' && <InlineListingEditor listing={listing} onSaved={(updated) => setListing({ ...listing, ...updated })} />}
+        {tab === 'listing' && <InlineListingEditor listing={listing} staffList={staff} onSaved={(updated) => setListing({ ...listing, ...updated })} />}
 
         {tab === 'integrationer' && (
           <div className="space-y-4">
