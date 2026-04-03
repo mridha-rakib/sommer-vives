@@ -1242,7 +1242,6 @@ export default function AdminSagDetail() {
   const syncSt = SYNC_STATUS_MAP[listing.sync_status || 'not_connected'] || SYNC_STATUS_MAP.not_connected;
   const cover = listing.hero_image || listing.images?.[0];
   const fmt = (v: number) => new Intl.NumberFormat('da-DK', { style: 'currency', currency: listing.currency || 'DKK', maximumFractionDigits: 0 }).format(v);
-  const [statusOpen, setStatusOpen] = useState(false);
 
   return (
     <AdminLayout>
