@@ -1410,6 +1410,7 @@ export default function AdminSagDetail() {
         )}
 
 
+        {tab === 'opgaver' && (
           <SectionCard title="Opgaver" icon={ListChecks}>
             {tasks.length === 0 ? (
               <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen opgaver endnu</p>
