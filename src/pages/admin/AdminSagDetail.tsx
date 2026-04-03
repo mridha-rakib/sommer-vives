@@ -1316,7 +1316,100 @@ export default function AdminSagDetail() {
           </SectionCard>
         )}
 
-        {tab === 'opgaver' && (
+        {tab === 'aktorer' && (
+          <SectionCard title="Aktører & kontakter" icon={UserPlus}>
+            {/* Add actor form */}
+            {addingActor ? (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 mb-4 space-y-3">
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider">Tilføj aktør</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label className="text-xs text-muted-foreground">Navn *</Label>
+                    <Input value={actorForm.name} onChange={e => setActorForm(f => ({ ...f, name: e.target.value }))} placeholder="Navn" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Rolle</Label>
+                    <select value={actorForm.role} onChange={e => setActorForm(f => ({ ...f, role: e.target.value }))}
+                      className="w-full h-9 rounded-xl border border-border/40 bg-muted/20 px-3 text-sm text-foreground">
+                      <option value="kontakt">Kontaktperson</option>
+                      <option value="rengoring">Rengøring</option>
+                      <option value="handvaerker">Håndværker</option>
+                      <option value="aegtefaelle">Ægtefælle / medejer</option>
+                      <option value="noegleholder">Nøgleholder</option>
+                      <option value="vicevært">Vicevært</option>
+                      <option value="andet">Andet</option>
+                    </select></div>
+                  <div><Label className="text-xs text-muted-foreground">E-mail</Label>
+                    <Input type="email" value={actorForm.email} onChange={e => setActorForm(f => ({ ...f, email: e.target.value }))} placeholder="email@eksempel.dk" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Telefon</Label>
+                    <Input value={actorForm.phone} onChange={e => setActorForm(f => ({ ...f, phone: e.target.value }))} placeholder="+45 12345678" /></div>
+                </div>
+                <div><Label className="text-xs text-muted-foreground">Note</Label>
+                  <Textarea value={actorForm.notes} onChange={e => setActorForm(f => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Kontekst, relation, tilgængelighed..." /></div>
+                <div className="flex gap-2 justify-end">
+                  <Button size="sm" variant="ghost" onClick={() => setAddingActor(false)}>Annuller</Button>
+                  <Button size="sm" onClick={async () => {
+                    if (!actorForm.name.trim()) { toast.error('Navn er påkrævet'); return; }
+                    const { data: newActor, error } = await supabase.from('listing_actors').insert({
+                      listing_id: id!,
+                      name: actorForm.name.trim(),
+                      role: actorForm.role,
+                      email: actorForm.email || null,
+                      phone: actorForm.phone || null,
+                      notes: actorForm.notes || null,
+                      sort_order: actors.length,
+                    }).select().single();
+                    if (error) { toast.error(error.message); return; }
+                    setActors(prev => [...prev, newActor]);
+                    setActorForm({ name: '', role: 'kontakt', email: '', phone: '', notes: '' });
+                    setAddingActor(false);
+                    toast.success('Aktør tilføjet');
+                  }}>Tilføj</Button>
+                </div>
+              </div>
+            ) : (
+              <Button size="sm" variant="outline" className="mb-4 gap-1.5 rounded-xl" onClick={() => setAddingActor(true)}>
+                <Plus className="h-3.5 w-3.5" />Tilføj aktør
+              </Button>
+            )}
+
+            {actors.length === 0 && !addingActor ? (
+              <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen aktører tilknyttet — tilføj ægtefæller, rengøringspersonale, håndværkere mv.</p>
+            ) : (
+              <div className="space-y-2">
+                {actors.map(a => {
+                  const roleLabels: Record<string, string> = {
+                    kontakt: 'Kontaktperson', rengoring: 'Rengøring', handvaerker: 'Håndværker',
+                    aegtefaelle: 'Ægtefælle / medejer', noegleholder: 'Nøgleholder', vicevært: 'Vicevært', andet: 'Andet',
+                  };
+                  return (
+                    <div key={a.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center gap-3 group">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">{a.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge variant="outline" className="text-[10px]">{roleLabels[a.role] || a.role}</Badge>
+                          {a.email && <span className="text-[11px] text-muted-foreground">{a.email}</span>}
+                          {a.phone && <span className="text-[11px] text-muted-foreground">{a.phone}</span>}
+                        </div>
+                        {a.notes && <p className="text-[11px] text-muted-foreground mt-1">{a.notes}</p>}
+                      </div>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 text-destructive"
+                        onClick={async () => {
+                          await supabase.from('listing_actors').delete().eq('id', a.id);
+                          setActors(prev => prev.filter(x => x.id !== a.id));
+                          toast.success('Aktør fjernet');
+                        }}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </SectionCard>
+        )}
+
+
           <SectionCard title="Opgaver" icon={ListChecks}>
             {tasks.length === 0 ? (
               <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen opgaver endnu</p>
