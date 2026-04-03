@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Search, FolderOpen, MapPin, Home, Users, ChevronRight,
   Eye, XCircle, RotateCcw, Handshake, Rocket, Ban, CheckCircle2, Clock,
-  MoreHorizontal, Trash2
+  MoreHorizontal, Trash2, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
