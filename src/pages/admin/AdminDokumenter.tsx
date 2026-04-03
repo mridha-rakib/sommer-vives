@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
@@ -13,11 +13,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import {
   FileText, Search, Download, Eye, FolderOpen, Grid3X3, List, Filter,
   FileSignature, Receipt, Upload, ShieldCheck, File, CalendarDays,
   User, FolderOpen as FolderIcon, ExternalLink, Link2, Clock, MoreHorizontal,
-  AlertTriangle, Pencil, Copy, Plus, Trash2, BookTemplate
+  AlertTriangle, Pencil, Copy, Plus, Trash2, BookTemplate, FilePlus, Save
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
@@ -103,6 +105,14 @@ export default function AdminDokumenter() {
   const [stdTemplateForm, setStdTemplateForm] = useState({ name: '', body_text: '', body_html: '', category: 'standard', is_active: true });
   const [propertyMap, setPropertyMap] = useState<Record<string, string>>({});
   const [profileMap, setProfileMap] = useState<Record<string, string>>({});
+
+  // Document editor state
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorDoc, setEditorDoc] = useState<any | null>(null);
+  const [editorForm, setEditorForm] = useState({ title: '', document_type: 'internal' as string, body_html: '', status: 'draft' });
+  const [editorSaving, setEditorSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     Promise.all([
@@ -232,8 +242,133 @@ export default function AdminDokumenter() {
     toast.success('Skabelon slettet');
   };
 
+  // ── Document Editor ──
+  const openNewDoc = () => {
+    setEditorDoc(null);
+    setEditorForm({ title: '', document_type: 'internal', body_html: '', status: 'draft' });
+    setEditorOpen(true);
+  };
+
+  const openEditDoc = (doc: any) => {
+    setEditorDoc(doc);
+    setEditorForm({
+      title: doc.title || '',
+      document_type: doc.document_type || 'internal',
+      body_html: doc.body_html || '',
+      status: doc.status || 'draft',
+    });
+    setEditorOpen(true);
+  };
+
+  const openFromTemplate = (tpl: any) => {
+    setEditorDoc(null);
+    setEditorForm({
+      title: tpl.name,
+      document_type: tpl.category === 'aftale' ? 'formidlingsaftale' : 'internal',
+      body_html: tpl.body_html || `<p>${tpl.body_text}</p>`,
+      status: 'draft',
+    });
+    setEditorOpen(true);
+    setPageTab('documents');
+    toast.success('Skabelon indlæst i editoren');
+  };
+
+  const saveEditorDoc = async () => {
+    if (!editorForm.title.trim()) { toast.error('Titel er påkrævet'); return; }
+    setEditorSaving(true);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error('Du skal være logget ind'); setEditorSaving(false); return; }
+
+    if (editorDoc) {
+      // Update existing
+      const { error } = await supabase.from('documents').update({
+        title: editorForm.title.trim(),
+        document_type: editorForm.document_type,
+        status: editorForm.status,
+      }).eq('id', editorDoc.id);
+      if (error) { toast.error(error.message); setEditorSaving(false); return; }
+      toast.success('Dokument opdateret');
+    } else {
+      // Create new
+      const { error } = await supabase.from('documents').insert({
+        title: editorForm.title.trim(),
+        document_type: editorForm.document_type,
+        status: editorForm.status,
+        owner_id: user.id,
+      });
+      if (error) { toast.error(error.message); setEditorSaving(false); return; }
+      toast.success('Dokument oprettet');
+    }
+
+    setEditorSaving(false);
+    setEditorOpen(false);
+    // Refresh
+    const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500);
+    setDocuments(data || []);
+  };
+
+  const deleteDocument = async (id: string) => {
+    const { error } = await supabase.from('documents').delete().eq('id', id);
+    if (error) { toast.error(error.message); return; }
+    setDocuments(prev => prev.filter(d => d.id !== id));
+    setSelected(null);
+    toast.success('Dokument slettet');
+  };
+
+  // ── File Upload ──
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error('Du skal være logget ind'); return; }
+
+    setUploading(true);
+    const ext = file.name.split('.').pop() || 'bin';
+    const filePath = `${user.id}/${Date.now()}-${file.name}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('listing-images')
+      .upload(filePath, file, { contentType: file.type });
+
+    if (uploadError) {
+      toast.error(`Upload fejl: ${uploadError.message}`);
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('listing-images').getPublicUrl(filePath);
+
+    let docType = 'other';
+    if (file.type.includes('pdf')) docType = 'other';
+    else if (file.type.includes('word') || file.type.includes('document') || ext === 'docx' || ext === 'doc') docType = 'owner_upload';
+    else if (file.type.includes('image')) docType = 'id_personal';
+    else if (file.type.includes('sheet') || file.type.includes('excel')) docType = 'statement';
+
+    const { error: dbError } = await supabase.from('documents').insert({
+      title: file.name,
+      document_type: docType,
+      status: 'active',
+      owner_id: user.id,
+      file_url: urlData.publicUrl,
+      file_size: file.size,
+      mime_type: file.type,
+    });
+
+    if (dbError) { toast.error(dbError.message); } else { toast.success(`"${file.name}" uploadet`); }
+
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500);
+    setDocuments(data || []);
+  };
+
   return (
     <AdminLayout>
+      {/* Hidden file input */}
+      <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv" onChange={handleFileUpload} />
+
       <div className="space-y-6">
         <AdminPageHeader
           title="Dokumenter"
@@ -248,9 +383,12 @@ export default function AdminDokumenter() {
                   <Copy className="h-3.5 w-3.5" />Skabeloner
                 </button>
               </div>
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-1">
-                {counts.total} dokumenter
-              </Badge>
+              <Button variant="outline" size="sm" className="gap-1.5 rounded-xl text-xs" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                <Upload className="h-3.5 w-3.5" />{uploading ? 'Uploader...' : 'Upload fil'}
+              </Button>
+              <Button size="sm" className="gap-1.5 rounded-xl text-xs" onClick={openNewDoc}>
+                <FilePlus className="h-3.5 w-3.5" />Nyt dokument
+              </Button>
             </div>
           }
         />
@@ -509,6 +647,9 @@ export default function AdminDokumenter() {
                               </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="sm" className="h-7 px-2 rounded-lg text-xs gap-1 text-primary" onClick={() => openFromTemplate(t)}>
+                                <FilePlus className="h-3.5 w-3.5" /> Brug
+                              </Button>
                               <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg" onClick={() => openEditStdTemplate(t)}>
                                 <Pencil className="h-3.5 w-3.5" />
                               </Button>
@@ -625,9 +766,14 @@ export default function AdminDokumenter() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-sm">HTML indhold</Label>
+                    <Label className="text-sm">Indhold</Label>
                     <p className="text-[11px] text-muted-foreground">Brug placeholders som {"{{owner_name}}"}, {"{{property_name}}"}, {"{{commission_percent}}"} osv.</p>
-                    <Textarea value={stdTemplateForm.body_html} onChange={e => setStdTemplateForm(f => ({ ...f, body_html: e.target.value }))} rows={12} placeholder="<h1>Titel</h1><p>{{owner_name}}...</p>" />
+                    <RichTextEditor
+                      content={stdTemplateForm.body_html}
+                      onChange={html => setStdTemplateForm(f => ({ ...f, body_html: html }))}
+                      placeholder="Skriv skabelonindhold her..."
+                      minHeight="250px"
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm">Klartekst (kort)</Label>
@@ -785,18 +931,23 @@ export default function AdminDokumenter() {
                 <div className="py-5 space-y-2">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-3">Handlinger</p>
                   <div className="grid grid-cols-2 gap-2">
+                    {selected._source === 'document' && (
+                      <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9" onClick={() => openEditDoc(selected)}>
+                        <Pencil className="w-3.5 h-3.5" /> Rediger
+                      </Button>
+                    )}
                     <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
                       <Link2 className="w-3.5 h-3.5" /> Knyt til sag
                     </Button>
                     <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
-                      <User className="w-3.5 h-3.5" /> Knyt til ejer
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
                       <ExternalLink className="w-3.5 h-3.5" /> Del link
                     </Button>
-                    <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
-                      <FolderOpen className="w-3.5 h-3.5" /> Arkivér
-                    </Button>
+                    {selected._source === 'document' && (
+                      <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-destructive/30 text-destructive text-xs h-9 hover:bg-destructive/10"
+                        onClick={() => { if (confirm('Slet dette dokument?')) deleteDocument(selected.id); }}>
+                        <Trash2 className="w-3.5 h-3.5" /> Slet
+                      </Button>
+                    )}
                   </div>
                 </div>
               </>
@@ -804,6 +955,109 @@ export default function AdminDokumenter() {
           })()}
         </SheetContent>
       </Sheet>
+
+      {/* ═══════ DOCUMENT EDITOR DIALOG ═══════ */}
+      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FilePlus className="h-5 w-5 text-primary" />
+              {editorDoc ? 'Rediger dokument' : 'Nyt dokument'}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            {/* Title & meta */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2 space-y-1.5">
+                <Label className="text-sm">Titel</Label>
+                <Input
+                  value={editorForm.title}
+                  onChange={e => setEditorForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="Dokumenttitel..."
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm">Type</Label>
+                <select
+                  value={editorForm.document_type}
+                  onChange={e => setEditorForm(f => ({ ...f, document_type: e.target.value }))}
+                  className="w-full h-10 rounded-xl border border-border/40 bg-muted/20 px-3 text-sm text-foreground"
+                >
+                  {Object.entries(DOC_TYPE_CFG).filter(([k]) => k !== 'agreement').map(([key, cfg]) => (
+                    <option key={key} value={key}>{cfg.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="flex items-center gap-4">
+              <Label className="text-sm">Status:</Label>
+              <div className="flex gap-1">
+                {['draft', 'active', 'archived'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setEditorForm(f => ({ ...f, status: s }))}
+                    className={cn('px-3 py-1 rounded-full text-xs font-medium transition-colors',
+                      editorForm.status === s ? 'bg-primary text-primary-foreground' : 'bg-muted/30 text-muted-foreground hover:bg-muted/50')}
+                  >
+                    {getStatusCfg(s).label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Rich Text Editor */}
+            <div className="space-y-1.5">
+              <Label className="text-sm">Indhold</Label>
+              <RichTextEditor
+                content={editorForm.body_html}
+                onChange={html => setEditorForm(f => ({ ...f, body_html: html }))}
+                placeholder="Skriv dit dokument her... Brug toolbaren ovenfor til formatering."
+                minHeight="350px"
+              />
+            </div>
+
+            {/* From template quick-load */}
+            {!editorDoc && stdTemplates.length > 0 && (
+              <div className="rounded-xl border border-border/30 bg-muted/10 p-3">
+                <p className="text-xs font-semibold text-muted-foreground mb-2">Indlæs fra skabelon:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {stdTemplates.filter(t => t.is_active).map(t => (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        setEditorForm(f => ({
+                          ...f,
+                          title: f.title || t.name,
+                          body_html: t.body_html || `<p>${t.body_text}</p>`,
+                        }));
+                        toast.success(`Skabelon "${t.name}" indlæst`);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                    >
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-2 border-t border-border/30">
+              <Button variant="outline" onClick={() => setEditorOpen(false)} className="rounded-xl">
+                Annuller
+              </Button>
+              <Button onClick={saveEditorDoc} disabled={editorSaving} className="gap-1.5 rounded-xl">
+                <Save className="h-3.5 w-3.5" />
+                {editorSaving ? 'Gemmer...' : editorDoc ? 'Opdater dokument' : 'Opret dokument'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
