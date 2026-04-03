@@ -572,6 +572,7 @@ export default function AdminSagDetail() {
           supabase.from('add_ons').select('*').eq('listing_id', id),
           supabase.from('bookings').select('*').eq('property_id', id).order('check_in', { ascending: false }).limit(20),
           supabase.from('listing_actors').select('*').eq('listing_id', id).order('sort_order'),
+          supabase.from('listing_staff').select('*').eq('listing_id', id).order('created_at'),
         ]);
         setOwner(prof);
         setTasks(ts || []);
@@ -579,6 +580,7 @@ export default function AdminSagDetail() {
         setAddons(adds || []);
         setBookings(bks || []);
         setActors(acts || []);
+        setStaff(stf || []);
         loadSagDocs(id, l.owner_id);
       }
       setLoading(false);
