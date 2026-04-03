@@ -1323,6 +1323,7 @@ export default function AdminSagDetail() {
         )}
 
         {tab === 'aktorer' && (
+          <>
           {/* ── Interne medarbejder-roller ── */}
           <SectionCard title="Medarbejder-roller" icon={Shield}>
             {addingStaff ? (
