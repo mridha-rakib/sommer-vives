@@ -383,9 +383,12 @@ export default function AdminDokumenter() {
                   <Copy className="h-3.5 w-3.5" />Skabeloner
                 </button>
               </div>
-              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-1">
-                {counts.total} dokumenter
-              </Badge>
+              <Button variant="outline" size="sm" className="gap-1.5 rounded-xl text-xs" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                <Upload className="h-3.5 w-3.5" />{uploading ? 'Uploader...' : 'Upload fil'}
+              </Button>
+              <Button size="sm" className="gap-1.5 rounded-xl text-xs" onClick={openNewDoc}>
+                <FilePlus className="h-3.5 w-3.5" />Nyt dokument
+              </Button>
             </div>
           }
         />
