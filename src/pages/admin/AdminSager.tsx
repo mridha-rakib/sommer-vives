@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Search, FolderOpen, MapPin, Home, Users, ChevronRight,
   Eye, XCircle, RotateCcw, Handshake, Rocket, Ban, CheckCircle2, Clock,
-  MoreHorizontal, Trash2
+  MoreHorizontal, Trash2, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -92,22 +92,41 @@ export default function AdminSager() {
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [activeStage, setActiveStage] = useState<PipelineStage>('til_leje');
+  const [activeStage, setActiveStage] = useState<PipelineStage>('udlejningstjek');
+  const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const [{ data: ls }, { data: profs }] = await Promise.all([
-        supabase.from('listings').select('id, slug, name, address, region, hero_image, images, is_active, max_guests, bedrooms, bathrooms, updated_at, internal_status, readiness_score, channel_airbnb_ready, channel_booking_ready, channel_vrbo_ready, owner_id, property_type, sync_status').order('sort_order'),
-        supabase.from('profiles').select('id, full_name, email'),
-      ]);
-      setListings((ls as any[]) || []);
-      const map: Record<string, any> = {};
-      (profs || []).forEach(p => { map[p.id] = p; });
-      setProfiles(map);
-      setLoading(false);
-    };
+  const load = async () => {
+    const [{ data: ls }, { data: profs }] = await Promise.all([
+      supabase.from('listings').select('id, slug, name, address, region, hero_image, images, is_active, max_guests, bedrooms, bathrooms, updated_at, internal_status, readiness_score, channel_airbnb_ready, channel_booking_ready, channel_vrbo_ready, owner_id, property_type, sync_status').order('sort_order'),
+      supabase.from('profiles').select('id, full_name, email'),
+    ]);
+    setListings((ls as any[]) || []);
+    const map: Record<string, any> = {};
+    (profs || []).forEach(p => { map[p.id] = p; });
+    setProfiles(map);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const createSag = async () => {
+    setCreating(true);
+    const name = prompt('Navn på ny sag (adresse eller ejer):');
+    if (!name?.trim()) { setCreating(false); return; }
+    const slug = `${name.toLowerCase().replace(/[^a-z0-9æøå]+/g, '-').replace(/-+$/, '')}-${Date.now()}`;
+    const { data, error } = await supabase.from('listings').insert({
+      name: name.trim(),
+      slug,
+      owner_id: '00000000-0000-0000-0000-000000000000',
+      internal_status: 'udlejningstjek',
+      is_active: false,
+    }).select('id').single();
+    setCreating(false);
+    if (error) { toast.error('Kunne ikke oprette sag: ' + error.message); return; }
+    toast.success('Sag oprettet');
     load();
-  }, []);
+    if (data) navigate(`/admin/sager/${data.id}`);
+  };
 
   const normalizedListings = useMemo(() =>
     listings.map(l => ({ ...l, _stage: mapLegacyStatus(l.internal_status) })),
@@ -161,14 +180,19 @@ export default function AdminSager() {
           <p className="text-sm font-medium text-muted-foreground">
             {filtered.length} sager er {TAB_LABELS[activeStage].toLowerCase()}
           </p>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Søg"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-8 h-8 w-48 rounded-lg bg-muted/20 border-border/40 text-xs"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Søg"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-8 h-8 w-48 rounded-lg bg-muted/20 border-border/40 text-xs"
+              />
+            </div>
+            <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={createSag} disabled={creating}>
+              <Plus className="h-3.5 w-3.5" /> Opret sag
+            </Button>
           </div>
         </div>
 

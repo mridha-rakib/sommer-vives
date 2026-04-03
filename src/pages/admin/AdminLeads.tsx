@@ -116,28 +116,39 @@ export default function AdminLeads() {
   const convertToOwner = async (lead: any) => {
     if (!lead.email) { toast.error('Lead mangler email — kan ikke oprette ejer'); return; }
 
-    const toastId = toast.loading(`Konverterer ${lead.name} til ejer…`);
+    const toastId = toast.loading(`Konverterer ${lead.name} til sag…`);
 
     try {
-      // 1. Create owner profile via auth signup (generates profile via trigger)
-      // We insert directly into profiles since handle_new_user trigger only fires on auth signup
-      // Instead, create a property first and link later when owner signs up
-      // For now: create a property stub linked to no auth user, and store lead info
-
-      // Create property (sag)
+      // Create property stub
       const { data: property, error: propErr } = await supabase.from('properties').insert({
         title: `${lead.name} — Ny ejendom`,
         address: lead.region || 'Ikke angivet',
         region: lead.region || 'Ikke angivet',
-        owner_id: '00000000-0000-0000-0000-000000000000', // placeholder until owner signs up
+        owner_id: '00000000-0000-0000-0000-000000000000',
         status: 'draft',
         setup_status: 'new',
       }).select('id, case_number').single();
 
       if (propErr) throw propErr;
 
-      // Update lead as won + link converted info
-      const { error: leadErr } = await supabase.from('leads').update({
+      // Create listing (sag) so it appears in Sager pipeline
+      const slug = `${lead.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')}-${Date.now()}`;
+      const { error: listErr } = await supabase.from('listings').insert({
+        name: `${lead.name} — Ny ejendom`,
+        slug,
+        owner_id: '00000000-0000-0000-0000-000000000000',
+        internal_status: 'udlejningstjek',
+        is_active: false,
+        address: lead.region || null,
+        region: lead.region || null,
+        property_type: lead.property_type || null,
+        internal_notes: `Lead: ${lead.name}\nEmail: ${lead.email}\nTlf: ${lead.phone || '—'}\nKilde: ${lead.source}\n\n${lead.notes || ''}`,
+      });
+
+      if (listErr) throw listErr;
+
+      // Update lead as won
+      await supabase.from('leads').update({
         status: 'won',
         notes: [
           lead.notes,
@@ -146,9 +157,7 @@ export default function AdminLeads() {
         ].filter(Boolean).join('\n'),
       }).eq('id', lead.id);
 
-      if (leadErr) throw leadErr;
-
-      toast.success(`${lead.name} konverteret — sag ${property.case_number || 'oprettet'}`, { id: toastId });
+      toast.success(`${lead.name} konverteret til sag`, { id: toastId });
       setDrawerLead(null);
       load();
     } catch (err: any) {
