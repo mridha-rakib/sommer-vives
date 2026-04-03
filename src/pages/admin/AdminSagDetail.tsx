@@ -231,7 +231,7 @@ const COMMON_AMENITIES = [
 ];
 
 // ─── Inline Listing Editor ───
-// Mirrors the public listing page sections (ForestCabin-style)
+// Airbnb-style two-panel editor: left sidebar nav, right content panel
 function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (data: any) => void }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -250,26 +250,18 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     checkout_info: listing.checkout_info || '',
     hero_image: listing.hero_image || '', amenities: listing.amenities || [], images: listing.images || [],
     long_description: listing.long_description || '',
-    // Editorial sections
     extra_sections: (listing.extra_sections || []) as { title: string; body: string; image?: string }[],
-    // Bedrooms
     bedroom_images: (listing.bedroom_images || []) as { url: string; label: string; description?: string }[],
-    // Facilities (structured JSON)
     facilities: (listing.facilities || []) as { category: string; items: { name: string; description?: string; included: boolean }[] }[],
-    // Location
     location_title: listing.location_title || '', location_description: listing.location_description || '',
     getting_around: listing.getting_around || '',
-    // Contact
     contact_name: listing.contact_name || '', contact_role: listing.contact_role || '',
     contact_email: listing.contact_email || '', contact_phone: listing.contact_phone || '',
     contact_text: listing.contact_text || '', contact_image: listing.contact_image || '',
-    // Reviews
     reviews_title: listing.reviews_title || '', reviews_rating: listing.reviews_rating || 0,
     reviews_count: listing.reviews_count || 0,
     reviews_entries: (listing.reviews_entries || []) as { text: string; author: string; location?: string; date?: string }[],
-    // Highlights
     highlights: listing.highlights || [],
-    // Included / Extras
     included_items: listing.included_items || [],
     bring_yourself_items: listing.bring_yourself_items || [],
     purchasable_items: listing.purchasable_items || [],
@@ -388,520 +380,553 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     upd('amenities', has ? form.amenities.filter((x: string) => x !== a) : [...form.amenities, a]);
   };
 
-  // Section nav items matching public listing page
+  // Section helpers
+  const addContentSection = () => upd('extra_sections', [...form.extra_sections, { title: '', body: '', image: '' }]);
+  const updateContentSection = (idx: number, field: string, value: string) => {
+    const updated = [...form.extra_sections]; (updated[idx] as any)[field] = value; upd('extra_sections', updated);
+  };
+  const removeContentSection = (idx: number) => upd('extra_sections', form.extra_sections.filter((_, i) => i !== idx));
+  const addBedroom = () => upd('bedroom_images', [...form.bedroom_images, { url: '', label: `Soveværelse nr. ${form.bedroom_images.length + 1}`, description: '' }]);
+  const updateBedroom = (idx: number, field: string, value: string) => {
+    const updated = [...form.bedroom_images]; (updated[idx] as any)[field] = value; upd('bedroom_images', updated);
+  };
+  const removeBedroom = (idx: number) => upd('bedroom_images', form.bedroom_images.filter((_, i) => i !== idx));
+  const addReview = () => upd('reviews_entries', [...form.reviews_entries, { text: '', author: '', location: '', date: '' }]);
+  const updateReview = (idx: number, field: string, value: string) => {
+    const updated = [...form.reviews_entries]; (updated[idx] as any)[field] = value; upd('reviews_entries', updated);
+  };
+  const removeReview = (idx: number) => upd('reviews_entries', form.reviews_entries.filter((_, i) => i !== idx));
+  const addListItem = (field: string) => upd(field, [...(form as any)[field], '']);
+  const updateListItem = (field: string, idx: number, value: string) => {
+    const updated = [...(form as any)[field]]; updated[idx] = value; upd(field, updated);
+  };
+  const removeListItem = (field: string, idx: number) => upd(field, (form as any)[field].filter((_: any, i: number) => i !== idx));
+
+  // Sections config with completion indicators
   const sections = [
-    { id: 'hero', label: '🖼 Hero & Galleri' },
-    { id: 'intro', label: '✨ Intro & Highlights' },
-    { id: 'content', label: '📖 Indholdssektioner' },
-    { id: 'included', label: '🎁 Inkluderet & Extras' },
-    { id: 'bedrooms', label: '🛏 Soveværelser' },
-    { id: 'facilities', label: '🏠 Faciliteter' },
-    { id: 'location', label: '📍 Beliggenhed' },
-    { id: 'reviews', label: '⭐ Anmeldelser' },
-    { id: 'contact', label: '👤 Kontakt' },
-    { id: 'checkin', label: '🔑 Ankomst & Regler' },
-    { id: 'pricing', label: '💰 Priser & Ophold' },
+    { id: 'hero', icon: Camera, label: 'Billeder', subtitle: `${form.images.length} billeder`, done: form.images.length >= 5 },
+    { id: 'intro', icon: Type, label: 'Titel & beskrivelse', subtitle: form.name || 'Ikke udfyldt', done: !!form.name && !!form.description },
+    { id: 'details', icon: Home, label: 'Boligoplysninger', subtitle: `${form.max_guests} gæster · ${form.bedrooms} sov.`, done: form.max_guests > 0 },
+    { id: 'highlights', icon: Sparkles, label: 'Highlights', subtitle: `${form.highlights.length} highlights`, done: form.highlights.length >= 2 },
+    { id: 'content', icon: FileText, label: 'Indholdssektioner', subtitle: `${form.extra_sections.length} sektioner`, done: form.extra_sections.length > 0 },
+    { id: 'bedrooms', icon: Bed, label: 'Soveværelser', subtitle: `${form.bedroom_images.length} værelser`, done: form.bedroom_images.length > 0 },
+    { id: 'facilities', icon: Wifi, label: 'Faciliteter', subtitle: `${form.facilities.reduce((s: number, c: any) => s + c.items.length, 0)} faciliteter`, done: form.facilities.length > 0 },
+    { id: 'included', icon: Tag, label: 'Inkluderet & Extras', subtitle: `${form.included_items.length} inkl.`, done: form.included_items.length > 0 },
+    { id: 'location', icon: MapPin, label: 'Beliggenhed', subtitle: form.address || 'Ikke udfyldt', done: !!form.address },
+    { id: 'reviews', icon: Sparkles, label: 'Anmeldelser', subtitle: `${form.reviews_entries.length} anm.`, done: form.reviews_entries.length > 0 },
+    { id: 'contact', icon: User, label: 'Kontakt', subtitle: form.contact_name || 'Ikke udfyldt', done: !!form.contact_name },
+    { id: 'checkin', icon: Clock, label: 'Ankomst & Regler', subtitle: `${form.check_in_time} / ${form.check_out_time}`, done: !!form.check_in_time },
+    { id: 'pricing', icon: DollarSign, label: 'Priser', subtitle: form.base_price_per_night ? `${form.base_price_per_night} kr/nat` : 'Ikke sat', done: form.base_price_per_night > 0 },
   ];
 
-  // Helper for extra_sections management
-  const addContentSection = () => {
-    const updated = [...form.extra_sections, { title: '', body: '', image: '' }];
-    upd('extra_sections', updated);
-  };
-  const updateContentSection = (idx: number, field: string, value: string) => {
-    const updated = [...form.extra_sections];
-    (updated[idx] as any)[field] = value;
-    upd('extra_sections', updated);
-  };
-  const removeContentSection = (idx: number) => {
-    upd('extra_sections', form.extra_sections.filter((_, i) => i !== idx));
-  };
+  const completedCount = sections.filter(s => s.done).length;
 
-  // Bedroom management
-  const addBedroom = () => {
-    upd('bedroom_images', [...form.bedroom_images, { url: '', label: `Soveværelse nr. ${form.bedroom_images.length + 1}`, description: '' }]);
-  };
-  const updateBedroom = (idx: number, field: string, value: string) => {
-    const updated = [...form.bedroom_images];
-    (updated[idx] as any)[field] = value;
-    upd('bedroom_images', updated);
-  };
-  const removeBedroom = (idx: number) => {
-    upd('bedroom_images', form.bedroom_images.filter((_, i) => i !== idx));
-  };
-
-  // Facility management
-  const addFacilityCategory = () => {
-    upd('facilities', [...form.facilities, { category: 'Ny kategori', items: [] }]);
-  };
-  const addFacilityItem = (catIdx: number) => {
-    const updated = [...form.facilities];
-    updated[catIdx].items.push({ name: '', included: true });
-    upd('facilities', updated);
-  };
-  const updateFacilityCategory = (catIdx: number, value: string) => {
-    const updated = [...form.facilities];
-    updated[catIdx].category = value;
-    upd('facilities', updated);
-  };
-  const updateFacilityItem = (catIdx: number, itemIdx: number, field: string, value: any) => {
-    const updated = [...form.facilities];
-    (updated[catIdx].items[itemIdx] as any)[field] = value;
-    upd('facilities', updated);
-  };
-  const removeFacilityItem = (catIdx: number, itemIdx: number) => {
-    const updated = [...form.facilities];
-    updated[catIdx].items.splice(itemIdx, 1);
-    upd('facilities', updated);
-  };
-  const removeFacilityCategory = (catIdx: number) => {
-    upd('facilities', form.facilities.filter((_, i) => i !== catIdx));
-  };
-
-  // Reviews management
-  const addReview = () => {
-    upd('reviews_entries', [...form.reviews_entries, { text: '', author: '', location: '', date: '' }]);
-  };
-  const updateReview = (idx: number, field: string, value: string) => {
-    const updated = [...form.reviews_entries];
-    (updated[idx] as any)[field] = value;
-    upd('reviews_entries', updated);
-  };
-  const removeReview = (idx: number) => {
-    upd('reviews_entries', form.reviews_entries.filter((_, i) => i !== idx));
-  };
-
-  // List field helpers
-  const addListItem = (field: string) => {
-    upd(field, [...(form as any)[field], '']);
-  };
-  const updateListItem = (field: string, idx: number, value: string) => {
-    const updated = [...(form as any)[field]];
-    updated[idx] = value;
-    upd(field, updated);
-  };
-  const removeListItem = (field: string, idx: number) => {
-    upd(field, (form as any)[field].filter((_: any, i: number) => i !== idx));
-  };
-
-  // Section header component
-  const SectionHeader = ({ id, number, title, subtitle }: { id: string; number: string; title: string; subtitle: string }) => (
-    <div id={`section-${id}`} className="pt-8 pb-4 scroll-mt-20">
-      <div className="flex items-center gap-3 mb-1">
-        <span className="text-xs font-mono text-primary/60 uppercase tracking-widest">{number}</span>
-        <div className="flex-1 h-px bg-primary/10" />
-      </div>
-      <h3 className="font-display text-lg font-bold text-foreground">{title}</h3>
-      <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
+  // ── Panel header for right side ──
+  const PanelTitle = ({ title, subtitle }: { title: string; subtitle?: string }) => (
+    <div className="mb-8">
+      <h2 className="text-xl font-bold text-foreground">{title}</h2>
+      {subtitle && <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>}
     </div>
   );
 
-  return (
-    <div className="space-y-0">
-      {/* ── Sticky Top Bar ── */}
-      <div className="sticky top-0 z-20 -mx-1 px-1 bg-background/95 backdrop-blur-sm border-b border-border/30 mb-0">
-        <div className="flex items-center justify-between py-3 flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {saving ? <span className="flex items-center gap-1"><Clock className="h-3 w-3 animate-spin" /> Gemmer…</span>
-               : lastSaved ? <span className="flex items-center gap-1 text-primary"><CheckCircle2 className="h-3 w-3" /> Auto-gemt</span>
-               : <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Auto-gem aktiv</span>}
+  // ── Field wrapper for consistent spacing ──
+  const Field = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium text-foreground">{label}</Label>
+      {hint && <p className="text-xs text-muted-foreground -mt-1">{hint}</p>}
+      {children}
+    </div>
+  );
+
+  // ── Render active section ──
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'hero':
+        return (
+          <>
+            <PanelTitle title="Billeder & Galleri" subtitle="Upload mindst 5 billeder — vi anbefaler 15+ for den bedste oplevelse." />
+            <input ref={imageInputRef} type="file" className="hidden" multiple accept="image/*" onChange={e => e.target.files && handleImageUpload(e.target.files)} />
+            <div
+              className="rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/50 bg-muted/5 hover:bg-primary/5 transition-all p-10 text-center cursor-pointer group"
+              onClick={() => imageInputRef.current?.click()}
+              onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-primary/60', 'bg-primary/10'); }}
+              onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); }}
+              onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); if (e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files); }}
+            >
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform">
+                <Upload className="w-7 h-7 text-primary/60" />
+              </div>
+              <p className="text-base font-semibold text-foreground">{uploadingImage ? 'Uploader...' : 'Træk billeder hertil'}</p>
+              <p className="text-sm text-muted-foreground mt-1">eller klik for at vælge · JPG, PNG, WebP</p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {listing.slug && (
-              <a href={`https://sommervibes.dk/listing/${listing.slug}`} target="_blank" rel="noopener noreferrer">
-                <Button size="sm" variant="ghost" className="rounded-xl gap-1.5 text-xs">
-                  <Eye className="h-3.5 w-3.5" /> Preview
-                </Button>
-              </a>
+
+            {form.hero_image && (
+              <div className="mt-6 rounded-2xl overflow-hidden border border-primary/20 aspect-video relative group">
+                <img src={form.hero_image} alt="" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <Badge className="absolute bottom-3 left-3 bg-primary text-primary-foreground">⭐ Hovedbillede</Badge>
+              </div>
             )}
-            <Button size="sm" variant="outline" className="rounded-xl gap-1.5 text-xs" onClick={handleTransferToChannels}>
-              <Send className="h-3.5 w-3.5" /> Overfør til platforme
-            </Button>
-            <Button size="sm" className="rounded-xl gap-1.5 text-xs" onClick={handlePublish} disabled={publishing}>
-              <Globe className="h-3.5 w-3.5" /> {publishing ? 'Publicerer…' : 'Publicér til SommerVibes.dk'}
-            </Button>
-          </div>
-        </div>
-        {/* Section nav */}
-        <div className="flex gap-0.5 overflow-x-auto pb-2 scrollbar-none -mx-1 px-1">
-          {sections.map(s => (
-            <button key={s.id} onClick={() => {
-              setActiveSection(s.id);
-              document.getElementById(`section-${s.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-              className={cn('px-3 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-colors',
-                activeSection === s.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-              )}>
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      <div className="rounded-2xl border border-border/40 bg-card/60 p-6 space-y-0">
+            {form.images.length > 0 && (
+              <div className="mt-6">
+                <p className="text-sm font-medium text-foreground mb-3">{form.images.length} billeder · Klik for at vælge hovedbillede</p>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  {form.images.map((img: string, i: number) => (
+                    <div key={i} className={cn("relative group rounded-xl overflow-hidden border-2 aspect-[4/3] bg-muted cursor-pointer transition-all hover:scale-[1.02]",
+                      form.hero_image === img ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-primary/30')}
+                      onClick={() => upd('hero_image', img)}
+                    >
+                      {img ? <img src={img} alt="" className="w-full h-full object-cover" /> : null}
+                      <span className="absolute top-1.5 right-1.5 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{i + 1}</span>
+                      {form.hero_image === img && <Badge className="absolute bottom-1.5 left-1.5 bg-primary text-primary-foreground text-[9px]">Hero</Badge>}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                        <button onClick={(e) => { e.stopPropagation(); upd('images', form.images.filter((_: string, idx: number) => idx !== i)); }}
+                          className="opacity-0 group-hover:opacity-100 bg-white text-destructive rounded-full p-2 shadow-lg hover:scale-110 transition-all"><Trash2 className="h-3.5 w-3.5" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        );
 
-        {/* ══════════════════════════════════════════════
-            1. HERO & GALLERI
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="hero" number="01" title="Hero & Galleri" subtitle="Hovedbilledet og billedgalleriet som vises øverst på listingen" />
-        <div className="space-y-4">
-          <input ref={imageInputRef} type="file" className="hidden" multiple accept="image/*" onChange={e => e.target.files && handleImageUpload(e.target.files)} />
-          <div
-            className="rounded-xl border-2 border-dashed border-border/50 hover:border-primary/40 bg-muted/10 hover:bg-primary/5 transition-all p-8 text-center cursor-pointer"
-            onClick={() => imageInputRef.current?.click()}
-            onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-primary/60', 'bg-primary/10'); }}
-            onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); }}
-            onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); if (e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files); }}
-          >
-            <Upload className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm font-medium text-foreground">{uploadingImage ? 'Uploader...' : 'Træk billeder hertil eller klik for at uploade'}</p>
-            <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP — anbefalet 15+ billeder</p>
-          </div>
-
-          {form.hero_image && (
-            <div className="rounded-xl overflow-hidden border border-primary/30 h-48 relative">
-              <img src={form.hero_image} alt="" className="w-full h-full object-cover" />
-              <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-[10px]">Hero-billede</Badge>
+      case 'intro':
+        return (
+          <>
+            <PanelTitle title="Titel & Beskrivelse" subtitle="Det første gæsten ser — gør det fængende og personligt." />
+            <div className="space-y-6">
+              <Field label="Listingens navn">
+                <Input value={form.name} onChange={e => upd('name', e.target.value)} placeholder="Skovhytten" className="text-lg font-semibold h-12" />
+              </Field>
+              <Field label="Tagline" hint="En kort one-liner der fanger essensen">
+                <Input value={form.tagline} onChange={e => upd('tagline', e.target.value)} placeholder="Hyggelig skovhytte ved Kvie Sø" className="h-11" />
+              </Field>
+              <Field label="Kort beskrivelse" hint="Gæstens første indtryk — 2-3 sætninger">
+                <Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={3} placeholder="Velkommen til…" className="resize-none" />
+              </Field>
+              <Field label="Detaljeret beskrivelse" hint="Fortæl hele historien om boligen og oplevelsen">
+                <Textarea value={form.long_description} onChange={e => upd('long_description', e.target.value)} rows={6} placeholder="Denne charmerende bolig byder på…" className="resize-none" />
+              </Field>
             </div>
-          )}
+          </>
+        );
 
-          {form.images.length > 0 && (
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Klik på et billede for at vælge det som hero. {form.images.length} billeder i galleriet.</p>
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2">
-                {form.images.map((img: string, i: number) => (
-                  <div key={i} className={cn("relative group rounded-xl overflow-hidden border aspect-[4/3] bg-muted cursor-pointer transition-all",
-                    form.hero_image === img ? 'border-primary/50 ring-2 ring-primary/20' : 'border-border hover:border-primary/30')}
-                    onClick={() => upd('hero_image', img)}
-                  >
-                    {img ? <img src={img} alt="" className="w-full h-full object-cover" /> : null}
-                    {form.hero_image === img && <Badge className="absolute top-1 left-1 bg-primary/90 text-primary-foreground text-[9px] px-1.5 py-0.5">Hero</Badge>}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                      <button onClick={(e) => { e.stopPropagation(); upd('images', form.images.filter((_: string, idx: number) => idx !== i)); }} className="opacity-0 group-hover:opacity-100 bg-white/90 text-destructive rounded-full p-1.5"><X className="h-3.5 w-3.5" /></button>
+      case 'details':
+        return (
+          <>
+            <PanelTitle title="Boligoplysninger" subtitle="Grundlæggende fakta om boligen." />
+            <div className="space-y-6">
+              <Field label="Boligtype">
+                <Input value={form.property_type} onChange={e => upd('property_type', e.target.value)} placeholder="Sommerhus, Hytte, Lejlighed..." className="h-11" />
+              </Field>
+              <div className="grid grid-cols-3 gap-6">
+                {[
+                  { label: 'Max gæster', key: 'max_guests', icon: Users },
+                  { label: 'Soveværelser', key: 'bedrooms', icon: Bed },
+                  { label: 'Badeværelser', key: 'bathrooms', icon: Bath },
+                ].map(item => (
+                  <div key={item.key} className="rounded-2xl border border-border/40 p-5 text-center space-y-3 hover:border-primary/30 transition-colors">
+                    <item.icon className="h-6 w-6 text-muted-foreground mx-auto" />
+                    <p className="text-xs font-medium text-muted-foreground">{item.label}</p>
+                    <div className="flex items-center justify-center gap-3">
+                      <button onClick={() => upd(item.key, Math.max(0, (form as any)[item.key] - 1))}
+                        className="w-9 h-9 rounded-full border border-border hover:border-primary flex items-center justify-center text-lg text-muted-foreground hover:text-foreground transition-colors">−</button>
+                      <span className="text-xl font-bold text-foreground w-8 text-center">{(form as any)[item.key]}</span>
+                      <button onClick={() => upd(item.key, (form as any)[item.key] + 1)}
+                        className="w-9 h-9 rounded-full border border-border hover:border-primary flex items-center justify-center text-lg text-muted-foreground hover:text-foreground transition-colors">+</button>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* ══════════════════════════════════════════════
-            2. INTRO & HIGHLIGHTS
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="intro" number="02" title="Intro & Highlights" subtitle="Titel, tagline og de første linjer gæsten ser — det der sælger opholdet" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Listingens navn</Label>
-              <Input value={form.name} onChange={e => upd('name', e.target.value)} placeholder="Skovhytten" className="text-base font-medium" /></div>
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Tagline</Label>
-              <Input value={form.tagline} onChange={e => upd('tagline', e.target.value)} placeholder="Hyggelig skovhytte ved Kvie Sø" /></div>
-          </div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Kort beskrivelse</Label>
-            <p className="text-xs text-muted-foreground">Gæstens første indtryk — kort og fængende</p>
-            <Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={3} placeholder="Velkommen til…" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Detaljeret beskrivelse</Label>
-            <p className="text-xs text-muted-foreground">Fortæl hele historien om boligen</p>
-            <Textarea value={form.long_description} onChange={e => upd('long_description', e.target.value)} rows={5} placeholder="Denne charmerende bolig byder på…" /></div>
-
-          {/* Highlights */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Highlights (3 vigtigste USP'er)</Label>
-            <p className="text-xs text-muted-foreground">Vises som ikoner under intro-teksten, ligesom på Airbnb</p>
-            {form.highlights.map((h: string, i: number) => (
-              <div key={i} className="flex gap-2">
-                <Input value={h} onChange={e => updateListItem('highlights', i, e.target.value)} placeholder="Udsigt over skoven" className="flex-1" />
-                <Button size="sm" variant="ghost" onClick={() => removeListItem('highlights', i)}><X className="h-3.5 w-3.5" /></Button>
-              </div>
-            ))}
-            {form.highlights.length < 5 && <Button size="sm" variant="outline" className="gap-1.5" onClick={() => addListItem('highlights')}><Plus className="h-3.5 w-3.5" /> Tilføj highlight</Button>}
-          </div>
-
-          {/* Basic property info */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="space-y-1.5"><Label className="text-xs">Boligtype</Label>
-              <Input value={form.property_type} onChange={e => upd('property_type', e.target.value)} placeholder="Sommerhus" className="text-sm" /></div>
-            <div className="space-y-1.5"><Label className="text-xs">Max gæster</Label>
-              <Input type="number" min={1} value={form.max_guests} onChange={e => upd('max_guests', parseInt(e.target.value) || 1)} className="text-sm" /></div>
-            <div className="space-y-1.5"><Label className="text-xs">Soveværelser</Label>
-              <Input type="number" min={0} value={form.bedrooms} onChange={e => upd('bedrooms', parseInt(e.target.value) || 0)} className="text-sm" /></div>
-            <div className="space-y-1.5"><Label className="text-xs">Badeværelser</Label>
-              <Input type="number" min={0} value={form.bathrooms} onChange={e => upd('bathrooms', parseInt(e.target.value) || 0)} className="text-sm" /></div>
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════
-            3. INDHOLDSSEKTIONER (extra_sections)
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="content" number="03" title="Indholdssektioner" subtitle="Editorial sektioner med billede + tekst — disse vises som karusellen på listingen (Boligen, Adgang, Parkering mv.)" />
-        <div className="space-y-4">
-          {form.extra_sections.map((section, i) => (
-            <div key={i} className="rounded-xl border border-border/40 p-4 space-y-3 bg-muted/5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-primary/60">Sektion {i + 1}</span>
-                <Button size="sm" variant="ghost" onClick={() => removeContentSection(i)} className="h-7 w-7 p-0"><X className="h-3.5 w-3.5 text-muted-foreground" /></Button>
-              </div>
-              <Input value={section.title} onChange={e => updateContentSection(i, 'title', e.target.value)} placeholder="Sektionens overskrift, f.eks. 'Nem selvcheck-in'" className="font-medium" />
-              <Textarea value={section.body} onChange={e => updateContentSection(i, 'body', e.target.value)} rows={4} placeholder="Beskrivende tekst til sektionen…" />
-              <div className="space-y-1.5">
-                <Label className="text-xs">Billede URL (valgfrit)</Label>
-                <Input value={section.image || ''} onChange={e => updateContentSection(i, 'image', e.target.value)} placeholder="https://... eller vælg fra galleri" className="text-xs" />
+              <Field label="Adresse">
+                <Input value={form.address} onChange={e => upd('address', e.target.value)} placeholder="Skovvej 12, 6800 Varde" className="h-11" />
+              </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Region"><Input value={form.region} onChange={e => upd('region', e.target.value)} placeholder="Vestjylland" /></Field>
+                <Field label="By"><Input value={form.city} onChange={e => upd('city', e.target.value)} placeholder="Varde" /></Field>
               </div>
             </div>
-          ))}
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={addContentSection}>
-            <Plus className="h-3.5 w-3.5" /> Tilføj indholdssektion
-          </Button>
-        </div>
+          </>
+        );
 
-        {/* ══════════════════════════════════════════════
-            4. INKLUDERET & EXTRAS
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="included" number="04" title="Inkluderet i opholdet & Ekstra muligheder" subtitle="Hvad der er inkluderet, hvad gæsten selv skal medbringe, og hvad der kan tilkøbes" />
-        <div className="space-y-4">
-          {/* Included items */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Inkluderet i opholdet</Label>
-            {form.included_items.map((item: string, i: number) => (
-              <div key={i} className="flex gap-2">
-                <Input value={item} onChange={e => updateListItem('included_items', i, e.target.value)} placeholder="Kaffestation, toiletpapir…" className="flex-1" />
-                <Button size="sm" variant="ghost" onClick={() => removeListItem('included_items', i)}><X className="h-3.5 w-3.5" /></Button>
-              </div>
-            ))}
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => addListItem('included_items')}><Plus className="h-3.5 w-3.5" /> Tilføj</Button>
-          </div>
-          {/* Bring yourself */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Medbring selv</Label>
-            {form.bring_yourself_items.map((item: string, i: number) => (
-              <div key={i} className="flex gap-2">
-                <Input value={item} onChange={e => updateListItem('bring_yourself_items', i, e.target.value)} placeholder="Sengelinned, håndklæder…" className="flex-1" />
-                <Button size="sm" variant="ghost" onClick={() => removeListItem('bring_yourself_items', i)}><X className="h-3.5 w-3.5" /></Button>
-              </div>
-            ))}
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => addListItem('bring_yourself_items')}><Plus className="h-3.5 w-3.5" /> Tilføj</Button>
-          </div>
-          {/* Purchasable extras */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Kan tilkøbes</Label>
-            {form.purchasable_items.map((item: string, i: number) => (
-              <div key={i} className="flex gap-2">
-                <Input value={item} onChange={e => updateListItem('purchasable_items', i, e.target.value)} placeholder="Tidlig check-in, sengepakke…" className="flex-1" />
-                <Button size="sm" variant="ghost" onClick={() => removeListItem('purchasable_items', i)}><X className="h-3.5 w-3.5" /></Button>
-              </div>
-            ))}
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => addListItem('purchasable_items')}><Plus className="h-3.5 w-3.5" /> Tilføj</Button>
-          </div>
-        </div>
-
-        {/* ══════════════════════════════════════════════
-            5. SOVEVÆRELSER
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="bedrooms" number="05" title="Her skal du sove" subtitle="Soveværelseskort med billede og beskrivelse — vises som cards på listingen" />
-        <div className="space-y-3">
-          {form.bedroom_images.map((br, i) => (
-            <div key={i} className="rounded-xl border border-border/40 p-4 flex gap-4 items-start bg-muted/5">
-              {br.url && <img src={br.url} alt={br.label} className="w-20 h-16 rounded-lg object-cover shrink-0" />}
-              <div className="flex-1 space-y-2">
-                <Input value={br.label} onChange={e => updateBedroom(i, 'label', e.target.value)} placeholder="Soveværelse nr. 1" className="font-medium text-sm" />
-                <Input value={br.url} onChange={e => updateBedroom(i, 'url', e.target.value)} placeholder="Billede URL" className="text-xs" />
-                <Input value={br.description || ''} onChange={e => updateBedroom(i, 'description', e.target.value)} placeholder="Dobbeltseng, havudsigt…" className="text-xs" />
-              </div>
-              <Button size="sm" variant="ghost" onClick={() => removeBedroom(i)} className="shrink-0"><X className="h-3.5 w-3.5" /></Button>
-            </div>
-          ))}
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={addBedroom}>
-            <Plus className="h-3.5 w-3.5" /> Tilføj soveværelse
-          </Button>
-        </div>
-
-        {/* ══════════════════════════════════════════════
-            6. FACILITETER (Airbnb-style structured)
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="facilities" number="06" title="Det tilbyder denne bolig" subtitle="Strukturerede faciliteter grupperet i kategorier — vises som Airbnb-style grid" />
-        <div className="space-y-4">
-          {form.facilities.map((cat, ci) => (
-            <div key={ci} className="rounded-xl border border-border/40 p-4 space-y-3 bg-muted/5">
-              <div className="flex items-center justify-between">
-                <Input value={cat.category} onChange={e => updateFacilityCategory(ci, e.target.value)} className="font-semibold text-sm max-w-xs" placeholder="Kategori, f.eks. 'Køkken'" />
-                <Button size="sm" variant="ghost" onClick={() => removeFacilityCategory(ci)}><X className="h-3.5 w-3.5" /></Button>
-              </div>
-              {cat.items.map((item, ii) => (
-                <div key={ii} className="flex items-center gap-2 pl-2">
-                  <Switch checked={item.included} onCheckedChange={v => updateFacilityItem(ci, ii, 'included', v)} />
-                  <Input value={item.name} onChange={e => updateFacilityItem(ci, ii, 'name', e.target.value)} placeholder="Facilitet, f.eks. 'Opvaskemaskine'" className="flex-1 text-sm" />
-                  <Input value={item.description || ''} onChange={e => updateFacilityItem(ci, ii, 'description', e.target.value)} placeholder="Beskrivelse (valgfrit)" className="flex-1 text-xs" />
-                  <Button size="sm" variant="ghost" onClick={() => removeFacilityItem(ci, ii)} className="shrink-0 h-7 w-7 p-0"><X className="h-3 w-3" /></Button>
+      case 'highlights':
+        return (
+          <>
+            <PanelTitle title="Highlights" subtitle="De 3-5 vigtigste USP'er. Vises som ikoner under intro-teksten." />
+            <div className="space-y-3">
+              {form.highlights.map((h: string, i: number) => (
+                <div key={i} className="flex items-center gap-3 group">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-sm font-bold text-primary">{i + 1}</div>
+                  <Input value={h} onChange={e => updateListItem('highlights', i, e.target.value)} placeholder="F.eks. Privat sø, Brændeovn, Skovudsigt..." className="flex-1 h-11" />
+                  <Button size="sm" variant="ghost" onClick={() => removeListItem('highlights', i)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  </Button>
                 </div>
               ))}
-              <Button size="sm" variant="ghost" className="gap-1 text-xs ml-2" onClick={() => addFacilityItem(ci)}>
-                <Plus className="h-3 w-3" /> Tilføj facilitet
-              </Button>
+              {form.highlights.length < 5 && (
+                <button onClick={() => addListItem('highlights')}
+                  className="w-full rounded-xl border-2 border-dashed border-border/40 hover:border-primary/40 p-4 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
+                  <Plus className="h-4 w-4" /> Tilføj highlight
+                </button>
+              )}
             </div>
-          ))}
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={addFacilityCategory}>
-            <Plus className="h-3.5 w-3.5" /> Tilføj kategori
-          </Button>
+          </>
+        );
 
-          {/* Quick amenities (legacy fallback) */}
-          <div className="pt-3 border-t border-border/20">
-            <Label className="text-xs font-medium text-muted-foreground mb-2 block">Hurtig-faciliteter (tags)</Label>
-            <div className="flex flex-wrap gap-1.5">
-              {COMMON_AMENITIES.map(a => (
-                <button key={a} onClick={() => toggleAm(a)} className={cn('px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
-                  form.amenities.includes(a) ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground border-border hover:border-primary/40')}>{a}</button>
+      case 'content':
+        return (
+          <>
+            <PanelTitle title="Indholdssektioner" subtitle="Redaktionelle blokke med billede + tekst — vises som karusellen på listingen." />
+            <div className="space-y-4">
+              {form.extra_sections.map((section, i) => (
+                <div key={i} className="rounded-2xl border border-border/40 overflow-hidden group hover:border-primary/20 transition-colors">
+                  <div className="flex items-center justify-between px-5 py-3 bg-muted/5">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sektion {i + 1}</span>
+                    <Button size="sm" variant="ghost" onClick={() => removeContentSection(i)} className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100">
+                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </div>
+                  <div className="p-5 space-y-4">
+                    <Input value={section.title} onChange={e => updateContentSection(i, 'title', e.target.value)} placeholder="Sektionens overskrift" className="text-base font-semibold h-11" />
+                    <Textarea value={section.body} onChange={e => updateContentSection(i, 'body', e.target.value)} rows={4} placeholder="Beskrivende tekst…" className="resize-none" />
+                    <Field label="Billede URL (valgfrit)">
+                      <Input value={section.image || ''} onChange={e => updateContentSection(i, 'image', e.target.value)} placeholder="https://..." className="text-sm" />
+                    </Field>
+                  </div>
+                </div>
               ))}
+              <button onClick={addContentSection}
+                className="w-full rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 p-6 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
+                <Plus className="h-4 w-4" /> Tilføj indholdssektion
+              </button>
             </div>
-            {form.amenities.filter((a: string) => !COMMON_AMENITIES.includes(a)).length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {form.amenities.filter((a: string) => !COMMON_AMENITIES.includes(a)).map((a: string) => (
-                  <Badge key={a} variant="secondary" className="gap-1 text-xs">{a}<button onClick={() => upd('amenities', form.amenities.filter((x: string) => x !== a))} className="ml-0.5 hover:text-destructive"><X className="h-3 w-3" /></button></Badge>
+          </>
+        );
+
+      case 'bedrooms':
+        return (
+          <>
+            <PanelTitle title="Soveværelser" subtitle="Fortæl gæsten hvad de kan forvente i hvert værelse." />
+            <div className="space-y-4">
+              {form.bedroom_images.map((br, i) => (
+                <div key={i} className="rounded-2xl border border-border/40 p-5 space-y-4 group hover:border-primary/20 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><Bed className="h-5 w-5 text-primary/60" /></div>
+                      <Input value={br.label} onChange={e => updateBedroom(i, 'label', e.target.value)} placeholder="Soveværelse nr. 1" className="text-base font-semibold border-0 p-0 h-auto focus-visible:ring-0 bg-transparent" />
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => removeBedroom(i)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+                  </div>
+                  <Field label="Beskrivelse"><Textarea value={br.description || ''} onChange={e => updateBedroom(i, 'description', e.target.value)} rows={2} placeholder="1 dobbeltseng, natborde, garderobeskab..." className="resize-none" /></Field>
+                  <Field label="Billede URL"><Input value={br.url} onChange={e => updateBedroom(i, 'url', e.target.value)} placeholder="https://..." className="text-sm" /></Field>
+                </div>
+              ))}
+              <button onClick={addBedroom}
+                className="w-full rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 p-6 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
+                <Plus className="h-4 w-4" /> Tilføj soveværelse
+              </button>
+            </div>
+          </>
+        );
+
+      case 'facilities':
+        return (
+          <>
+            <PanelTitle title="Faciliteter" subtitle="Hvad tilbyder boligen? Organisér i kategorier ligesom Airbnb." />
+            <div className="space-y-2 mb-6">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Hurtig-tilføj</p>
+              <div className="flex flex-wrap gap-2">
+                {COMMON_AMENITIES.filter(a => !form.amenities.includes(a)).slice(0, 12).map(a => (
+                  <button key={a} onClick={() => toggleAm(a)}
+                    className="text-sm px-3 py-1.5 rounded-full border border-border/40 text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all">
+                    + {a}
+                  </button>
                 ))}
               </div>
-            )}
-            <div className="flex gap-2 mt-2">
-              <Input value={newAmenity} onChange={e => setNewAmenity(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (newAmenity.trim()) { toggleAm(newAmenity.trim()); setNewAmenity(''); } } }}
-                placeholder="Tilføj egen…" className="flex-1" />
-              <Button size="sm" variant="outline" onClick={() => { if (newAmenity.trim()) { toggleAm(newAmenity.trim()); setNewAmenity(''); } }}><Plus className="h-4 w-4" /></Button>
+              {form.amenities.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {form.amenities.map((a: string) => (
+                    <span key={a} className="text-sm px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5">
+                      {a} <button onClick={() => toggleAm(a)} className="hover:text-destructive"><X className="h-3 w-3" /></button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
+            <Separator className="my-6" />
+            <p className="text-sm font-medium text-foreground mb-4">Kategoriserede faciliteter</p>
+            <div className="space-y-3">
+              {form.facilities.map((cat, ci) => (
+                <div key={ci} className="rounded-2xl border border-border/40 overflow-hidden group">
+                  <div className="flex items-center gap-3 px-5 py-3 bg-muted/5 cursor-pointer">
+                    <Input value={cat.category} onChange={e => { const u = [...form.facilities]; u[ci].category = e.target.value; upd('facilities', u); }}
+                      className="flex-1 text-sm font-semibold border-0 p-0 h-auto bg-transparent focus-visible:ring-0" />
+                    <Badge variant="secondary" className="text-[10px]">{cat.items.length}</Badge>
+                    <Button size="sm" variant="ghost" onClick={() => upd('facilities', form.facilities.filter((_, i) => i !== ci))} className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"><Trash2 className="h-3.5 w-3.5" /></Button>
+                  </div>
+                  <div className="px-5 pb-4 pt-2 space-y-2">
+                    {cat.items.map((item, ii) => (
+                      <div key={ii} className="flex items-center gap-3">
+                        <Switch checked={item.included} onCheckedChange={v => { const u = [...form.facilities]; (u[ci].items[ii] as any).included = v; upd('facilities', u); }} className="scale-75" />
+                        <Input value={item.name} onChange={e => { const u = [...form.facilities]; (u[ci].items[ii] as any).name = e.target.value; upd('facilities', u); }}
+                          placeholder="Facilitetsnavn" className="flex-1 text-sm h-9" />
+                        <Button size="sm" variant="ghost" onClick={() => { const u = [...form.facilities]; u[ci].items.splice(ii, 1); upd('facilities', u); }}
+                          className="h-7 w-7 p-0 opacity-50 hover:opacity-100"><X className="h-3 w-3" /></Button>
+                      </div>
+                    ))}
+                    <button onClick={() => { const u = [...form.facilities]; u[ci].items.push({ name: '', included: true }); upd('facilities', u); }}
+                      className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 pt-1"><Plus className="h-3 w-3" /> Tilføj facilitet</button>
+                  </div>
+                </div>
+              ))}
+              <button onClick={() => upd('facilities', [...form.facilities, { category: 'Ny kategori', items: [] }])}
+                className="w-full rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 p-4 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
+                <Plus className="h-4 w-4" /> Tilføj kategori
+              </button>
+            </div>
+          </>
+        );
+
+      case 'included':
+        return (
+          <>
+            <PanelTitle title="Inkluderet & Extras" subtitle="Hvad er med i prisen, hvad skal gæsten medbringe, og hvad kan tilkøbes?" />
+            {[
+              { field: 'included_items', title: '✅ Inkluderet i opholdet', placeholder: 'Kaffestation, toiletpapir...' },
+              { field: 'bring_yourself_items', title: '🎒 Medbring selv', placeholder: 'Sengelinned, håndklæder...' },
+              { field: 'purchasable_items', title: '🛒 Kan tilkøbes', placeholder: 'Brænde, slutrengøring...' },
+            ].map(({ field, title, placeholder }) => (
+              <div key={field} className="mb-8">
+                <p className="text-sm font-semibold text-foreground mb-3">{title}</p>
+                <div className="space-y-2">
+                  {(form as any)[field].map((item: string, i: number) => (
+                    <div key={i} className="flex items-center gap-3 group">
+                      <span className="w-6 h-6 rounded-full bg-muted/30 flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">{i + 1}</span>
+                      <Input value={item} onChange={e => updateListItem(field, i, e.target.value)} placeholder={placeholder} className="flex-1 h-10" />
+                      <Button size="sm" variant="ghost" onClick={() => removeListItem(field, i)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+                    </div>
+                  ))}
+                  <button onClick={() => addListItem(field)}
+                    className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 pt-1"><Plus className="h-3 w-3" /> Tilføj</button>
+                </div>
+              </div>
+            ))}
+          </>
+        );
+
+      case 'location':
+        return (
+          <>
+            <PanelTitle title="Beliggenhed" subtitle="Fortæl gæsten om området og hvordan de finder boligen." />
+            <div className="space-y-6">
+              <Field label="Overskrift"><Input value={form.location_title} onChange={e => upd('location_title', e.target.value)} placeholder="Midt i naturen ved Kvie Sø" className="h-11" /></Field>
+              <Field label="Beskrivelse af området"><Textarea value={form.location_description} onChange={e => upd('location_description', e.target.value)} rows={4} placeholder="Boligen ligger i rolige omgivelser..." className="resize-none" /></Field>
+              <Field label="Transport & omgivelser"><Textarea value={form.getting_around} onChange={e => upd('getting_around', e.target.value)} rows={3} placeholder="Nærmeste supermarked 5 min i bil..." className="resize-none" /></Field>
+            </div>
+          </>
+        );
+
+      case 'reviews':
+        return (
+          <>
+            <PanelTitle title="Anmeldelser" subtitle="Social proof fra gæster — vises på listingen." />
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
+                <Field label="Overordnet titel"><Input value={form.reviews_title} onChange={e => upd('reviews_title', e.target.value)} placeholder="Gæster elsker dette sted" /></Field>
+                <Field label="Rating (0-5)"><Input type="number" step={0.01} min={0} max={5} value={form.reviews_rating} onChange={e => upd('reviews_rating', parseFloat(e.target.value) || 0)} /></Field>
+                <Field label="Antal"><Input type="number" min={0} value={form.reviews_count} onChange={e => upd('reviews_count', parseInt(e.target.value) || 0)} /></Field>
+              </div>
+              <div className="space-y-4">
+                {form.reviews_entries.map((review, i) => (
+                  <div key={i} className="rounded-2xl border border-border/40 p-5 space-y-3 group hover:border-primary/20 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-foreground">Anmeldelse {i + 1}</span>
+                      <Button size="sm" variant="ghost" onClick={() => removeReview(i)} className="opacity-0 group-hover:opacity-100"><Trash2 className="h-4 w-4 text-muted-foreground" /></Button>
+                    </div>
+                    <Textarea value={review.text} onChange={e => updateReview(i, 'text', e.target.value)} rows={2} placeholder="Det er et smukt sted i skoven…" className="resize-none" />
+                    <div className="grid grid-cols-3 gap-3">
+                      <Input value={review.author} onChange={e => updateReview(i, 'author', e.target.value)} placeholder="Mariella" />
+                      <Input value={review.location || ''} onChange={e => updateReview(i, 'location', e.target.value)} placeholder="Houten, NL" />
+                      <Input value={review.date || ''} onChange={e => updateReview(i, 'date', e.target.value)} placeholder="dec. 2025" />
+                    </div>
+                  </div>
+                ))}
+                <button onClick={addReview}
+                  className="w-full rounded-2xl border-2 border-dashed border-border/40 hover:border-primary/40 p-4 text-sm text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2">
+                  <Plus className="h-4 w-4" /> Tilføj anmeldelse
+                </button>
+              </div>
+            </div>
+          </>
+        );
+
+      case 'contact':
+        return (
+          <>
+            <PanelTitle title="Kontakt" subtitle="Kontaktpersonen der vises i bunden af listingen." />
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Navn"><Input value={form.contact_name} onChange={e => upd('contact_name', e.target.value)} placeholder="Emil Klockmann" className="h-11" /></Field>
+                <Field label="Rolle"><Input value={form.contact_role} onChange={e => upd('contact_role', e.target.value)} placeholder="Udlejningschef" className="h-11" /></Field>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="E-mail"><Input value={form.contact_email} onChange={e => upd('contact_email', e.target.value)} placeholder="ek@klockmann.dk" className="h-11" /></Field>
+                <Field label="Telefon"><Input value={form.contact_phone} onChange={e => upd('contact_phone', e.target.value)} placeholder="+45 42 44 07 27" className="h-11" /></Field>
+              </div>
+              <Field label="Kontakttekst"><Textarea value={form.contact_text} onChange={e => upd('contact_text', e.target.value)} rows={3} placeholder="Har du spørgsmål? Skriv til mig…" className="resize-none" /></Field>
+              <Field label="Profilbillede URL"><Input value={form.contact_image} onChange={e => upd('contact_image', e.target.value)} placeholder="https://..." /></Field>
+            </div>
+          </>
+        );
+
+      case 'checkin':
+        return (
+          <>
+            <PanelTitle title="Ankomst & Regler" subtitle="Check-in info, husregler og praktisk information." />
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                {[
+                  { label: 'Check-in', key: 'check_in_time', icon: '🔑' },
+                  { label: 'Check-out', key: 'check_out_time', icon: '👋' },
+                ].map(t => (
+                  <div key={t.key} className="rounded-2xl border border-border/40 p-5 text-center space-y-2 hover:border-primary/30 transition-colors">
+                    <span className="text-2xl">{t.icon}</span>
+                    <p className="text-xs font-medium text-muted-foreground">{t.label}</p>
+                    <Input value={(form as any)[t.key]} onChange={e => upd(t.key, e.target.value)} className="text-center text-lg font-bold h-12" />
+                  </div>
+                ))}
+              </div>
+              <Field label="Ankomst-info"><Textarea value={form.checkin_info} onChange={e => upd('checkin_info', e.target.value)} rows={3} placeholder="Nøgleboks ved hoveddøren..." className="resize-none" /></Field>
+              <Field label="Afrejse-info"><Textarea value={form.checkout_info} onChange={e => upd('checkout_info', e.target.value)} rows={3} placeholder="Tøm køleskab, tænd opvaskemaskine..." className="resize-none" /></Field>
+              <Field label="Husregler"><Textarea value={form.house_rules} onChange={e => upd('house_rules', e.target.value)} rows={3} placeholder="Ingen rygning, max 8 gæster…" className="resize-none" /></Field>
+              <Field label="Praktisk info"><Textarea value={form.practical_info} onChange={e => upd('practical_info', e.target.value)} rows={3} placeholder="WiFi: SommerNet, kode: 1234…" className="resize-none" /></Field>
+            </div>
+          </>
+        );
+
+      case 'pricing':
+        return (
+          <>
+            <PanelTitle title="Priser & Ophold" subtitle="Basispris, weekendtillæg og opholdskrav." />
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { label: 'Pris pr. nat', key: 'base_price_per_night', suffix: 'kr' },
+                  { label: 'Weekend-pris', key: 'weekend_price_per_night', suffix: 'kr' },
+                  { label: 'Rengøring', key: 'cleaning_fee', suffix: 'kr' },
+                ].map(p => (
+                  <div key={p.key} className="rounded-2xl border border-border/40 p-5 text-center space-y-2 hover:border-primary/30 transition-colors">
+                    <p className="text-xs font-medium text-muted-foreground">{p.label}</p>
+                    <div className="flex items-center justify-center gap-1">
+                      <Input type="number" min={0} step={50} value={(form as any)[p.key]}
+                        onChange={e => upd(p.key, parseFloat(e.target.value) || 0)}
+                        className="text-center text-xl font-bold h-12 w-28 border-0 focus-visible:ring-0 bg-transparent" />
+                      <span className="text-sm text-muted-foreground">{p.suffix}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Min. nætter"><Input type="number" min={1} value={form.min_nights} onChange={e => upd('min_nights', parseInt(e.target.value) || 1)} className="h-11" /></Field>
+                <Field label="Max nætter"><Input type="number" min={1} value={form.max_nights} onChange={e => upd('max_nights', parseInt(e.target.value) || 30)} className="h-11" /></Field>
+              </div>
+              <div className="flex items-center gap-4 rounded-2xl border border-border/40 p-5">
+                <Switch checked={form.is_active} onCheckedChange={v => upd('is_active', v)} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Synlig på SommerVibes.dk</p>
+                  <p className="text-xs text-muted-foreground">Når slået til, kan gæster finde og booke denne listing</p>
+                </div>
+              </div>
+            </div>
+          </>
+        );
+
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="flex gap-0 -mx-4 md:-mx-8 -mt-2">
+      {/* ── LEFT SIDEBAR ── */}
+      <div className="w-72 shrink-0 border-r border-border/30 bg-card/30 sticky top-0 self-start h-[calc(100vh-8rem)] overflow-y-auto">
+        {/* Status bar */}
+        <div className="p-4 border-b border-border/30">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</span>
+            <span className="text-xs text-muted-foreground">{completedCount}/{sections.length}</span>
+          </div>
+          <div className="w-full bg-muted/30 rounded-full h-1.5">
+            <div className="bg-primary h-1.5 rounded-full transition-all duration-500" style={{ width: `${(completedCount / sections.length) * 100}%` }} />
+          </div>
+          <div className="flex items-center gap-2 mt-3 text-[11px] text-muted-foreground">
+            {saving ? <><Clock className="h-3 w-3 animate-spin" /> Gemmer…</>
+              : lastSaved ? <><CheckCircle2 className="h-3 w-3 text-primary" /> Auto-gemt</>
+              : <><CheckCircle2 className="h-3 w-3" /> Auto-gem aktiv</>}
           </div>
         </div>
 
-        {/* ══════════════════════════════════════════════
-            7. BELIGGENHED — "Her skal du være"
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="location" number="07" title="Her skal du være" subtitle="Beliggenhed, afstande og praktisk information om området" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Adresse</Label>
-              <Input value={form.address} onChange={e => upd('address', e.target.value)} placeholder="Søvej 28, 6823 Ansager" /></div>
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Region</Label>
-              <Input value={form.region} onChange={e => upd('region', e.target.value)} placeholder="Vestjylland" /></div>
-          </div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Overskrift for beliggenhed</Label>
-            <Input value={form.location_title} onChange={e => upd('location_title', e.target.value)} placeholder="Beliggenhed ved Kvie Sø" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Beskrivelse af området</Label>
-            <Textarea value={form.location_description} onChange={e => upd('location_description', e.target.value)} rows={3} placeholder="Attraktiv placering med nem adgang til natur…" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Afstande & transport</Label>
-            <p className="text-xs text-muted-foreground">Brug linjeskift for punkter: "Kvie Sø: ca. 300 meter"</p>
-            <Textarea value={form.getting_around} onChange={e => upd('getting_around', e.target.value)} rows={4} placeholder="• Kvie Sø (børnevenlig sø): ca. 300 meter&#10;• Billund (Legoland): ca. 25 min" /></div>
-        </div>
-
-        {/* ══════════════════════════════════════════════
-            8. ANMELDELSER
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="reviews" number="08" title="Hvad vores gæster siger" subtitle="Anmeldelser, rating og social proof — vises i anmeldelseskarusellen" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5"><Label className="text-xs">Rating (f.eks. 4.94)</Label>
-              <Input type="number" step={0.01} min={0} max={5} value={form.reviews_rating} onChange={e => upd('reviews_rating', parseFloat(e.target.value) || 0)} /></div>
-            <div className="space-y-1.5"><Label className="text-xs">Antal anmeldelser</Label>
-              <Input type="number" min={0} value={form.reviews_count} onChange={e => upd('reviews_count', parseInt(e.target.value) || 0)} /></div>
-          </div>
-          {form.reviews_entries.map((review, i) => (
-            <div key={i} className="rounded-xl border border-border/40 p-4 space-y-2 bg-muted/5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-primary/60">Anmeldelse {i + 1}</span>
-                <Button size="sm" variant="ghost" onClick={() => removeReview(i)} className="h-7 w-7 p-0"><X className="h-3.5 w-3.5" /></Button>
-              </div>
-              <Textarea value={review.text} onChange={e => updateReview(i, 'text', e.target.value)} rows={2} placeholder="Det er et smukt sted i skoven…" />
-              <div className="grid grid-cols-3 gap-2">
-                <Input value={review.author} onChange={e => updateReview(i, 'author', e.target.value)} placeholder="Mariella" className="text-xs" />
-                <Input value={review.location || ''} onChange={e => updateReview(i, 'location', e.target.value)} placeholder="Houten, Holland" className="text-xs" />
-                <Input value={review.date || ''} onChange={e => updateReview(i, 'date', e.target.value)} placeholder="dec. 2025" className="text-xs" />
-              </div>
+        {/* Preview + cover */}
+        {form.hero_image && (
+          <div className="p-4 border-b border-border/30">
+            <div className="rounded-xl overflow-hidden aspect-video bg-muted">
+              <img src={form.hero_image} alt="" className="w-full h-full object-cover" />
             </div>
+            <p className="text-sm font-semibold text-foreground mt-2 truncate">{form.name || 'Unavngivet listing'}</p>
+            <p className="text-[11px] text-muted-foreground">{form.images.length} billeder</p>
+          </div>
+        )}
+
+        {/* Section nav */}
+        <nav className="p-2 space-y-0.5">
+          {sections.map((s) => (
+            <button key={s.id} onClick={() => setActiveSection(s.id)}
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group',
+                activeSection === s.id
+                  ? 'bg-primary/10 text-foreground'
+                  : 'text-muted-foreground hover:bg-muted/20 hover:text-foreground'
+              )}>
+              <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors',
+                activeSection === s.id ? 'bg-primary/20' : 'bg-muted/20 group-hover:bg-muted/40')}>
+                <s.icon className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{s.label}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{s.subtitle}</p>
+              </div>
+              {s.done && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
+            </button>
           ))}
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={addReview}>
-            <Plus className="h-3.5 w-3.5" /> Tilføj anmeldelse
-          </Button>
-        </div>
+        </nav>
+      </div>
 
-        {/* ══════════════════════════════════════════════
-            9. KONTAKT — "Kontakt os"
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="contact" number="09" title="Kontakt os" subtitle="Kontaktpersonen som vises i bunden af listingen" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Navn</Label>
-              <Input value={form.contact_name} onChange={e => upd('contact_name', e.target.value)} placeholder="Emil Klockmann" /></div>
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Rolle</Label>
-              <Input value={form.contact_role} onChange={e => upd('contact_role', e.target.value)} placeholder="Udlejningschef & Ejer" /></div>
+      {/* ── RIGHT CONTENT PANEL ── */}
+      <div className="flex-1 min-w-0">
+        {/* Top action bar */}
+        <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border/30 px-8 py-3 flex items-center justify-between">
+          <div className="text-sm font-medium text-foreground">
+            {sections.find(s => s.id === activeSection)?.label}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label className="text-sm font-medium">E-mail</Label>
-              <Input value={form.contact_email} onChange={e => upd('contact_email', e.target.value)} placeholder="ek@klockmann.dk" /></div>
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Telefon</Label>
-              <Input value={form.contact_phone} onChange={e => upd('contact_phone', e.target.value)} placeholder="+45 42 44 07 27" /></div>
-          </div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Kontakttekst</Label>
-            <Textarea value={form.contact_text} onChange={e => upd('contact_text', e.target.value)} rows={2} placeholder="Har du spørgsmål til opholdet? Skriv til mig…" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Profilbillede URL</Label>
-            <Input value={form.contact_image} onChange={e => upd('contact_image', e.target.value)} placeholder="https://..." className="text-xs" /></div>
-        </div>
-
-        {/* ══════════════════════════════════════════════
-            10. ANKOMST & REGLER
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="checkin" number="10" title="Ankomst & Regler" subtitle="Check-in info, husregler og praktisk information til gæsten" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Check-in tid</Label>
-              <Input value={form.check_in_time} onChange={e => upd('check_in_time', e.target.value)} placeholder="15:00" /></div>
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Check-out tid</Label>
-              <Input value={form.check_out_time} onChange={e => upd('check_out_time', e.target.value)} placeholder="10:00" /></div>
-          </div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Ankomst-info til gæsten</Label>
-            <Textarea value={form.checkin_info} onChange={e => upd('checkin_info', e.target.value)} rows={3} placeholder="Nøgleboks ved hoveddøren, kode sendes 24h før…" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Afrejse-info</Label>
-            <Textarea value={form.checkout_info} onChange={e => upd('checkout_info', e.target.value)} rows={3} placeholder="Tøm køleskab, tænd opvaskemaskine…" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Husregler</Label>
-            <Textarea value={form.house_rules} onChange={e => upd('house_rules', e.target.value)} rows={3} placeholder="Ingen rygning, max 8 gæster…" /></div>
-          <div className="space-y-1.5"><Label className="text-sm font-medium">Praktisk info</Label>
-            <Textarea value={form.practical_info} onChange={e => upd('practical_info', e.target.value)} rows={3} placeholder="WiFi: SommerNet, kode: 1234…" /></div>
-        </div>
-
-        {/* ══════════════════════════════════════════════
-            11. PRISER & OPHOLD
-        ══════════════════════════════════════════════ */}
-        <SectionHeader id="pricing" number="11" title="Priser & Ophold" subtitle="Basispris, weekend-tillæg, rengøringsgebyr og opholdskrav" />
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Pris pr. nat (DKK)</Label>
-              <Input type="number" min={0} step={50} value={form.base_price_per_night} onChange={e => upd('base_price_per_night', parseFloat(e.target.value) || 0)} /></div>
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Weekend-pris (DKK)</Label>
-              <Input type="number" min={0} step={50} value={form.weekend_price_per_night} onChange={e => upd('weekend_price_per_night', parseFloat(e.target.value) || 0)} /></div>
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Rengøringsgebyr (DKK)</Label>
-              <Input type="number" min={0} step={50} value={form.cleaning_fee} onChange={e => upd('cleaning_fee', parseFloat(e.target.value) || 0)} /></div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Min. nætter</Label>
-              <Input type="number" min={1} value={form.min_nights} onChange={e => upd('min_nights', parseInt(e.target.value) || 1)} /></div>
-            <div className="space-y-1.5"><Label className="text-sm font-medium">Max nætter</Label>
-              <Input type="number" min={1} value={form.max_nights} onChange={e => upd('max_nights', parseInt(e.target.value) || 30)} /></div>
-          </div>
-          <div className="flex items-center gap-3 pt-2">
-            <Switch checked={form.is_active} onCheckedChange={v => upd('is_active', v)} />
-            <Label className="text-sm">Synlig på SommerVibes.dk</Label>
-          </div>
-        </div>
-
-        {/* ── Bottom publish bar ── */}
-        <div className="pt-8 pb-2 flex flex-col sm:flex-row items-center gap-3 border-t border-border/30 mt-8">
-          <div className="flex-1 text-center sm:text-left">
-            <p className="text-xs text-muted-foreground">Når alt ser godt ud, publicér til SommerVibes.dk og overfør derefter til eksterne platforme.</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" variant="outline" className="rounded-xl gap-1.5 text-xs" onClick={handleTransferToChannels}>
-              <Send className="h-3.5 w-3.5" /> Overfør til platforme
+          <div className="flex items-center gap-2">
+            {listing.slug && (
+              <a href={`https://sommervibes.dk/listing/${listing.slug}`} target="_blank" rel="noopener noreferrer">
+                <Button size="sm" variant="ghost" className="rounded-xl gap-1.5 text-xs h-8"><Eye className="h-3.5 w-3.5" /> Preview</Button>
+              </a>
+            )}
+            <Button size="sm" variant="outline" className="rounded-xl gap-1.5 text-xs h-8" onClick={handleTransferToChannels}>
+              <Send className="h-3.5 w-3.5" /> Platforme
             </Button>
-            <Button size="sm" className="rounded-xl gap-1.5 text-xs" onClick={handlePublish} disabled={publishing}>
-              <Globe className="h-3.5 w-3.5" /> Publicér til SommerVibes.dk
+            <Button size="sm" className="rounded-xl gap-1.5 text-xs h-8" onClick={handlePublish} disabled={publishing}>
+              <Globe className="h-3.5 w-3.5" /> {publishing ? 'Publicerer…' : 'Publicér'}
             </Button>
           </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-8 max-w-2xl">
+          {renderSection()}
         </div>
       </div>
     </div>
