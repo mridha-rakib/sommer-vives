@@ -647,6 +647,9 @@ export default function AdminDokumenter() {
                               </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="sm" className="h-7 px-2 rounded-lg text-xs gap-1 text-primary" onClick={() => openFromTemplate(t)}>
+                                <FilePlus className="h-3.5 w-3.5" /> Brug
+                              </Button>
                               <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg" onClick={() => openEditStdTemplate(t)}>
                                 <Pencil className="h-3.5 w-3.5" />
                               </Button>
