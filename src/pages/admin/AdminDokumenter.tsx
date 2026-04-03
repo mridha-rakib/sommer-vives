@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
@@ -13,11 +13,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import {
   FileText, Search, Download, Eye, FolderOpen, Grid3X3, List, Filter,
   FileSignature, Receipt, Upload, ShieldCheck, File, CalendarDays,
   User, FolderOpen as FolderIcon, ExternalLink, Link2, Clock, MoreHorizontal,
-  AlertTriangle, Pencil, Copy, Plus, Trash2, BookTemplate
+  AlertTriangle, Pencil, Copy, Plus, Trash2, BookTemplate, FilePlus, Save
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
