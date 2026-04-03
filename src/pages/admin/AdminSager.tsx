@@ -180,14 +180,19 @@ export default function AdminSager() {
           <p className="text-sm font-medium text-muted-foreground">
             {filtered.length} sager er {TAB_LABELS[activeStage].toLowerCase()}
           </p>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="Søg"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-8 h-8 w-48 rounded-lg bg-muted/20 border-border/40 text-xs"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Søg"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-8 h-8 w-48 rounded-lg bg-muted/20 border-border/40 text-xs"
+              />
+            </div>
+            <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={createSag} disabled={creating}>
+              <Plus className="h-3.5 w-3.5" /> Opret sag
+            </Button>
           </div>
         </div>
 
