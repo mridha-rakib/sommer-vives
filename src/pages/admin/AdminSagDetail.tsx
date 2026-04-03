@@ -377,27 +377,65 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
           <div className="flex items-center gap-3 pt-2"><Label className="text-sm">Aktiv</Label><Switch checked={form.is_active} onCheckedChange={v => upd('is_active', v)} /></div>
         </>)}
         {editSection === 1 && (<>
-          <EF label="Hovedbeskrivelse" hint="Beskriv boligen og stemningen"><Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={6} placeholder="Velkommen til…" /></EF>
+          <EF label="Kort beskrivelse" hint="Beskriv boligen og stemningen (vises som intro)"><Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={4} placeholder="Velkommen til…" /></EF>
+          <EF label="Lang beskrivelse" hint="Detaljeret beskrivelse med fuldt overblik"><Textarea value={form.long_description} onChange={e => upd('long_description', e.target.value)} rows={8} placeholder="Denne charmerende bolig byder på…" /></EF>
           <EF label="Husregler"><Textarea value={form.house_rules} onChange={e => upd('house_rules', e.target.value)} rows={3} placeholder="Ingen rygning…" /></EF>
           <EF label="Praktisk info"><Textarea value={form.practical_info} onChange={e => upd('practical_info', e.target.value)} rows={3} placeholder="WiFi: SommerNet…" /></EF>
         </>)}
         {editSection === 2 && (<>
-          <EF label="Hero-billede"><Input value={form.hero_image} onChange={e => upd('hero_image', e.target.value)} placeholder="https://…" /></EF>
-          {form.hero_image && <div className="rounded-xl overflow-hidden border border-border h-40"><img src={form.hero_image} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /></div>}
-          <Label className="text-sm font-medium">Galleri</Label>
+          {/* Hidden file input */}
+          <input ref={imageInputRef} type="file" className="hidden" multiple accept="image/*" onChange={e => e.target.files && handleImageUpload(e.target.files)} />
+
+          {/* Upload area */}
+          <div
+            className="rounded-xl border-2 border-dashed border-border/50 hover:border-primary/40 bg-muted/10 hover:bg-primary/5 transition-all p-6 text-center cursor-pointer"
+            onClick={() => imageInputRef.current?.click()}
+            onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-primary/60', 'bg-primary/10'); }}
+            onDragLeave={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); }}
+            onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); if (e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files); }}
+          >
+            <Upload className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm font-medium text-foreground">{uploadingImage ? 'Uploader...' : 'Træk billeder hertil eller klik for at uploade'}</p>
+            <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP — op til 10 billeder ad gangen</p>
+          </div>
+
+          {/* Hero selector */}
+          <EF label="Hero-billede" hint="Vælg hovedbillede — klik på et galleri-billede for at sætte det som hero">
+            {form.hero_image ? (
+              <div className="rounded-xl overflow-hidden border border-primary/30 h-40 relative group">
+                <img src={form.hero_image} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+                <div className="absolute top-2 left-2"><Badge className="bg-primary/90 text-primary-foreground text-[10px]">Hero</Badge></div>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground/50 italic py-2">Intet hero-billede valgt — upload eller klik et billede</p>
+            )}
+          </EF>
+
+          {/* Gallery grid */}
+          <Label className="text-sm font-medium">Galleri ({form.images.filter((i: string) => i.trim()).length} billeder)</Label>
           {form.images.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {form.images.map((img: string, i: number) => (
-                <div key={i} className="relative group rounded-xl overflow-hidden border border-border aspect-[4/3] bg-muted">
+                <div key={i} className={cn("relative group rounded-xl overflow-hidden border aspect-[4/3] bg-muted cursor-pointer transition-all",
+                  form.hero_image === img ? 'border-primary/50 ring-2 ring-primary/20' : 'border-border hover:border-primary/30')}
+                  onClick={() => upd('hero_image', img)}
+                >
                   {img ? <img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /> : <div className="flex items-center justify-center h-full text-xs text-muted-foreground">Tom</div>}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                    <button onClick={() => upd('images', form.images.filter((_: string, idx: number) => idx !== i))} className="opacity-0 group-hover:opacity-100 bg-white/90 text-destructive rounded-full p-1.5"><X className="h-3.5 w-3.5" /></button>
+                  {form.hero_image === img && <div className="absolute top-1 left-1"><Badge className="bg-primary/90 text-primary-foreground text-[9px] px-1.5 py-0.5">Hero</Badge></div>}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1">
+                    <button onClick={(e) => { e.stopPropagation(); upd('images', form.images.filter((_: string, idx: number) => idx !== i)); }} className="opacity-0 group-hover:opacity-100 bg-white/90 text-destructive rounded-full p-1.5"><X className="h-3.5 w-3.5" /></button>
                   </div>
+                  <div className="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100">{i + 1}</div>
                 </div>
               ))}
             </div>
           )}
-          <Button variant="outline" size="sm" onClick={() => upd('images', [...form.images, ''])} className="gap-1.5 w-full"><Plus className="h-3.5 w-3.5" /> Tilføj billede</Button>
+
+          {/* Manual URL add */}
+          <div className="flex gap-2">
+            <Input placeholder="Eller tilføj billede-URL manuelt..." onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) { upd('images', [...form.images, (e.target as HTMLInputElement).value.trim()]); (e.target as HTMLInputElement).value = ''; } }} className="flex-1" />
+            <Button variant="outline" size="sm" onClick={() => imageInputRef.current?.click()} className="gap-1.5 shrink-0"><Upload className="h-3.5 w-3.5" /> Upload</Button>
+          </div>
         </>)}
         {editSection === 3 && (<>
           <Label className="text-sm font-medium mb-2 block">Hurtigvalg</Label>
