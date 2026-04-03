@@ -233,6 +233,8 @@ const COMMON_AMENITIES = [
 // ─── Inline Listing Editor ───
 function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (data: any) => void }) {
   const [editSection, setEditSection] = useState(0);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(() => ({
     name: listing.name || '', description: listing.description || '', address: listing.address || '',
     region: listing.region || '', city: listing.city || '', tagline: listing.tagline || '',
@@ -247,6 +249,7 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     practical_info: listing.practical_info || '', checkin_info: listing.checkin_info || '',
     checkout_info: listing.checkout_info || '',
     hero_image: listing.hero_image || '', amenities: listing.amenities || [], images: listing.images || [],
+    long_description: listing.long_description || '',
   }));
   const [newAmenity, setNewAmenity] = useState('');
   const [saving, setSaving] = useState(false);
