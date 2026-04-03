@@ -1182,7 +1182,7 @@ export default function AdminSagDetail() {
     load();
   }, [id, loadSagDocs]);
 
-  const nextSteps = useMemo(() => listing ? computeNextSteps(listing) : [], [listing]);
+  
 
   const handleImproveText = async () => {
     if (!listing) return;
@@ -1240,177 +1240,114 @@ export default function AdminSagDetail() {
   const st = STATUS_MAP[listing.internal_status || 'draft'] || STATUS_MAP.draft;
   const syncSt = SYNC_STATUS_MAP[listing.sync_status || 'not_connected'] || SYNC_STATUS_MAP.not_connected;
   const cover = listing.hero_image || listing.images?.[0];
-  const score = listing.readiness_score || 0;
   const fmt = (v: number) => new Intl.NumberFormat('da-DK', { style: 'currency', currency: listing.currency || 'DKK', maximumFractionDigits: 0 }).format(v);
+  const [statusOpen, setStatusOpen] = useState(false);
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-0">
 
-        {/* ═══════ TOP HERO SECTION ═══════ */}
-        <div className="rounded-2xl border border-border/40 bg-card/60 overflow-hidden">
-          {/* Cover band */}
-          <div className="h-32 bg-muted/30 overflow-hidden relative">
-            {cover ? <img src={cover} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Home className="h-10 w-10 text-muted-foreground/15" /></div>}
-            <div className="absolute inset-0 bg-gradient-to-t from-card/95 via-card/50 to-transparent" />
-            {/* Back button */}
-            <Button variant="ghost" size="icon" onClick={() => navigate('/admin/sager')} className="absolute top-3 left-3 h-8 w-8 rounded-lg bg-background/60 backdrop-blur-sm hover:bg-background/80">
+        {/* ═══════ DEDICATED SAG HEADER ═══════ */}
+        <div className="sticky top-0 z-30 bg-card/95 backdrop-blur-md border-b border-border/40">
+          {/* Row 1: Back + Title + Status */}
+          <div className="flex items-center gap-3 px-4 py-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/admin/sager')} className="h-8 w-8 rounded-lg shrink-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            {/* Channel dots */}
-            <div className="absolute top-3 right-3">
-              <ChannelDotsLarge airbnb={listing.channel_airbnb_ready} booking={listing.channel_booking_ready} vrbo={listing.channel_vrbo_ready} />
-            </div>
-          </div>
 
-          {/* Core info row */}
-          <div className="px-6 pb-5 -mt-10 relative">
-            <div className="flex flex-col lg:flex-row lg:items-end gap-5">
-              {/* Left: Name + status + owner */}
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold text-foreground truncate">{listing.name}</h1>
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <StatusChip label={st.label} variant={st.variant} dot size="md" />
-                  {listing.region && <span className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{listing.region}</span>}
-                  {owner && (
-                    <>
-                      <span className="text-muted-foreground/30">·</span>
-                      <span className="text-[11px] text-muted-foreground">Ejer: <span className="font-medium text-foreground">{owner.full_name || owner.email}</span></span>
-                    </>
-                  )}
-                </div>
-                {/* Stage switcher */}
-                <div className="flex items-center gap-1 mt-3 flex-wrap">
-                  {STAGE_OPTIONS.map(opt => {
-                    const active = (listing.internal_status || 'draft') === opt.key;
-                    return (
-                      <button
-                        key={opt.key}
-                        disabled={active}
-                        onClick={async () => {
-                          const isLive = opt.key === 'til_leje';
-                          const { error } = await supabase.from('listings').update({
-                            internal_status: opt.key,
-                            is_active: isLive,
-                          }).eq('id', listing.id);
-                          if (error) { toast.error('Kunne ikke skifte stadie'); return; }
-                          setListing({ ...listing, internal_status: opt.key, is_active: isLive });
-                          toast.success(`Sag flyttet til "${opt.label}"${isLive ? ' — nu synlig på hjemmesiden' : ''}`);
-                        }}
-                        className={cn(
-                          'px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border',
-                          active
-                            ? 'bg-primary/10 text-primary border-primary/20'
-                            : 'text-muted-foreground border-border/30 hover:bg-muted/20 hover:text-foreground'
-                        )}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+            {cover && <img src={cover} alt="" className="h-8 w-8 rounded-lg object-cover shrink-0 border border-border/30" />}
 
-              {/* Right: Readiness ring */}
-              <div className="flex items-center gap-4 shrink-0">
-                <ReadinessRing score={score} />
-                <div className="hidden sm:block">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Readiness</p>
-                  <p className={cn('text-sm font-bold', score >= 80 ? 'text-emerald-400' : score >= 50 ? 'text-amber-400' : 'text-red-400')}>
-                    {score >= 80 ? 'Klar til publicering' : score >= 50 ? 'Næsten klar' : 'Kræver opmærksomhed'}
-                  </p>
-                </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-sm font-bold text-foreground truncate">{listing.name}</h1>
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                {listing.region && <span className="flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{listing.region}</span>}
+                {owner && <><span className="text-muted-foreground/30">·</span><span>Ejer: {owner.full_name || owner.email}</span></>}
               </div>
             </div>
-          </div>
 
-          {/* ─── Primary Actions Bar ─── */}
-          <div className="px-6 pb-5 flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('listing')}>
-              <Pencil className="h-3.5 w-3.5" />Redigér & publicér
-            </Button>
-            <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('overblik')}>
-              <Rocket className="h-3.5 w-3.5" />Klargør listing
-            </Button>
-            <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={handleImproveText} disabled={aiLoading}>
-              <Sparkles className="h-3.5 w-3.5" />{aiLoading ? 'AI arbejder…' : 'Forbedr tekst med AI'}
-            </Button>
-          </div>
-
-          {/* ─── Smart Next Steps ─── */}
-          {nextSteps.length > 0 && (
-            <div className="px-6 pb-5">
-              <div className="rounded-xl border border-primary/15 bg-primary/5 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Zap className="h-4 w-4 text-primary" />
-                  <p className="text-xs font-semibold text-primary uppercase tracking-wide">Næste skridt</p>
-                  <span className="text-[10px] text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full font-medium">{nextSteps.length} mangler</span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {nextSteps.slice(0, 6).map(step => (
-                    <button
-                      key={step.id}
-                      onClick={() => step.tab && setTab(step.tab)}
-                      className={cn(
-                        'flex items-start gap-3 p-3 rounded-lg border text-left transition-all hover:shadow-sm',
-                        step.priority === 'high'
-                          ? 'border-red-500/20 bg-red-500/5 hover:border-red-500/30'
-                          : step.priority === 'medium'
-                          ? 'border-amber-500/15 bg-amber-500/5 hover:border-amber-500/25'
-                          : 'border-border/30 bg-card/40 hover:border-border/50'
-                      )}
-                    >
-                      <step.icon className={cn(
-                        'h-4 w-4 mt-0.5 shrink-0',
-                        step.priority === 'high' ? 'text-red-400' : step.priority === 'medium' ? 'text-amber-400' : 'text-muted-foreground'
-                      )} />
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-foreground">{step.label}</p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{step.description}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ═══════ TABS ═══════ */}
-        <div className="flex gap-1 overflow-x-auto pb-1">
-          {tabs.map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all',
-                tab === t.key
-                  ? 'bg-primary/10 text-primary border border-primary/20'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent'
+            {/* Status dropdown */}
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setStatusOpen(!statusOpen)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                  'bg-primary/10 text-primary border-primary/20 hover:bg-primary/15'
+                )}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                {st.label}
+                <ChevronRight className={cn('h-3 w-3 transition-transform', statusOpen && 'rotate-90')} />
+              </button>
+              {statusOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setStatusOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 z-50 bg-card border border-border/40 rounded-xl shadow-xl p-1 min-w-[180px]">
+                    {STAGE_OPTIONS.map(opt => {
+                      const active = (listing.internal_status || 'draft') === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          onClick={async () => {
+                            const isLive = opt.key === 'til_leje';
+                            const { error } = await supabase.from('listings').update({
+                              internal_status: opt.key,
+                              is_active: isLive,
+                            }).eq('id', listing.id);
+                            if (error) { toast.error('Kunne ikke skifte stadie'); return; }
+                            setListing({ ...listing, internal_status: opt.key, is_active: isLive });
+                            toast.success(`Sag flyttet til "${opt.label}"${isLive ? ' — nu synlig på hjemmesiden' : ''}`);
+                            setStatusOpen(false);
+                          }}
+                          className={cn(
+                            'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all text-left',
+                            active
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-muted-foreground hover:bg-muted/20 hover:text-foreground'
+                          )}
+                        >
+                          {active && <CheckCircle2 className="h-3 w-3" />}
+                          {!active && <span className="w-3" />}
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
               )}
-            >
-              <t.icon className="h-3.5 w-3.5" />{t.label}
-            </button>
-          ))}
+            </div>
+
+            {/* Channel dots */}
+            <ChannelDotsLarge airbnb={listing.channel_airbnb_ready} booking={listing.channel_booking_ready} vrbo={listing.channel_vrbo_ready} />
+          </div>
+
+          {/* Row 2: Tab navigation */}
+          <div className="flex gap-0.5 overflow-x-auto px-4 pb-0">
+            {tabs.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-2 text-xs font-medium whitespace-nowrap transition-all border-b-2 -mb-px',
+                  tab === t.key
+                    ? 'text-primary border-primary'
+                    : 'text-muted-foreground hover:text-foreground border-transparent'
+                )}
+              >
+                <t.icon className="h-3.5 w-3.5" />{t.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* ═══════ TAB CONTENT (with top padding for sticky header) ═══════ */}
+        <div className="p-4 space-y-6">
 
         {/* ═══════ TAB CONTENT ═══════ */}
 
         {tab === 'overblik' && (
           <div className="space-y-6">
             {/* Key info grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <SectionCard title="Readiness" icon={CheckCircle2}>
-                <div className="flex items-center justify-center py-2">
-                  <ReadinessRing score={score} />
-                </div>
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  <MiniStat label="Billeder" value={listing.images?.length || 0} ok={(listing.images?.length || 0) >= 5} />
-                  <MiniStat label="Beskrivelse" value={listing.description ? '✓' : '—'} ok={!!listing.description} />
-                  <MiniStat label="Pris" value={listing.base_price_per_night ? '✓' : '—'} ok={!!listing.base_price_per_night} />
-                  <MiniStat label="Regler" value={listing.house_rules ? '✓' : '—'} ok={!!listing.house_rules} />
-                </div>
-              </SectionCard>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               <SectionCard title="Nøgletal" icon={Home}>
                 <div className="space-y-2.5">
@@ -2135,6 +2072,7 @@ export default function AdminSagDetail() {
             </div>
           </SectionCard>
         )}
+        </div>
       </div>
       <PublishFlowModal
         listing={listing}
