@@ -609,6 +609,7 @@ export default function AdminSagDetail() {
     { key: 'priser', label: 'Priser', icon: DollarSign },
     { key: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
     { key: 'dokumenter', label: 'Dokumenter', icon: FileText },
+    { key: 'aktorer', label: 'Aktører', icon: UserPlus },
     { key: 'opgaver', label: 'Opgaver', icon: ListChecks },
     { key: 'noter', label: 'Noter', icon: StickyNote },
   ];
