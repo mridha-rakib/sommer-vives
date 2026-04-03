@@ -795,11 +795,8 @@ export default function AdminSagDetail() {
 
           {/* ─── Primary Actions Bar ─── */}
           <div className="px-6 pb-5 flex flex-wrap gap-2">
-            <Button size="sm" className="rounded-xl gap-1.5" onClick={() => setPublishFlowOpen(true)}>
-              <Globe className="h-3.5 w-3.5" />Publicér listing
-            </Button>
             <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('listing')}>
-              <Pencil className="h-3.5 w-3.5" />Redigér listing
+              <Pencil className="h-3.5 w-3.5" />Redigér & publicér
             </Button>
             <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('overblik')}>
               <Rocket className="h-3.5 w-3.5" />Klargør listing
