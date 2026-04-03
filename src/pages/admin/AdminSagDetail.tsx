@@ -521,6 +521,10 @@ export default function AdminSagDetail() {
   const [editDocValues, setEditDocValues] = useState<Record<string, string>>({});
   const [ownerEditOpen, setOwnerEditOpen] = useState(false);
   const [ownerForm, setOwnerForm] = useState<any>({});
+  // Actors state
+  const [actors, setActors] = useState<any[]>([]);
+  const [actorForm, setActorForm] = useState({ name: '', role: 'kontakt', email: '', phone: '', notes: '' });
+  const [addingActor, setAddingActor] = useState(false);
 
   const loadSagDocs = useCallback(async (listingId: string, ownerId: string) => {
     const [{ data: sd }, { data: tpls }] = await Promise.all([
