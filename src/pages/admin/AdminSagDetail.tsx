@@ -1344,7 +1344,6 @@ export default function AdminSagDetail() {
                     <select value={staffForm.staff_role} onChange={e => setStaffForm(f => ({ ...f, staff_role: e.target.value }))}
                       className="w-full h-9 rounded-xl border border-border/40 bg-muted/20 px-3 text-sm text-foreground">
                       <option value="annoncerende">Annoncerende udlejningsrådgiver</option>
-                      <option value="kommissionerende">Kommissionerende udlejningsrådgiver</option>
                       <option value="ansvarlig">Ansvarlig udlejningsrådgiver</option>
                       <option value="udlejningschef">Udlejningschef</option>
                       <option value="sagsbehandler">Sagsbehandler</option>
@@ -1383,8 +1382,8 @@ export default function AdminSagDetail() {
                 {staff.map(s => {
                   const staffRoleLabels: Record<string, string> = {
                     annoncerende: 'Annoncerende udlejningsrådgiver',
-                    kommissionerende: 'Kommissionerende udlejningsrådgiver',
                     ansvarlig: 'Ansvarlig udlejningsrådgiver',
+                    kommissionerende: 'Ansvarlig udlejningsrådgiver',
                     udlejningschef: 'Udlejningschef',
                     sagsbehandler: 'Sagsbehandler',
                   };
