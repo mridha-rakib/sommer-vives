@@ -106,6 +106,14 @@ export default function AdminDokumenter() {
   const [propertyMap, setPropertyMap] = useState<Record<string, string>>({});
   const [profileMap, setProfileMap] = useState<Record<string, string>>({});
 
+  // Document editor state
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorDoc, setEditorDoc] = useState<any | null>(null);
+  const [editorForm, setEditorForm] = useState({ title: '', document_type: 'internal' as string, body_html: '', status: 'draft' });
+  const [editorSaving, setEditorSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     Promise.all([
       supabase.from('documents').select('*').order('created_at', { ascending: false }).limit(500),
