@@ -527,7 +527,10 @@ export default function AdminSagDetail() {
   const [addingActor, setAddingActor] = useState(false);
   // Staff state
   const [staff, setStaff] = useState<any[]>([]);
-  const [staffForm, setStaffForm] = useState({ staff_name: '', staff_role: 'annoncerende', staff_email: '', staff_phone: '' });
+  const [teamMembers] = useState([
+    { id: '74a122fb-b6fc-48bc-8cee-944801ee2448', name: 'Emil Klockmann', email: 'ek@klockmann.dk' },
+  ]);
+  const [staffForm, setStaffForm] = useState({ staff_user_id: '74a122fb-b6fc-48bc-8cee-944801ee2448', staff_role: 'annoncerende' });
   const [addingStaff, setAddingStaff] = useState(false);
 
   const loadSagDocs = useCallback(async (listingId: string, ownerId: string) => {
@@ -1328,10 +1331,15 @@ export default function AdminSagDetail() {
           <SectionCard title="Medarbejder-roller" icon={Shield}>
             {addingStaff ? (
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 mb-4 space-y-3">
-                <p className="text-xs font-semibold text-primary uppercase tracking-wider">Tilføj medarbejder</p>
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider">Tilføj medarbejder til rolle</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label className="text-xs text-muted-foreground">Navn *</Label>
-                    <Input value={staffForm.staff_name} onChange={e => setStaffForm(f => ({ ...f, staff_name: e.target.value }))} placeholder="Navn" /></div>
+                  <div><Label className="text-xs text-muted-foreground">Medarbejder *</Label>
+                    <select value={staffForm.staff_user_id} onChange={e => setStaffForm(f => ({ ...f, staff_user_id: e.target.value }))}
+                      className="w-full h-9 rounded-xl border border-border/40 bg-muted/20 px-3 text-sm text-foreground">
+                      {teamMembers.map(m => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                      ))}
+                    </select></div>
                   <div><Label className="text-xs text-muted-foreground">Rolle *</Label>
                     <select value={staffForm.staff_role} onChange={e => setStaffForm(f => ({ ...f, staff_role: e.target.value }))}
                       className="w-full h-9 rounded-xl border border-border/40 bg-muted/20 px-3 text-sm text-foreground">
@@ -1341,27 +1349,24 @@ export default function AdminSagDetail() {
                       <option value="udlejningschef">Udlejningschef</option>
                       <option value="sagsbehandler">Sagsbehandler</option>
                     </select></div>
-                  <div><Label className="text-xs text-muted-foreground">E-mail</Label>
-                    <Input type="email" value={staffForm.staff_email} onChange={e => setStaffForm(f => ({ ...f, staff_email: e.target.value }))} placeholder="email@eksempel.dk" /></div>
-                  <div><Label className="text-xs text-muted-foreground">Telefon</Label>
-                    <Input value={staffForm.staff_phone} onChange={e => setStaffForm(f => ({ ...f, staff_phone: e.target.value }))} placeholder="+45 12345678" /></div>
                 </div>
                 <div className="flex gap-2 justify-end">
                   <Button size="sm" variant="ghost" onClick={() => setAddingStaff(false)}>Annuller</Button>
                   <Button size="sm" onClick={async () => {
-                    if (!staffForm.staff_name.trim()) { toast.error('Navn er påkrævet'); return; }
+                    const member = teamMembers.find(m => m.id === staffForm.staff_user_id);
+                    if (!member) { toast.error('Vælg en medarbejder'); return; }
                     const { data: newStaff, error } = await supabase.from('listing_staff').insert({
                       listing_id: id!,
-                      staff_name: staffForm.staff_name.trim(),
+                      staff_name: member.name,
                       staff_role: staffForm.staff_role,
-                      staff_email: staffForm.staff_email || null,
-                      staff_phone: staffForm.staff_phone || null,
+                      staff_email: member.email,
+                      staff_user_id: member.id,
                     }).select().single();
                     if (error) { toast.error(error.message); return; }
                     setStaff(prev => [...prev, newStaff]);
-                    setStaffForm({ staff_name: '', staff_role: 'annoncerende', staff_email: '', staff_phone: '' });
+                    setStaffForm({ staff_user_id: '74a122fb-b6fc-48bc-8cee-944801ee2448', staff_role: 'annoncerende' });
                     setAddingStaff(false);
-                    toast.success('Medarbejder tilføjet');
+                    toast.success(`${member.name} tilføjet som ${staffForm.staff_role}`);
                   }}>Tilføj</Button>
                 </div>
               </div>
