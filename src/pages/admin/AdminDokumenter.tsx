@@ -923,18 +923,23 @@ export default function AdminDokumenter() {
                 <div className="py-5 space-y-2">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-3">Handlinger</p>
                   <div className="grid grid-cols-2 gap-2">
+                    {selected._source === 'document' && (
+                      <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9" onClick={() => openEditDoc(selected)}>
+                        <Pencil className="w-3.5 h-3.5" /> Rediger
+                      </Button>
+                    )}
                     <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
                       <Link2 className="w-3.5 h-3.5" /> Knyt til sag
                     </Button>
                     <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
-                      <User className="w-3.5 h-3.5" /> Knyt til ejer
-                    </Button>
-                    <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
                       <ExternalLink className="w-3.5 h-3.5" /> Del link
                     </Button>
-                    <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-border/40 text-xs h-9">
-                      <FolderOpen className="w-3.5 h-3.5" /> Arkivér
-                    </Button>
+                    {selected._source === 'document' && (
+                      <Button variant="outline" size="sm" className="justify-start gap-2 rounded-xl border-destructive/30 text-destructive text-xs h-9 hover:bg-destructive/10"
+                        onClick={() => { if (confirm('Slet dette dokument?')) deleteDocument(selected.id); }}>
+                        <Trash2 className="w-3.5 h-3.5" /> Slet
+                      </Button>
+                    )}
                   </div>
                 </div>
               </>
@@ -942,6 +947,109 @@ export default function AdminDokumenter() {
           })()}
         </SheetContent>
       </Sheet>
+
+      {/* ═══════ DOCUMENT EDITOR DIALOG ═══════ */}
+      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FilePlus className="h-5 w-5 text-primary" />
+              {editorDoc ? 'Rediger dokument' : 'Nyt dokument'}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            {/* Title & meta */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2 space-y-1.5">
+                <Label className="text-sm">Titel</Label>
+                <Input
+                  value={editorForm.title}
+                  onChange={e => setEditorForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="Dokumenttitel..."
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm">Type</Label>
+                <select
+                  value={editorForm.document_type}
+                  onChange={e => setEditorForm(f => ({ ...f, document_type: e.target.value }))}
+                  className="w-full h-10 rounded-xl border border-border/40 bg-muted/20 px-3 text-sm text-foreground"
+                >
+                  {Object.entries(DOC_TYPE_CFG).filter(([k]) => k !== 'agreement').map(([key, cfg]) => (
+                    <option key={key} value={key}>{cfg.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="flex items-center gap-4">
+              <Label className="text-sm">Status:</Label>
+              <div className="flex gap-1">
+                {['draft', 'active', 'archived'].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setEditorForm(f => ({ ...f, status: s }))}
+                    className={cn('px-3 py-1 rounded-full text-xs font-medium transition-colors',
+                      editorForm.status === s ? 'bg-primary text-primary-foreground' : 'bg-muted/30 text-muted-foreground hover:bg-muted/50')}
+                  >
+                    {getStatusCfg(s).label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Rich Text Editor */}
+            <div className="space-y-1.5">
+              <Label className="text-sm">Indhold</Label>
+              <RichTextEditor
+                content={editorForm.body_html}
+                onChange={html => setEditorForm(f => ({ ...f, body_html: html }))}
+                placeholder="Skriv dit dokument her... Brug toolbaren ovenfor til formatering."
+                minHeight="350px"
+              />
+            </div>
+
+            {/* From template quick-load */}
+            {!editorDoc && stdTemplates.length > 0 && (
+              <div className="rounded-xl border border-border/30 bg-muted/10 p-3">
+                <p className="text-xs font-semibold text-muted-foreground mb-2">Indlæs fra skabelon:</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {stdTemplates.filter(t => t.is_active).map(t => (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        setEditorForm(f => ({
+                          ...f,
+                          title: f.title || t.name,
+                          body_html: t.body_html || `<p>${t.body_text}</p>`,
+                        }));
+                        toast.success(`Skabelon "${t.name}" indlæst`);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+                    >
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-2 border-t border-border/30">
+              <Button variant="outline" onClick={() => setEditorOpen(false)} className="rounded-xl">
+                Annuller
+              </Button>
+              <Button onClick={saveEditorDoc} disabled={editorSaving} className="gap-1.5 rounded-xl">
+                <Save className="h-3.5 w-3.5" />
+                {editorSaving ? 'Gemmer...' : editorDoc ? 'Opdater dokument' : 'Opret dokument'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
