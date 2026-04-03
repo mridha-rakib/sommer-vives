@@ -1104,6 +1104,7 @@ export default function AdminSagDetail() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('overblik');
   const [aiLoading, setAiLoading] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [publishFlowOpen, setPublishFlowOpen] = useState(false);
   const [sagDocs, setSagDocs] = useState<any[]>([]);
