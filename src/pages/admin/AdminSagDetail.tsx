@@ -282,6 +282,11 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     if (error) { toast.error(`Fejl: ${error.message}`); } else { setLastSaved(new Date()); onSaved(payload); }
   }, [listing.id, onSaved]);
 
+  const scheduleSave = useCallback(() => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => persistFn(formRef.current), 2000);
+  }, [persistFn]);
+
   // Image upload handler
   const handleImageUpload = useCallback(async (files: FileList) => {
     setUploadingImage(true);
@@ -297,7 +302,6 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     if (newUrls.length > 0) {
       const updated = [...formRef.current.images, ...newUrls];
       setForm(prev => ({ ...prev, images: updated }));
-      // Auto-set hero if none
       if (!formRef.current.hero_image && newUrls[0]) {
         setForm(prev => ({ ...prev, hero_image: newUrls[0] }));
       }
@@ -307,11 +311,6 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     setUploadingImage(false);
     if (imageInputRef.current) imageInputRef.current.value = '';
   }, [listing.owner_id, listing.id, scheduleSave]);
-
-  const scheduleSave = useCallback(() => {
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => persistFn(formRef.current), 2000);
-  }, [persistFn]);
 
   useEffect(() => () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); }, []);
 
