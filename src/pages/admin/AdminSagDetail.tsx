@@ -232,7 +232,6 @@ const COMMON_AMENITIES = [
 
 // ─── Inline Listing Editor ───
 function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (data: any) => void }) {
-  const [editSection, setEditSection] = useState(0);
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(() => ({
@@ -254,6 +253,7 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
   const [newAmenity, setNewAmenity] = useState('');
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [publishing, setPublishing] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const formRef = useRef(form);
   formRef.current = form;
@@ -286,6 +286,44 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => persistFn(formRef.current), 2000);
   }, [persistFn]);
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    // Save first, then mark as published
+    await persistFn(formRef.current);
+    const { error } = await supabase.from('listings').update({
+      is_active: true,
+      internal_status: 'til_leje',
+      published_at: new Date().toISOString(),
+    }).eq('id', listing.id);
+    setPublishing(false);
+    if (error) { toast.error('Kunne ikke publicere'); return; }
+    setForm(prev => ({ ...prev, is_active: true }));
+    onSaved({ is_active: true, internal_status: 'til_leje', published_at: new Date().toISOString() });
+    toast.success('✅ Listing publiceret til SommerVibes.dk!');
+  };
+
+  const handleTransferToChannels = async () => {
+    // Save first
+    await persistFn(formRef.current);
+    // Generate channel metadata from master data
+    const channelPayload: Record<string, any> = {
+      channel_airbnb_title: formRef.current.name,
+      channel_airbnb_description: formRef.current.description || formRef.current.long_description || null,
+      channel_booking_title: formRef.current.name,
+      channel_booking_description: formRef.current.long_description || formRef.current.description || null,
+      channel_vrbo_title: formRef.current.name,
+      channel_vrbo_description: formRef.current.long_description || formRef.current.description || null,
+      channel_airbnb_house_rules: formRef.current.house_rules || null,
+      channel_vrbo_rules: formRef.current.house_rules || null,
+      channel_airbnb_highlights: formRef.current.amenities?.slice(0, 5) || null,
+      channel_vrbo_highlights: formRef.current.amenities?.slice(0, 5) || null,
+    };
+    const { error } = await supabase.from('listings').update(channelPayload).eq('id', listing.id);
+    if (error) { toast.error('Fejl ved overførsel'); return; }
+    onSaved(channelPayload);
+    toast.success('📡 Metadata overført til Airbnb, Booking.com & Vrbo — klar til integration');
+  };
 
   // Image upload handler
   const handleImageUpload = useCallback(async (files: FileList) => {
@@ -320,73 +358,91 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
     upd('amenities', has ? form.amenities.filter((x: string) => x !== a) : [...form.amenities, a]);
   };
 
-  const EF = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
-    <div className="space-y-1.5"><Label className="text-sm font-medium text-foreground">{label}</Label>{hint && <p className="text-xs text-muted-foreground -mt-0.5">{hint}</p>}{children}</div>
+  // Section divider
+  const SectionDivider = ({ title, icon: Icon }: { title: string; icon: any }) => (
+    <div className="flex items-center gap-3 pt-6 pb-2">
+      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+        <Icon className="h-4 w-4 text-primary" />
+      </div>
+      <h3 className="text-sm font-bold text-foreground uppercase tracking-wide">{title}</h3>
+      <div className="flex-1 h-px bg-border/40" />
+    </div>
   );
-  const ER = ({ children, cols = 2 }: { children: React.ReactNode; cols?: 2 | 3 }) => (
-    <div className={`grid ${cols === 3 ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'} gap-4`}>{children}</div>
-  );
-
-  const readinessChecks = [
-    { label: 'Titel', ok: !!form.name.trim(), fix: 'Tilføj en titel', s: 0 },
-    { label: 'Adresse', ok: !!form.address.trim(), fix: 'Tilføj adresse', s: 0 },
-    { label: 'Beskrivelse', ok: form.description.trim().length >= 20, fix: 'Skriv en beskrivelse (min. 20 tegn)', s: 1 },
-    { label: 'Hero-billede', ok: !!form.hero_image.trim(), fix: 'Vælg et hovedbillede', s: 2 },
-    { label: 'Min. 5 billeder', ok: form.images.filter((i: string) => i.trim()).length >= 5, fix: `Mangler ${Math.max(0, 5 - form.images.filter((i: string) => i.trim()).length)} billeder`, s: 2 },
-    { label: 'Faciliteter', ok: form.amenities.length >= 3, fix: `Tilføj ${Math.max(0, 3 - form.amenities.length)} flere`, s: 3 },
-    { label: 'Pris pr. nat', ok: form.base_price_per_night > 0, fix: 'Sæt en pris per nat', s: 4 },
-    { label: 'Check-in info', ok: !!form.checkin_info.trim(), fix: 'Beskriv ankomst-procedure', s: 5 },
-    { label: 'Husregler', ok: !!form.house_rules.trim(), fix: 'Tilføj husregler', s: 1 },
-  ];
-  const rPassed = readinessChecks.filter(c => c.ok).length;
-  const rScore = Math.round((rPassed / readinessChecks.length) * 100);
-  const sLabels = ['Grunddata', 'Beskrivelse', 'Billeder', 'Faciliteter', 'Priser', 'Klargøring'];
-  const sIcons = [MapPin, Type, Image, Sparkles, DollarSign, Settings];
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex gap-1 overflow-x-auto scrollbar-none">
-          {sLabels.map((s, i) => { const Ic = sIcons[i]; return (
-            <button key={s} onClick={() => setEditSection(i)}
-              className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors',
-                editSection === i ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80')}>
-              <Ic className="h-3 w-3" />{s}
-            </button>
-          ); })}
-        </div>
-        <div className="flex items-center gap-2 shrink-0 text-xs text-muted-foreground">
-          {saving ? <span className="flex items-center gap-1"><Clock className="h-3 w-3 animate-spin" /> Gemmer…</span>
-           : lastSaved ? <span className="flex items-center gap-1 text-primary"><CheckCircle2 className="h-3 w-3" /> Gemt</span>
-           : <span>Auto-gem</span>}
+    <div className="space-y-0">
+      {/* ── Sticky Action Bar ── */}
+      <div className="sticky top-0 z-20 -mx-1 px-1 py-3 bg-background/95 backdrop-blur-sm border-b border-border/30 mb-6">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {saving ? <span className="flex items-center gap-1"><Clock className="h-3 w-3 animate-spin" /> Gemmer…</span>
+               : lastSaved ? <span className="flex items-center gap-1 text-primary"><CheckCircle2 className="h-3 w-3" /> Auto-gemt</span>
+               : <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Alle ændringer gemmes automatisk</span>}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="rounded-xl gap-1.5 text-xs" onClick={handleTransferToChannels}>
+              <Send className="h-3.5 w-3.5" /> Overfør til platforme
+            </Button>
+            <Button size="sm" className="rounded-xl gap-1.5 text-xs" onClick={handlePublish} disabled={publishing}>
+              <Globe className="h-3.5 w-3.5" /> {publishing ? 'Publicerer…' : 'Publicér til SommerVibes.dk'}
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border/40 bg-card/60 p-5 space-y-4">
-        {editSection === 0 && (<>
-          <EF label="Titel" hint="Det navn gæsten ser"><Input value={form.name} onChange={e => upd('name', e.target.value)} placeholder="Strandvillaen i Hornbæk" /></EF>
-          <EF label="Tagline"><Input value={form.tagline} onChange={e => upd('tagline', e.target.value)} placeholder="Moderne sommerhus med havudsigt" /></EF>
-          <ER><EF label="Boligtype"><Input value={form.property_type} onChange={e => upd('property_type', e.target.value)} placeholder="Sommerhus" /></EF><EF label="Region"><Input value={form.region} onChange={e => upd('region', e.target.value)} placeholder="Nordsjælland" /></EF></ER>
-          <EF label="Adresse"><Input value={form.address} onChange={e => upd('address', e.target.value)} placeholder="Søvej 28, 3100 Hornbæk" /></EF>
-          <EF label="By"><Input value={form.city} onChange={e => upd('city', e.target.value)} placeholder="Hornbæk" /></EF>
-          <ER cols={3}>
-            <EF label="Max gæster"><Input type="number" min={1} value={form.max_guests} onChange={e => upd('max_guests', parseInt(e.target.value) || 1)} /></EF>
-            <EF label="Soveværelser"><Input type="number" min={0} value={form.bedrooms} onChange={e => upd('bedrooms', parseInt(e.target.value) || 0)} /></EF>
-            <EF label="Badeværelser"><Input type="number" min={0} value={form.bathrooms} onChange={e => upd('bathrooms', parseInt(e.target.value) || 0)} /></EF>
-          </ER>
-          <div className="flex items-center gap-3 pt-2"><Label className="text-sm">Aktiv</Label><Switch checked={form.is_active} onCheckedChange={v => upd('is_active', v)} /></div>
-        </>)}
-        {editSection === 1 && (<>
-          <EF label="Kort beskrivelse" hint="Beskriv boligen og stemningen (vises som intro)"><Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={4} placeholder="Velkommen til…" /></EF>
-          <EF label="Lang beskrivelse" hint="Detaljeret beskrivelse med fuldt overblik"><Textarea value={form.long_description} onChange={e => upd('long_description', e.target.value)} rows={8} placeholder="Denne charmerende bolig byder på…" /></EF>
-          <EF label="Husregler"><Textarea value={form.house_rules} onChange={e => upd('house_rules', e.target.value)} rows={3} placeholder="Ingen rygning…" /></EF>
-          <EF label="Praktisk info"><Textarea value={form.practical_info} onChange={e => upd('practical_info', e.target.value)} rows={3} placeholder="WiFi: SommerNet…" /></EF>
-        </>)}
-        {editSection === 2 && (<>
-          {/* Hidden file input */}
-          <input ref={imageInputRef} type="file" className="hidden" multiple accept="image/*" onChange={e => e.target.files && handleImageUpload(e.target.files)} />
+      <div className="rounded-2xl border border-border/40 bg-card/60 p-6 space-y-1">
+        {/* ── 1. Grundinfo ── */}
+        <SectionDivider title="Grundinfo" icon={MapPin} />
+        <div className="space-y-4 pl-11">
+          <div className="space-y-1.5"><Label className="text-sm font-medium">Titel</Label>
+            <Input value={form.name} onChange={e => upd('name', e.target.value)} placeholder="Strandvillaen i Hornbæk" className="text-base font-medium" /></div>
+          <div className="space-y-1.5"><Label className="text-sm font-medium">Tagline</Label>
+            <Input value={form.tagline} onChange={e => upd('tagline', e.target.value)} placeholder="Moderne sommerhus med havudsigt" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Boligtype</Label>
+              <Input value={form.property_type} onChange={e => upd('property_type', e.target.value)} placeholder="Sommerhus" /></div>
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Region</Label>
+              <Input value={form.region} onChange={e => upd('region', e.target.value)} placeholder="Nordsjælland" /></div>
+          </div>
+          <div className="space-y-1.5"><Label className="text-sm font-medium">Adresse</Label>
+            <Input value={form.address} onChange={e => upd('address', e.target.value)} placeholder="Søvej 28, 3100 Hornbæk" /></div>
+          <div className="space-y-1.5"><Label className="text-sm font-medium">By</Label>
+            <Input value={form.city} onChange={e => upd('city', e.target.value)} placeholder="Hornbæk" /></div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Max gæster</Label>
+              <Input type="number" min={1} value={form.max_guests} onChange={e => upd('max_guests', parseInt(e.target.value) || 1)} /></div>
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Soveværelser</Label>
+              <Input type="number" min={0} value={form.bedrooms} onChange={e => upd('bedrooms', parseInt(e.target.value) || 0)} /></div>
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Badeværelser</Label>
+              <Input type="number" min={0} value={form.bathrooms} onChange={e => upd('bathrooms', parseInt(e.target.value) || 0)} /></div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Switch checked={form.is_active} onCheckedChange={v => upd('is_active', v)} />
+            <Label className="text-sm">Synlig på SommerVibes.dk</Label>
+          </div>
+        </div>
 
-          {/* Upload area */}
+        {/* ── 2. Beskrivelse ── */}
+        <SectionDivider title="Beskrivelse & regler" icon={Type} />
+        <div className="space-y-4 pl-11">
+          <div className="space-y-1.5"><Label className="text-sm font-medium">Kort beskrivelse</Label>
+            <p className="text-xs text-muted-foreground">Gæstens første indtryk — kort og fængende</p>
+            <Textarea value={form.description} onChange={e => upd('description', e.target.value)} rows={3} placeholder="Velkommen til…" /></div>
+          <div className="space-y-1.5"><Label className="text-sm font-medium">Detaljeret beskrivelse</Label>
+            <p className="text-xs text-muted-foreground">Fortæl hele historien om boligen</p>
+            <Textarea value={form.long_description} onChange={e => upd('long_description', e.target.value)} rows={6} placeholder="Denne charmerende bolig byder på…" /></div>
+          <div className="space-y-1.5"><Label className="text-sm font-medium">Husregler</Label>
+            <Textarea value={form.house_rules} onChange={e => upd('house_rules', e.target.value)} rows={3} placeholder="Ingen rygning, max 8 gæster…" /></div>
+          <div className="space-y-1.5"><Label className="text-sm font-medium">Praktisk info</Label>
+            <Textarea value={form.practical_info} onChange={e => upd('practical_info', e.target.value)} rows={3} placeholder="WiFi: SommerNet, kode: 1234…" /></div>
+        </div>
+
+        {/* ── 3. Billeder ── */}
+        <SectionDivider title="Billeder" icon={Camera} />
+        <div className="space-y-4 pl-11">
+          <input ref={imageInputRef} type="file" className="hidden" multiple accept="image/*" onChange={e => e.target.files && handleImageUpload(e.target.files)} />
           <div
             className="rounded-xl border-2 border-dashed border-border/50 hover:border-primary/40 bg-muted/10 hover:bg-primary/5 transition-all p-6 text-center cursor-pointer"
             onClick={() => imageInputRef.current?.click()}
@@ -395,24 +451,17 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
             onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('border-primary/60', 'bg-primary/10'); if (e.dataTransfer.files.length) handleImageUpload(e.dataTransfer.files); }}
           >
             <Upload className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
-            <p className="text-sm font-medium text-foreground">{uploadingImage ? 'Uploader...' : 'Træk billeder hertil eller klik for at uploade'}</p>
-            <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP — op til 10 billeder ad gangen</p>
+            <p className="text-sm font-medium text-foreground">{uploadingImage ? 'Uploader...' : 'Træk billeder hertil eller klik'}</p>
+            <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP</p>
           </div>
 
-          {/* Hero selector */}
-          <EF label="Hero-billede" hint="Vælg hovedbillede — klik på et galleri-billede for at sætte det som hero">
-            {form.hero_image ? (
-              <div className="rounded-xl overflow-hidden border border-primary/30 h-40 relative group">
-                <img src={form.hero_image} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
-                <div className="absolute top-2 left-2"><Badge className="bg-primary/90 text-primary-foreground text-[10px]">Hero</Badge></div>
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground/50 italic py-2">Intet hero-billede valgt — upload eller klik et billede</p>
-            )}
-          </EF>
+          {form.hero_image && (
+            <div className="rounded-xl overflow-hidden border border-primary/30 h-40 relative">
+              <img src={form.hero_image} alt="" className="w-full h-full object-cover" />
+              <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground text-[10px]">Hero</Badge>
+            </div>
+          )}
 
-          {/* Gallery grid */}
-          <Label className="text-sm font-medium">Galleri ({form.images.filter((i: string) => i.trim()).length} billeder)</Label>
           {form.images.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {form.images.map((img: string, i: number) => (
@@ -420,25 +469,20 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
                   form.hero_image === img ? 'border-primary/50 ring-2 ring-primary/20' : 'border-border hover:border-primary/30')}
                   onClick={() => upd('hero_image', img)}
                 >
-                  {img ? <img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /> : <div className="flex items-center justify-center h-full text-xs text-muted-foreground">Tom</div>}
-                  {form.hero_image === img && <div className="absolute top-1 left-1"><Badge className="bg-primary/90 text-primary-foreground text-[9px] px-1.5 py-0.5">Hero</Badge></div>}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-1">
+                  {img ? <img src={img} alt="" className="w-full h-full object-cover" /> : null}
+                  {form.hero_image === img && <Badge className="absolute top-1 left-1 bg-primary/90 text-primary-foreground text-[9px] px-1.5 py-0.5">Hero</Badge>}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                     <button onClick={(e) => { e.stopPropagation(); upd('images', form.images.filter((_: string, idx: number) => idx !== i)); }} className="opacity-0 group-hover:opacity-100 bg-white/90 text-destructive rounded-full p-1.5"><X className="h-3.5 w-3.5" /></button>
                   </div>
-                  <div className="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100">{i + 1}</div>
                 </div>
               ))}
             </div>
           )}
+        </div>
 
-          {/* Manual URL add */}
-          <div className="flex gap-2">
-            <Input placeholder="Eller tilføj billede-URL manuelt..." onKeyDown={(e) => { if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) { upd('images', [...form.images, (e.target as HTMLInputElement).value.trim()]); (e.target as HTMLInputElement).value = ''; } }} className="flex-1" />
-            <Button variant="outline" size="sm" onClick={() => imageInputRef.current?.click()} className="gap-1.5 shrink-0"><Upload className="h-3.5 w-3.5" /> Upload</Button>
-          </div>
-        </>)}
-        {editSection === 3 && (<>
-          <Label className="text-sm font-medium mb-2 block">Hurtigvalg</Label>
+        {/* ── 4. Faciliteter ── */}
+        <SectionDivider title="Faciliteter" icon={Sparkles} />
+        <div className="space-y-4 pl-11">
           <div className="flex flex-wrap gap-1.5">
             {COMMON_AMENITIES.map(a => (
               <button key={a} onClick={() => toggleAm(a)} className={cn('px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
@@ -446,55 +490,71 @@ function InlineListingEditor({ listing, onSaved }: { listing: any; onSaved: (dat
             ))}
           </div>
           {form.amenities.filter((a: string) => !COMMON_AMENITIES.includes(a)).length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
+            <div className="flex flex-wrap gap-1.5">
               {form.amenities.filter((a: string) => !COMMON_AMENITIES.includes(a)).map((a: string) => (
                 <Badge key={a} variant="secondary" className="gap-1 text-xs">{a}<button onClick={() => upd('amenities', form.amenities.filter((x: string) => x !== a))} className="ml-0.5 hover:text-destructive"><X className="h-3 w-3" /></button></Badge>
               ))}
             </div>
           )}
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-2">
             <Input value={newAmenity} onChange={e => setNewAmenity(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (newAmenity.trim()) { toggleAm(newAmenity.trim()); setNewAmenity(''); } } }}
               placeholder="Tilføj egen facilitet…" className="flex-1" />
             <Button size="sm" variant="outline" onClick={() => { if (newAmenity.trim()) { toggleAm(newAmenity.trim()); setNewAmenity(''); } }}><Plus className="h-4 w-4" /></Button>
           </div>
-        </>)}
-        {editSection === 4 && (<>
-          <ER><EF label="Pris pr. nat (DKK)"><Input type="number" min={0} step={50} value={form.base_price_per_night} onChange={e => upd('base_price_per_night', parseFloat(e.target.value) || 0)} /></EF><EF label="Weekend-pris (DKK)"><Input type="number" min={0} step={50} value={form.weekend_price_per_night} onChange={e => upd('weekend_price_per_night', parseFloat(e.target.value) || 0)} /></EF></ER>
-          <ER><EF label="Rengøringsgebyr (DKK)"><Input type="number" min={0} step={50} value={form.cleaning_fee} onChange={e => upd('cleaning_fee', parseFloat(e.target.value) || 0)} /></EF><div /></ER>
-          <ER><EF label="Min. nætter"><Input type="number" min={1} value={form.min_nights} onChange={e => upd('min_nights', parseInt(e.target.value) || 1)} /></EF><EF label="Max nætter"><Input type="number" min={1} value={form.max_nights} onChange={e => upd('max_nights', parseInt(e.target.value) || 30)} /></EF></ER>
-        </>)}
-        {editSection === 5 && (<>
-          <div className="flex items-center gap-5 pb-4 border-b border-border">
-            {(() => { const c = 2 * Math.PI * 40; const o = c - (rScore / 100) * c; return (
-              <div className="relative w-20 h-20 shrink-0"><svg className="w-20 h-20 -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="7" className="text-muted/30" />
-                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="7" strokeDasharray={c} strokeDashoffset={o} strokeLinecap="round" className={rScore >= 80 ? 'text-primary' : rScore >= 50 ? 'text-accent-foreground' : 'text-destructive'} />
-              </svg><div className="absolute inset-0 flex items-center justify-center"><span className="text-lg font-bold text-foreground">{rScore}%</span></div></div>
-            ); })()}
-            <div><p className="text-sm font-semibold text-foreground">{rScore === 100 ? 'Klar! 🎉' : rScore >= 80 ? 'Næsten klar' : 'Mangler data'}</p><p className="text-xs text-muted-foreground mt-0.5">{rPassed} af {readinessChecks.length} udfyldt</p></div>
+        </div>
+
+        {/* ── 5. Priser ── */}
+        <SectionDivider title="Priser & ophold" icon={DollarSign} />
+        <div className="space-y-4 pl-11">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Pris pr. nat (DKK)</Label>
+              <Input type="number" min={0} step={50} value={form.base_price_per_night} onChange={e => upd('base_price_per_night', parseFloat(e.target.value) || 0)} /></div>
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Weekend-pris (DKK)</Label>
+              <Input type="number" min={0} step={50} value={form.weekend_price_per_night} onChange={e => upd('weekend_price_per_night', parseFloat(e.target.value) || 0)} /></div>
           </div>
-          {readinessChecks.filter(c => !c.ok).length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mangler</p>
-              {readinessChecks.filter(c => !c.ok).map(item => (
-                <button key={item.label} onClick={() => setEditSection(item.s)} className="w-full flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-left hover:bg-muted/50 transition-colors group">
-                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
-                  <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground">{item.label}</p><p className="text-xs text-muted-foreground">{item.fix}</p></div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-                </button>
-              ))}
-            </div>
-          )}
-          {rPassed > 0 && <div className="flex flex-wrap gap-1.5">{readinessChecks.filter(c => c.ok).map(item => (
-            <span key={item.label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium"><CheckCircle2 className="h-3 w-3" /> {item.label}</span>
-          ))}</div>}
-          <div className="pt-3 border-t border-border space-y-4">
-            <ER><EF label="Check-in tid"><Input type="time" value={form.check_in_time} onChange={e => upd('check_in_time', e.target.value)} /></EF><EF label="Check-out tid"><Input type="time" value={form.check_out_time} onChange={e => upd('check_out_time', e.target.value)} /></EF></ER>
-            <EF label="Check-in instruktioner"><Textarea value={form.checkin_info} onChange={e => upd('checkin_info', e.target.value)} rows={3} placeholder="Nøgleboksen sidder…" /></EF>
-            <EF label="Check-out instruktioner"><Textarea value={form.checkout_info} onChange={e => upd('checkout_info', e.target.value)} rows={3} placeholder="Tøm køleskab…" /></EF>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Rengøringsgebyr (DKK)</Label>
+              <Input type="number" min={0} step={50} value={form.cleaning_fee} onChange={e => upd('cleaning_fee', parseFloat(e.target.value) || 0)} /></div>
+            <div />
           </div>
-        </>)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Min. nætter</Label>
+              <Input type="number" min={1} value={form.min_nights} onChange={e => upd('min_nights', parseInt(e.target.value) || 1)} /></div>
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Max nætter</Label>
+              <Input type="number" min={1} value={form.max_nights} onChange={e => upd('max_nights', parseInt(e.target.value) || 30)} /></div>
+          </div>
+        </div>
+
+        {/* ── 6. Check-in ── */}
+        <SectionDivider title="Ankomst & afrejse" icon={Settings} />
+        <div className="space-y-4 pl-11">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Check-in tid</Label>
+              <Input value={form.check_in_time} onChange={e => upd('check_in_time', e.target.value)} placeholder="15:00" /></div>
+            <div className="space-y-1.5"><Label className="text-sm font-medium">Check-out tid</Label>
+              <Input value={form.check_out_time} onChange={e => upd('check_out_time', e.target.value)} placeholder="10:00" /></div>
+          </div>
+          <div className="space-y-1.5"><Label className="text-sm font-medium">Ankomst-info til gæsten</Label>
+            <Textarea value={form.checkin_info} onChange={e => upd('checkin_info', e.target.value)} rows={3} placeholder="Nøgleboks ved hoveddøren, kode sendes 24h før…" /></div>
+          <div className="space-y-1.5"><Label className="text-sm font-medium">Afrejse-info</Label>
+            <Textarea value={form.checkout_info} onChange={e => upd('checkout_info', e.target.value)} rows={3} placeholder="Tøm køleskab, tænd opvaskemaskine…" /></div>
+        </div>
+
+        {/* ── Bottom publish bar ── */}
+        <div className="pt-8 pb-2 flex flex-col sm:flex-row items-center gap-3 border-t border-border/30 mt-8">
+          <div className="flex-1 text-center sm:text-left">
+            <p className="text-xs text-muted-foreground">Når alt ser godt ud, publicér til SommerVibes.dk og overfør derefter til eksterne platforme.</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" variant="outline" className="rounded-xl gap-1.5 text-xs" onClick={handleTransferToChannels}>
+              <Send className="h-3.5 w-3.5" /> Overfør til platforme
+            </Button>
+            <Button size="sm" className="rounded-xl gap-1.5 text-xs" onClick={handlePublish} disabled={publishing}>
+              <Globe className="h-3.5 w-3.5" /> Publicér til SommerVibes.dk
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -735,11 +795,8 @@ export default function AdminSagDetail() {
 
           {/* ─── Primary Actions Bar ─── */}
           <div className="px-6 pb-5 flex flex-wrap gap-2">
-            <Button size="sm" className="rounded-xl gap-1.5" onClick={() => setPublishFlowOpen(true)}>
-              <Globe className="h-3.5 w-3.5" />Publicér listing
-            </Button>
             <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('listing')}>
-              <Pencil className="h-3.5 w-3.5" />Redigér listing
+              <Pencil className="h-3.5 w-3.5" />Redigér & publicér
             </Button>
             <Button size="sm" variant="outline" className="rounded-xl gap-1.5" onClick={() => setTab('overblik')}>
               <Rocket className="h-3.5 w-3.5" />Klargør listing
