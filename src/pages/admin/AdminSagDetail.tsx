@@ -1382,8 +1382,8 @@ export default function AdminSagDetail() {
                 {staff.map(s => {
                   const staffRoleLabels: Record<string, string> = {
                     annoncerende: 'Annoncerende udlejningsrådgiver',
-                    kommissionerende: 'Kommissionerende udlejningsrådgiver',
                     ansvarlig: 'Ansvarlig udlejningsrådgiver',
+                    kommissionerende: 'Ansvarlig udlejningsrådgiver',
                     udlejningschef: 'Udlejningschef',
                     sagsbehandler: 'Sagsbehandler',
                   };
