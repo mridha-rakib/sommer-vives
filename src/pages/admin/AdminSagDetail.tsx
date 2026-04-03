@@ -2083,6 +2083,7 @@ export default function AdminSagDetail() {
             </div>
           </SectionCard>
         )}
+        </div>
       </div>
       <PublishFlowModal
         listing={listing}
