@@ -525,6 +525,10 @@ export default function AdminSagDetail() {
   const [actors, setActors] = useState<any[]>([]);
   const [actorForm, setActorForm] = useState({ name: '', role: 'kontakt', email: '', phone: '', notes: '' });
   const [addingActor, setAddingActor] = useState(false);
+  // Staff state
+  const [staff, setStaff] = useState<any[]>([]);
+  const [staffForm, setStaffForm] = useState({ staff_name: '', staff_role: 'annoncerende', staff_email: '', staff_phone: '' });
+  const [addingStaff, setAddingStaff] = useState(false);
 
   const loadSagDocs = useCallback(async (listingId: string, ownerId: string) => {
     const [{ data: sd }, { data: tpls }] = await Promise.all([
