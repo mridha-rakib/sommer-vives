@@ -241,7 +241,20 @@ export default function AdminOpgaver() {
           <Button size="sm" className="rounded-xl gap-1.5" onClick={() => setCreateOpen(true)}><Plus className="h-3.5 w-3.5" />Ny opgave</Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <Tabs value={section} onValueChange={(v) => setSection(v as SectionTab)} className="w-full">
+          <TabsList className="bg-muted/30 border border-border/40">
+            <TabsTrigger value="all" className="gap-1.5 text-xs">
+              <ListChecks className="h-3.5 w-3.5" /> Alle opgaver
+            </TabsTrigger>
+            <TabsTrigger value="personal" className="gap-1.5 text-xs">
+              <User className="h-3.5 w-3.5" /> ToDo Personlig
+            </TabsTrigger>
+            <TabsTrigger value="case" className="gap-1.5 text-xs">
+              <Briefcase className="h-3.5 w-3.5" /> Sagsopgaver
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
           <SummaryCard label="Alle aktive" value={counts.active} icon={ListChecks} active={!hasFilters} onClick={clearFilters} />
           <SummaryCard label="Forfalder i dag" value={counts.dueToday} icon={CalendarDays} active={filterSpecial === 'today'} onClick={() => { clearFilters(); setFilterSpecial('today'); }} />
           <SummaryCard label="Høj prioritet" value={counts.highPrio} icon={Flag} active={filterPriority === 'high' || filterPriority === 'urgent'} onClick={() => { clearFilters(); setFilterPriority('high'); }} />
