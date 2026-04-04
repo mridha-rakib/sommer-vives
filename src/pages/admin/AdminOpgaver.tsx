@@ -255,6 +255,7 @@ export default function AdminOpgaver() {
           </TabsList>
         </Tabs>
 
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <SummaryCard label="Alle aktive" value={counts.active} icon={ListChecks} active={!hasFilters} onClick={clearFilters} />
           <SummaryCard label="Forfalder i dag" value={counts.dueToday} icon={CalendarDays} active={filterSpecial === 'today'} onClick={() => { clearFilters(); setFilterSpecial('today'); }} />
           <SummaryCard label="Høj prioritet" value={counts.highPrio} icon={Flag} active={filterPriority === 'high' || filterPriority === 'urgent'} onClick={() => { clearFilters(); setFilterPriority('high'); }} />
