@@ -207,12 +207,12 @@ export default function AdminOpgaver() {
   const wEnd = endOfWeek(now, { weekStartsOn: 1 });
 
   const counts = useMemo(() => ({
-    active: tasks.filter(t => t.status !== 'done').length,
-    dueToday: tasks.filter(t => t.due_date && isToday(new Date(t.due_date)) && t.status !== 'done').length,
-    highPrio: tasks.filter(t => (t.priority === 'high' || t.priority === 'urgent') && t.status !== 'done').length,
-    waiting: tasks.filter(t => t.status === 'waiting').length,
-    doneThisWeek: tasks.filter(t => t.completed_at && new Date(t.completed_at) >= wStart && new Date(t.completed_at) <= wEnd).length,
-  }), [tasks]);
+    active: sectionTasks.filter(t => t.status !== 'done').length,
+    dueToday: sectionTasks.filter(t => t.due_date && isToday(new Date(t.due_date)) && t.status !== 'done').length,
+    highPrio: sectionTasks.filter(t => (t.priority === 'high' || t.priority === 'urgent') && t.status !== 'done').length,
+    waiting: sectionTasks.filter(t => t.status === 'waiting').length,
+    doneThisWeek: sectionTasks.filter(t => t.completed_at && new Date(t.completed_at) >= wStart && new Date(t.completed_at) <= wEnd).length,
+  }), [sectionTasks]);
 
   const sectionTasks = useMemo(() => {
     if (section === 'personal') return tasks.filter(t => !t.linked_id && t.created_by === currentUserId);
