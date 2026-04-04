@@ -1388,7 +1388,7 @@ export default function AdminSagDetail() {
             {/* Quick stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <QuickStat label="Bookings" value={bookings.length} />
-              <QuickStat label="Opgaver" value={`${tasks.filter(t => t.status === 'done').length}/${tasks.length}`} />
+              <QuickStat label="Sagsopgaver" value={`${tasks.filter(t => t.status === 'done').length}/${tasks.length}`} />
               <QuickStat label="Dokumenter" value={sagDocs.length + documents.length} />
               <QuickStat label="Tilkøb" value={addons.length} />
             </div>
