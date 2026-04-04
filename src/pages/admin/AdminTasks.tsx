@@ -148,7 +148,7 @@ export default function AdminTasks() {
         </div>
 
         {/* Filters */}
-        <div className="flex gap-3 items-center">
+        <div className="flex flex-wrap gap-3 items-center">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
@@ -169,6 +169,21 @@ export default function AdminTasks() {
                 )}
               >
                 {f === 'all' ? 'Alle' : f === 'not_started' ? 'Ikke startet' : f === 'in_progress' ? 'I gang' : f === 'waiting' ? 'Afventer' : 'Færdig'}
+              </button>
+            ))}
+          </div>
+          <div className="h-5 w-px bg-border/40" />
+          <div className="flex gap-1.5">
+            {(['all', 'urgent', 'high', 'normal', 'low'] as const).map(p => (
+              <button
+                key={p}
+                onClick={() => setPriorityFilter(p)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                  priorityFilter === p ? 'bg-primary text-primary-foreground' : 'bg-muted/20 text-muted-foreground hover:bg-muted/40'
+                )}
+              >
+                {p === 'all' ? 'Alle pri.' : p === 'urgent' ? '🔴 Akut' : p === 'high' ? '🟠 Høj' : p === 'normal' ? '🔵 Normal' : '⚪ Lav'}
               </button>
             ))}
           </div>
