@@ -1217,7 +1217,7 @@ export default function AdminSagDetail() {
     { key: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
     { key: 'dokumenter', label: 'Dokumenter', icon: FileText },
     { key: 'aktorer', label: 'Aktører', icon: UserPlus },
-    { key: 'opgaver', label: 'Opgaver', icon: ListChecks },
+    { key: 'opgaver', label: 'Sagsopgaver', icon: ListChecks },
     { key: 'noter', label: 'Noter', icon: StickyNote },
   ];
 
@@ -1388,7 +1388,7 @@ export default function AdminSagDetail() {
             {/* Quick stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <QuickStat label="Bookings" value={bookings.length} />
-              <QuickStat label="Opgaver" value={`${tasks.filter(t => t.status === 'done').length}/${tasks.length}`} />
+              <QuickStat label="Sagsopgaver" value={`${tasks.filter(t => t.status === 'done').length}/${tasks.length}`} />
               <QuickStat label="Dokumenter" value={sagDocs.length + documents.length} />
               <QuickStat label="Tilkøb" value={addons.length} />
             </div>
