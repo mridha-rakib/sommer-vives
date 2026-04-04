@@ -70,6 +70,7 @@ import AdminTemplates from "./pages/admin/AdminTemplates";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminPipelineTemplates from "./pages/admin/AdminPipelineTemplates";
 
 // Guest pages
 import GuestAuth from "./pages/guest/GuestAuth";
