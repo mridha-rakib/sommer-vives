@@ -303,6 +303,16 @@ export default function AdminOpgaver() {
     setSelectedIds(new Set());
     fetchTasks();
   };
+  const bulkSetDate = async (date: string) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      await supabase.from('system_tasks' as any).update({ due_date: date }).eq('id', id);
+    }
+    toast.success(`${ids.length} opgave${ids.length > 1 ? 'r' : ''} sat til ${format(new Date(date), 'd. MMM', { locale: da })}`);
+    setSelectedIds(new Set());
+    fetchTasks();
+  };
   const bulkComplete = async () => {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
