@@ -127,7 +127,6 @@ export default function AdminTasks() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-6 gap-3">
