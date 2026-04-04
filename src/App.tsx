@@ -65,6 +65,7 @@ import AdminSagerKanaler from "./pages/admin/AdminSagerKanaler";
 import AdminDokumenter from "./pages/admin/AdminDokumenter";
 import AdminOekonomi from "./pages/admin/AdminOekonomi";
 import AdminIndstillinger from "./pages/admin/AdminIndstillinger";
+import AdminTeam from "./pages/admin/AdminTeam";
 import AdminTemplates from "./pages/admin/AdminTemplates";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
