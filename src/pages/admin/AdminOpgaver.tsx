@@ -15,7 +15,7 @@ import { da } from 'date-fns/locale';
 import {
   Plus, Search, ListChecks, LayoutGrid, List, X, CheckCircle2,
   Clock, Pause, Flag, CalendarDays, User, Link2,
-  StickyNote, Trash2, ChevronRight, Zap, Tag
+  StickyNote, Trash2, ChevronRight, Zap, Tag, Briefcase
 } from 'lucide-react';
 
 type TaskStatus = 'not_started' | 'in_progress' | 'waiting' | 'done';
