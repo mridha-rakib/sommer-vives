@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import React from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,11 +15,12 @@ import { da } from 'date-fns/locale';
 import {
   Plus, Search, ListChecks, LayoutGrid, List, X, CheckCircle2,
   Clock, Pause, Flag, CalendarDays, User, Link2,
-  StickyNote, Trash2, ChevronRight, Zap, Tag
+  StickyNote, Trash2, ChevronRight, Zap, Tag, Briefcase
 } from 'lucide-react';
 
 type TaskStatus = 'not_started' | 'in_progress' | 'waiting' | 'done';
 type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
+type SectionTab = 'all' | 'personal' | 'case';
 
 interface SystemTask {
   id: string; title: string; description: string | null; linked_type: string | null; linked_id: string | null; linked_name: string | null;
@@ -189,6 +191,10 @@ export default function AdminOpgaver() {
   const [filterPriority, setFilterPriority] = useState<TaskPriority | 'all'>('all');
   const [filterLinked, setFilterLinked] = useState('all');
   const [filterSpecial, setFilterSpecial] = useState<'all' | 'today' | 'overdue'>('all');
+  const [section, setSection] = useState<SectionTab>('all');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id || null)); }, []);
 
   const fetchTasks = async () => {
     const { data } = await supabase.from('system_tasks' as any).select('*').order('created_at', { ascending: false }).limit(500);
@@ -200,15 +206,21 @@ export default function AdminOpgaver() {
   const wStart = startOfWeek(now, { weekStartsOn: 1 });
   const wEnd = endOfWeek(now, { weekStartsOn: 1 });
 
-  const counts = useMemo(() => ({
-    active: tasks.filter(t => t.status !== 'done').length,
-    dueToday: tasks.filter(t => t.due_date && isToday(new Date(t.due_date)) && t.status !== 'done').length,
-    highPrio: tasks.filter(t => (t.priority === 'high' || t.priority === 'urgent') && t.status !== 'done').length,
-    waiting: tasks.filter(t => t.status === 'waiting').length,
-    doneThisWeek: tasks.filter(t => t.completed_at && new Date(t.completed_at) >= wStart && new Date(t.completed_at) <= wEnd).length,
-  }), [tasks]);
+  const sectionTasks = useMemo(() => {
+    if (section === 'personal') return tasks.filter(t => !t.linked_id && t.created_by === currentUserId);
+    if (section === 'case') return tasks.filter(t => !!t.linked_id);
+    return tasks;
+  }, [tasks, section, currentUserId]);
 
-  const filtered = useMemo(() => tasks.filter(t => {
+  const counts = useMemo(() => ({
+    active: sectionTasks.filter(t => t.status !== 'done').length,
+    dueToday: sectionTasks.filter(t => t.due_date && isToday(new Date(t.due_date)) && t.status !== 'done').length,
+    highPrio: sectionTasks.filter(t => (t.priority === 'high' || t.priority === 'urgent') && t.status !== 'done').length,
+    waiting: sectionTasks.filter(t => t.status === 'waiting').length,
+    doneThisWeek: sectionTasks.filter(t => t.completed_at && new Date(t.completed_at) >= wStart && new Date(t.completed_at) <= wEnd).length,
+  }), [sectionTasks]);
+
+  const filtered = useMemo(() => sectionTasks.filter(t => {
     if (filterStatus !== 'all' && t.status !== filterStatus) return false;
     if (filterPriority !== 'all' && t.priority !== filterPriority) return false;
     if (filterLinked !== 'all' && t.linked_type !== filterLinked) return false;
@@ -216,7 +228,7 @@ export default function AdminOpgaver() {
     if (filterSpecial === 'overdue' && !(t.due_date && isPast(new Date(t.due_date + 'T23:59:59')) && t.status !== 'done')) return false;
     if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !(t.linked_name || '').toLowerCase().includes(search.toLowerCase())) return false;
     return true;
-  }), [tasks, filterStatus, filterPriority, filterLinked, filterSpecial, search]);
+  }), [sectionTasks, filterStatus, filterPriority, filterLinked, filterSpecial, search]);
 
   const clearFilters = () => { setFilterStatus('all'); setFilterPriority('all'); setFilterLinked('all'); setFilterSpecial('all'); setSearch(''); };
   const hasFilters = filterStatus !== 'all' || filterPriority !== 'all' || filterLinked !== 'all' || filterSpecial !== 'all' || !!search;
@@ -228,6 +240,20 @@ export default function AdminOpgaver() {
           <div><h1 className="text-xl font-bold text-foreground">Alle opgaver</h1><p className="text-sm text-muted-foreground mt-0.5">Alt der skal gøres — ét samlet overblik</p></div>
           <Button size="sm" className="rounded-xl gap-1.5" onClick={() => setCreateOpen(true)}><Plus className="h-3.5 w-3.5" />Ny opgave</Button>
         </div>
+
+        <Tabs value={section} onValueChange={(v) => setSection(v as SectionTab)} className="w-full">
+          <TabsList className="bg-muted/30 border border-border/40">
+            <TabsTrigger value="all" className="gap-1.5 text-xs">
+              <ListChecks className="h-3.5 w-3.5" /> Alle opgaver
+            </TabsTrigger>
+            <TabsTrigger value="personal" className="gap-1.5 text-xs">
+              <User className="h-3.5 w-3.5" /> ToDo Personlig
+            </TabsTrigger>
+            <TabsTrigger value="case" className="gap-1.5 text-xs">
+              <Briefcase className="h-3.5 w-3.5" /> Sagsopgaver
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <SummaryCard label="Alle aktive" value={counts.active} icon={ListChecks} active={!hasFilters} onClick={clearFilters} />
