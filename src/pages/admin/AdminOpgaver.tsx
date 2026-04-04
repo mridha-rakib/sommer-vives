@@ -206,6 +206,12 @@ export default function AdminOpgaver() {
   const wStart = startOfWeek(now, { weekStartsOn: 1 });
   const wEnd = endOfWeek(now, { weekStartsOn: 1 });
 
+  const sectionTasks = useMemo(() => {
+    if (section === 'personal') return tasks.filter(t => !t.linked_id && t.created_by === currentUserId);
+    if (section === 'case') return tasks.filter(t => !!t.linked_id);
+    return tasks;
+  }, [tasks, section, currentUserId]);
+
   const counts = useMemo(() => ({
     active: sectionTasks.filter(t => t.status !== 'done').length,
     dueToday: sectionTasks.filter(t => t.due_date && isToday(new Date(t.due_date)) && t.status !== 'done').length,
@@ -213,12 +219,6 @@ export default function AdminOpgaver() {
     waiting: sectionTasks.filter(t => t.status === 'waiting').length,
     doneThisWeek: sectionTasks.filter(t => t.completed_at && new Date(t.completed_at) >= wStart && new Date(t.completed_at) <= wEnd).length,
   }), [sectionTasks]);
-
-  const sectionTasks = useMemo(() => {
-    if (section === 'personal') return tasks.filter(t => !t.linked_id && t.created_by === currentUserId);
-    if (section === 'case') return tasks.filter(t => !!t.linked_id);
-    return tasks;
-  }, [tasks, section, currentUserId]);
 
   const filtered = useMemo(() => sectionTasks.filter(t => {
     if (filterStatus !== 'all' && t.status !== filterStatus) return false;
