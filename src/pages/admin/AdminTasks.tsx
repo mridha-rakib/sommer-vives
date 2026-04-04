@@ -109,8 +109,24 @@ export default function AdminTasks() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Opgaver</h1>
-          <p className="text-sm text-muted-foreground">Alle sagsopgaver samlet</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Alle opgaver</h1>
+          <p className="text-sm text-muted-foreground">Opgaver på tværs af sager og personlige to-do's</p>
+        </div>
+
+        {/* Section tabs */}
+        <Tabs value={section} onValueChange={(v) => setSection(v as SectionTab)} className="w-full">
+          <TabsList className="bg-muted/30 border border-border/40">
+            <TabsTrigger value="all" className="gap-1.5 text-xs">
+              <ListChecks className="h-3.5 w-3.5" /> Alle opgaver
+            </TabsTrigger>
+            <TabsTrigger value="personal" className="gap-1.5 text-xs">
+              <User className="h-3.5 w-3.5" /> ToDo Personlig
+            </TabsTrigger>
+            <TabsTrigger value="case" className="gap-1.5 text-xs">
+              <Briefcase className="h-3.5 w-3.5" /> Sagsopgaver
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         </div>
 
         {/* Stats */}
