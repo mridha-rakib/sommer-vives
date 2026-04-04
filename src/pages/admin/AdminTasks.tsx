@@ -22,6 +22,7 @@ export default function AdminTasks() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | TaskStatus>('all');
+  const [priorityFilter, setPriorityFilter] = useState<'all' | string>('all');
   const [search, setSearch] = useState('');
   const [section, setSection] = useState<SectionTab>('all');
   const [collapsedSager, setCollapsedSager] = useState<Set<string>>(new Set());
