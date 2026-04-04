@@ -1300,6 +1300,13 @@ export default function AdminSagDetail() {
                               is_active: isLive,
                             }).eq('id', listing.id);
                             if (error) { toast.error('Kunne ikke skifte stadie'); return; }
+                            // Auto-create tasks from pipeline templates
+                            const { error: rpcError } = await supabase.rpc('generate_stage_tasks', {
+                              p_listing_id: listing.id,
+                              p_listing_name: listing.name,
+                              p_stage: opt.key,
+                            });
+                            if (rpcError) console.warn('Auto-tasks:', rpcError.message);
                             setListing({ ...listing, internal_status: opt.key, is_active: isLive });
                             toast.success(`Sag flyttet til "${opt.label}"${isLive ? ' — nu synlig på hjemmesiden' : ''}`);
                             setStatusOpen(false);
