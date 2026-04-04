@@ -191,6 +191,10 @@ export default function AdminOpgaver() {
   const [filterPriority, setFilterPriority] = useState<TaskPriority | 'all'>('all');
   const [filterLinked, setFilterLinked] = useState('all');
   const [filterSpecial, setFilterSpecial] = useState<'all' | 'today' | 'overdue'>('all');
+  const [section, setSection] = useState<SectionTab>('all');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id || null)); }, []);
 
   const fetchTasks = async () => {
     const { data } = await supabase.from('system_tasks' as any).select('*').order('created_at', { ascending: false }).limit(500);
