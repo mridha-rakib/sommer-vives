@@ -2811,6 +2811,45 @@ export type Database = {
           },
         ]
       }
+      pipeline_task_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_days: number
+          id: string
+          is_active: boolean
+          priority: Database["public"]["Enums"]["task_priority"]
+          sort_order: number
+          stage: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_days?: number
+          id?: string
+          is_active?: boolean
+          priority?: Database["public"]["Enums"]["task_priority"]
+          sort_order?: number
+          stage: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_days?: number
+          id?: string
+          is_active?: boolean
+          priority?: Database["public"]["Enums"]["task_priority"]
+          sort_order?: number
+          stage?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           description: string | null
@@ -3379,6 +3418,7 @@ export type Database = {
         Row: {
           assigned_name: string | null
           assigned_to: string | null
+          category: string | null
           completed_at: string | null
           created_at: string
           created_by: string | null
@@ -3398,6 +3438,7 @@ export type Database = {
         Insert: {
           assigned_name?: string | null
           assigned_to?: string | null
+          category?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -3417,6 +3458,7 @@ export type Database = {
         Update: {
           assigned_name?: string | null
           assigned_to?: string | null
+          category?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -3551,6 +3593,16 @@ export type Database = {
           p_assigned_to?: string
           p_listing_id: string
           p_listing_name: string
+        }
+        Returns: undefined
+      }
+      generate_stage_tasks: {
+        Args: {
+          p_assigned_name?: string
+          p_assigned_to?: string
+          p_listing_id: string
+          p_listing_name: string
+          p_stage: string
         }
         Returns: undefined
       }
