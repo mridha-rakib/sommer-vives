@@ -44,15 +44,21 @@ export default function AdminTasks() {
     load();
   }, []);
 
+  const sectionFiltered = useMemo(() => {
+    if (section === 'personal') return tasks.filter(t => !t.linked_id && t.created_by === currentUserId);
+    if (section === 'case') return tasks.filter(t => !!t.linked_id);
+    return tasks;
+  }, [tasks, section, currentUserId]);
+
   const filtered = useMemo(() => {
-    let result = tasks;
+    let result = sectionFiltered;
     if (filter !== 'all') result = result.filter(t => t.status === filter);
     if (search) result = result.filter(t =>
       t.title?.toLowerCase().includes(search.toLowerCase()) ||
       t.linked_name?.toLowerCase().includes(search.toLowerCase())
     );
     return result;
-  }, [tasks, filter, search]);
+  }, [sectionFiltered, filter, search]);
 
   // Group by sag (linked_id)
   const grouped = useMemo(() => {
