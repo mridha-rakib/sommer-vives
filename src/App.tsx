@@ -214,6 +214,7 @@ const App = () => (
             <Route path="/admin/dokumenter" element={<ProtectedRoute requireAdmin><AdminDokumenter /></ProtectedRoute>} />
             <Route path="/admin/oekonomi" element={<ProtectedRoute requireAdmin><AdminOekonomi /></ProtectedRoute>} />
             <Route path="/admin/indstillinger" element={<ProtectedRoute requireAdmin><AdminIndstillinger /></ProtectedRoute>} />
+            <Route path="/admin/team" element={<ProtectedRoute requireAdmin><AdminTeam /></ProtectedRoute>} />
             <Route path="/admin/templates" element={<ProtectedRoute requireAdmin><AdminTemplates /></ProtectedRoute>} />
             <Route path="/admin/notifications" element={<ProtectedRoute requireAdmin><AdminNotifications /></ProtectedRoute>} />
             <Route path="/admin/audit-log" element={<ProtectedRoute requireAdmin><AdminAuditLog /></ProtectedRoute>} />
