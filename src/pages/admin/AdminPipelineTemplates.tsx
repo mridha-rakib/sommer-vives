@@ -102,15 +102,15 @@ export default function AdminPipelineTemplates() {
       toast.success('Opgaveskabelon opdateret');
     } else {
       const maxSort = stageTemplates.reduce((m, t) => Math.max(m, t.sort_order), 0);
-      const { error } = await supabase.from('pipeline_task_templates').insert({
+      const { error } = await supabase.from('pipeline_task_templates').insert([{
         stage: activeStage,
         title: form.title.trim(),
         description: form.description.trim() || null,
-        priority: form.priority,
+        priority: form.priority as any,
         due_days: form.due_days,
         sort_order: maxSort + 1,
         is_active: form.is_active,
-      });
+      }]);
       if (error) { toast.error(error.message); setSaving(false); return; }
       toast.success('Opgaveskabelon oprettet');
     }
