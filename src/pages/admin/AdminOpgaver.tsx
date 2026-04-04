@@ -267,6 +267,8 @@ export default function AdminOpgaver() {
   }), [dateScopedTasks, sectionTasks]);
 
   const filtered = useMemo(() => dateScopedTasks.filter(t => {
+    // Hide done tasks unless explicitly filtering for them
+    if (filterStatus === 'all' && t.status === 'done') return false;
     if (filterStatus !== 'all' && t.status !== filterStatus) return false;
     if (filterPriority !== 'all' && t.priority !== filterPriority) return false;
     if (filterLinked !== 'all' && t.linked_type !== filterLinked) return false;
