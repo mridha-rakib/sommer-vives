@@ -3503,6 +3503,15 @@ export type Database = {
     }
     Functions: {
       generate_case_number: { Args: { prefix: string }; Returns: string }
+      generate_sag_tasks: {
+        Args: {
+          p_assigned_name?: string
+          p_assigned_to?: string
+          p_listing_id: string
+          p_listing_name: string
+        }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
