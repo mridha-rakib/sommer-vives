@@ -3,11 +3,12 @@ import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { UserCircle, Building2, FileText, Link2, Bell, Type, ArrowRight } from 'lucide-react';
+import { UserCircle, Building2, FileText, Link2, Bell, Type, ArrowRight, ClipboardList } from 'lucide-react';
 
 const sections = [
   { title: 'Brugerprofil', description: 'Din admin-profil og loginoplysninger', icon: UserCircle, href: '/admin/indstillinger/profil' },
   { title: 'Virksomhed', description: 'Firma-oplysninger, logo og kontaktdata', icon: Building2, href: '/admin/indstillinger/virksomhed' },
+  { title: 'Pipeline-opgaver', description: 'Opgaveskabeloner for hvert pipeline-stadie', icon: ClipboardList, href: '/admin/indstillinger/pipeline-opgaver' },
   { title: 'Skabeloner', description: 'E-mail-skabeloner og aftaletekster', icon: FileText, href: '/admin/templates' },
   { title: 'Integrationer', description: 'Channel managers, Stripe og tredjeparter', icon: Link2, href: '/admin/indstillinger/integrationer' },
   { title: 'Notifikationer', description: 'E-mail- og pushnotifikationsindstillinger', icon: Bell, href: '/admin/notifications' },
