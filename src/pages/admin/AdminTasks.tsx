@@ -54,12 +54,13 @@ export default function AdminTasks() {
   const filtered = useMemo(() => {
     let result = sectionFiltered;
     if (filter !== 'all') result = result.filter(t => t.status === filter);
+    if (priorityFilter !== 'all') result = result.filter(t => t.priority === priorityFilter);
     if (search) result = result.filter(t =>
       t.title?.toLowerCase().includes(search.toLowerCase()) ||
       t.linked_name?.toLowerCase().includes(search.toLowerCase())
     );
     return result;
-  }, [sectionFiltered, filter, search]);
+  }, [sectionFiltered, filter, priorityFilter, search]);
 
   // Group by sag (linked_id)
   const grouped = useMemo(() => {
