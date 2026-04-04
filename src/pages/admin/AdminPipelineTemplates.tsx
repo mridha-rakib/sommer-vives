@@ -94,7 +94,7 @@ export default function AdminPipelineTemplates() {
       const { error } = await supabase.from('pipeline_task_templates').update({
         title: form.title.trim(),
         description: form.description.trim() || null,
-        priority: form.priority,
+        priority: form.priority as any,
         due_days: form.due_days,
         is_active: form.is_active,
       }).eq('id', editId);
