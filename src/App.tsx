@@ -65,6 +65,7 @@ import AdminSagerKanaler from "./pages/admin/AdminSagerKanaler";
 import AdminDokumenter from "./pages/admin/AdminDokumenter";
 import AdminOekonomi from "./pages/admin/AdminOekonomi";
 import AdminIndstillinger from "./pages/admin/AdminIndstillinger";
+import AdminTeam from "./pages/admin/AdminTeam";
 import AdminTemplates from "./pages/admin/AdminTemplates";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
@@ -213,6 +214,7 @@ const App = () => (
             <Route path="/admin/dokumenter" element={<ProtectedRoute requireAdmin><AdminDokumenter /></ProtectedRoute>} />
             <Route path="/admin/oekonomi" element={<ProtectedRoute requireAdmin><AdminOekonomi /></ProtectedRoute>} />
             <Route path="/admin/indstillinger" element={<ProtectedRoute requireAdmin><AdminIndstillinger /></ProtectedRoute>} />
+            <Route path="/admin/team" element={<ProtectedRoute requireAdmin><AdminTeam /></ProtectedRoute>} />
             <Route path="/admin/templates" element={<ProtectedRoute requireAdmin><AdminTemplates /></ProtectedRoute>} />
             <Route path="/admin/notifications" element={<ProtectedRoute requireAdmin><AdminNotifications /></ProtectedRoute>} />
             <Route path="/admin/audit-log" element={<ProtectedRoute requireAdmin><AdminAuditLog /></ProtectedRoute>} />

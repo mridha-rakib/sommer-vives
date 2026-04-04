@@ -58,6 +58,7 @@ const navSections: { label?: string; items: NavItem[] }[] = [
       { name: 'Modtagelse', href: '/admin/modtagelse', icon: Inbox },
       { name: 'Dokumenter', href: '/admin/dokumenter', icon: FileText },
       { name: 'Økonomi', href: '/admin/oekonomi', icon: Wallet },
+      { name: 'Team', href: '/admin/team', icon: Users },
     ],
   },
   {

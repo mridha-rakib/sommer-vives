@@ -3479,6 +3479,48 @@ export type Database = {
           },
         ]
       }
+      team_members: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          invited_by: string | null
+          is_active: boolean
+          job_title: string
+          phone: string | null
+          team_role: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          invited_by?: string | null
+          is_active?: boolean
+          job_title?: string
+          phone?: string | null
+          team_role?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          invited_by?: string | null
+          is_active?: boolean
+          job_title?: string
+          phone?: string | null
+          team_role?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

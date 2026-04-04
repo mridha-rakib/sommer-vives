@@ -1119,9 +1119,7 @@ export default function AdminSagDetail() {
   const [addingActor, setAddingActor] = useState(false);
   // Staff state
   const [staff, setStaff] = useState<any[]>([]);
-  const [teamMembers] = useState([
-    { id: '74a122fb-b6fc-48bc-8cee-944801ee2448', name: 'Emil Klockmann', email: 'ek@klockmann.dk' },
-  ]);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [staffForm, setStaffForm] = useState({ staff_user_id: '74a122fb-b6fc-48bc-8cee-944801ee2448', staff_role: 'annoncerende' });
   const [addingStaff, setAddingStaff] = useState(false);
 
@@ -1166,7 +1164,7 @@ export default function AdminSagDetail() {
       const { data: l } = await supabase.from('listings').select('*').eq('id', id).single();
       setListing(l);
       if (l) {
-        const [{ data: prof }, { data: ts }, { data: docs }, { data: adds }, { data: bks }, { data: acts }, { data: stf }] = await Promise.all([
+        const [{ data: prof }, { data: ts }, { data: docs }, { data: adds }, { data: bks }, { data: acts }, { data: stf }, { data: tm }] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', l.owner_id).single(),
           supabase.from('system_tasks').select('*').eq('linked_type', 'listing').eq('linked_id', id).order('due_date', { ascending: true }),
           supabase.from('documents').select('*').eq('owner_id', l.owner_id).limit(20),
@@ -1174,6 +1172,7 @@ export default function AdminSagDetail() {
           supabase.from('bookings').select('*').eq('property_id', id).order('check_in', { ascending: false }).limit(20),
           supabase.from('listing_actors').select('*').eq('listing_id', id).order('sort_order'),
           supabase.from('listing_staff').select('*').eq('listing_id', id).order('created_at'),
+          supabase.from('team_members').select('*').eq('is_active', true).order('full_name'),
         ]);
         setOwner(prof);
         setTasks(ts || []);
@@ -1182,6 +1181,7 @@ export default function AdminSagDetail() {
         setBookings(bks || []);
         setActors(acts || []);
         setStaff(stf || []);
+        setTeamMembers((tm || []).map((t: any) => ({ id: t.user_id || t.id, name: t.full_name, email: t.email })));
         loadSagDocs(id, l.owner_id);
       }
       setLoading(false);
