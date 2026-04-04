@@ -1162,7 +1162,7 @@ export default function AdminSagDetail() {
       if (l) {
         const [{ data: prof }, { data: ts }, { data: docs }, { data: adds }, { data: bks }, { data: acts }, { data: stf }] = await Promise.all([
           supabase.from('profiles').select('*').eq('id', l.owner_id).single(),
-          supabase.from('tasks').select('*').in('property_id', [id]).order('scheduled_date'),
+          supabase.from('system_tasks').select('*').eq('linked_type', 'listing').eq('linked_id', id).order('due_date', { ascending: true }),
           supabase.from('documents').select('*').eq('owner_id', l.owner_id).limit(20),
           supabase.from('add_ons').select('*').eq('listing_id', id),
           supabase.from('bookings').select('*').eq('property_id', id).order('check_in', { ascending: false }).limit(20),
