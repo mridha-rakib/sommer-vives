@@ -220,6 +220,7 @@ const App = () => (
             <Route path="/admin/notifications" element={<ProtectedRoute requireAdmin><AdminNotifications /></ProtectedRoute>} />
             <Route path="/admin/audit-log" element={<ProtectedRoute requireAdmin><AdminAuditLog /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/indstillinger/pipeline-opgaver" element={<ProtectedRoute requireAdmin><AdminPipelineTemplates /></ProtectedRoute>} />
             {/* Legacy admin redirects */}
             <Route path="/admin/listings" element={<Navigate to="/admin/sager" replace />} />
             <Route path="/admin/owners" element={<Navigate to="/admin/crm/udlejere" replace />} />
