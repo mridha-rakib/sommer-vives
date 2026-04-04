@@ -225,7 +225,7 @@ export default function AdminOpgaver() {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div><h1 className="text-xl font-bold text-foreground">System opgaver</h1><p className="text-sm text-muted-foreground mt-0.5">Alt der skal gøres — ét samlet overblik</p></div>
+          <div><h1 className="text-xl font-bold text-foreground">Alle opgaver</h1><p className="text-sm text-muted-foreground mt-0.5">Alt der skal gøres — ét samlet overblik</p></div>
           <Button size="sm" className="rounded-xl gap-1.5" onClick={() => setCreateOpen(true)}><Plus className="h-3.5 w-3.5" />Ny opgave</Button>
         </div>
 

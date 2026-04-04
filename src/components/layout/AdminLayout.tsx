@@ -34,7 +34,7 @@ const navSections: { label?: string; items: NavItem[] }[] = [
     label: 'Daglig drift',
     items: [
       { name: 'Kalender', href: '/admin/kalender', icon: Calendar },
-      { name: 'System opgaver', href: '/admin/opgaver', icon: ListChecks },
+      { name: 'Alle opgaver', href: '/admin/opgaver', icon: ListChecks },
       { name: 'Beskeder', href: '/admin/beskeder', icon: MessageSquare },
     ],
   },
