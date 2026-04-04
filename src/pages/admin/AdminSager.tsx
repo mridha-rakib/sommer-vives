@@ -123,6 +123,14 @@ export default function AdminSager() {
     }).select('id').single();
     setCreating(false);
     if (error) { toast.error('Kunne ikke oprette sag: ' + error.message); return; }
+    // Auto-create pipeline tasks for initial stage
+    if (data) {
+      await supabase.rpc('generate_stage_tasks', {
+        p_listing_id: data.id,
+        p_listing_name: name.trim(),
+        p_stage: 'udlejningstjek',
+      });
+    }
     toast.success('Sag oprettet');
     load();
     if (data) navigate(`/admin/sager/${data.id}`);
