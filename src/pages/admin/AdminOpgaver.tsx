@@ -7,20 +7,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { StatusChip, type StatusVariant } from '@/components/admin/ui/StatusChip';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { format, isToday, isPast, startOfWeek, endOfWeek } from 'date-fns';
+import { format, isToday, isPast, isBefore, addDays, startOfWeek, endOfWeek, startOfDay, endOfDay } from 'date-fns';
 import { da } from 'date-fns/locale';
 import {
   Plus, Search, ListChecks, LayoutGrid, List, X, CheckCircle2,
   Clock, Pause, Flag, CalendarDays, User, Link2,
-  StickyNote, Trash2, ChevronRight, Zap, Tag, Briefcase
+  StickyNote, Trash2, ChevronRight, Zap, Tag, Briefcase,
+  CalendarClock, ArrowRight, Calendar
 } from 'lucide-react';
 
 type TaskStatus = 'not_started' | 'in_progress' | 'waiting' | 'done';
 type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
 type SectionTab = 'all' | 'personal' | 'case';
+type DateScope = 'today' | 'week' | 'all';
 
 interface SystemTask {
   id: string; title: string; description: string | null; linked_type: string | null; linked_id: string | null; linked_name: string | null;
@@ -75,7 +78,7 @@ function CreateTaskDialog({ open, onClose, onCreated }: { open: boolean; onClose
     const { error } = await supabase.from('system_tasks' as any).insert({
       title: title.trim(), description: description.trim() || null, priority,
       linked_type: linkedType || null, linked_name: linkedName.trim() || null,
-      due_date: dueDate || null, assigned_name: assignedName.trim() || null,
+      due_date: dueDate || format(new Date(), 'yyyy-MM-dd'), assigned_name: assignedName.trim() || null,
       assigned_to: user?.id || null, created_by: user?.id || null, source: 'manual',
     });
     if (error) { toast.error('Kunne ikke oprette opgave'); setSaving(false); return; }
@@ -115,11 +118,18 @@ function CreateTaskDialog({ open, onClose, onCreated }: { open: boolean; onClose
 function TaskDrawer({ task, onClose, onUpdated }: { task: SystemTask | null; onClose: () => void; onUpdated: () => void }) {
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
-  useEffect(() => { setNotes(task?.notes || ''); }, [task?.id]);
+  const [dueDate, setDueDate] = useState('');
+  useEffect(() => { setNotes(task?.notes || ''); setDueDate(task?.due_date || ''); }, [task?.id]);
   if (!task) return null;
   const updateStatus = async (status: TaskStatus) => {
     await supabase.from('system_tasks' as any).update({ status, completed_at: status === 'done' ? new Date().toISOString() : null }).eq('id', task.id);
     toast.success(`Status: ${STATUS_CFG[status].label}`); onUpdated();
+  };
+  const updateDueDate = async (newDate: string) => {
+    await supabase.from('system_tasks' as any).update({ due_date: newDate }).eq('id', task.id);
+    setDueDate(newDate);
+    toast.success(`Udsat til ${format(new Date(newDate), 'd. MMM yyyy', { locale: da })}`);
+    onUpdated();
   };
   const saveNotes = async () => { setSaving(true); await supabase.from('system_tasks' as any).update({ notes }).eq('id', task.id); toast.success('Noter gemt'); setSaving(false); onUpdated(); };
   const deleteTask = async () => { await supabase.from('system_tasks' as any).delete().eq('id', task.id); toast.success('Opgave slettet'); onUpdated(); onClose(); };
@@ -142,7 +152,16 @@ function TaskDrawer({ task, onClose, onUpdated }: { task: SystemTask | null; onC
           {task.description && <div><p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Beskrivelse</p><p className="text-sm text-foreground leading-relaxed">{task.description}</p></div>}
           <div className="rounded-xl border border-border/30 bg-muted/10 p-4 space-y-2.5">
             {task.linked_type && <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground flex items-center gap-1.5"><Link2 className="h-3 w-3" />Tilknyttet</span><span className="text-xs font-medium text-foreground">{LINKED_TYPES.find(t => t.value === task.linked_type)?.label}: {task.linked_name || '—'}</span></div>}
-            <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground flex items-center gap-1.5"><CalendarDays className="h-3 w-3" />Forfaldsdato</span><span className={cn('text-xs font-medium', isOverdue ? 'text-red-400' : 'text-foreground')}>{task.due_date ? format(new Date(task.due_date), 'd. MMM yyyy', { locale: da }) : '—'}</span></div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground flex items-center gap-1.5"><CalendarDays className="h-3 w-3" />Forfaldsdato</span>
+              <Input type="date" value={dueDate} onChange={e => updateDueDate(e.target.value)} className="h-7 text-xs w-36 rounded-lg" />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground mr-auto">Hurtig udsæt:</span>
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 rounded-lg" onClick={() => updateDueDate(format(addDays(new Date(), 1), 'yyyy-MM-dd'))}>I morgen</Button>
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 rounded-lg" onClick={() => updateDueDate(format(addDays(new Date(), 3), 'yyyy-MM-dd'))}>+3 dage</Button>
+              <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 rounded-lg" onClick={() => updateDueDate(format(addDays(new Date(), 7), 'yyyy-MM-dd'))}>+1 uge</Button>
+            </div>
             <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground flex items-center gap-1.5"><User className="h-3 w-3" />Tildelt</span><span className="text-xs font-medium text-foreground">{task.assigned_name || '—'}</span></div>
             <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">Oprettet</span><span className="text-xs text-foreground">{format(new Date(task.created_at), "d. MMM yyyy HH:mm", { locale: da })}</span></div>
             {task.completed_at && <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">Færdiggjort</span><span className="text-xs text-emerald-400">{format(new Date(task.completed_at), "d. MMM yyyy HH:mm", { locale: da })}</span></div>}
@@ -161,22 +180,25 @@ function TaskDrawer({ task, onClose, onUpdated }: { task: SystemTask | null; onC
   );
 }
 
-function BoardCard({ task, onClick }: { task: SystemTask; onClick: () => void }) {
+function BoardCard({ task, onClick, selected, onSelect }: { task: SystemTask; onClick: () => void; selected: boolean; onSelect: (checked: boolean) => void }) {
   const pCfg = PRIORITY_CFG[task.priority];
   const isOverdue = task.due_date && isPast(new Date(task.due_date + 'T23:59:59')) && task.status !== 'done';
   return (
-    <button onClick={onClick} className="w-full text-left rounded-xl border border-border/30 bg-card/80 p-3 hover:border-border/50 hover:shadow-sm transition-all">
-      <p className="text-xs font-semibold text-foreground mb-1.5 line-clamp-2">{task.title}</p>
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <StatusChip label={pCfg.label} variant={pCfg.variant} size="sm" />
-        {task.source === 'system' && <StatusChip label="System" variant="info" size="sm" />}
-        {isOverdue && <StatusChip label="Forfalden" variant="danger" size="sm" />}
-      </div>
-      {(task.due_date || task.linked_name) && <div className="mt-2 space-y-1">
-        {task.due_date && <p className={cn('text-[10px] flex items-center gap-1', isOverdue ? 'text-red-400' : 'text-muted-foreground')}><CalendarDays className="h-2.5 w-2.5" />{format(new Date(task.due_date), 'd. MMM', { locale: da })}</p>}
-        {task.linked_name && <p className="text-[10px] text-muted-foreground flex items-center gap-1 truncate"><Link2 className="h-2.5 w-2.5" />{task.linked_name}</p>}
-      </div>}
-    </button>
+    <div className="flex items-start gap-2">
+      <Checkbox checked={selected} onCheckedChange={onSelect} className="mt-3 shrink-0" />
+      <button onClick={onClick} className="flex-1 text-left rounded-xl border border-border/30 bg-card/80 p-3 hover:border-border/50 hover:shadow-sm transition-all">
+        <p className="text-xs font-semibold text-foreground mb-1.5 line-clamp-2">{task.title}</p>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <StatusChip label={pCfg.label} variant={pCfg.variant} size="sm" />
+          {task.source === 'system' && <StatusChip label="System" variant="info" size="sm" />}
+          {isOverdue && <StatusChip label="Forfalden" variant="danger" size="sm" />}
+        </div>
+        {(task.due_date || task.linked_name) && <div className="mt-2 space-y-1">
+          {task.due_date && <p className={cn('text-[10px] flex items-center gap-1', isOverdue ? 'text-red-400' : 'text-muted-foreground')}><CalendarDays className="h-2.5 w-2.5" />{format(new Date(task.due_date), 'd. MMM', { locale: da })}</p>}
+          {task.linked_name && <p className="text-[10px] text-muted-foreground flex items-center gap-1 truncate"><Link2 className="h-2.5 w-2.5" />{task.linked_name}</p>}
+        </div>}
+      </button>
+    </div>
   );
 }
 
@@ -190,9 +212,11 @@ export default function AdminOpgaver() {
   const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all'>('all');
   const [filterPriority, setFilterPriority] = useState<TaskPriority | 'all'>('all');
   const [filterLinked, setFilterLinked] = useState('all');
-  const [filterSpecial, setFilterSpecial] = useState<'all' | 'today' | 'overdue'>('all');
   const [section, setSection] = useState<SectionTab>('all');
+  const [dateScope, setDateScope] = useState<DateScope>('today');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState(false);
 
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id || null)); }, []);
 
@@ -203,6 +227,7 @@ export default function AdminOpgaver() {
   useEffect(() => { fetchTasks(); }, []);
 
   const now = new Date();
+  const todayStr = format(now, 'yyyy-MM-dd');
   const wStart = startOfWeek(now, { weekStartsOn: 1 });
   const wEnd = endOfWeek(now, { weekStartsOn: 1 });
 
@@ -212,36 +237,139 @@ export default function AdminOpgaver() {
     return tasks;
   }, [tasks, section, currentUserId]);
 
-  const counts = useMemo(() => ({
-    active: sectionTasks.filter(t => t.status !== 'done').length,
-    dueToday: sectionTasks.filter(t => t.due_date && isToday(new Date(t.due_date)) && t.status !== 'done').length,
-    highPrio: sectionTasks.filter(t => (t.priority === 'high' || t.priority === 'urgent') && t.status !== 'done').length,
-    waiting: sectionTasks.filter(t => t.status === 'waiting').length,
-    doneThisWeek: sectionTasks.filter(t => t.completed_at && new Date(t.completed_at) >= wStart && new Date(t.completed_at) <= wEnd).length,
-  }), [sectionTasks]);
+  // Apply date scope first (before other filters, to get correct counts)
+  const dateScopedTasks = useMemo(() => {
+    return sectionTasks.filter(t => {
+      // Done tasks always filtered out in today/week view unless specifically filtering for done
+      if (dateScope === 'today') {
+        // Show tasks due today or overdue (still not done)
+        if (!t.due_date) return t.status !== 'done'; // tasks without due date show in today
+        const d = new Date(t.due_date);
+        return (isToday(d) || (isBefore(d, startOfDay(now)) && t.status !== 'done'));
+      }
+      if (dateScope === 'week') {
+        if (!t.due_date) return true;
+        const d = new Date(t.due_date);
+        return (d >= wStart && d <= wEnd) || (isBefore(d, wStart) && t.status !== 'done');
+      }
+      return true; // 'all'
+    });
+  }, [sectionTasks, dateScope]);
 
-  const filtered = useMemo(() => sectionTasks.filter(t => {
+  const counts = useMemo(() => ({
+    active: dateScopedTasks.filter(t => t.status !== 'done').length,
+    dueToday: sectionTasks.filter(t => t.due_date && isToday(new Date(t.due_date)) && t.status !== 'done').length,
+    highPrio: dateScopedTasks.filter(t => (t.priority === 'high' || t.priority === 'urgent') && t.status !== 'done').length,
+    waiting: dateScopedTasks.filter(t => t.status === 'waiting').length,
+    doneThisWeek: sectionTasks.filter(t => t.completed_at && new Date(t.completed_at) >= wStart && new Date(t.completed_at) <= wEnd).length,
+  }), [dateScopedTasks, sectionTasks]);
+
+  const filtered = useMemo(() => dateScopedTasks.filter(t => {
     if (filterStatus !== 'all' && t.status !== filterStatus) return false;
     if (filterPriority !== 'all' && t.priority !== filterPriority) return false;
     if (filterLinked !== 'all' && t.linked_type !== filterLinked) return false;
-    if (filterSpecial === 'today' && !(t.due_date && isToday(new Date(t.due_date)))) return false;
-    if (filterSpecial === 'overdue' && !(t.due_date && isPast(new Date(t.due_date + 'T23:59:59')) && t.status !== 'done')) return false;
     if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !(t.linked_name || '').toLowerCase().includes(search.toLowerCase())) return false;
     return true;
-  }), [sectionTasks, filterStatus, filterPriority, filterLinked, filterSpecial, search]);
+  }), [dateScopedTasks, filterStatus, filterPriority, filterLinked, search]);
 
-  const clearFilters = () => { setFilterStatus('all'); setFilterPriority('all'); setFilterLinked('all'); setFilterSpecial('all'); setSearch(''); };
-  const hasFilters = filterStatus !== 'all' || filterPriority !== 'all' || filterLinked !== 'all' || filterSpecial !== 'all' || !!search;
+  const clearFilters = () => { setFilterStatus('all'); setFilterPriority('all'); setFilterLinked('all'); setSearch(''); };
+  const hasFilters = filterStatus !== 'all' || filterPriority !== 'all' || filterLinked !== 'all' || !!search;
+
+  // Selection helpers
+  const toggleSelect = (id: string, checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (checked) next.add(id); else next.delete(id);
+      return next;
+    });
+  };
+  const selectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(t => t.id)));
+    }
+  };
+
+  // Bulk actions
+  const bulkPostpone = async (days: number) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    const newDate = format(addDays(new Date(), days), 'yyyy-MM-dd');
+    for (const id of ids) {
+      await supabase.from('system_tasks' as any).update({ due_date: newDate }).eq('id', id);
+    }
+    toast.success(`${ids.length} opgave${ids.length > 1 ? 'r' : ''} udsat til ${format(addDays(new Date(), days), 'd. MMM', { locale: da })}`);
+    setSelectedIds(new Set());
+    fetchTasks();
+  };
+  const bulkComplete = async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      await supabase.from('system_tasks' as any).update({ status: 'done', completed_at: new Date().toISOString() }).eq('id', id);
+    }
+    toast.success(`${ids.length} opgave${ids.length > 1 ? 'r' : ''} markeret som færdige ✅`);
+    setSelectedIds(new Set());
+    fetchTasks();
+  };
+  const bulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`Slet ${ids.length} opgave${ids.length > 1 ? 'r' : ''}?`)) return;
+    for (const id of ids) {
+      await supabase.from('system_tasks' as any).delete().eq('id', id);
+    }
+    toast.success(`${ids.length} opgave${ids.length > 1 ? 'r' : ''} slettet`);
+    setSelectedIds(new Set());
+    fetchTasks();
+  };
+
+  const dateScopeLabels: Record<DateScope, string> = { today: 'I dag', week: 'Denne uge', all: 'Alle' };
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div><h1 className="text-xl font-bold text-foreground">Alle opgaver</h1><p className="text-sm text-muted-foreground mt-0.5">Alt der skal gøres — ét samlet overblik</p></div>
           <Button size="sm" className="rounded-xl gap-1.5" onClick={() => setCreateOpen(true)}><Plus className="h-3.5 w-3.5" />Ny opgave</Button>
         </div>
 
-        <Tabs value={section} onValueChange={(v) => setSection(v as SectionTab)} className="w-full">
+        {/* Date scope tabs - prominent */}
+        <div className="flex items-center gap-1 bg-muted/30 rounded-xl p-1 w-fit border border-border/40">
+          {(['today', 'week', 'all'] as DateScope[]).map(scope => (
+            <button
+              key={scope}
+              onClick={() => { setDateScope(scope); setSelectedIds(new Set()); }}
+              className={cn(
+                'px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
+                dateScope === scope
+                  ? 'bg-background shadow-sm text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {scope === 'today' && <CalendarDays className="h-3.5 w-3.5" />}
+              {scope === 'week' && <Calendar className="h-3.5 w-3.5" />}
+              {scope === 'all' && <ListChecks className="h-3.5 w-3.5" />}
+              {dateScopeLabels[scope]}
+              <span className={cn(
+                'text-[10px] px-1.5 py-0.5 rounded-full',
+                dateScope === scope ? 'bg-primary/10 text-primary' : 'bg-muted/50 text-muted-foreground'
+              )}>
+                {scope === 'today' ? counts.dueToday + sectionTasks.filter(t => !t.due_date && t.status !== 'done').length
+                  : scope === 'week' ? sectionTasks.filter(t => {
+                    if (!t.due_date) return true;
+                    const d = new Date(t.due_date);
+                    return (d >= wStart && d <= wEnd) || (isBefore(d, wStart) && t.status !== 'done');
+                  }).length
+                  : sectionTasks.length}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Section tabs */}
+        <Tabs value={section} onValueChange={(v) => { setSection(v as SectionTab); setSelectedIds(new Set()); }} className="w-full">
           <TabsList className="bg-muted/30 border border-border/40">
             <TabsTrigger value="all" className="gap-1.5 text-xs">
               <ListChecks className="h-3.5 w-3.5" /> Alle opgaver
@@ -257,19 +385,46 @@ export default function AdminOpgaver() {
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <SummaryCard label="Alle aktive" value={counts.active} icon={ListChecks} active={!hasFilters} onClick={clearFilters} />
-          <SummaryCard label="Forfalder i dag" value={counts.dueToday} icon={CalendarDays} active={filterSpecial === 'today'} onClick={() => { clearFilters(); setFilterSpecial('today'); }} />
+          <SummaryCard label="I dag" value={counts.dueToday} icon={CalendarDays} />
           <SummaryCard label="Høj prioritet" value={counts.highPrio} icon={Flag} active={filterPriority === 'high' || filterPriority === 'urgent'} onClick={() => { clearFilters(); setFilterPriority('high'); }} />
           <SummaryCard label="Afventer" value={counts.waiting} icon={Pause} active={filterStatus === 'waiting'} onClick={() => { clearFilters(); setFilterStatus('waiting'); }} />
           <SummaryCard label="Færdige i uge" value={counts.doneThisWeek} icon={CheckCircle2} active={filterStatus === 'done'} onClick={() => { clearFilters(); setFilterStatus('done'); }} />
         </div>
 
+        {/* Bulk action bar */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5 animate-in slide-in-from-top-2">
+            <span className="text-xs font-semibold text-foreground">{selectedIds.size} valgt</span>
+            <span className="text-border">|</span>
+            <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg" onClick={() => bulkPostpone(1)}>
+              <CalendarClock className="h-3 w-3" /> I morgen
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg" onClick={() => bulkPostpone(3)}>
+              +3 dage
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg" onClick={() => bulkPostpone(7)}>
+              +1 uge
+            </Button>
+            <span className="text-border">|</span>
+            <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg text-emerald-600" onClick={bulkComplete}>
+              <CheckCircle2 className="h-3 w-3" /> Færdig
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg text-red-400" onClick={bulkDelete}>
+              <Trash2 className="h-3 w-3" /> Slet
+            </Button>
+            <span className="flex-1" />
+            <Button size="sm" variant="ghost" className="h-7 text-[11px] rounded-lg" onClick={() => setSelectedIds(new Set())}>
+              <X className="h-3 w-3" /> Fravælg alle
+            </Button>
+          </div>
+        )}
+
         <div className="flex items-center gap-3 justify-between">
-          <div className="inline-flex items-center gap-2">
+          <div className="inline-flex items-center gap-2 flex-wrap">
             <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" /><Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Søg opgaver..." className="pl-9 h-8 text-xs w-44 rounded-lg" /></div>
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as any)} style={{ width: 'auto' }} className="h-8 text-xs rounded-lg border border-border bg-background px-2"><option value="all">Status</option>{STATUSES.map(s => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}</select>
             <select value={filterPriority} onChange={e => setFilterPriority(e.target.value as any)} style={{ width: 'auto' }} className="h-8 text-xs rounded-lg border border-border bg-background px-2"><option value="all">Prioritet</option>{PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_CFG[p].label}</option>)}</select>
             <select value={filterLinked} onChange={e => setFilterLinked(e.target.value)} style={{ width: 'auto' }} className="h-8 text-xs rounded-lg border border-border bg-background px-2"><option value="all">Type</option>{LINKED_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select>
-            <select value={filterSpecial} onChange={e => setFilterSpecial(e.target.value as any)} style={{ width: 'auto' }} className="h-8 text-xs rounded-lg border border-border bg-background px-2"><option value="all">Dato</option><option value="today">I dag</option><option value="overdue">Forfaldne</option></select>
             {hasFilters && <button onClick={clearFilters} className="text-[11px] text-primary hover:underline flex items-center gap-1"><X className="h-3 w-3" />Nulstil</button>}
           </div>
           <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-0.5">
@@ -281,22 +436,75 @@ export default function AdminOpgaver() {
         {loading ? <div className="text-center py-16"><p className="text-xs text-muted-foreground">Indlæser opgaver...</p></div>
         : view === 'list' ? (
           <div className="rounded-xl border border-border/40 bg-card/60 overflow-hidden">
-            {filtered.length === 0 ? <div className="py-16 text-center"><ListChecks className="h-8 w-8 text-muted-foreground/20 mx-auto mb-3" /><p className="text-sm text-muted-foreground">Ingen opgaver fundet</p></div>
-            : <table className="w-full text-xs"><thead><tr className="border-b border-border/20 text-muted-foreground"><th className="text-left px-4 py-2.5 font-medium">Opgave</th><th className="text-left px-4 py-2.5 font-medium hidden sm:table-cell">Tilknyttet</th><th className="text-left px-4 py-2.5 font-medium">Status</th><th className="text-left px-4 py-2.5 font-medium hidden sm:table-cell">Prioritet</th><th className="text-left px-4 py-2.5 font-medium hidden md:table-cell">Forfald</th><th className="text-left px-4 py-2.5 font-medium hidden lg:table-cell">Tildelt</th><th className="w-8"></th></tr></thead>
-              <tbody>{filtered.map(t => {
-                const pc = PRIORITY_CFG[t.priority]; const sc = STATUS_CFG[t.status];
-                const overdue = t.due_date && isPast(new Date(t.due_date + 'T23:59:59')) && t.status !== 'done';
-                return (
-                  <tr key={t.id} onClick={() => setSelectedTask(t)} className="border-b border-border/10 hover:bg-muted/5 cursor-pointer transition-colors">
-                    <td className="px-4 py-2.5"><p className={cn('font-medium text-foreground', t.status === 'done' && 'line-through text-muted-foreground')}>{t.title}</p>{t.description && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{t.description}</p>}{t.source === 'system' && <StatusChip label="System" variant="info" size="sm" className="mt-1" />}</td>
-                    <td className="px-4 py-2.5 hidden sm:table-cell">{t.linked_name ? <span className="text-muted-foreground flex items-center gap-1 truncate max-w-[140px]"><Link2 className="h-3 w-3 shrink-0" />{t.linked_name}</span> : <span className="text-muted-foreground/30">—</span>}</td>
-                    <td className="px-4 py-2.5"><StatusChip label={sc.label} variant={sc.variant} dot size="sm" /></td>
-                    <td className="px-4 py-2.5 hidden sm:table-cell"><StatusChip label={pc.label} variant={pc.variant} size="sm" /></td>
-                    <td className="px-4 py-2.5 hidden md:table-cell">{t.due_date ? <span className={cn('text-xs', overdue ? 'text-red-400 font-medium' : 'text-muted-foreground')}>{format(new Date(t.due_date), 'd. MMM', { locale: da })}</span> : <span className="text-muted-foreground/30">—</span>}</td>
-                    <td className="px-4 py-2.5 hidden lg:table-cell text-muted-foreground truncate max-w-[100px]">{t.assigned_name || '—'}</td>
-                    <td className="px-4 py-2.5"><ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" /></td>
-                  </tr>);
-              })}</tbody></table>}
+            {filtered.length === 0 ? (
+              <div className="py-16 text-center">
+                <CheckCircle2 className="h-10 w-10 text-emerald-400/30 mx-auto mb-3" />
+                <p className="text-sm font-medium text-foreground">
+                  {dateScope === 'today' ? '🎉 Ingen opgaver i dag — godt arbejde!' : 'Ingen opgaver fundet'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {dateScope === 'today' ? 'Du har ryddet din dags-liste' : 'Prøv at ændre filtre eller dato-visning'}
+                </p>
+              </div>
+            ) : (
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border/20 text-muted-foreground">
+                    <th className="text-left px-3 py-2.5 w-8">
+                      <Checkbox
+                        checked={selectedIds.size === filtered.length && filtered.length > 0}
+                        onCheckedChange={selectAll}
+                      />
+                    </th>
+                    <th className="text-left px-3 py-2.5 font-medium">Opgave</th>
+                    <th className="text-left px-3 py-2.5 font-medium hidden sm:table-cell">Tilknyttet</th>
+                    <th className="text-left px-3 py-2.5 font-medium">Status</th>
+                    <th className="text-left px-3 py-2.5 font-medium hidden sm:table-cell">Prioritet</th>
+                    <th className="text-left px-3 py-2.5 font-medium hidden md:table-cell">Forfald</th>
+                    <th className="text-left px-3 py-2.5 font-medium hidden lg:table-cell">Tildelt</th>
+                    <th className="w-8"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(t => {
+                    const pc = PRIORITY_CFG[t.priority]; const sc = STATUS_CFG[t.status];
+                    const overdue = t.due_date && isPast(new Date(t.due_date + 'T23:59:59')) && t.status !== 'done';
+                    const isSelected = selectedIds.has(t.id);
+                    return (
+                      <tr
+                        key={t.id}
+                        className={cn(
+                          'border-b border-border/10 hover:bg-muted/5 cursor-pointer transition-colors',
+                          isSelected && 'bg-primary/5'
+                        )}
+                      >
+                        <td className="px-3 py-2.5" onClick={e => e.stopPropagation()}>
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={(checked) => toggleSelect(t.id, !!checked)}
+                          />
+                        </td>
+                        <td className="px-3 py-2.5" onClick={() => setSelectedTask(t)}>
+                          <p className={cn('font-medium text-foreground', t.status === 'done' && 'line-through text-muted-foreground')}>{t.title}</p>
+                          {t.description && <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{t.description}</p>}
+                          {t.source === 'system' && <StatusChip label="System" variant="info" size="sm" className="mt-1" />}
+                        </td>
+                        <td className="px-3 py-2.5 hidden sm:table-cell" onClick={() => setSelectedTask(t)}>
+                          {t.linked_name ? <span className="text-muted-foreground flex items-center gap-1 truncate max-w-[140px]"><Link2 className="h-3 w-3 shrink-0" />{t.linked_name}</span> : <span className="text-muted-foreground/30">—</span>}
+                        </td>
+                        <td className="px-3 py-2.5" onClick={() => setSelectedTask(t)}><StatusChip label={sc.label} variant={sc.variant} dot size="sm" /></td>
+                        <td className="px-3 py-2.5 hidden sm:table-cell" onClick={() => setSelectedTask(t)}><StatusChip label={pc.label} variant={pc.variant} size="sm" /></td>
+                        <td className="px-3 py-2.5 hidden md:table-cell" onClick={() => setSelectedTask(t)}>
+                          {t.due_date ? <span className={cn('text-xs', overdue ? 'text-red-400 font-medium' : isToday(new Date(t.due_date)) ? 'text-primary font-medium' : 'text-muted-foreground')}>{format(new Date(t.due_date), 'd. MMM', { locale: da })}</span> : <span className="text-muted-foreground/30">—</span>}
+                        </td>
+                        <td className="px-3 py-2.5 hidden lg:table-cell text-muted-foreground truncate max-w-[100px]" onClick={() => setSelectedTask(t)}>{t.assigned_name || '—'}</td>
+                        <td className="px-3 py-2.5" onClick={() => setSelectedTask(t)}><ChevronRight className="h-3.5 w-3.5 text-muted-foreground/30" /></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -308,8 +516,20 @@ export default function AdminOpgaver() {
                     <div className="flex items-center gap-2">{React.createElement(cfg.icon, { className: cn('h-3.5 w-3.5', cfg.variant === 'success' ? 'text-emerald-400' : cfg.variant === 'info' ? 'text-primary' : cfg.variant === 'warning' ? 'text-amber-400' : 'text-muted-foreground') })}<span className="text-[11px] font-semibold text-foreground">{cfg.label}</span></div>
                     <span className="text-[10px] text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded-full">{col.length}</span>
                   </div>
-                  <div className="p-3 space-y-2 min-h-[120px]">{col.length === 0 && <p className="text-[10px] text-muted-foreground/40 text-center py-4">Ingen opgaver</p>}{col.map(t => <BoardCard key={t.id} task={t} onClick={() => setSelectedTask(t)} />)}</div>
-                </div>);
+                  <div className="p-3 space-y-2 min-h-[120px]">
+                    {col.length === 0 && <p className="text-[10px] text-muted-foreground/40 text-center py-4">Ingen opgaver</p>}
+                    {col.map(t => (
+                      <BoardCard
+                        key={t.id}
+                        task={t}
+                        onClick={() => setSelectedTask(t)}
+                        selected={selectedIds.has(t.id)}
+                        onSelect={(checked) => toggleSelect(t.id, checked)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
             })}
           </div>
         )}
