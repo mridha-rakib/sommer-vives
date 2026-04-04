@@ -303,6 +303,16 @@ export default function AdminOpgaver() {
     setSelectedIds(new Set());
     fetchTasks();
   };
+  const bulkSetDate = async (date: string) => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      await supabase.from('system_tasks' as any).update({ due_date: date }).eq('id', id);
+    }
+    toast.success(`${ids.length} opgave${ids.length > 1 ? 'r' : ''} sat til ${format(new Date(date), 'd. MMM', { locale: da })}`);
+    setSelectedIds(new Set());
+    fetchTasks();
+  };
   const bulkComplete = async () => {
     const ids = Array.from(selectedIds);
     if (ids.length === 0) return;
@@ -396,6 +406,9 @@ export default function AdminOpgaver() {
           <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-2.5 animate-in slide-in-from-top-2">
             <span className="text-xs font-semibold text-foreground">{selectedIds.size} valgt</span>
             <span className="text-border">|</span>
+            <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg" onClick={() => bulkSetDate(format(new Date(), 'yyyy-MM-dd'))}>
+              <Calendar className="h-3 w-3" /> I dag
+            </Button>
             <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg" onClick={() => bulkPostpone(1)}>
               <CalendarClock className="h-3 w-3" /> I morgen
             </Button>
@@ -405,6 +418,7 @@ export default function AdminOpgaver() {
             <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg" onClick={() => bulkPostpone(7)}>
               +1 uge
             </Button>
+            <Input type="date" className="h-7 text-[11px] w-32 rounded-lg" onChange={e => { if (e.target.value) bulkSetDate(e.target.value); }} />
             <span className="text-border">|</span>
             <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg text-emerald-600" onClick={bulkComplete}>
               <CheckCircle2 className="h-3 w-3" /> Færdig
