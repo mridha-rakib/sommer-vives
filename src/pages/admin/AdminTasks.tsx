@@ -5,24 +5,32 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import {
   CheckCircle2, AlertTriangle, ChevronDown, ChevronRight,
-  ListChecks, Search, Filter, Clock, Home
+  ListChecks, Search, Filter, Clock, Home, User, Briefcase
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 
 type TaskStatus = 'not_started' | 'in_progress' | 'waiting' | 'done';
+type SectionTab = 'all' | 'personal' | 'case';
 
 export default function AdminTasks() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | TaskStatus>('all');
   const [search, setSearch] = useState('');
+  const [section, setSection] = useState<SectionTab>('all');
   const [collapsedSager, setCollapsedSager] = useState<Set<string>>(new Set());
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id || null));
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -36,15 +44,21 @@ export default function AdminTasks() {
     load();
   }, []);
 
+  const sectionFiltered = useMemo(() => {
+    if (section === 'personal') return tasks.filter(t => !t.linked_id && t.created_by === currentUserId);
+    if (section === 'case') return tasks.filter(t => !!t.linked_id);
+    return tasks;
+  }, [tasks, section, currentUserId]);
+
   const filtered = useMemo(() => {
-    let result = tasks;
+    let result = sectionFiltered;
     if (filter !== 'all') result = result.filter(t => t.status === filter);
     if (search) result = result.filter(t =>
       t.title?.toLowerCase().includes(search.toLowerCase()) ||
       t.linked_name?.toLowerCase().includes(search.toLowerCase())
     );
     return result;
-  }, [tasks, filter, search]);
+  }, [sectionFiltered, filter, search]);
 
   // Group by sag (linked_id)
   const grouped = useMemo(() => {
@@ -95,9 +109,24 @@ export default function AdminTasks() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Opgaver</h1>
-          <p className="text-sm text-muted-foreground">Alle sagsopgaver samlet</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Alle opgaver</h1>
+          <p className="text-sm text-muted-foreground">Opgaver på tværs af sager og personlige to-do's</p>
         </div>
+
+        {/* Section tabs */}
+        <Tabs value={section} onValueChange={(v) => setSection(v as SectionTab)} className="w-full">
+          <TabsList className="bg-muted/30 border border-border/40">
+            <TabsTrigger value="all" className="gap-1.5 text-xs">
+              <ListChecks className="h-3.5 w-3.5" /> Alle opgaver
+            </TabsTrigger>
+            <TabsTrigger value="personal" className="gap-1.5 text-xs">
+              <User className="h-3.5 w-3.5" /> ToDo Personlig
+            </TabsTrigger>
+            <TabsTrigger value="case" className="gap-1.5 text-xs">
+              <Briefcase className="h-3.5 w-3.5" /> Sagsopgaver
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* Stats */}
         <div className="grid grid-cols-6 gap-3">
