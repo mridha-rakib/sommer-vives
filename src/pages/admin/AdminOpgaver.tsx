@@ -20,6 +20,7 @@ import {
 
 type TaskStatus = 'not_started' | 'in_progress' | 'waiting' | 'done';
 type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
+type SectionTab = 'all' | 'personal' | 'case';
 
 interface SystemTask {
   id: string; title: string; description: string | null; linked_type: string | null; linked_id: string | null; linked_name: string | null;
