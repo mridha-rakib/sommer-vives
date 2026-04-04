@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StatusChip, type StatusVariant } from '@/components/admin/ui/StatusChip';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -418,7 +420,22 @@ export default function AdminOpgaver() {
             <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg" onClick={() => bulkPostpone(7)}>
               +1 uge
             </Button>
-            <Input type="date" className="h-7 text-[11px] w-32 rounded-lg" onChange={e => { if (e.target.value) bulkSetDate(e.target.value); }} />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg">
+                  <CalendarDays className="h-3 w-3" /> Vælg dato
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={undefined}
+                  onSelect={(date) => { if (date) bulkSetDate(format(date, 'yyyy-MM-dd')); }}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
             <span className="text-border">|</span>
             <Button size="sm" variant="outline" className="h-7 text-[11px] gap-1 rounded-lg text-emerald-600" onClick={bulkComplete}>
               <CheckCircle2 className="h-3 w-3" /> Færdig
