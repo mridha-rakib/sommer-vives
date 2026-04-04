@@ -201,7 +201,7 @@ function MiniStat({ label, value, ok }: { label: string; value: string | number;
   );
 }
 
-function QuickStat({ label, value }: { label: string; value: number }) {
+function QuickStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl border border-border/40 bg-card/60 p-4 text-center">
       <p className="text-2xl font-bold text-foreground">{value}</p>
