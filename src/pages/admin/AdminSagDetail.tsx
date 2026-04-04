@@ -1217,7 +1217,7 @@ export default function AdminSagDetail() {
     { key: 'tilkoeb', label: 'Tilkøb', icon: ShoppingBag },
     { key: 'dokumenter', label: 'Dokumenter', icon: FileText },
     { key: 'aktorer', label: 'Aktører', icon: UserPlus },
-    { key: 'opgaver', label: 'Opgaver', icon: ListChecks },
+    { key: 'opgaver', label: 'Sagsopgaver', icon: ListChecks },
     { key: 'noter', label: 'Noter', icon: StickyNote },
   ];
 
