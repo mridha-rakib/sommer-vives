@@ -1119,9 +1119,7 @@ export default function AdminSagDetail() {
   const [addingActor, setAddingActor] = useState(false);
   // Staff state
   const [staff, setStaff] = useState<any[]>([]);
-  const [teamMembers] = useState([
-    { id: '74a122fb-b6fc-48bc-8cee-944801ee2448', name: 'Emil Klockmann', email: 'ek@klockmann.dk' },
-  ]);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [staffForm, setStaffForm] = useState({ staff_user_id: '74a122fb-b6fc-48bc-8cee-944801ee2448', staff_role: 'annoncerende' });
   const [addingStaff, setAddingStaff] = useState(false);
 
