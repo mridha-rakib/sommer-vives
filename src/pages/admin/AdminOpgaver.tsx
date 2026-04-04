@@ -214,7 +214,13 @@ export default function AdminOpgaver() {
     doneThisWeek: tasks.filter(t => t.completed_at && new Date(t.completed_at) >= wStart && new Date(t.completed_at) <= wEnd).length,
   }), [tasks]);
 
-  const filtered = useMemo(() => tasks.filter(t => {
+  const sectionTasks = useMemo(() => {
+    if (section === 'personal') return tasks.filter(t => !t.linked_id && t.created_by === currentUserId);
+    if (section === 'case') return tasks.filter(t => !!t.linked_id);
+    return tasks;
+  }, [tasks, section, currentUserId]);
+
+  const filtered = useMemo(() => sectionTasks.filter(t => {
     if (filterStatus !== 'all' && t.status !== filterStatus) return false;
     if (filterPriority !== 'all' && t.priority !== filterPriority) return false;
     if (filterLinked !== 'all' && t.linked_type !== filterLinked) return false;
@@ -222,7 +228,7 @@ export default function AdminOpgaver() {
     if (filterSpecial === 'overdue' && !(t.due_date && isPast(new Date(t.due_date + 'T23:59:59')) && t.status !== 'done')) return false;
     if (search && !t.title.toLowerCase().includes(search.toLowerCase()) && !(t.linked_name || '').toLowerCase().includes(search.toLowerCase())) return false;
     return true;
-  }), [tasks, filterStatus, filterPriority, filterLinked, filterSpecial, search]);
+  }), [sectionTasks, filterStatus, filterPriority, filterLinked, filterSpecial, search]);
 
   const clearFilters = () => { setFilterStatus('all'); setFilterPriority('all'); setFilterLinked('all'); setFilterSpecial('all'); setSearch(''); };
   const hasFilters = filterStatus !== 'all' || filterPriority !== 'all' || filterLinked !== 'all' || filterSpecial !== 'all' || !!search;
