@@ -2036,23 +2036,103 @@ export default function AdminSagDetail() {
 
 
         {tab === 'opgaver' && (
-          <SectionCard title="Opgaver" icon={ListChecks}>
-            {tasks.length === 0 ? (
-              <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen opgaver endnu</p>
-            ) : (
-              <div className="space-y-2">
-                {tasks.map(t => (
-                  <div key={t.id} className="rounded-xl border border-border/30 bg-muted/10 p-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{t.task_type}</p>
-                      <p className="text-[11px] text-muted-foreground">{format(new Date(t.scheduled_date), 'd. MMM yyyy', { locale: da })} {t.assigned_to ? `· ${t.assigned_to}` : ''}</p>
+          <div className="space-y-4">
+            {/* Summary cards */}
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: 'Ikke startet', count: tasks.filter(t => t.status === 'not_started').length, color: 'text-muted-foreground' },
+                { label: 'I gang', count: tasks.filter(t => t.status === 'in_progress').length, color: 'text-blue-500' },
+                { label: 'Afventer', count: tasks.filter(t => t.status === 'waiting').length, color: 'text-amber-500' },
+                { label: 'Færdig', count: tasks.filter(t => t.status === 'done').length, color: 'text-emerald-500' },
+              ].map(s => (
+                <div key={s.label} className="rounded-xl border border-border/40 bg-card/60 p-3 text-center">
+                  <p className={`text-xl font-bold ${s.color}`}>{s.count}</p>
+                  <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Task filter */}
+            <div className="flex gap-2 items-center">
+              {(['all', 'not_started', 'in_progress', 'waiting', 'done'] as const).map(f => (
+                <button key={f}
+                  onClick={() => setTaskFilter(f)}
+                  className={cn('px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
+                    taskFilter === f ? 'bg-primary text-primary-foreground' : 'bg-muted/20 text-muted-foreground hover:bg-muted/40'
+                  )}>
+                  {f === 'all' ? 'Alle' : f === 'not_started' ? 'Ikke startet' : f === 'in_progress' ? 'I gang' : f === 'waiting' ? 'Afventer' : 'Færdig'}
+                </button>
+              ))}
+              <span className="ml-auto text-xs text-muted-foreground">{filteredTasks.length} opgaver</span>
+            </div>
+
+            {/* Task list */}
+            <div className="space-y-1.5">
+              {filteredTasks.map(t => {
+                const priorityColor = t.priority === 'urgent' ? 'border-l-red-500' : t.priority === 'high' ? 'border-l-amber-500' : t.priority === 'normal' ? 'border-l-blue-400' : 'border-l-muted';
+                const isDone = t.status === 'done';
+                const isOverdue = t.due_date && new Date(t.due_date) < new Date() && !isDone;
+                return (
+                  <div key={t.id} className={cn(
+                    'rounded-lg border border-border/30 bg-card/60 px-4 py-3 flex items-center gap-3 transition-all border-l-[3px]',
+                    priorityColor,
+                    isDone && 'opacity-50'
+                  )}>
+                    <button
+                      onClick={async () => {
+                        const newStatus = isDone ? 'not_started' : 'done';
+                        await supabase.from('system_tasks').update({
+                          status: newStatus,
+                          completed_at: newStatus === 'done' ? new Date().toISOString() : null,
+                        }).eq('id', t.id);
+                        setTasks(prev => prev.map(x => x.id === t.id ? { ...x, status: newStatus, completed_at: newStatus === 'done' ? new Date().toISOString() : null } : x));
+                      }}
+                      className={cn(
+                        'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all',
+                        isDone ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-muted-foreground/30 hover:border-primary'
+                      )}>
+                      {isDone && <CheckCircle2 className="h-3 w-3" />}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn('text-sm font-medium', isDone ? 'line-through text-muted-foreground' : 'text-foreground')}>{t.title}</p>
+                      {t.description && <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{t.description}</p>}
                     </div>
-                    <StatusChip label={t.status || 'pending'} variant={t.status === 'completed' ? 'success' : t.status === 'in_progress' ? 'info' : 'warning'} />
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isOverdue && <AlertTriangle className="h-3.5 w-3.5 text-red-500" />}
+                      {t.due_date && (
+                        <span className={cn('text-[10px]', isOverdue ? 'text-red-500 font-medium' : 'text-muted-foreground')}>
+                          {format(new Date(t.due_date), 'd. MMM', { locale: da })}
+                        </span>
+                      )}
+                      {t.assigned_name && (
+                        <span className="text-[10px] bg-muted/30 rounded-full px-2 py-0.5 text-muted-foreground">{t.assigned_name?.split(' ').map((n: string) => n[0]).join('')}</span>
+                      )}
+                      {/* Quick status buttons */}
+                      {!isDone && (
+                        <select
+                          value={t.status}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            await supabase.from('system_tasks').update({ status: newStatus }).eq('id', t.id);
+                            setTasks(prev => prev.map(x => x.id === t.id ? { ...x, status: newStatus } : x));
+                          }}
+                          className="text-[10px] bg-muted/20 border-none rounded px-1 py-0.5 text-muted-foreground appearance-auto"
+                        >
+                          <option value="not_started">Ikke startet</option>
+                          <option value="in_progress">I gang</option>
+                          <option value="waiting">Afventer</option>
+                          <option value="done">Færdig</option>
+                        </select>
+                      )}
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </SectionCard>
+                );
+              })}
+              {filteredTasks.length === 0 && (
+                <p className="text-xs text-muted-foreground/50 italic py-8 text-center">Ingen opgaver matcher filteret</p>
+              )}
+            </div>
+          </div>
         )}
 
         {tab === 'noter' && (
