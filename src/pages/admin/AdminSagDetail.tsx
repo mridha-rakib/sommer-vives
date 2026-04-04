@@ -2118,8 +2118,8 @@ export default function AdminSagDetail() {
                         <select
                           value={t.status}
                           onChange={async (e) => {
-                            const newStatus = e.target.value;
-                            await supabase.from('system_tasks').update({ status: newStatus }).eq('id', t.id);
+                            const newStatus = e.target.value as any;
+                            await supabase.from('system_tasks').update({ status: newStatus } as any).eq('id', t.id);
                             setTasks(prev => prev.map(x => x.id === t.id ? { ...x, status: newStatus } : x));
                           }}
                           className="text-[10px] bg-muted/20 border-none rounded px-1 py-0.5 text-muted-foreground appearance-auto"
