@@ -1125,6 +1125,12 @@ export default function AdminSagDetail() {
   const [staffForm, setStaffForm] = useState({ staff_user_id: '74a122fb-b6fc-48bc-8cee-944801ee2448', staff_role: 'annoncerende' });
   const [addingStaff, setAddingStaff] = useState(false);
 
+  const [taskFilter, setTaskFilter] = useState<'all' | 'not_started' | 'in_progress' | 'waiting' | 'done'>('all');
+
+  const filteredTasks = useMemo(() => {
+    if (taskFilter === 'all') return tasks;
+    return tasks.filter(t => t.status === taskFilter);
+  }, [tasks, taskFilter]);
   const loadSagDocs = useCallback(async (listingId: string, ownerId: string) => {
     const [{ data: sd }, { data: tpls }] = await Promise.all([
       supabase.from('sag_documents').select('*').eq('listing_id', listingId).order('created_at'),
