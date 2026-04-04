@@ -5,24 +5,32 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import {
   CheckCircle2, AlertTriangle, ChevronDown, ChevronRight,
-  ListChecks, Search, Filter, Clock, Home
+  ListChecks, Search, Filter, Clock, Home, User, Briefcase
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 
 type TaskStatus = 'not_started' | 'in_progress' | 'waiting' | 'done';
+type SectionTab = 'all' | 'personal' | 'case';
 
 export default function AdminTasks() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | TaskStatus>('all');
   const [search, setSearch] = useState('');
+  const [section, setSection] = useState<SectionTab>('all');
   const [collapsedSager, setCollapsedSager] = useState<Set<string>>(new Set());
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id || null));
+  }, []);
 
   useEffect(() => {
     const load = async () => {
