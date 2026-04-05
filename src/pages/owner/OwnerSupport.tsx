@@ -1,14 +1,8 @@
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Phone, HelpCircle, AlertTriangle, BookOpen, Mail } from 'lucide-react';
-
-const supportOptions = [
-  { icon: MessageCircle, label: 'Skriv til os', desc: 'Direkte besked til dit personlige SommerVibes-team', action: 'Start samtale', primary: true },
-  { icon: Phone, label: 'Book et opkald', desc: 'Vi ringer dig op, når det passer dig bedst', action: 'Vælg tid', primary: false },
-  { icon: Mail, label: 'Send e-mail', desc: 'support@sommervibes.dk', action: 'Skriv e-mail', primary: false },
-  { icon: AlertTriangle, label: 'Noget haster?', desc: 'Rapportér et akut problem — vi reagerer hurtigt', action: 'Rapportér nu', primary: false },
-];
+import { Link } from 'react-router-dom';
+import { MessageCircle, Phone, AlertTriangle, HelpCircle, Crown, ChevronRight } from 'lucide-react';
 
 const faqItems = [
   { q: 'Hvornår modtager jeg min udbetaling?', a: 'Vi overfører automatisk til din konto 5 hverdage efter gæstens afrejse.' },
@@ -20,43 +14,74 @@ const faqItems = [
 export default function OwnerSupport() {
   return (
     <OwnerLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Har du brug for hjælp?</h1>
-          <p className="text-sm text-muted-foreground mt-1">Dit SommerVibes-team er altid klar — vi kender dit hus og dine behov</p>
+      <div className="space-y-6 max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="text-center pt-4">
+          <div className="w-14 h-14 rounded-2xl bg-[hsl(var(--gold)/0.1)] flex items-center justify-center mx-auto mb-4">
+            <Crown className="w-6 h-6 text-[hsl(var(--gold-light))]" />
+          </div>
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">Hvordan kan vi hjælpe?</h1>
+          <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+            Dit dedikerede SommerVibes-team er altid klar — vi kender dit hus og dine behov
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-3">
-          {supportOptions.map(opt => (
-            <Card key={opt.label} className={`hover:border-accent/20 transition-colors ${opt.primary ? 'border-accent/30 bg-accent/5' : ''}`}>
-              <CardContent className="p-5 flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${opt.primary ? 'bg-accent/15' : 'bg-muted'}`}>
-                  <opt.icon className={`w-5 h-5 ${opt.primary ? 'text-accent' : 'text-muted-foreground'}`} />
+        {/* Quick actions */}
+        <div className="grid gap-3">
+          <Link to="/owner/messages">
+            <Card className="group hover:border-[hsl(var(--gold)/0.3)] transition-all cursor-pointer border-[hsl(var(--gold)/0.15)] bg-gradient-to-r from-[hsl(var(--gold)/0.05)] to-transparent">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-[hsl(var(--gold)/0.12)] flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-5 h-5 text-[hsl(var(--gold-light))]" />
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-semibold text-foreground mb-0.5">{opt.label}</div>
-                  <p className="text-xs text-muted-foreground mb-3">{opt.desc}</p>
-                  <Button size="sm" variant={opt.primary ? 'gold' : 'outline'} className="text-xs">
-                    {opt.action}
-                  </Button>
+                  <div className="text-sm font-semibold text-foreground">Skriv til dit team</div>
+                  <p className="text-xs text-muted-foreground">Direkte besked — vi svarer typisk inden for få timer</p>
                 </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-[hsl(var(--gold-light))] transition-colors" />
               </CardContent>
             </Card>
-          ))}
+          </Link>
+
+          <Card className="hover:border-[hsl(var(--gold)/0.2)] transition-all cursor-pointer">
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-muted/50 flex items-center justify-center shrink-0">
+                <Phone className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-foreground">Book et opkald</div>
+                <p className="text-xs text-muted-foreground">Vi ringer dig op, når det passer dig bedst</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
+            </CardContent>
+          </Card>
+
+          <Card className="hover:border-destructive/30 transition-all cursor-pointer">
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-foreground">Noget haster?</div>
+                <p className="text-xs text-muted-foreground">Rapportér et akut problem — vi reagerer hurtigt</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
+            </CardContent>
+          </Card>
         </div>
 
         {/* FAQ */}
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-4">
-              <HelpCircle className="w-4 h-4 text-accent" />
+              <HelpCircle className="w-4 h-4 text-[hsl(var(--gold-light))]" />
               <span className="text-sm font-semibold text-foreground">Ofte stillede spørgsmål</span>
             </div>
             <div className="space-y-3">
               {faqItems.map((faq, i) => (
-                <div key={i} className="p-3 rounded-lg bg-muted/30">
+                <div key={i} className="p-3.5 rounded-xl bg-muted/30">
                   <div className="text-sm font-medium text-foreground mb-1">{faq.q}</div>
-                  <p className="text-xs text-muted-foreground">{faq.a}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{faq.a}</p>
                 </div>
               ))}
             </div>
