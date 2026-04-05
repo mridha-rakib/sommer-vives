@@ -55,15 +55,22 @@ export default function GuestProperty() {
         supabase.from('properties').select('*').eq('id', pid).single(),
         supabase.from('checkin_guides').select('*').limit(10),
         supabase.from('keybox_installations').select('*').eq('property_id', pid).eq('status', 'installed').limit(1),
-        supabase.from('listings').select('id, name, hero_image, images, bedrooms, bathrooms, max_guests, amenities, bedroom_cards, about_property, description, house_rules, contact_name, contact_role, contact_email, contact_phone, contact_image, contact_text, floor_plan_images').eq('is_active', true).limit(10),
+        supabase.from('listings').select('id, name, hero_image, images, bedrooms, bathrooms, max_guests, amenities, bedroom_cards, about_property, description, house_rules, contact_name, contact_role, contact_email, contact_phone, contact_image, contact_text, floor_plan_images').eq('id', pid).maybeSingle(),
       ]);
       setProperty(propRes.data);
       if (guideRes.data?.length) setGuide(guideRes.data[0]);
       if (kbRes.data?.length) setKeybox(kbRes.data[0]);
-      if (listRes.data?.length) {
-        const match = listRes.data.find((l: any) => l.name === propRes.data?.title) || listRes.data[0];
-        setListing(match);
-        setListingId(match?.id || null);
+      if (listRes.data) {
+        setListing(listRes.data);
+        setListingId(listRes.data.id);
+      } else {
+        // Fallback: try matching from all active listings
+        const { data: allListings } = await supabase.from('listings').select('id, name, hero_image, images, bedrooms, bathrooms, max_guests, amenities, bedroom_cards, about_property, description, house_rules, contact_name, contact_role, contact_email, contact_phone, contact_image, contact_text, floor_plan_images').eq('is_active', true);
+        if (allListings?.length) {
+          const match = allListings.find((l: any) => propRes.data?.title?.includes(l.slug) || l.name?.includes(propRes.data?.address)) || allListings[0];
+          setListing(match);
+          setListingId(match?.id || null);
+        }
       }
     }
     setLoading(false);
