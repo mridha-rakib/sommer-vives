@@ -8,7 +8,7 @@ import {
   CalendarDays, MapPin, Users, ChevronRight, DoorOpen, ShoppingBag,
   MessageCircle, Sparkles, CreditCard, Copy, Crown, Star, Wifi, Key,
   BedDouble, Bath, UserCircle, Mail, Phone, Map, LayoutGrid, ChevronLeft,
-  Play
+  Play, LifeBuoy, AlertTriangle
 } from 'lucide-react';
 import { format, differenceInDays, differenceInHours, isFuture, isPast } from 'date-fns';
 import { da } from 'date-fns/locale';
