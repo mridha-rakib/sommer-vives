@@ -15,6 +15,7 @@ import {
   UserCircle, Mail, MessageCircle, Map
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ContextualNudge } from '@/components/guest/ContextualNudge';
 
 const houseSections = [
   { icon: Wifi, title: 'WiFi', content: 'Netværksnavn og kode finder du på opslagstavlen i stuen.', key: 'wifi' },
