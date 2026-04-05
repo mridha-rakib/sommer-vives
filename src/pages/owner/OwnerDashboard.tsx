@@ -4,21 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Link } from 'react-router-dom';
 import { 
-  CalendarDays, Wallet, TrendingUp, CheckSquare, 
-  ArrowRight, ChevronRight, Sparkles
+  CalendarDays, Wallet, TrendingUp, ChevronRight, 
+  Crown, Star, Shield, Sparkles, ArrowRight, BookOpen
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AppDownloadBanner } from '@/components/app/AppDownloadBanner';
-import { OwnerStatusWidget } from '@/components/owner/OwnerStatusWidget';
-import { SmartNextSteps } from '@/components/owner/SmartNextSteps';
-import { PropertyActivationTimeline } from '@/components/owner/PropertyActivationTimeline';
-import { ListingReadinessScore } from '@/components/owner/ListingReadinessScore';
-import { BookingReadinessScore } from '@/components/owner/BookingReadinessScore';
-import { OperationalPulse } from '@/components/owner/OperationalPulse';
-import { AutomatedUpdatesFeed } from '@/components/owner/AutomatedUpdatesFeed';
-import { EarningsChart } from '@/components/owner/EarningsChart';
 import { format, differenceInDays } from 'date-fns';
 import { da } from 'date-fns/locale';
 
@@ -36,18 +26,13 @@ interface BookingSummary {
 export default function OwnerDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    properties: 0, publishedProperties: 0, totalBookings: 0,
-    upcomingBookings: 0, totalEarnings: 0, pendingPayouts: 0,
-    openInquiries: 0, pendingTasks: 0,
+    totalBookings: 0, upcomingBookings: 0, totalEarnings: 0, pendingPayouts: 0,
   });
   const [nextArrival, setNextArrival] = useState<BookingSummary | null>(null);
   const [recentBookings, setRecentBookings] = useState<BookingSummary[]>([]);
-  const [allBookings, setAllBookings] = useState<BookingSummary[]>([]);
   const [property, setProperty] = useState<any>(null);
-  const [onboarding, setOnboarding] = useState<any>(null);
-  const [agreement, setAgreement] = useState<any>(null);
-  const [listings, setListings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ownerName, setOwnerName] = useState('');
 
   useEffect(() => {
     if (user) loadDashboard();
@@ -57,14 +42,12 @@ export default function OwnerDashboard() {
     if (!user) return;
     const today = new Date().toISOString().split('T')[0];
 
-    const [propsRes, bookingsRes, payoutsRes, onbRes, agrRes, listRes] = await Promise.all([
+    const [propsRes, bookingsRes, payoutsRes, profileRes] = await Promise.all([
       supabase.from('properties').select('*').eq('owner_id', user.id).limit(1).single(),
       supabase.from('bookings').select('id, check_in, check_out, guest_name, status, total_amount, owner_payout, created_at')
         .eq('owner_id', user.id).order('check_in', { ascending: true }),
       supabase.from('payouts').select('amount, status').eq('owner_id', user.id),
-      supabase.from('owner_onboarding').select('*').eq('owner_id', user.id).limit(1).single(),
-      supabase.from('agreements').select('*').eq('owner_id', user.id).order('created_at', { ascending: false }).limit(1).single(),
-      supabase.from('listings').select('*').eq('owner_id', user.id),
+      supabase.from('profiles').select('full_name').eq('id', user.id).single(),
     ]);
 
     const prop = propsRes.data;
@@ -75,97 +58,86 @@ export default function OwnerDashboard() {
     const pendingPayouts = payouts.filter(p => p.status === 'pending').reduce((s, p) => s + Number(p.amount), 0);
 
     setProperty(prop);
-    setOnboarding(onbRes.data);
-    setAgreement(agrRes.data);
-    setListings(listRes.data || []);
-    setAllBookings(bookings as BookingSummary[]);
+    setOwnerName(profileRes.data?.full_name || user.email?.split('@')[0] || '');
     setStats({
-      properties: prop ? 1 : 0,
-      publishedProperties: prop?.status === 'published' ? 1 : 0,
       totalBookings: bookings.filter(b => b.status !== 'cancelled').length,
       upcomingBookings: upcoming.length,
       totalEarnings, pendingPayouts,
-      openInquiries: 0,
-      pendingTasks: 0,
     });
     setNextArrival(upcoming[0] || null);
-    setRecentBookings(upcoming.slice(0, 5));
+    setRecentBookings(upcoming.slice(0, 4));
     setLoading(false);
   };
 
-  const kpiCards = [
-    { label: 'Kommende bookinger', value: stats.upcomingBookings, icon: CalendarDays, href: '/owner/bookings' },
-    { label: 'Afventer udbetaling', value: `${stats.pendingPayouts.toLocaleString('da-DK')} kr`, icon: Wallet, href: '/owner/earnings' },
-    { label: 'Samlet indtjening', value: `${stats.totalEarnings.toLocaleString('da-DK')} kr`, icon: TrendingUp, href: '/owner/earnings' },
-    { label: 'Åbne opgaver', value: stats.pendingTasks, icon: CheckSquare, href: '/owner/tasks' },
-  ];
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Godmorgen';
+    if (h < 18) return 'God eftermiddag';
+    return 'God aften';
+  };
+
+  const firstName = ownerName.split(' ')[0] || 'der';
 
   return (
     <OwnerLayout>
-      <div className="space-y-6">
-        {/* Welcome */}
-        <div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Dit overblik
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {format(new Date(), 'EEEE d. MMMM', { locale: da })} — alt er samlet her
-          </p>
+      <div className="space-y-8 max-w-5xl mx-auto">
+
+        {/* ── Premium Welcome Hero ── */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(var(--gold-dark)/0.15)] via-card to-[hsl(var(--gold)/0.08)] border border-[hsl(var(--gold)/0.2)] p-6 md:p-10">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[hsl(var(--gold)/0.06)] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-[hsl(var(--gold)/0.04)] rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
+          
+          <div className="relative z-10">
+            {/* Member badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[hsl(var(--gold)/0.12)] border border-[hsl(var(--gold)/0.25)] mb-5">
+              <Crown className="w-3.5 h-3.5 text-[hsl(var(--gold-light))]" />
+              <span className="text-[11px] font-semibold tracking-wider uppercase text-[hsl(var(--gold-light))]">
+                SommerVibes Medlem
+              </span>
+            </div>
+
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
+              {greeting()}, <span className="text-[hsl(var(--gold-light))]">{firstName}</span>
+            </h1>
+            <p className="text-muted-foreground text-sm md:text-base max-w-lg">
+              {format(new Date(), "EEEE 'den' d. MMMM yyyy", { locale: da })}
+            </p>
+
+            {/* Trust row */}
+            <div className="flex flex-wrap items-center gap-4 mt-6 pt-5 border-t border-[hsl(var(--gold)/0.1)]">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Forsikret bolig</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Star className="w-3.5 h-3.5 text-[hsl(var(--gold-light))]" />
+                <span>Premium formidling</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Sparkles className="w-3.5 h-3.5 text-[hsl(var(--gold-light))]" />
+                <span>Dedikeret team</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Smart Status + Next Steps */}
-        <div className="grid lg:grid-cols-2 gap-4">
-          <OwnerStatusWidget
-            property={property}
-            onboarding={onboarding}
-            agreement={agreement}
-            listings={listings}
-            stats={stats}
-          />
-          <SmartNextSteps
-            property={property}
-            onboarding={onboarding}
-            agreement={agreement}
-            listings={listings}
-          />
-        </div>
-
-        {/* Next Arrival highlight */}
-        {nextArrival && (
-          <Card className="border-accent/20 bg-accent/5">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
-                <CalendarDays className="w-5 h-5 text-accent" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-medium text-accent uppercase tracking-wide">Næste ankomst</div>
-                <div className="font-display text-lg font-semibold text-foreground truncate">
-                  {nextArrival.guest_name || 'Gæst'}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {format(new Date(nextArrival.check_in), 'd. MMM yyyy', { locale: da })}
-                  {' · '}
-                  {differenceInDays(new Date(nextArrival.check_in), new Date())} dage
-                </div>
-              </div>
-              <Link to="/owner/bookings">
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              </Link>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* KPI Grid */}
+        {/* ── KPI Cards ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {kpiCards.map((kpi) => (
+          {[
+            { label: 'Kommende bookinger', value: stats.upcomingBookings, icon: CalendarDays, href: '/owner/bookings', color: 'text-accent' },
+            { label: 'Afventer udbetaling', value: `${stats.pendingPayouts.toLocaleString('da-DK')} kr`, icon: Wallet, href: '/owner/payouts', color: 'text-emerald-400' },
+            { label: 'Total indtjening', value: `${stats.totalEarnings.toLocaleString('da-DK')} kr`, icon: TrendingUp, href: '/owner/earnings', color: 'text-[hsl(var(--gold-light))]' },
+            { label: 'Samlede bookinger', value: stats.totalBookings, icon: BookOpen, href: '/owner/bookings', color: 'text-primary' },
+          ].map((kpi) => (
             <Link key={kpi.label} to={kpi.href}>
-              <Card className="hover:border-accent/30 transition-colors cursor-pointer h-full">
-                <CardContent className="p-4">
-                  <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center mb-3">
-                    <kpi.icon className="w-4 h-4 text-muted-foreground" />
+              <Card className="group hover:border-[hsl(var(--gold)/0.3)] transition-all duration-300 h-full">
+                <CardContent className="p-4 md:p-5">
+                  <div className={`w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform`}>
+                    <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
                   </div>
-                  <div className="text-xs text-muted-foreground mb-0.5">{kpi.label}</div>
-                  <div className="font-display text-xl font-bold text-foreground">
+                  <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-1">{kpi.label}</div>
+                  <div className="font-display text-2xl font-bold text-foreground">
                     {loading ? '—' : kpi.value}
                   </div>
                 </CardContent>
@@ -174,76 +146,87 @@ export default function OwnerDashboard() {
           ))}
         </div>
 
-        {/* Operational Pulse + Automated Updates */}
-        <div className="grid lg:grid-cols-2 gap-4">
-          <OperationalPulse stats={stats} property={property} />
-          <AutomatedUpdatesFeed bookings={allBookings} />
-        </div>
-
-        {/* Three columns: Bookings | Timeline | Readiness */}
-        <div className="grid lg:grid-cols-3 gap-4">
-          {/* Recent bookings */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Bookinger</CardTitle>
-                  <Link to="/owner/bookings" className="text-xs text-accent hover:underline flex items-center gap-1">
-                    Alle <ArrowRight className="w-3 h-3" />
-                  </Link>
+        {/* ── Next Arrival ── */}
+        {nextArrival && (
+          <Card className="border-[hsl(var(--gold)/0.2)] bg-gradient-to-r from-card to-[hsl(var(--gold)/0.04)]">
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-[hsl(var(--gold)/0.1)] flex flex-col items-center justify-center shrink-0">
+                <span className="text-lg font-bold text-[hsl(var(--gold-light))] leading-none">
+                  {format(new Date(nextArrival.check_in), 'd')}
+                </span>
+                <span className="text-[10px] uppercase text-muted-foreground">
+                  {format(new Date(nextArrival.check_in), 'MMM', { locale: da })}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] font-semibold text-[hsl(var(--gold-light))] uppercase tracking-widest mb-0.5">Næste ankomst</div>
+                <div className="font-display text-lg font-semibold text-foreground truncate">
+                  {nextArrival.guest_name || 'Gæst'}
                 </div>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                {loading ? (
-                  <div className="text-sm text-muted-foreground py-6 text-center">Indlæser...</div>
-                ) : recentBookings.length === 0 ? (
-                  <div className="text-center py-6">
-                    <CalendarDays className="w-7 h-7 text-muted-foreground/30 mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground">Ingen kommende</p>
-                  </div>
-                ) : (
-                  <div className="space-y-1.5">
-                    {recentBookings.slice(0, 4).map(b => (
-                      <div key={b.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/30 transition-colors">
-                        <div className="w-9 h-9 rounded-lg bg-muted flex flex-col items-center justify-center text-center leading-none">
-                          <span className="text-xs font-bold text-foreground">{format(new Date(b.check_in), 'd')}</span>
-                          <span className="text-[9px] text-muted-foreground">{format(new Date(b.check_in), 'MMM', { locale: da })}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-foreground truncate">{b.guest_name || 'Gæst'}</div>
-                          <div className="text-[11px] text-muted-foreground">
-                            {format(new Date(b.check_in), 'd/M')} – {format(new Date(b.check_out), 'd/M')}
-                          </div>
-                        </div>
-                        <div className="text-xs font-medium text-foreground">{b.total_amount.toLocaleString('da-DK')} kr</div>
+                <div className="text-xs text-muted-foreground">
+                  om {differenceInDays(new Date(nextArrival.check_in), new Date())} dage · {nextArrival.total_amount.toLocaleString('da-DK')} kr
+                </div>
+              </div>
+              <Link to="/owner/bookings">
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-[hsl(var(--gold)/0.1)]">
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Recent Bookings ── */}
+        {recentBookings.length > 0 && (
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-base font-semibold text-foreground">Kommende bookinger</h2>
+                <Link to="/owner/bookings" className="text-xs text-accent hover:underline flex items-center gap-1">
+                  Se alle <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <div className="space-y-1">
+                {recentBookings.map(b => (
+                  <div key={b.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/30 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-muted flex flex-col items-center justify-center leading-none">
+                      <span className="text-sm font-bold text-foreground">{format(new Date(b.check_in), 'd')}</span>
+                      <span className="text-[9px] text-muted-foreground uppercase">{format(new Date(b.check_in), 'MMM', { locale: da })}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-foreground truncate">{b.guest_name || 'Gæst'}</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {format(new Date(b.check_in), 'd. MMM', { locale: da })} – {format(new Date(b.check_out), 'd. MMM', { locale: da })}
                       </div>
-                    ))}
+                    </div>
+                    <div className="text-sm font-semibold text-foreground">{b.total_amount.toLocaleString('da-DK')} kr</div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Activation Timeline */}
-          <PropertyActivationTimeline onboarding={onboarding} />
-
-          {/* Booking Readiness */}
-          <BookingReadinessScore
-            property={property}
-            listings={listings}
-            agreement={agreement}
-            onboarding={onboarding}
-          />
+        {/* ── Quick Links ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: 'Min bolig', href: '/owner/property', icon: '🏡' },
+            { label: 'Kalender', href: '/owner/calendar', icon: '📅' },
+            { label: 'Beskeder', href: '/owner/messages', icon: '💬' },
+            { label: 'Dokumenter', href: '/owner/documents', icon: '📄' },
+          ].map(link => (
+            <Link key={link.href} to={link.href}>
+              <Card className="group hover:border-[hsl(var(--gold)/0.25)] transition-all duration-300">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <span className="text-xl">{link.icon}</span>
+                  <span className="text-sm font-medium text-foreground group-hover:text-[hsl(var(--gold-light))] transition-colors">{link.label}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/40 ml-auto group-hover:text-accent transition-colors" />
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
 
-        {/* Earnings Chart */}
-        <EarningsChart bookings={allBookings} />
-
-        {/* Listing Readiness */}
-        <ListingReadinessScore property={property} listings={listings} />
-
-        {/* App download */}
-        <AppDownloadBanner variant="compact" context="owner" />
       </div>
     </OwnerLayout>
   );
