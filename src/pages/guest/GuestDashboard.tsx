@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { VideoGuideGrid } from '@/components/listing/VideoGuideGrid';
+import { ContextualNudge } from '@/components/guest/ContextualNudge';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function GuestDashboard() {

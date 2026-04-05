@@ -401,6 +401,9 @@ function CheckoutTab({ guide, listing }: any) {
         </CardContent>
       </Card>
 
+      {/* Contextual nudge — late checkout */}
+      <ContextualNudge context="checkout" />
+
       {/* Departure checklist */}
       <Card className="border-border/30 rounded-2xl">
         <CardContent className="p-5">
