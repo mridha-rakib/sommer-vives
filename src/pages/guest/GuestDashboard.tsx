@@ -249,7 +249,7 @@ export default function GuestDashboard() {
               </a>
             )}
             {hasFloorPlan && (
-              <Link to="/guest/house-info">
+              <Link to="/guest/property">
                 <div className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 text-white/90 text-xs font-medium hover:bg-black/70 transition-colors cursor-pointer">
                   <LayoutGrid className="w-3.5 h-3.5" />
                   Plantegning
@@ -315,7 +315,7 @@ export default function GuestDashboard() {
                     {daysUntil <= 1 ? 'Tjek din ankomstguide og adgangskode' : 'Alt er gjort klar til dig — tjek ankomstguiden'}
                   </p>
                 </div>
-                <Link to="/guest/checkin">
+                <Link to="/guest/property">
                   <Button size="sm" variant="gold" className="text-xs shrink-0 rounded-xl">Se guide</Button>
                 </Link>
               </CardContent>
@@ -386,9 +386,9 @@ export default function GuestDashboard() {
           transition={{ delay: 0.35 }}
           className="grid grid-cols-3 gap-3"
         >
-          <QuickAction href="/guest/checkin" icon={DoorOpen} label="Ankomst" desc="Guide & koder" accent />
+          <QuickAction href="/guest/property" icon={DoorOpen} label="Ankomst" desc="Guide & koder" accent />
           <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" desc="Opgrader dit ophold" />
-          <QuickAction href="/guest/house-info" icon={BedDouble} label="Om huset" desc="Sengepladser & info" />
+          <QuickAction href="/guest/property" icon={BedDouble} label="Om huset" desc="Sengepladser & info" />
         </motion.div>
 
         {/* ─── VIDEO GUIDES ─── */}
@@ -402,7 +402,7 @@ export default function GuestDashboard() {
               <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
                 {listing.about_property || listing.description}
               </p>
-              <Link to="/guest/house-info" className="inline-block mt-3">
+              <Link to="/guest/property" className="inline-block mt-3">
                 <span className="text-xs text-[hsl(var(--gold))] font-medium hover:underline">Læs mere om boligen →</span>
               </Link>
             </CardContent>
