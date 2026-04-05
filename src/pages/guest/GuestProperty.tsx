@@ -26,7 +26,7 @@ const houseSections = [
   { icon: Tv, title: 'Underholdning', content: 'TV med dansk fjernsyn og streaming via WiFi.', key: 'entertainment' },
 ];
 
-type Tab = 'checkin' | 'house' | 'videos';
+type Tab = 'checkin' | 'checkout' | 'house' | 'videos';
 
 export default function GuestProperty() {
   const { user, signOut } = useAuth();
