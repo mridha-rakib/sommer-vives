@@ -155,6 +155,9 @@ export default function GuestProperty() {
             {activeTab === 'checkin' && (
               <CheckinTab guide={guide} keybox={keybox} property={property} hasCode={hasCode} />
             )}
+            {activeTab === 'checkout' && (
+              <CheckoutTab guide={guide} listing={listing} />
+            )}
             {activeTab === 'house' && (
               <HouseTab
                 guide={guide}
