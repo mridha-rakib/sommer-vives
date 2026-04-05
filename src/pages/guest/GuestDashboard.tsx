@@ -5,10 +5,10 @@ import { GuestLayout } from '@/components/layout/GuestLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  CalendarDays, MapPin, Users, Clock, ChevronRight, DoorOpen, ShoppingBag,
+  CalendarDays, MapPin, Users, ChevronRight, DoorOpen, ShoppingBag,
   MessageCircle, Sparkles, CreditCard, Copy, Crown, Star, Wifi, Key,
   BedDouble, Bath, UserCircle, Mail, Phone, Map, LayoutGrid, ChevronLeft,
-  Maximize2
+  Play
 } from 'lucide-react';
 import { format, differenceInDays, differenceInHours, isFuture, isPast } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -48,20 +48,18 @@ export default function GuestDashboard() {
       const propertyId = bookings[0].property_id;
       const [propRes, listRes, msgRes] = await Promise.all([
         supabase.from('properties').select('*').eq('id', propertyId).single(),
-        supabase.from('listings').select('id, hero_image, images, name, region, check_in_time, check_out_time, tagline, bedrooms, bathrooms, max_guests, floor_plan_images, contact_name, contact_role, contact_email, contact_phone, contact_image, contact_text, bedroom_cards, amenities, highlighted_amenities, about_property, description, listing_videos(*)').eq('id', propertyId).maybeSingle(),
-        supabase.from('chat_messages').select('*').eq('thread_type', 'support').or(`sender_id.eq.${user.id},sender_type.eq.admin`).order('created_at', { ascending: false }).limit(3),
+        supabase.from('listings').select('id, hero_image, images, name, region, check_in_time, check_out_time, tagline, bedrooms, bathrooms, max_guests, floor_plan_images, contact_name, contact_role, contact_email, contact_phone, contact_image, contact_text, bedroom_cards, amenities, highlighted_amenities, about_property, description').eq('id', propertyId).maybeSingle(),
+        supabase.from('chat_messages').select('*').eq('thread_type', 'support').or(`sender_id.eq.${user.id},sender_type.eq.admin`).order('created_at', { ascending: false }).limit(5),
       ]);
       setProperty(propRes.data);
       if (msgRes.data) {
         setRecentMessages(msgRes.data);
         setUnreadCount(msgRes.data.filter((m: any) => m.sender_type === 'admin' && !m.is_read).length);
       }
-      // Direct ID match first, fallback to name match across all listings
       if (listRes.data) {
         setListing(listRes.data);
         setListingId(listRes.data.id);
       } else {
-        // Fallback: search by name similarity
         const { data: allListings } = await supabase.from('listings').select('id, hero_image, images, name, region, check_in_time, check_out_time, tagline, bedrooms, bathrooms, max_guests, floor_plan_images, contact_name, contact_role, contact_email, contact_phone, contact_image, contact_text, bedroom_cards, amenities, highlighted_amenities, about_property, description').eq('is_active', true);
         if (allListings?.length) {
           const match = allListings.find((l: any) => propRes.data?.title?.includes(l.slug) || l.name?.includes(propRes.data?.address)) || allListings[0];
@@ -81,13 +79,10 @@ export default function GuestDashboard() {
   const checkInTime = listing?.check_in_time || '15:00';
   const checkOutTime = listing?.check_out_time || '10:00';
 
-  // Image gallery from listing
   const allImages: string[] = [];
   if (listing?.hero_image) allImages.push(listing.hero_image);
   if (listing?.images?.length) allImages.push(...listing.images.filter((img: string) => img !== listing.hero_image));
   if (!allImages.length && property?.images?.length) allImages.push(...property.images);
-
-  const heroImage = allImages[currentImageIdx] || null;
 
   const getStatusLabel = () => {
     if (isDone) return 'Ophold afsluttet';
@@ -125,7 +120,7 @@ export default function GuestDashboard() {
             </div>
             <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">Velkommen til SommerVibes</h2>
             <p className="text-muted-foreground text-sm leading-relaxed mb-8">
-              Vi fandt ingen aktiv booking tilknyttet <span className="text-foreground font-medium">{user?.email}</span>. Når din reservation er bekræftet, får du adgang til alt — ankomstguide, adgangskoder, videoguides og mere.
+              Vi fandt ingen aktiv booking tilknyttet <span className="text-foreground font-medium">{user?.email}</span>. Når din reservation er bekræftet, får du adgang til alt.
             </p>
             <div className="grid grid-cols-3 gap-3 mb-8">
               {[
@@ -152,12 +147,13 @@ export default function GuestDashboard() {
   const bathrooms = listing?.bathrooms || property?.bathrooms;
   const maxGuests = listing?.max_guests || property?.max_guests;
   const hasFloorPlan = listing?.floor_plan_images?.length > 0;
+  const heroThumb = allImages[0] || null;
 
   return (
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
-      <div className="space-y-6">
+      <div className="space-y-5">
 
-        {/* ─── HERO WITH IMAGE CAROUSEL ─── */}
+        {/* ─── HERO IMAGE CAROUSEL ─── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -165,7 +161,7 @@ export default function GuestDashboard() {
           className="relative overflow-hidden rounded-3xl"
         >
           {allImages.length > 0 ? (
-            <div className="relative h-64 md:h-80 group">
+            <div className="relative h-56 md:h-72 group">
               <AnimatePresence mode="wait">
                 <motion.img
                   key={currentImageIdx}
@@ -178,170 +174,137 @@ export default function GuestDashboard() {
                   className="w-full h-full object-cover absolute inset-0"
                 />
               </AnimatePresence>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/5" />
 
-              {/* Image nav */}
               {allImages.length > 1 && (
                 <>
-                  <button
-                    onClick={() => setCurrentImageIdx(i => (i - 1 + allImages.length) % allImages.length)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
+                  <button onClick={() => setCurrentImageIdx(i => (i - 1 + allImages.length) % allImages.length)} className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <ChevronLeft className="w-4 h-4 text-white" />
                   </button>
-                  <button
-                    onClick={() => setCurrentImageIdx(i => (i + 1) % allImages.length)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
+                  <button onClick={() => setCurrentImageIdx(i => (i + 1) % allImages.length)} className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <ChevronRight className="w-4 h-4 text-white" />
                   </button>
-                  <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white text-[10px] font-medium px-2.5 py-1 rounded-full">
+                  <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white text-[10px] font-medium px-2.5 py-1 rounded-full">
                     {currentImageIdx + 1} / {allImages.length}
                   </div>
                 </>
               )}
+
+              {/* SommerVibes Gæst badge */}
+              <div className="absolute top-3 right-3 z-10">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[hsl(var(--gold))]/20 backdrop-blur-md border border-[hsl(var(--gold))]/20">
+                  <Crown className="w-3 h-3 text-[hsl(var(--gold))]" />
+                  <span className="text-[9px] font-bold text-[hsl(var(--gold))] uppercase tracking-[0.12em]">SommerVibes Gæst</span>
+                </div>
+              </div>
+
+              {/* Overlay buttons — Kort, Plantegning */}
+              <div className="absolute bottom-4 right-4 z-10 flex items-center gap-2">
+                {property?.address && (
+                  <a href={`https://maps.google.com/?q=${encodeURIComponent(property.address)}`} target="_blank" rel="noopener noreferrer">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm border border-white/15 text-white/90 text-[11px] font-medium hover:bg-black/70 transition-colors">
+                      <Map className="w-3 h-3" />Kort
+                    </div>
+                  </a>
+                )}
+                {hasFloorPlan && (
+                  <Link to="/guest/property">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm border border-white/15 text-white/90 text-[11px] font-medium hover:bg-black/70 transition-colors">
+                      <LayoutGrid className="w-3 h-3" />Plantegning
+                    </div>
+                  </Link>
+                )}
+              </div>
+
+              {/* Hero text + thumbnail with star */}
+              <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6 z-10 flex items-end gap-4">
+                {/* Thumbnail with star */}
+                {heroThumb && (
+                  <div className="relative shrink-0">
+                    <img src={heroThumb} alt="" className="w-14 h-14 md:w-16 md:h-16 rounded-xl object-cover border-2 border-white/20 shadow-lg" />
+                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[hsl(var(--gold))] flex items-center justify-center shadow-md">
+                      <Star className="w-3 h-3 text-white" fill="white" />
+                    </div>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="font-display text-xl md:text-2xl font-bold text-white leading-tight truncate">
+                    {firstName ? `Velkommen, ${firstName}` : 'Velkommen'}
+                  </motion.h1>
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-white/70 text-sm truncate">
+                    {propertyName}
+                  </motion.p>
+                  {listing?.tagline && (
+                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="text-white/40 text-[11px] italic mt-0.5 truncate">
+                      "{listing.tagline}"
+                    </motion.p>
+                  )}
+                </div>
+              </div>
             </div>
           ) : (
-            <div className="h-64 md:h-80 bg-gradient-to-br from-accent/15 via-card to-accent/5 flex items-center justify-center border border-border/40 rounded-3xl">
-              <Sparkles className="w-20 h-20 text-accent/10" />
+            <div className="h-56 md:h-72 bg-gradient-to-br from-accent/15 via-card to-accent/5 flex items-center justify-center border border-border/40 rounded-3xl">
+              <Sparkles className="w-16 h-16 text-accent/10" />
             </div>
           )}
-
-          {/* Gold member badge */}
-          <div className="absolute top-4 right-4 z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[hsl(var(--gold))]/20 backdrop-blur-md border border-[hsl(var(--gold))]/20">
-              <Crown className="w-3.5 h-3.5 text-[hsl(var(--gold))]" />
-              <span className="text-[10px] font-bold text-[hsl(var(--gold))] uppercase tracking-[0.15em]">SommerVibes Gæst</span>
-            </div>
-          </div>
-
-          {/* Status pill */}
-          <div className="absolute bottom-20 right-5 z-10">
-            <Badge className="bg-accent/90 text-accent-foreground border-0 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm shadow-lg">
-              {getStatusLabel()}
-            </Badge>
-          </div>
-
-          {/* Hero text */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-10">
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="font-display text-2xl md:text-3xl font-bold text-white leading-tight"
-            >
-              {firstName ? `Velkommen, ${firstName}` : 'Velkommen'}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.35 }}
-              className="text-white/70 mt-1 text-sm md:text-base"
-            >
-              {propertyName} · {property?.region || listing?.region}
-            </motion.p>
-            {listing?.tagline && (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }} className="text-white/50 mt-1 text-xs italic">
-                "{listing.tagline}"
-              </motion.p>
-            )}
-          </div>
-
-          {/* Action buttons overlay – Map, Floor plan, Contact */}
-          <div className="absolute bottom-6 right-6 z-10 flex items-center gap-2">
-            {property?.address && (
-              <a href={`https://maps.google.com/?q=${encodeURIComponent(property.address)}`} target="_blank" rel="noopener noreferrer">
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 text-white/90 text-xs font-medium hover:bg-black/70 transition-colors cursor-pointer">
-                  <Map className="w-3.5 h-3.5" />
-                  Kort
-                </div>
-              </a>
-            )}
-            {hasFloorPlan && (
-              <Link to="/guest/property">
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/50 backdrop-blur-sm border border-white/10 text-white/90 text-xs font-medium hover:bg-black/70 transition-colors cursor-pointer">
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                  Plantegning
-                </div>
-              </Link>
-            )}
-          </div>
         </motion.div>
+
+        {/* ─── STATUS BADGE ─── */}
+        <div className="flex justify-center">
+          <Badge className="bg-[hsl(var(--gold))]/10 text-[hsl(var(--gold))] border border-[hsl(var(--gold))]/20 text-xs font-semibold px-4 py-1.5 rounded-full">
+            {getStatusLabel()}
+          </Badge>
+        </div>
 
         {/* ─── PROPERTY QUICK FACTS ─── */}
         {(bedrooms || bathrooms || maxGuests) && (
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-            {bedrooms && (
-              <div className="flex items-center gap-1.5">
-                <BedDouble className="w-4 h-4 text-[hsl(var(--gold))]/60" />
-                <span>{bedrooms} soveværelser</span>
-              </div>
-            )}
-            {bathrooms && (
-              <div className="flex items-center gap-1.5">
-                <Bath className="w-4 h-4 text-[hsl(var(--gold))]/60" />
-                <span>{bathrooms} bad</span>
-              </div>
-            )}
-            {maxGuests && (
-              <div className="flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-[hsl(var(--gold))]/60" />
-                <span>Op til {maxGuests} gæster</span>
-              </div>
-            )}
+          <div className="flex items-center justify-center gap-5 text-xs text-muted-foreground">
+            {bedrooms && <span className="flex items-center gap-1"><BedDouble className="w-3.5 h-3.5 text-[hsl(var(--gold))]/60" />{bedrooms} soveværelser</span>}
+            {bathrooms && <span className="flex items-center gap-1"><Bath className="w-3.5 h-3.5 text-[hsl(var(--gold))]/60" />{bathrooms} bad</span>}
+            {maxGuests && <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5 text-[hsl(var(--gold))]/60" />Op til {maxGuests}</span>}
           </div>
         )}
 
         {/* ─── KEY INFO STRIP ─── */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-3"
-        >
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           <InfoTile icon={CalendarDays} label="Ankomst" value={format(new Date(booking.check_in), 'd. MMM', { locale: da })} sub={`kl. ${checkInTime}`} />
           <InfoTile icon={CalendarDays} label="Afrejse" value={format(new Date(booking.check_out), 'd. MMM', { locale: da })} sub={`kl. ${checkOutTime}`} />
           <InfoTile icon={Users} label="Gæster" value={`${booking.guests_count || 1} pers.`} sub={`${booking.nights} nætter`} />
-          <div onClick={copyRef} className="cursor-pointer group">
+          <div onClick={copyRef} className="cursor-pointer">
             <InfoTile icon={Copy} label="Reference" value={booking.case_number || booking.id.slice(0, 8)} sub="Tryk for at kopiere" mono />
           </div>
         </motion.div>
 
-        {/* ─── COUNTDOWN ─── */}
+        {/* ─── COUNTDOWN / ACTIVE STAY ─── */}
         {isUpcoming && daysUntil > 0 && daysUntil <= 30 && (
-          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
-            <Card className="border-[hsl(var(--gold))]/15 bg-gradient-to-r from-[hsl(var(--gold))]/5 to-transparent overflow-hidden rounded-2xl">
-              <CardContent className="p-6 flex items-center gap-6">
-                <div className="text-center min-w-[70px]">
-                  <div className="font-display text-5xl font-bold text-[hsl(var(--gold))]">{daysUntil}</div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-1">dage</div>
+          <Card className="border-[hsl(var(--gold))]/15 bg-gradient-to-r from-[hsl(var(--gold))]/5 to-transparent rounded-2xl">
+            <CardContent className="p-5 flex items-center gap-5">
+              <div className="text-center min-w-[60px]">
+                <div className="font-display text-4xl font-bold text-[hsl(var(--gold))]">{daysUntil}</div>
+                <div className="text-[9px] text-muted-foreground uppercase tracking-[0.15em] mt-0.5">dage</div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-display text-sm font-semibold text-foreground">
+                  {daysUntil <= 3 ? 'Næsten tid til ferie! 🎉' : daysUntil <= 7 ? 'Snart er du der!' : 'Din ferie nærmer sig'}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-display text-base font-semibold text-foreground">
-                    {daysUntil <= 3 ? 'Næsten tid til ferie! 🎉' : daysUntil <= 7 ? 'Snart er du der!' : 'Din ferie nærmer sig'}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {daysUntil <= 1 ? 'Tjek din ankomstguide og adgangskode' : 'Alt er gjort klar til dig — tjek ankomstguiden'}
-                  </p>
-                </div>
-                <Link to="/guest/property">
-                  <Button size="sm" variant="gold" className="text-xs shrink-0 rounded-xl">Se guide</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </motion.div>
+                <p className="text-xs text-muted-foreground mt-0.5">Alt er gjort klar til dig</p>
+              </div>
+              <Link to="/guest/property">
+                <Button size="sm" variant="gold" className="text-xs shrink-0 rounded-xl">Se guide</Button>
+              </Link>
+            </CardContent>
+          </Card>
         )}
 
-        {/* ─── ACTIVE STAY ─── */}
         {isActive && (
           <Card className="border-[hsl(var(--gold))]/15 bg-gradient-to-r from-[hsl(var(--gold))]/5 to-transparent rounded-2xl">
-            <CardContent className="p-6 flex items-center gap-5">
-              <div className="w-12 h-12 rounded-2xl bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0">
-                <Star className="w-6 h-6 text-[hsl(var(--gold))]" />
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-2xl bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0">
+                <Star className="w-5 h-5 text-[hsl(var(--gold))]" />
               </div>
               <div className="flex-1">
-                <div className="font-display text-base font-semibold text-foreground">Du er på ferie ☀️</div>
-                <p className="text-xs text-muted-foreground mt-0.5">Brug for noget? Vi er klar for dig alle dage.</p>
+                <div className="font-display text-sm font-semibold text-foreground">Du er på ferie ☀️</div>
+                <p className="text-xs text-muted-foreground mt-0.5">Brug for noget? Vi er klar alle dage.</p>
               </div>
               <Link to="/guest/messages">
                 <Button size="sm" variant="gold" className="text-xs rounded-xl">Skriv til os</Button>
@@ -350,54 +313,122 @@ export default function GuestDashboard() {
           </Card>
         )}
 
-        {/* ─── MESSAGES PREVIEW ─── */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-          <Card className="border-border/30 rounded-2xl overflow-hidden">
-            <Link to="/guest/messages">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <MessageCircle className="w-4 h-4 text-[hsl(var(--gold))]" />
-                  <span className="text-sm font-display font-semibold text-foreground">Beskeder</span>
+        {/* ─── MESSAGES — CENTRAL & PROMINENT ─── */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+          <Card className="border-[hsl(var(--gold))]/10 rounded-2xl overflow-hidden bg-gradient-to-br from-card to-[hsl(var(--gold))]/[0.02]">
+            <CardContent className="p-0">
+              {/* Header */}
+              <Link to="/guest/messages" className="block">
+                <div className="flex items-center gap-2.5 px-5 pt-5 pb-3">
+                  <div className="w-8 h-8 rounded-full bg-[hsl(var(--gold))]/15 flex items-center justify-center">
+                    <MessageCircle className="w-4 h-4 text-[hsl(var(--gold))]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-display font-semibold text-foreground">Beskeder</span>
+                    <p className="text-[10px] text-muted-foreground">Vi svarer typisk inden for 1-2 timer</p>
+                  </div>
                   {unreadCount > 0 && (
-                    <span className="ml-1 w-5 h-5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center">{unreadCount}</span>
+                    <span className="w-5 h-5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center animate-pulse">{unreadCount}</span>
                   )}
-                  <div className="flex-1" />
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">Se alle <ChevronRight className="w-3 h-3" /></span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
                 </div>
+              </Link>
+
+              {/* Message previews */}
+              <div className="px-5 pb-4">
                 {recentMessages.length > 0 ? (
-                  <div className="space-y-2.5">
-                    {recentMessages.slice(0, 2).map(msg => (
-                      <div key={msg.id} className="flex items-start gap-3">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${msg.sender_type === 'admin' ? 'bg-[hsl(var(--gold))]/15 text-[hsl(var(--gold))]' : 'bg-muted/40 text-muted-foreground'}`}>
-                          {msg.sender_type === 'admin' ? 'SV' : 'Du'}
+                  <div className="space-y-2">
+                    {recentMessages.slice(0, 3).map(msg => (
+                      <Link to="/guest/messages" key={msg.id}>
+                        <div className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-muted/20 transition-colors">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold mt-0.5 ${msg.sender_type === 'admin' ? 'bg-[hsl(var(--gold))]/15 text-[hsl(var(--gold))]' : 'bg-muted/40 text-muted-foreground'}`}>
+                            {msg.sender_type === 'admin' ? 'SV' : 'Du'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-foreground line-clamp-1">{msg.message}</p>
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(msg.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          {msg.sender_type === 'admin' && !msg.is_read && (
+                            <div className="w-2 h-2 rounded-full bg-[hsl(var(--gold))] shrink-0 mt-2" />
+                          )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-foreground line-clamp-1">{msg.message}</p>
-                          <span className="text-[10px] text-muted-foreground">
-                            {new Date(msg.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground">Ingen beskeder endnu — skriv til os når som helst</p>
+                  <div className="text-center py-4">
+                    <p className="text-xs text-muted-foreground mb-2">Ingen beskeder endnu</p>
+                    <Link to="/guest/messages">
+                      <Button size="sm" variant="gold" className="text-xs rounded-xl">
+                        <MessageCircle className="w-3 h-3 mr-1" />Start en samtale
+                      </Button>
+                    </Link>
+                  </div>
                 )}
-              </CardContent>
-            </Link>
+              </div>
+            </CardContent>
           </Card>
         </motion.div>
 
+        {/* ─── YOUR CONTACT PERSON (MÆGLER / UDLEJNINGSCHEF) ─── */}
+        {listing?.contact_name && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+            <Card className="border-[hsl(var(--gold))]/10 rounded-2xl overflow-hidden">
+              <CardContent className="p-5">
+                <span className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[hsl(var(--gold))]/70 mb-3 block">
+                  Din udlejningsrådgiver
+                </span>
+                <div className="flex items-center gap-4">
+                  {listing.contact_image ? (
+                    <img src={listing.contact_image} alt={listing.contact_name} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-border/30" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0">
+                      <UserCircle className="w-7 h-7 text-[hsl(var(--gold))]/40" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-display text-base font-semibold text-foreground">{listing.contact_name}</h4>
+                    {listing.contact_role && (
+                      <p className="text-[11px] text-[hsl(var(--gold))] font-medium">{listing.contact_role}</p>
+                    )}
+                    {listing.contact_text && (
+                      <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{listing.contact_text}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-4">
+                  {listing.contact_phone && (
+                    <a href={`tel:${listing.contact_phone}`} className="flex-1">
+                      <Button variant="outline" className="w-full text-xs rounded-xl h-9 gap-1.5">
+                        <Phone className="w-3.5 h-3.5" />Ring op
+                      </Button>
+                    </a>
+                  )}
+                  {listing.contact_email && (
+                    <a href={`mailto:${listing.contact_email}`} className="flex-1">
+                      <Button variant="outline" className="w-full text-xs rounded-xl h-9 gap-1.5">
+                        <Mail className="w-3.5 h-3.5" />Send mail
+                      </Button>
+                    </a>
+                  )}
+                  <Link to="/guest/messages" className="flex-1">
+                    <Button variant="gold" className="w-full text-xs rounded-xl h-9 gap-1.5">
+                      <MessageCircle className="w-3.5 h-3.5" />Chat
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* ─── QUICK ACTIONS ─── */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="grid grid-cols-3 gap-3"
-        >
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-3 gap-2.5">
           <QuickAction href="/guest/property" icon={DoorOpen} label="Ankomst" desc="Guide & koder" accent />
-          <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" desc="Opgrader dit ophold" />
-          <QuickAction href="/guest/property" icon={BedDouble} label="Om huset" desc="Sengepladser & info" />
+          <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" desc="Opgrader opholdet" />
+          <QuickAction href="/guest/property" icon={BedDouble} label="Om huset" desc="Info & sengepladser" />
         </motion.div>
 
         {/* ─── VIDEO GUIDES ─── */}
@@ -406,12 +437,12 @@ export default function GuestDashboard() {
         {/* ─── ABOUT THE PROPERTY ─── */}
         {(listing?.about_property || listing?.description) && (
           <Card className="border-border/30 rounded-2xl">
-            <CardContent className="p-5 md:p-6">
-              <h3 className="font-display text-base font-semibold text-foreground mb-3">Om {propertyName}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
+            <CardContent className="p-5">
+              <h3 className="font-display text-sm font-semibold text-foreground mb-2">Om {propertyName}</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">
                 {listing.about_property || listing.description}
               </p>
-              <Link to="/guest/property" className="inline-block mt-3">
+              <Link to="/guest/property" className="inline-block mt-2.5">
                 <span className="text-xs text-[hsl(var(--gold))] font-medium hover:underline">Læs mere om boligen →</span>
               </Link>
             </CardContent>
@@ -421,12 +452,12 @@ export default function GuestDashboard() {
         {/* ─── BEDROOM OVERVIEW ─── */}
         {listing?.bedroom_cards && (listing.bedroom_cards as any[]).length > 0 && (
           <Card className="border-border/30 rounded-2xl">
-            <CardContent className="p-5 md:p-6">
-              <div className="flex items-center gap-2 mb-4">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-3">
                 <BedDouble className="w-4 h-4 text-[hsl(var(--gold))]" />
                 <span className="text-sm font-display font-semibold text-foreground">Sengepladser</span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 {(listing.bedroom_cards as any[]).slice(0, 4).map((room: any, i: number) => (
                   <div key={i} className="rounded-xl border border-border/30 bg-card/60 p-3">
                     <span className="text-xs font-semibold text-foreground block">{room.title || `Soveværelse ${i + 1}`}</span>
@@ -438,60 +469,10 @@ export default function GuestDashboard() {
           </Card>
         )}
 
-        {/* ─── YOUR CONTACT PERSON (MÆGLER) ─── */}
-        {listing?.contact_name && (
-          <Card className="border-border/30 rounded-2xl overflow-hidden">
-            <CardContent className="p-5 md:p-6">
-              <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-[hsl(var(--gold))]/80 mb-3 block">
-                Din kontaktperson
-              </span>
-              <div className="flex items-start gap-4">
-                {listing.contact_image ? (
-                  <img src={listing.contact_image} alt={listing.contact_name} className="w-16 h-16 rounded-xl object-cover shrink-0" />
-                ) : (
-                  <div className="w-16 h-16 rounded-xl bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0">
-                    <UserCircle className="w-8 h-8 text-[hsl(var(--gold))]/40" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-display text-lg font-semibold text-foreground">{listing.contact_name}</h4>
-                  {listing.contact_role && (
-                    <p className="text-xs text-[hsl(var(--gold))] font-medium">{listing.contact_role}</p>
-                  )}
-                  {listing.contact_text && (
-                    <p className="text-xs text-muted-foreground mt-2 leading-relaxed line-clamp-2">{listing.contact_text}</p>
-                  )}
-                  <div className="flex items-center gap-2 mt-3">
-                    {listing.contact_email && (
-                      <a href={`mailto:${listing.contact_email}`}>
-                        <Button size="sm" variant="outline" className="text-xs rounded-xl h-8 gap-1.5">
-                          <Mail className="w-3 h-3" />Skriv
-                        </Button>
-                      </a>
-                    )}
-                    {listing.contact_phone && (
-                      <a href={`tel:${listing.contact_phone}`}>
-                        <Button size="sm" variant="outline" className="text-xs rounded-xl h-8 gap-1.5">
-                          <Phone className="w-3 h-3" />Ring
-                        </Button>
-                      </a>
-                    )}
-                    <Link to="/guest/messages">
-                      <Button size="sm" variant="gold" className="text-xs rounded-xl h-8 gap-1.5">
-                        <MessageCircle className="w-3 h-3" />Chat
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* ─── PAYMENT SUMMARY ─── */}
         <Card className="border-border/30 rounded-2xl">
-          <CardContent className="p-5 md:p-6">
-            <div className="flex items-center gap-2 mb-5">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-4">
               <CreditCard className="w-4 h-4 text-[hsl(var(--gold))]" />
               <span className="text-sm font-display font-semibold text-foreground">Betalingsoversigt</span>
               <div className="flex-1" />
@@ -510,7 +491,7 @@ export default function GuestDashboard() {
                   <span className="font-medium">{Number(booking.cleaning_fee).toLocaleString('da-DK')} kr</span>
                 </div>
               )}
-              <div className="border-t border-border/30 pt-3 flex justify-between font-semibold">
+              <div className="border-t border-border/30 pt-2.5 flex justify-between font-semibold">
                 <span>Total</span>
                 <span className="text-[hsl(var(--gold))]">{Number(booking.total_amount).toLocaleString('da-DK')} kr</span>
               </div>
@@ -518,22 +499,22 @@ export default function GuestDashboard() {
           </CardContent>
         </Card>
 
-        {/* ─── ADDRESS ─── */}
+        {/* ─── ADDRESS & MAP ─── */}
         {property?.address && (
-          <Card className="border-border/30 rounded-2xl">
-            <CardContent className="p-4 md:p-5 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
-                <MapPin className="w-5 h-5 text-accent" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-foreground truncate">{property.address}</div>
-                <div className="text-xs text-muted-foreground">{property.region}</div>
-              </div>
-              <a href={`https://maps.google.com/?q=${encodeURIComponent(property.address)}`} target="_blank" rel="noopener noreferrer">
-                <Button size="sm" variant="outline" className="text-xs rounded-xl">Vis kort →</Button>
-              </a>
-            </CardContent>
-          </Card>
+          <a href={`https://maps.google.com/?q=${encodeURIComponent(property.address)}`} target="_blank" rel="noopener noreferrer">
+            <Card className="border-border/30 rounded-2xl hover:border-[hsl(var(--gold))]/20 transition-colors">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0">
+                  <MapPin className="w-5 h-5 text-[hsl(var(--gold))]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-foreground truncate">{property.address}</div>
+                  <div className="text-xs text-muted-foreground">{property.region}</div>
+                </div>
+                <span className="text-xs text-[hsl(var(--gold))] font-medium shrink-0">Vis kort →</span>
+              </CardContent>
+            </Card>
+          </a>
         )}
       </div>
     </GuestLayout>
@@ -542,12 +523,12 @@ export default function GuestDashboard() {
 
 function InfoTile({ icon: Icon, label, value, sub, mono }: { icon: any; label: string; value: string; sub?: string; mono?: boolean }) {
   return (
-    <div className="rounded-2xl border border-border/30 bg-card/80 p-4 hover:border-[hsl(var(--gold))]/20 transition-all duration-300">
-      <div className="flex items-center gap-1.5 mb-2">
-        <Icon className="w-3.5 h-3.5 text-[hsl(var(--gold))]/60" />
-        <span className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] font-medium">{label}</span>
+    <div className="rounded-2xl border border-border/30 bg-card/80 p-3.5 hover:border-[hsl(var(--gold))]/20 transition-all duration-300">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <Icon className="w-3 h-3 text-[hsl(var(--gold))]/60" />
+        <span className="text-[9px] text-muted-foreground uppercase tracking-[0.12em] font-medium">{label}</span>
       </div>
-      <div className={`text-sm font-semibold text-foreground ${mono ? 'font-mono' : ''}`}>{value}</div>
+      <div className={`text-sm font-semibold text-foreground ${mono ? 'font-mono text-xs' : ''}`}>{value}</div>
       {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
     </div>
   );
@@ -556,9 +537,9 @@ function InfoTile({ icon: Icon, label, value, sub, mono }: { icon: any; label: s
 function QuickAction({ href, icon: Icon, label, desc, accent }: { href: string; icon: any; label: string; desc?: string; accent?: boolean }) {
   return (
     <Link to={href}>
-      <div className={`flex flex-col items-center gap-2.5 py-5 rounded-2xl border transition-all duration-300 hover:shadow-md ${accent ? 'border-[hsl(var(--gold))]/20 bg-[hsl(var(--gold))]/5 hover:border-[hsl(var(--gold))]/30' : 'border-border/30 bg-card/60 hover:border-border/50'}`}>
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${accent ? 'bg-[hsl(var(--gold))]/15' : 'bg-muted/40'}`}>
-          <Icon className={`w-5 h-5 ${accent ? 'text-[hsl(var(--gold))]' : 'text-muted-foreground'}`} />
+      <div className={`flex flex-col items-center gap-2 py-4 rounded-2xl border transition-all duration-300 hover:shadow-md ${accent ? 'border-[hsl(var(--gold))]/20 bg-[hsl(var(--gold))]/5 hover:border-[hsl(var(--gold))]/30' : 'border-border/30 bg-card/60 hover:border-border/50'}`}>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${accent ? 'bg-[hsl(var(--gold))]/15' : 'bg-muted/40'}`}>
+          <Icon className={`w-4.5 h-4.5 ${accent ? 'text-[hsl(var(--gold))]' : 'text-muted-foreground'}`} />
         </div>
         <div className="text-center">
           <span className="text-xs font-semibold text-foreground block">{label}</span>
