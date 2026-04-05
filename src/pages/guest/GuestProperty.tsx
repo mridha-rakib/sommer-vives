@@ -363,6 +363,89 @@ function CheckinTab({ guide, keybox, property, hasCode }: any) {
   );
 }
 
+/* ── CHECKOUT TAB ── */
+function CheckoutTab({ guide, listing }: any) {
+  const checkoutTime = listing?.check_out_time || '10:00';
+  const departureChecklist = guide?.departure_checklist as any[] | null;
+
+  const defaultChecklist = [
+    'Opvaskemaskinen er tømt og sat i gang',
+    'Skraldespande er tømt og affald sorteret',
+    'Sengetøj og håndklæder er samlet i bryggers',
+    'Alle vinduer og døre er lukket og låst',
+    'Varme/AC er slukket eller sat på minimum',
+    'Nøglen er lagt tilbage i nøgleboksen',
+    'Tjek at du har alt med (oplader, legetøj mv.)',
+  ];
+
+  const items = departureChecklist?.length ? departureChecklist.map((d: any) => typeof d === 'string' ? d : d.text || d.label) : defaultChecklist;
+
+  return (
+    <div className="space-y-4">
+      {/* Checkout time */}
+      <Card className="border-[hsl(var(--gold))]/15 bg-gradient-to-br from-[hsl(var(--gold))]/5 via-card to-[hsl(var(--gold))]/5 rounded-2xl">
+        <CardContent className="p-6 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[hsl(var(--gold))]/15 flex items-center justify-center mx-auto mb-4">
+            <Clock className="w-7 h-7 text-[hsl(var(--gold))]" />
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] mb-2 font-medium">Check-ud senest</div>
+          <div className="font-display text-4xl font-bold text-[hsl(var(--gold))]">{checkoutTime}</div>
+          <p className="text-xs text-muted-foreground mt-2">Følg tjeklisten herunder, så er du helt klar</p>
+        </CardContent>
+      </Card>
+
+      {/* Departure checklist */}
+      <Card className="border-border/30 rounded-2xl">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle2 className="w-4 h-4 text-[hsl(var(--gold))]" />
+            <span className="text-sm font-display font-semibold text-foreground">Afrejse-tjekliste</span>
+          </div>
+          <div className="space-y-3">
+            {items.map((item: string, i: number) => (
+              <label key={i} className="flex items-start gap-3 cursor-pointer group">
+                <div className="w-5 h-5 rounded-md border-2 border-border/50 group-hover:border-[hsl(var(--gold))]/40 flex items-center justify-center shrink-0 mt-0.5 transition-colors">
+                  <CheckCircle2 className="w-3 h-3 text-transparent group-hover:text-[hsl(var(--gold))]/20 transition-colors" />
+                </div>
+                <span className="text-sm text-foreground leading-relaxed">{item}</span>
+              </label>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reminder */}
+      <Card className="border-border/30 rounded-2xl bg-muted/10">
+        <CardContent className="p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div>
+            <div className="text-sm font-semibold text-foreground">Husk!</div>
+            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+              Slutrengøring er inkluderet, men boligen skal efterlades ryddelig. Ekstra rengøring faktureres ved behov.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Contact for help */}
+      <Card className="border-border/30 rounded-2xl">
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0">
+            <MessageCircle className="w-4 h-4 text-[hsl(var(--gold))]" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold text-foreground">Brug for hjælp?</div>
+            <p className="text-xs text-muted-foreground">Skriv til os hvis du har spørgsmål</p>
+          </div>
+          <Link to="/guest/messages">
+            <Button size="sm" variant="gold" className="text-xs rounded-xl">Chat</Button>
+          </Link>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 /* ── HOUSE TAB ── */
 function HouseTab({ guide, property, listing, expanded, setExpanded }: any) {
   return (

@@ -425,10 +425,11 @@ export default function GuestDashboard() {
         )}
 
         {/* ─── QUICK ACTIONS ─── */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-3 gap-2.5">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-4 gap-2">
           <QuickAction href="/guest/property" icon={DoorOpen} label="Ankomst" desc="Guide & koder" accent />
-          <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" desc="Opgrader opholdet" />
-          <QuickAction href="/guest/property" icon={BedDouble} label="Om huset" desc="Info & sengepladser" />
+          <QuickAction href="/guest/property?tab=checkout" icon={CalendarDays} label="Udtjekning" desc="Tjekliste" />
+          <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" desc="Opgrader" />
+          <QuickAction href="/guest/messages" icon={MessageCircle} label="Support" desc="Hjælp & chat" />
         </motion.div>
 
         {/* ─── VIDEO GUIDES ─── */}
