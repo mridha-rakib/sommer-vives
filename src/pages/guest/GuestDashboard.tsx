@@ -45,9 +45,10 @@ export default function GuestDashboard() {
 
     if (bookings?.[0]) {
       setBooking(bookings[0]);
+      const propertyId = bookings[0].property_id;
       const [propRes, listRes, msgRes] = await Promise.all([
-        supabase.from('properties').select('*').eq('id', bookings[0].property_id).single(),
-        supabase.from('listings').select('id, hero_image, images, name, region, check_in_time, check_out_time, tagline, bedrooms, bathrooms, max_guests, floor_plan_images, contact_name, contact_role, contact_email, contact_phone, contact_image, contact_text, bedroom_cards, amenities, highlighted_amenities, about_property, description').eq('is_active', true).limit(10),
+        supabase.from('properties').select('*').eq('id', propertyId).single(),
+        supabase.from('listings').select('id, hero_image, images, name, region, check_in_time, check_out_time, tagline, bedrooms, bathrooms, max_guests, floor_plan_images, contact_name, contact_role, contact_email, contact_phone, contact_image, contact_text, bedroom_cards, amenities, highlighted_amenities, about_property, description, listing_videos(*)').eq('id', propertyId).maybeSingle(),
         supabase.from('chat_messages').select('*').eq('thread_type', 'support').or(`sender_id.eq.${user.id},sender_type.eq.admin`).order('created_at', { ascending: false }).limit(3),
       ]);
       setProperty(propRes.data);
@@ -55,10 +56,18 @@ export default function GuestDashboard() {
         setRecentMessages(msgRes.data);
         setUnreadCount(msgRes.data.filter((m: any) => m.sender_type === 'admin' && !m.is_read).length);
       }
-      if (listRes.data?.length) {
-        const match = listRes.data.find((l: any) => l.name === propRes.data?.title) || listRes.data[0];
-        setListing(match);
-        setListingId(match?.id || null);
+      // Direct ID match first, fallback to name match across all listings
+      if (listRes.data) {
+        setListing(listRes.data);
+        setListingId(listRes.data.id);
+      } else {
+        // Fallback: search by name similarity
+        const { data: allListings } = await supabase.from('listings').select('id, hero_image, images, name, region, check_in_time, check_out_time, tagline, bedrooms, bathrooms, max_guests, floor_plan_images, contact_name, contact_role, contact_email, contact_phone, contact_image, contact_text, bedroom_cards, amenities, highlighted_amenities, about_property, description').eq('is_active', true);
+        if (allListings?.length) {
+          const match = allListings.find((l: any) => propRes.data?.title?.includes(l.slug) || l.name?.includes(propRes.data?.address)) || allListings[0];
+          setListing(match);
+          setListingId(match?.id || null);
+        }
       }
     }
     setLoading(false);
