@@ -89,10 +89,36 @@ export default function GuestDashboard() {
   if (!booking) {
     return (
       <GuestLayout guestEmail={user?.email} onLogout={signOut}>
-        <div className="text-center py-20">
-          <CalendarDays className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-          <h2 className="font-display text-xl font-semibold text-foreground mb-2">Ingen aktive ophold</h2>
-          <p className="text-muted-foreground text-sm">Vi fandt ingen booking tilknyttet din e-mail.</p>
+        <div className="flex flex-col items-center justify-center py-16 md:py-24">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center max-w-md mx-auto">
+            {/* Gold accent circle */}
+            <div className="w-20 h-20 rounded-full bg-[hsl(var(--gold))]/10 border border-[hsl(var(--gold))]/15 flex items-center justify-center mx-auto mb-6">
+              <Crown className="w-8 h-8 text-[hsl(var(--gold))]/60" />
+            </div>
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
+              Velkommen til SommerVibes
+            </h2>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-8">
+              Vi fandt ingen aktiv booking tilknyttet <span className="text-foreground font-medium">{user?.email}</span>. Når din reservation er bekræftet, får du adgang til alt — ankomstguide, adgangskoder, videoguides og mere.
+            </p>
+            <div className="grid grid-cols-3 gap-3 mb-8">
+              <div className="rounded-2xl border border-border/30 bg-card/60 p-4 text-center">
+                <DoorOpen className="w-5 h-5 text-[hsl(var(--gold))]/60 mx-auto mb-2" />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Ankomstguide</span>
+              </div>
+              <div className="rounded-2xl border border-border/30 bg-card/60 p-4 text-center">
+                <Key className="w-5 h-5 text-[hsl(var(--gold))]/60 mx-auto mb-2" />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Adgangskoder</span>
+              </div>
+              <div className="rounded-2xl border border-border/30 bg-card/60 p-4 text-center">
+                <MessageCircle className="w-5 h-5 text-[hsl(var(--gold))]/60 mx-auto mb-2" />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Direkte chat</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground/60">
+              Kontakt os på <a href="mailto:support@sommervibes.dk" className="text-[hsl(var(--gold))] hover:underline">support@sommervibes.dk</a> hvis du mener der er en fejl
+            </p>
+          </motion.div>
         </div>
       </GuestLayout>
     );
