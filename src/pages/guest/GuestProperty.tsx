@@ -299,6 +299,9 @@ function CheckinTab({ guide, keybox, property, hasCode }: any) {
         </CardContent>
       </Card>
 
+      {/* Contextual nudge — early check-in */}
+      <ContextualNudge context="checkin" />
+
       {/* Steps */}
       <div className="space-y-2">
         {steps.map((s) => (
