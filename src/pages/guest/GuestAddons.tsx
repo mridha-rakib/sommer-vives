@@ -5,7 +5,7 @@ import { GuestLayout } from '@/components/layout/GuestLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BedDouble, Clock, Baby, Sparkles, Plus, Check, Loader2, ShoppingBag } from 'lucide-react';
+import { BedDouble, Clock, Baby, Sparkles, Check, Loader2, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 
 const defaultAddons = [
@@ -13,7 +13,7 @@ const defaultAddons = [
   { id: 'early', name: 'Tidlig check-in', desc: 'Check-in allerede fra kl. 12:00', price: 350, icon: Clock, unit: 'engangsbeløb' },
   { id: 'late', name: 'Sen check-out', desc: 'Forlæng til kl. 14:00 på afrejsedagen', price: 350, icon: Clock, unit: 'engangsbeløb' },
   { id: 'crib', name: 'Barneseng', desc: 'Rejseseng med madras klar ved ankomst', price: 200, icon: Baby, unit: 'pr. ophold' },
-  { id: 'premium', name: 'Premium-pakke', desc: 'Velkomstkurv, blomster, vin og lokale specialiteter', price: 495, icon: Sparkles, unit: 'engangsbeløb' },
+  { id: 'premium', name: 'Premium-pakke', desc: 'Velkomstkurv, blomster, vin og specialiteter', price: 495, icon: Sparkles, unit: 'engangsbeløb' },
 ];
 
 export default function GuestAddons() {
@@ -36,88 +36,51 @@ export default function GuestAddons() {
   const loadBooking = async () => {
     if (!user?.email) return;
     const { data } = await supabase
-      .from('bookings')
-      .select('id')
-      .eq('guest_email', user.email)
-      .in('status', ['confirmed', 'pending'])
-      .order('check_in', { ascending: true })
-      .limit(1);
+      .from('bookings').select('id').eq('guest_email', user.email)
+      .in('status', ['confirmed', 'pending']).order('check_in', { ascending: true }).limit(1);
     if (data?.[0]) setBookingId(data[0].id);
   };
 
   const addons = dbAddons.length > 0
     ? dbAddons.map(a => ({
-        id: a.id,
-        name: a.name,
-        desc: a.description || '',
-        price: a.price / 100, // stored in øre
-        icon: ShoppingBag,
-        unit: a.price_type === 'per_night' ? 'pr. nat' : a.price_type === 'per_guest' ? 'pr. gæst' : 'engangsbeløb',
+        id: a.id, name: a.name, desc: a.description || '', price: a.price / 100,
+        icon: ShoppingBag, unit: a.price_type === 'per_night' ? 'pr. nat' : a.price_type === 'per_guest' ? 'pr. gæst' : 'engangsbeløb',
       }))
     : defaultAddons;
 
-  const toggle = (id: string) => {
-    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  };
-
+  const toggle = (id: string) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   const selectedAddons = addons.filter(a => selected.includes(a.id));
   const totalPrice = selectedAddons.reduce((s, a) => s + a.price, 0);
 
   const handleCheckout = async () => {
     if (selectedAddons.length === 0) return;
     setPaying(true);
-
     try {
-      const items = selectedAddons.map(a => ({
-        name: a.name,
-        description: a.desc,
-        price: a.price,
-        quantity: 1,
-        itemType: 'addon',
-        referenceId: a.id,
-      }));
-
+      const items = selectedAddons.map(a => ({ name: a.name, description: a.desc, price: a.price, quantity: 1, itemType: 'addon', referenceId: a.id }));
       const { data, error } = await supabase.functions.invoke('create-addon-checkout', {
-        body: {
-          items,
-          bookingId,
-          userType: 'guest',
-          successUrl: `${window.location.origin}/guest/addons?payment=success`,
-          cancelUrl: `${window.location.origin}/guest/addons?payment=cancelled`,
-        },
+        body: { items, bookingId, userType: 'guest', successUrl: `${window.location.origin}/guest/addons?payment=success`, cancelUrl: `${window.location.origin}/guest/addons?payment=cancelled` },
       });
-
-      if (error || !data?.url) {
-        throw new Error(error?.message || 'Kunne ikke oprette betaling');
-      }
-
+      if (error || !data?.url) throw new Error(error?.message || 'Kunne ikke oprette betaling');
       window.location.href = data.url;
-    } catch (err: any) {
-      console.error('Checkout error:', err);
+    } catch {
       toast.error('Der opstod en fejl. Prøv venligst igen.');
       setPaying(false);
     }
   };
 
-  // Check for payment result in URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const paymentStatus = params.get('payment');
-    if (paymentStatus === 'success') {
-      toast.success('Betaling gennemført! Dine tilkøb er bekræftet.');
-      window.history.replaceState({}, '', '/guest/addons');
-    } else if (paymentStatus === 'cancelled') {
-      toast.error('Betaling annulleret.');
-      window.history.replaceState({}, '', '/guest/addons');
-    }
+    const ps = params.get('payment');
+    if (ps === 'success') { toast.success('Betaling gennemført!'); window.history.replaceState({}, '', '/guest/addons'); }
+    else if (ps === 'cancelled') { toast.error('Betaling annulleret.'); window.history.replaceState({}, '', '/guest/addons'); }
   }, []);
 
   return (
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
-      <div className="space-y-6">
+      <div className="space-y-5">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Skræddersy dit ophold</h1>
-          <p className="text-sm text-muted-foreground mt-1">Tilføj det, der gør din ferie endnu bedre — nemt og hurtigt</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">Tilkøb</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gør dit ophold endnu bedre</p>
         </div>
 
         <div className="space-y-2">
@@ -127,11 +90,11 @@ export default function GuestAddons() {
             return (
               <Card
                 key={addon.id}
-                className={`cursor-pointer transition-all ${isSelected ? 'border-accent bg-accent/5' : 'hover:border-accent/20'}`}
+                className={`cursor-pointer transition-all border-border/40 ${isSelected ? 'border-accent/30 bg-accent/5' : 'hover:border-border/60'}`}
                 onClick={() => toggle(addon.id)}
               >
                 <CardContent className="p-4 flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-accent/20' : 'bg-muted'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-accent/15' : 'bg-muted/30'}`}>
                     <Icon className={`w-5 h-5 ${isSelected ? 'text-accent' : 'text-muted-foreground'}`} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -142,8 +105,8 @@ export default function GuestAddons() {
                     <div className="text-sm font-semibold text-foreground">{addon.price} kr</div>
                     <div className="text-[10px] text-muted-foreground">{addon.unit}</div>
                   </div>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'border-accent bg-accent' : 'border-muted-foreground/30'}`}>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-background" />}
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${isSelected ? 'border-accent bg-accent' : 'border-border'}`}>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-accent-foreground" />}
                   </div>
                 </CardContent>
               </Card>
@@ -152,7 +115,7 @@ export default function GuestAddons() {
         </div>
 
         {selected.length > 0 && (
-          <Card className="border-accent/30 bg-accent/5 sticky bottom-4">
+          <Card className="border-accent/20 bg-accent/5 sticky bottom-20 md:bottom-4 shadow-lg">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-foreground">{selected.length} tilkøb valgt</div>
