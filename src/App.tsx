@@ -76,11 +76,9 @@ import AdminPipelineTemplates from "./pages/admin/AdminPipelineTemplates";
 import GuestAuth from "./pages/guest/GuestAuth";
 import GuestDashboard from "./pages/guest/GuestDashboard";
 import GuestReservation from "./pages/guest/GuestReservation";
-import GuestCheckin from "./pages/guest/GuestCheckin";
-import GuestHouseInfo from "./pages/guest/GuestHouseInfo";
+import GuestProperty from "./pages/guest/GuestProperty";
 import GuestAddons from "./pages/guest/GuestAddons";
 import GuestMessages from "./pages/guest/GuestMessages";
-import GuestSupport from "./pages/guest/GuestSupport";
 import GuestCheckout from "./pages/guest/GuestCheckout";
 import GuestPayment from "./pages/guest/GuestPayment";
 
