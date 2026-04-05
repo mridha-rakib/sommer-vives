@@ -31,7 +31,9 @@ type Tab = 'checkin' | 'checkout' | 'house' | 'videos';
 
 export default function GuestProperty() {
   const { user, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState<Tab>('checkin');
+  const [searchParams] = useSearchParams();
+  const initialTab = (searchParams.get('tab') as Tab) || 'checkin';
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [property, setProperty] = useState<any>(null);
   const [listing, setListing] = useState<any>(null);
   const [listingId, setListingId] = useState<string | null>(null);
