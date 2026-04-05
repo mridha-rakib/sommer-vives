@@ -314,6 +314,13 @@ export default function GuestDashboard() {
           </Card>
         )}
 
+        {/* ─── CONTEXTUAL UPSELL NUDGE ─── */}
+        {isUpcoming && daysUntil <= 7 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+            <ContextualNudge context="dashboard" daysUntil={daysUntil} />
+          </motion.div>
+        )}
+
         {/* ─── MESSAGES — CENTRAL & PROMINENT ─── */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <Card className="border-[hsl(var(--gold))]/10 rounded-2xl overflow-hidden bg-gradient-to-br from-card to-[hsl(var(--gold))]/[0.02]">
