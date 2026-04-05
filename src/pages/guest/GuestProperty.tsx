@@ -82,6 +82,7 @@ export default function GuestProperty() {
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'checkin', label: 'Ankomst' },
+    { key: 'checkout', label: 'Udtjekning' },
     { key: 'house', label: 'Om huset' },
     { key: 'videos', label: 'Videoguides' },
   ];
