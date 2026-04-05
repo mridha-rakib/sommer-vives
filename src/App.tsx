@@ -186,13 +186,15 @@ const App = () => (
             <Route path="/guest/auth" element={<GuestAuth />} />
             <Route path="/guest" element={<GuestProtectedRoute><GuestDashboard /></GuestProtectedRoute>} />
             <Route path="/guest/reservation" element={<GuestProtectedRoute><GuestReservation /></GuestProtectedRoute>} />
-            <Route path="/guest/checkin" element={<GuestProtectedRoute><GuestCheckin /></GuestProtectedRoute>} />
-            <Route path="/guest/house-info" element={<GuestProtectedRoute><GuestHouseInfo /></GuestProtectedRoute>} />
+            <Route path="/guest/property" element={<GuestProtectedRoute><GuestProperty /></GuestProtectedRoute>} />
             <Route path="/guest/addons" element={<GuestProtectedRoute><GuestAddons /></GuestProtectedRoute>} />
             <Route path="/guest/payment" element={<GuestProtectedRoute><GuestPayment /></GuestProtectedRoute>} />
             <Route path="/guest/messages" element={<GuestProtectedRoute><GuestMessages /></GuestProtectedRoute>} />
-            <Route path="/guest/support" element={<GuestProtectedRoute><GuestSupport /></GuestProtectedRoute>} />
             <Route path="/guest/checkout" element={<GuestProtectedRoute><GuestCheckout /></GuestProtectedRoute>} />
+            {/* Legacy redirects */}
+            <Route path="/guest/checkin" element={<Navigate to="/guest/property" replace />} />
+            <Route path="/guest/house-info" element={<Navigate to="/guest/property" replace />} />
+            <Route path="/guest/support" element={<Navigate to="/guest/messages" replace />} />
 
             {/* ─── Admin Panel ─── */}
             <Route path="/admin/auth" element={<AdminAuth />} />
