@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { VideoGuideGrid } from '@/components/listing/VideoGuideGrid';
+import { ContextualNudge } from '@/components/guest/ContextualNudge';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function GuestDashboard() {
@@ -311,6 +312,13 @@ export default function GuestDashboard() {
               </Link>
             </CardContent>
           </Card>
+        )}
+
+        {/* ─── CONTEXTUAL UPSELL NUDGE ─── */}
+        {isUpcoming && daysUntil <= 7 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
+            <ContextualNudge context="dashboard" daysUntil={daysUntil} />
+          </motion.div>
         )}
 
         {/* ─── MESSAGES — CENTRAL & PROMINENT ─── */}

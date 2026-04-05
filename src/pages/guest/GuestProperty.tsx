@@ -15,6 +15,7 @@ import {
   UserCircle, Mail, MessageCircle, Map
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ContextualNudge } from '@/components/guest/ContextualNudge';
 
 const houseSections = [
   { icon: Wifi, title: 'WiFi', content: 'Netværksnavn og kode finder du på opslagstavlen i stuen.', key: 'wifi' },
@@ -298,6 +299,9 @@ function CheckinTab({ guide, keybox, property, hasCode }: any) {
         </CardContent>
       </Card>
 
+      {/* Contextual nudge — early check-in */}
+      <ContextualNudge context="checkin" />
+
       {/* Steps */}
       <div className="space-y-2">
         {steps.map((s) => (
@@ -396,6 +400,9 @@ function CheckoutTab({ guide, listing }: any) {
           <p className="text-xs text-muted-foreground mt-2">Følg tjeklisten herunder, så er du helt klar</p>
         </CardContent>
       </Card>
+
+      {/* Contextual nudge — late checkout */}
+      <ContextualNudge context="checkout" />
 
       {/* Departure checklist */}
       <Card className="border-border/30 rounded-2xl">
