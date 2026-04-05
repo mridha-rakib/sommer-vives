@@ -321,191 +321,91 @@ export default function GuestDashboard() {
           </motion.div>
         )}
 
-        {/* ─── MESSAGES — CENTRAL & PROMINENT ─── */}
+        {/* ─── COMBINED CONTACT & MESSAGES SECTION ─── */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <Card className="border-[hsl(var(--gold))]/10 rounded-2xl overflow-hidden bg-gradient-to-br from-card to-[hsl(var(--gold))]/[0.02]">
-            <CardContent className="p-0">
-              {/* Header */}
-              <Link to="/guest/messages" className="block">
-                <div className="flex items-center gap-2.5 px-5 pt-5 pb-3">
-                  <div className="w-8 h-8 rounded-full bg-[hsl(var(--gold))]/15 flex items-center justify-center">
-                    <MessageCircle className="w-4 h-4 text-[hsl(var(--gold))]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-display font-semibold text-foreground">Beskeder</span>
-                    <p className="text-[10px] text-muted-foreground">Vi svarer typisk inden for 1-2 timer</p>
-                  </div>
-                  {unreadCount > 0 && (
-                    <span className="w-5 h-5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center animate-pulse">{unreadCount}</span>
-                  )}
-                  <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
-                </div>
-              </Link>
-
-              {/* Message previews */}
-              <div className="px-5 pb-4">
-                {recentMessages.length > 0 ? (
-                  <div className="space-y-2">
-                    {recentMessages.slice(0, 3).map(msg => (
-                      <Link to="/guest/messages" key={msg.id}>
-                        <div className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-muted/20 transition-colors">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold mt-0.5 ${msg.sender_type === 'admin' ? 'bg-[hsl(var(--gold))]/15 text-[hsl(var(--gold))]' : 'bg-muted/40 text-muted-foreground'}`}>
-                            {msg.sender_type === 'admin' ? 'SV' : 'Du'}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-foreground line-clamp-1">{msg.message}</p>
-                            <span className="text-[10px] text-muted-foreground">
-                              {new Date(msg.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          {msg.sender_type === 'admin' && !msg.is_read && (
-                            <div className="w-2 h-2 rounded-full bg-[hsl(var(--gold))] shrink-0 mt-2" />
-                          )}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
+            <CardContent className="p-5 space-y-4">
+              {/* Contact person + support info */}
+              <div className="flex items-start gap-4">
+                {listing?.contact_image ? (
+                  <img src={listing.contact_image} alt={listing?.contact_name} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-border/30" />
                 ) : (
-                  <div className="text-center py-4">
-                    <p className="text-xs text-muted-foreground mb-2">Ingen beskeder endnu</p>
-                    <Link to="/guest/messages">
-                      <Button size="sm" variant="gold" className="text-xs rounded-xl">
-                        <MessageCircle className="w-3 h-3 mr-1" />Start en samtale
-                      </Button>
-                    </Link>
+                  <div className="w-14 h-14 rounded-xl bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0">
+                    <UserCircle className="w-7 h-7 text-[hsl(var(--gold))]/40" />
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* ─── YOUR CONTACT PERSON (MÆGLER / UDLEJNINGSCHEF) ─── */}
-        {listing?.contact_name && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-            <Card className="border-[hsl(var(--gold))]/10 rounded-2xl overflow-hidden">
-              <CardContent className="p-5">
-                <span className="text-[9px] font-semibold tracking-[0.2em] uppercase text-[hsl(var(--gold))]/70 mb-3 block">
-                  Din udlejningsrådgiver
-                </span>
-                <div className="flex items-center gap-4">
-                  {listing.contact_image ? (
-                    <img src={listing.contact_image} alt={listing.contact_name} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-border/30" />
+                <div className="flex-1 min-w-0">
+                  {listing?.contact_name ? (
+                    <>
+                      <h4 className="font-display text-base font-semibold text-foreground">{listing.contact_name}</h4>
+                      {listing.contact_role && (
+                        <p className="text-[11px] text-[hsl(var(--gold))] font-medium">{listing.contact_role}</p>
+                      )}
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                        Din personlige kontakt · Alle dage 10–22
+                      </p>
+                    </>
                   ) : (
-                    <div className="w-14 h-14 rounded-xl bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0">
-                      <UserCircle className="w-7 h-7 text-[hsl(var(--gold))]/40" />
-                    </div>
+                    <>
+                      <h4 className="font-display text-base font-semibold text-foreground">Support & kontakt</h4>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Vi er klar alle dage fra 10:00 – 22:00</p>
+                    </>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-display text-base font-semibold text-foreground">{listing.contact_name}</h4>
-                    {listing.contact_role && (
-                      <p className="text-[11px] text-[hsl(var(--gold))] font-medium">{listing.contact_role}</p>
-                    )}
-                    {listing.contact_text && (
-                      <p className="text-[11px] text-muted-foreground mt-1.5 leading-relaxed line-clamp-2">{listing.contact_text}</p>
-                    )}
-                  </div>
                 </div>
-                <div className="flex items-center gap-2 mt-4">
-                  {listing.contact_phone && (
-                    <a href={`tel:${listing.contact_phone}`} className="flex-1">
-                      <Button variant="outline" className="w-full text-xs rounded-xl h-9 gap-1.5">
-                        <Phone className="w-3.5 h-3.5" />Ring op
-                      </Button>
-                    </a>
-                  )}
-                  {listing.contact_email && (
-                    <a href={`mailto:${listing.contact_email}`} className="flex-1">
-                      <Button variant="outline" className="w-full text-xs rounded-xl h-9 gap-1.5">
-                        <Mail className="w-3.5 h-3.5" />Send mail
-                      </Button>
-                    </a>
-                  )}
-                  <Link to="/guest/messages" className="flex-1">
-                    <Button variant="gold" className="w-full text-xs rounded-xl h-9 gap-1.5">
-                      <MessageCircle className="w-3.5 h-3.5" />Chat
-                    </Button>
+                {unreadCount > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center animate-pulse shrink-0">{unreadCount}</span>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-2">
+                <a href={`tel:${listing?.contact_phone || '+4542440727'}`} className="flex-1">
+                  <Button variant="outline" className="w-full text-xs rounded-xl h-9 gap-1.5">
+                    <Phone className="w-3.5 h-3.5" />Ring
+                  </Button>
+                </a>
+                <a href={`mailto:${listing?.contact_email || 'support@sommervibes.dk'}`} className="flex-1">
+                  <Button variant="outline" className="w-full text-xs rounded-xl h-9 gap-1.5">
+                    <Mail className="w-3.5 h-3.5" />Mail
+                  </Button>
+                </a>
+                <Link to="/guest/messages" className="flex-1">
+                  <Button variant="gold" className="w-full text-xs rounded-xl h-9 gap-1.5">
+                    <MessageCircle className="w-3.5 h-3.5" />Chat
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Recent messages preview */}
+              {recentMessages.length > 0 ? (
+                <div className="border-t border-border/20 pt-3 space-y-1.5">
+                  {recentMessages.slice(0, 2).map(msg => (
+                    <Link to="/guest/messages" key={msg.id}>
+                      <div className="flex items-start gap-2.5 p-2 rounded-xl hover:bg-muted/20 transition-colors">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[8px] font-bold mt-0.5 ${msg.sender_type === 'admin' ? 'bg-[hsl(var(--gold))]/15 text-[hsl(var(--gold))]' : 'bg-muted/40 text-muted-foreground'}`}>
+                          {msg.sender_type === 'admin' ? 'SV' : 'Du'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-foreground line-clamp-1">{msg.message}</p>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(msg.created_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        {msg.sender_type === 'admin' && !msg.is_read && (
+                          <div className="w-2 h-2 rounded-full bg-[hsl(var(--gold))] shrink-0 mt-2" />
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                  <Link to="/guest/messages" className="block text-center pt-1">
+                    <span className="text-[11px] text-[hsl(var(--gold))] font-medium hover:underline">Se alle beskeder →</span>
                   </Link>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* ─── QUICK ACTIONS ─── */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-4 gap-2">
-          <QuickAction href="/guest/property" icon={DoorOpen} label="Ankomst" desc="Guide & koder" accent />
-          <QuickAction href="/guest/property?tab=checkout" icon={CalendarDays} label="Udtjekning" desc="Tjekliste" />
-          <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" desc="Opgrader" />
-          <QuickAction href="/guest/messages" icon={MessageCircle} label="Support" desc="Hjælp & chat" />
-        </motion.div>
-
-        {/* ─── VIDEO GUIDES ─── */}
-        {listingId && <VideoGuideGrid listingId={listingId} />}
-
-        {/* ─── ABOUT THE PROPERTY ─── */}
-        {(listing?.about_property || listing?.description) && (
-          <Card className="border-border/30 rounded-2xl">
-            <CardContent className="p-5">
-              <h3 className="font-display text-sm font-semibold text-foreground mb-2">Om {propertyName}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">
-                {listing.about_property || listing.description}
-              </p>
-              <Link to="/guest/property" className="inline-block mt-2.5">
-                <span className="text-xs text-[hsl(var(--gold))] font-medium hover:underline">Læs mere om boligen →</span>
-              </Link>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ─── BEDROOM OVERVIEW ─── */}
-        {listing?.bedroom_cards && (listing.bedroom_cards as any[]).length > 0 && (
-          <Card className="border-border/30 rounded-2xl">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <BedDouble className="w-4 h-4 text-[hsl(var(--gold))]" />
-                <span className="text-sm font-display font-semibold text-foreground">Sengepladser</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2.5">
-                {(listing.bedroom_cards as any[]).slice(0, 4).map((room: any, i: number) => (
-                  <div key={i} className="rounded-xl border border-border/30 bg-card/60 p-3">
-                    <span className="text-xs font-semibold text-foreground block">{room.title || `Soveværelse ${i + 1}`}</span>
-                    {room.beds && <span className="text-[10px] text-muted-foreground">{room.beds}</span>}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ─── SUPPORT & EMERGENCY SECTION ─── */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }}>
-          <Card className="border-border/30 rounded-2xl">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <LifeBuoy className="w-4 h-4 text-[hsl(var(--gold))]" />
-                <span className="text-sm font-display font-semibold text-foreground">Support & hjælp</span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                Vi er klar til at hjælpe dig alle dage fra <strong className="text-foreground">10:00 – 22:00</strong>. Uden for åbningstid brug venligst nødnummeret.
-              </p>
-              <div className="grid grid-cols-2 gap-2.5 mb-3">
-                <a href="tel:+4542440727">
-                  <Button variant="outline" className="w-full text-xs rounded-xl h-10 gap-1.5">
-                    <Phone className="w-3.5 h-3.5" />+45 42 44 07 27
-                  </Button>
-                </a>
-                <a href="mailto:support@sommervibes.dk">
-                  <Button variant="outline" className="w-full text-xs rounded-xl h-10 gap-1.5">
-                    <Mail className="w-3.5 h-3.5" />Send e-mail
-                  </Button>
-                </a>
-              </div>
-              <Link to="/guest/messages">
-                <Button variant="gold" className="w-full text-xs rounded-xl h-10 gap-1.5">
-                  <MessageCircle className="w-3.5 h-3.5" />Skriv til os i chatten
-                </Button>
-              </Link>
+              ) : (
+                <div className="border-t border-border/20 pt-3 text-center">
+                  <p className="text-[11px] text-muted-foreground">Ingen beskeder endnu — skriv til os hvis du har spørgsmål</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>
