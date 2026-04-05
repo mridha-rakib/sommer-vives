@@ -8,7 +8,7 @@ import {
   CalendarDays, MapPin, Users, ChevronRight, DoorOpen, ShoppingBag,
   MessageCircle, Sparkles, CreditCard, Copy, Crown, Star, Wifi, Key,
   BedDouble, Bath, UserCircle, Mail, Phone, Map, LayoutGrid, ChevronLeft,
-  Play
+  Play, LifeBuoy, AlertTriangle
 } from 'lucide-react';
 import { format, differenceInDays, differenceInHours, isFuture, isPast } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -425,10 +425,11 @@ export default function GuestDashboard() {
         )}
 
         {/* ─── QUICK ACTIONS ─── */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-3 gap-2.5">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-4 gap-2">
           <QuickAction href="/guest/property" icon={DoorOpen} label="Ankomst" desc="Guide & koder" accent />
-          <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" desc="Opgrader opholdet" />
-          <QuickAction href="/guest/property" icon={BedDouble} label="Om huset" desc="Info & sengepladser" />
+          <QuickAction href="/guest/property?tab=checkout" icon={CalendarDays} label="Udtjekning" desc="Tjekliste" />
+          <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" desc="Opgrader" />
+          <QuickAction href="/guest/messages" icon={MessageCircle} label="Support" desc="Hjælp & chat" />
         </motion.div>
 
         {/* ─── VIDEO GUIDES ─── */}
@@ -468,6 +469,38 @@ export default function GuestDashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* ─── SUPPORT & EMERGENCY SECTION ─── */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }}>
+          <Card className="border-border/30 rounded-2xl">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <LifeBuoy className="w-4 h-4 text-[hsl(var(--gold))]" />
+                <span className="text-sm font-display font-semibold text-foreground">Support & hjælp</span>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                Vi er klar til at hjælpe dig alle dage fra <strong className="text-foreground">10:00 – 22:00</strong>. Uden for åbningstid brug venligst nødnummeret.
+              </p>
+              <div className="grid grid-cols-2 gap-2.5 mb-3">
+                <a href="tel:+4542440727">
+                  <Button variant="outline" className="w-full text-xs rounded-xl h-10 gap-1.5">
+                    <Phone className="w-3.5 h-3.5" />+45 42 44 07 27
+                  </Button>
+                </a>
+                <a href="mailto:support@sommervibes.dk">
+                  <Button variant="outline" className="w-full text-xs rounded-xl h-10 gap-1.5">
+                    <Mail className="w-3.5 h-3.5" />Send e-mail
+                  </Button>
+                </a>
+              </div>
+              <Link to="/guest/messages">
+                <Button variant="gold" className="w-full text-xs rounded-xl h-10 gap-1.5">
+                  <MessageCircle className="w-3.5 h-3.5" />Skriv til os i chatten
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* ─── PAYMENT SUMMARY ─── */}
         <Card className="border-border/30 rounded-2xl">
