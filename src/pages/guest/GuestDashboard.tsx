@@ -4,19 +4,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { GuestLayout } from '@/components/layout/GuestLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, MapPin, Users, Clock, ChevronRight, DoorOpen, ShoppingBag, MessageCircle, Sparkles, CreditCard, Copy, Crown } from 'lucide-react';
+import { CalendarDays, MapPin, Users, Clock, ChevronRight, DoorOpen, ShoppingBag, MessageCircle, Sparkles, CreditCard, Copy, Crown, Star, Wifi, Key } from 'lucide-react';
 import { format, differenceInDays, differenceInHours, isFuture, isPast } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GuestStayTimeline } from '@/components/guest/GuestStayTimeline';
 import { toast } from 'sonner';
+import { VideoGuideGrid } from '@/components/listing/VideoGuideGrid';
+import { motion } from 'framer-motion';
 
 export default function GuestDashboard() {
   const { user, signOut } = useAuth();
   const [booking, setBooking] = useState<any>(null);
   const [property, setProperty] = useState<any>(null);
   const [listing, setListing] = useState<any>(null);
+  const [listingId, setListingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,12 +39,13 @@ export default function GuestDashboard() {
       setBooking(bookings[0]);
       const [propRes, listRes] = await Promise.all([
         supabase.from('properties').select('*').eq('id', bookings[0].property_id).single(),
-        supabase.from('listings').select('hero_image, name, region, check_in_time, check_out_time').eq('is_active', true).limit(10),
+        supabase.from('listings').select('id, hero_image, name, region, check_in_time, check_out_time, tagline').eq('is_active', true).limit(10),
       ]);
       setProperty(propRes.data);
       if (listRes.data?.length) {
         const match = listRes.data.find((l: any) => l.name === propRes.data?.title) || listRes.data[0];
         setListing(match);
+        setListingId(match?.id || null);
       }
     }
     setLoading(false);
@@ -71,6 +74,7 @@ export default function GuestDashboard() {
   };
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || '';
+  const propertyName = property?.title || listing?.name || 'Dit sommerhus';
 
   if (loading) {
     return (
@@ -96,136 +100,182 @@ export default function GuestDashboard() {
 
   return (
     <GuestLayout guestEmail={user?.email} onLogout={signOut}>
-      <div className="space-y-5">
-        {/* Premium hero with image */}
-        <div className="relative overflow-hidden rounded-2xl">
+      <div className="space-y-6">
+
+        {/* ─── PREMIUM HERO ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-3xl"
+        >
           {heroImage ? (
-            <div className="h-56 md:h-72">
+            <div className="h-64 md:h-80">
               <img src={heroImage} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
             </div>
           ) : (
-            <div className="h-56 md:h-72 bg-gradient-to-br from-accent/15 via-card to-accent/5 flex items-center justify-center border border-border/40 rounded-2xl">
-              <Sparkles className="w-16 h-16 text-accent/15" />
+            <div className="h-64 md:h-80 bg-gradient-to-br from-accent/15 via-card to-accent/5 flex items-center justify-center border border-border/40 rounded-3xl">
+              <Sparkles className="w-20 h-20 text-accent/10" />
             </div>
           )}
 
-          <div className="absolute top-4 left-4">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm border border-white/10">
-              <Crown className="w-3 h-3 text-[hsl(var(--gold-light,45,80%,65%))]" />
-              <span className="text-[10px] font-semibold text-white/90 uppercase tracking-wider">SommerVibes Gæst</span>
+          {/* Gold member badge */}
+          <div className="absolute top-5 left-5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[hsl(var(--gold))]/20 backdrop-blur-md border border-[hsl(var(--gold))]/20">
+              <Crown className="w-3.5 h-3.5 text-[hsl(var(--gold))]" />
+              <span className="text-[10px] font-bold text-[hsl(var(--gold))] uppercase tracking-[0.15em]">SommerVibes Gæst</span>
             </div>
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 p-5">
-            <Badge className="bg-accent/90 text-accent-foreground border-0 mb-2 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm">
+          {/* Status pill */}
+          <div className="absolute top-5 right-5">
+            <Badge className="bg-accent/90 text-accent-foreground border-0 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm shadow-lg">
               {getStatusLabel()}
             </Badge>
-            <h1 className="font-display text-xl md:text-2xl font-bold text-white leading-tight">
+          </div>
+
+          {/* Hero text */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="font-display text-2xl md:text-3xl font-bold text-white leading-tight"
+            >
               {firstName ? `Velkommen, ${firstName}` : 'Velkommen'}
-            </h1>
-            <p className="text-sm text-white/70 mt-0.5">
-              {property?.title || listing?.name || 'Dit sommerhus'} · {property?.region || listing?.region}
-            </p>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35 }}
+              className="text-white/70 mt-1 text-sm md:text-base"
+            >
+              {propertyName} · {property?.region || listing?.region}
+            </motion.p>
+            {listing?.tagline && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.45 }}
+                className="text-white/50 mt-1 text-xs italic"
+              >
+                "{listing.tagline}"
+              </motion.p>
+            )}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Key info cards - clean grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-          <InfoTile label="Ankomst" value={format(new Date(booking.check_in), 'd. MMM', { locale: da })} sub={`kl. ${checkInTime}`} />
-          <InfoTile label="Afrejse" value={format(new Date(booking.check_out), 'd. MMM', { locale: da })} sub={`kl. ${checkOutTime}`} />
-          <InfoTile label="Gæster" value={`${booking.guests_count || 1}`} sub={`${booking.nights} nætter`} />
+        {/* ─── KEY INFO STRIP ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-3"
+        >
+          <InfoTile icon={CalendarDays} label="Ankomst" value={format(new Date(booking.check_in), 'd. MMM', { locale: da })} sub={`kl. ${checkInTime}`} />
+          <InfoTile icon={CalendarDays} label="Afrejse" value={format(new Date(booking.check_out), 'd. MMM', { locale: da })} sub={`kl. ${checkOutTime}`} />
+          <InfoTile icon={Users} label="Gæster" value={`${booking.guests_count || 1} pers.`} sub={`${booking.nights} nætter`} />
           <div onClick={copyRef} className="cursor-pointer group">
-            <InfoTile label="Reference" value={booking.case_number || booking.id.slice(0, 8)} sub="Tryk for at kopiere" mono />
+            <InfoTile icon={Copy} label="Reference" value={booking.case_number || booking.id.slice(0, 8)} sub="Tryk for at kopiere" mono />
           </div>
-        </div>
+        </motion.div>
 
-        {/* Countdown - only when upcoming */}
+        {/* ─── COUNTDOWN ─── */}
         {isUpcoming && daysUntil > 0 && daysUntil <= 30 && (
-          <Card className="border-accent/20 bg-gradient-to-r from-accent/5 to-transparent overflow-hidden">
-            <CardContent className="p-5 flex items-center gap-5">
-              <div className="text-center min-w-[60px]">
-                <div className="font-display text-4xl font-bold text-accent">{daysUntil}</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">dage</div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-foreground">
-                  {daysUntil <= 3 ? 'Næsten tid til ferie! 🎉' : daysUntil <= 7 ? 'Snart er du der!' : 'Din ferie nærmer sig'}
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
+            <Card className="border-[hsl(var(--gold))]/15 bg-gradient-to-r from-[hsl(var(--gold))]/5 to-transparent overflow-hidden rounded-2xl">
+              <CardContent className="p-6 flex items-center gap-6">
+                <div className="text-center min-w-[70px]">
+                  <div className="font-display text-5xl font-bold text-[hsl(var(--gold))]">{daysUntil}</div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] mt-1">dage</div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {daysUntil <= 1 ? 'Tjek din ankomstguide og kode' : 'Forbered dig under "Ankomst"'}
-                </p>
-              </div>
-              <Link to="/guest/checkin">
-                <Button size="sm" variant="gold" className="text-xs shrink-0">Se guide</Button>
-              </Link>
-            </CardContent>
-          </Card>
+                <div className="flex-1 min-w-0">
+                  <div className="font-display text-base font-semibold text-foreground">
+                    {daysUntil <= 3 ? 'Næsten tid til ferie! 🎉' : daysUntil <= 7 ? 'Snart er du der!' : 'Din ferie nærmer sig'}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {daysUntil <= 1 ? 'Tjek din ankomstguide og adgangskode' : 'Alt er gjort klar til dig — tjek ankomstguiden'}
+                  </p>
+                </div>
+                <Link to="/guest/checkin">
+                  <Button size="sm" variant="gold" className="text-xs shrink-0 rounded-xl">Se guide</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
 
-        {/* Active stay */}
+        {/* ─── ACTIVE STAY ─── */}
         {isActive && (
-          <Card className="border-accent/20 bg-gradient-to-r from-accent/5 to-transparent">
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5 text-accent" />
+          <Card className="border-[hsl(var(--gold))]/15 bg-gradient-to-r from-[hsl(var(--gold))]/5 to-transparent rounded-2xl">
+            <CardContent className="p-6 flex items-center gap-5">
+              <div className="w-12 h-12 rounded-2xl bg-[hsl(var(--gold))]/10 flex items-center justify-center shrink-0">
+                <Star className="w-6 h-6 text-[hsl(var(--gold))]" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-semibold text-foreground">Du er på ferie ☀️</div>
-                <p className="text-xs text-muted-foreground">Brug for noget? Vi er klar alle dage.</p>
+                <div className="font-display text-base font-semibold text-foreground">Du er på ferie ☀️</div>
+                <p className="text-xs text-muted-foreground mt-0.5">Brug for noget? Vi er klar for dig alle dage.</p>
               </div>
               <Link to="/guest/support">
-                <Button size="sm" variant="outline" className="text-xs">Kontakt os</Button>
+                <Button size="sm" variant="outline" className="text-xs rounded-xl">Kontakt os</Button>
               </Link>
             </CardContent>
           </Card>
         )}
 
-        {/* Stay timeline */}
-        <GuestStayTimeline booking={booking} />
+        {/* ─── QUICK ACTIONS ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="grid grid-cols-3 gap-3"
+        >
+          <QuickAction href="/guest/checkin" icon={DoorOpen} label="Ankomst" desc="Guide & koder" accent />
+          <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" desc="Opgrader dit ophold" />
+          <QuickAction href="/guest/messages" icon={MessageCircle} label="Beskeder" desc="Kontakt os" />
+        </motion.div>
 
-        {/* Quick actions - simplified to 3 key actions */}
-        <div className="grid grid-cols-3 gap-2.5">
-          <QuickAction href="/guest/checkin" icon={DoorOpen} label="Ankomst" accent />
-          <QuickAction href="/guest/addons" icon={ShoppingBag} label="Tilkøb" />
-          <QuickAction href="/guest/messages" icon={MessageCircle} label="Beskeder" />
-        </div>
+        {/* ─── VIDEO GUIDES ─── */}
+        {listingId && <VideoGuideGrid listingId={listingId} />}
 
-        {/* Price summary - integrated */}
-        <Card className="border-border/40">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <CreditCard className="w-4 h-4 text-accent" />
-              <span className="text-sm font-semibold text-foreground">Betalingsoversigt</span>
+        {/* ─── PAYMENT SUMMARY ─── */}
+        <Card className="border-border/30 rounded-2xl">
+          <CardContent className="p-5 md:p-6">
+            <div className="flex items-center gap-2 mb-5">
+              <CreditCard className="w-4 h-4 text-[hsl(var(--gold))]" />
+              <span className="text-sm font-display font-semibold text-foreground">Betalingsoversigt</span>
               <div className="flex-1" />
-              <Badge variant="outline" className={`text-[10px] ${booking.payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
-                {booking.payment_status === 'paid' ? 'Betalt' : 'Afventer'}
+              <Badge variant="outline" className={`text-[10px] rounded-full ${booking.payment_status === 'paid' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
+                {booking.payment_status === 'paid' ? '✓ Betalt' : 'Afventer'}
               </Badge>
             </div>
-            <div className="space-y-1.5 text-sm">
+            <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Ophold ({booking.nights} nætter)</span>
-                <span>{Number(booking.base_price).toLocaleString('da-DK')} kr</span>
+                <span className="font-medium">{Number(booking.base_price).toLocaleString('da-DK')} kr</span>
               </div>
               {Number(booking.cleaning_fee) > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Rengøring</span>
-                  <span>{Number(booking.cleaning_fee).toLocaleString('da-DK')} kr</span>
+                  <span className="font-medium">{Number(booking.cleaning_fee).toLocaleString('da-DK')} kr</span>
                 </div>
               )}
-              <div className="border-t border-border/40 pt-2 flex justify-between font-semibold">
+              <div className="border-t border-border/30 pt-3 flex justify-between font-semibold">
                 <span>Total</span>
-                <span className="text-accent">{Number(booking.total_amount).toLocaleString('da-DK')} kr</span>
+                <span className="text-[hsl(var(--gold))]">{Number(booking.total_amount).toLocaleString('da-DK')} kr</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Address */}
+        {/* ─── ADDRESS ─── */}
         {property?.address && (
-          <Card className="border-border/40">
-            <CardContent className="p-4 flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-accent shrink-0" />
+          <Card className="border-border/30 rounded-2xl">
+            <CardContent className="p-4 md:p-5 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+                <MapPin className="w-5 h-5 text-accent" />
+              </div>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-foreground truncate">{property.address}</div>
                 <div className="text-xs text-muted-foreground">{property.region}</div>
@@ -234,9 +284,8 @@ export default function GuestDashboard() {
                 href={`https://maps.google.com/?q=${encodeURIComponent(property.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-accent font-medium hover:underline shrink-0"
               >
-                Kort →
+                <Button size="sm" variant="outline" className="text-xs rounded-xl">Vis kort →</Button>
               </a>
             </CardContent>
           </Card>
@@ -246,24 +295,30 @@ export default function GuestDashboard() {
   );
 }
 
-function InfoTile({ label, value, sub, mono }: { label: string; value: string; sub?: string; mono?: boolean }) {
+function InfoTile({ icon: Icon, label, value, sub, mono }: { icon: any; label: string; value: string; sub?: string; mono?: boolean }) {
   return (
-    <div className="rounded-xl border border-border/40 bg-card/60 p-3.5 hover:border-border/60 transition-colors">
-      <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</div>
-      <div className={`text-sm font-semibold text-foreground mt-1 ${mono ? 'font-mono' : ''}`}>{value}</div>
+    <div className="rounded-2xl border border-border/30 bg-card/80 p-4 hover:border-[hsl(var(--gold))]/20 transition-all duration-300">
+      <div className="flex items-center gap-1.5 mb-2">
+        <Icon className="w-3.5 h-3.5 text-[hsl(var(--gold))]/60" />
+        <span className="text-[10px] text-muted-foreground uppercase tracking-[0.12em] font-medium">{label}</span>
+      </div>
+      <div className={`text-sm font-semibold text-foreground ${mono ? 'font-mono' : ''}`}>{value}</div>
       {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
     </div>
   );
 }
 
-function QuickAction({ href, icon: Icon, label, accent }: { href: string; icon: any; label: string; accent?: boolean }) {
+function QuickAction({ href, icon: Icon, label, desc, accent }: { href: string; icon: any; label: string; desc?: string; accent?: boolean }) {
   return (
     <Link to={href}>
-      <div className={`flex flex-col items-center gap-2 py-4 rounded-xl border transition-all hover:shadow-sm ${accent ? 'border-accent/20 bg-accent/5 hover:border-accent/30' : 'border-border/40 bg-card/60 hover:border-border/60'}`}>
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${accent ? 'bg-accent/15' : 'bg-muted/40'}`}>
-          <Icon className={`w-5 h-5 ${accent ? 'text-accent' : 'text-muted-foreground'}`} />
+      <div className={`flex flex-col items-center gap-2.5 py-5 rounded-2xl border transition-all duration-300 hover:shadow-md ${accent ? 'border-[hsl(var(--gold))]/20 bg-[hsl(var(--gold))]/5 hover:border-[hsl(var(--gold))]/30' : 'border-border/30 bg-card/60 hover:border-border/50'}`}>
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${accent ? 'bg-[hsl(var(--gold))]/15' : 'bg-muted/40'}`}>
+          <Icon className={`w-5 h-5 ${accent ? 'text-[hsl(var(--gold))]' : 'text-muted-foreground'}`} />
         </div>
-        <span className="text-xs font-medium text-foreground">{label}</span>
+        <div className="text-center">
+          <span className="text-xs font-semibold text-foreground block">{label}</span>
+          {desc && <span className="text-[10px] text-muted-foreground">{desc}</span>}
+        </div>
       </div>
     </Link>
   );
