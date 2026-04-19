@@ -121,8 +121,8 @@ export function ComingSoonGate({ children }: { children: React.ReactNode }) {
 
           <p className="text-[11px] text-foreground/40 mt-6">
             Har du ikke en kode? Kontakt os på{' '}
-            <a href="mailto:hej@sommervibes.dk" className="text-primary hover:underline">
-              hej@sommervibes.dk
+            <a href="mailto:ek@klockmann.dk" className="text-primary hover:underline">
+              ek@klockmann.dk
             </a>
           </p>
         </div>
