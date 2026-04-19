@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
 import ScrollToTop from "@/components/ScrollToTop";
+import { ComingSoonGate } from "@/components/ComingSoonGate";
 
 // Public pages
 import Index from "./pages/Index";
@@ -130,6 +131,7 @@ function GuestProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
+  <ComingSoonGate>
   <LanguageProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -245,6 +247,7 @@ const App = () => (
       </AuthProvider>
     </QueryClientProvider>
   </LanguageProvider>
+  </ComingSoonGate>
 );
 
 export default App;
