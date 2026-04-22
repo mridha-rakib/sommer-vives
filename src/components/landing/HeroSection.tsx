@@ -17,21 +17,16 @@ const ROTATING_BENEFITS = [
 export function HeroSection() {
   const { t } = useTranslation();
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [wordIndex, setWordIndex] = useState(0);
+  const [benefitIndex, setBenefitIndex] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
-    }, 2800);
+      setBenefitIndex((i) => (i + 1) % ROTATING_BENEFITS.length);
+    }, 2600);
     return () => clearInterval(id);
   }, []);
 
-  const valueChips = [
-    { icon: TrendingUp, label: '85 % af indtægten' },
-    { icon: HeartHandshake, label: 'Personlig rådgiver' },
-    { icon: ShieldCheck, label: 'Kun 6 mdr. binding' },
-    { icon: Sparkles, label: 'Foto & video inkl.' },
-  ];
+  const CurrentIcon = ROTATING_BENEFITS[benefitIndex].icon;
 
   return (
     <section className="relative min-h-[100dvh] flex flex-col overflow-hidden">
@@ -61,13 +56,13 @@ export function HeroSection() {
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex items-center">
-        <div className="container mx-auto px-4 md:px-8 py-24 md:py-32">
-          <div className="max-w-3xl">
+        <div className="container mx-auto px-4 md:px-8 py-20 md:py-28">
+          <div className="max-w-2xl">
             {/* Eyebrow */}
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.15 }}
-              className="mb-6 sm:mb-8"
+              className="mb-5 sm:mb-7"
             >
               <span className="inline-flex items-center gap-2.5 bg-accent/10 backdrop-blur-md border border-accent/25 rounded-full px-4 py-1.5 text-accent font-body text-[10px] sm:text-[11px] font-semibold tracking-[0.32em] uppercase">
                 <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
@@ -75,71 +70,81 @@ export function HeroSection() {
               </span>
             </motion.div>
 
-            {/* Main headline with rotating word */}
+            {/* Fixed headline — no rotation, no wrapping issues */}
             <motion.h1
               initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.3, ease: 'easeOut' }}
-              className="font-display font-bold text-foreground mb-7 sm:mb-9 tracking-[-0.025em]
-                         text-[2.5rem] sm:text-5xl md:text-6xl lg:text-[5.5rem]
-                         leading-[0.95]"
+              className="font-display font-bold text-foreground mb-6 sm:mb-7 tracking-[-0.025em]
+                         text-[2.25rem] sm:text-[2.75rem] md:text-5xl lg:text-[4.25rem]
+                         leading-[1.02]"
             >
               Dit sommerhus,
               <br />
-              <span className="relative inline-block min-h-[1.1em] mt-1 sm:mt-2">
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={wordIndex}
-                    initial={{ opacity: 0, y: 25, filter: 'blur(8px)' }}
-                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, y: -25, filter: 'blur(8px)' }}
-                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                    className="italic font-normal text-accent inline-block"
-                    style={{
-                      backgroundImage: 'linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent) / 0.75) 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                    }}
-                  >
-                    {ROTATING_WORDS[wordIndex]}
-                  </motion.span>
-                </AnimatePresence>
+              <span
+                className="italic font-normal text-accent"
+                style={{
+                  backgroundImage: 'linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent) / 0.78) 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                vores passion
               </span>
             </motion.h1>
 
-            {/* Subtitle */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.55 }}
-              className="text-base sm:text-lg md:text-xl text-foreground/80 mb-8 sm:mb-10 max-w-xl leading-[1.65] font-light"
-            >
-              Vi tager os af det hele — markedsføring, gæster og drift —
-              så du kan nyde sommerhuset og <strong className="text-accent font-semibold">beholde 85 % af indtægten</strong>.
-            </motion.p>
-
-            {/* Animated value chips — replacing static checks */}
+            {/* Rotating benefits line — the new "wow" element */}
             <motion.div
-              initial="hidden"
-              animate="show"
-              variants={{
-                hidden: {},
-                show: { transition: { staggerChildren: 0.08, delayChildren: 0.85 } },
-              }}
-              className="hidden sm:flex flex-wrap gap-2.5 mb-10"
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.55 }}
+              className="mb-8 sm:mb-10"
             >
-              {valueChips.map((chip, i) => (
-                <motion.div
-                  key={i}
-                  variants={{
-                    hidden: { opacity: 0, y: 12 },
-                    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
-                  }}
-                  className="group flex items-center gap-2 bg-background/40 backdrop-blur-md border border-foreground/10 hover:border-accent/30 rounded-full pl-3 pr-4 py-2 transition-all duration-300 hover:bg-background/60"
-                >
-                  <chip.icon className="w-3.5 h-3.5 text-accent group-hover:scale-110 transition-transform" strokeWidth={2} />
-                  <span className="text-[12.5px] font-medium text-foreground/85">{chip.label}</span>
-                </motion.div>
-              ))}
+              <div className="flex items-center gap-3 min-h-[44px]">
+                <div className="relative w-9 h-9 flex-shrink-0 rounded-full bg-accent/12 border border-accent/25 flex items-center justify-center backdrop-blur-sm overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`icon-${benefitIndex}`}
+                      initial={{ opacity: 0, scale: 0.6, rotate: -20 }}
+                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                      exit={{ opacity: 0, scale: 0.6, rotate: 20 }}
+                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <CurrentIcon className="w-4 h-4 text-accent" strokeWidth={2} />
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                <div className="relative overflow-hidden flex-1 min-h-[28px] flex items-center">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={`text-${benefitIndex}`}
+                      initial={{ opacity: 0, y: 18, filter: 'blur(6px)' }}
+                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                      exit={{ opacity: 0, y: -18, filter: 'blur(6px)' }}
+                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      className="text-[15px] sm:text-base md:text-lg text-foreground/90 font-medium leading-snug"
+                    >
+                      {ROTATING_BENEFITS[benefitIndex].text}
+                    </motion.span>
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Progress dots */}
+              <div className="flex items-center gap-1.5 mt-4 ml-12">
+                {ROTATING_BENEFITS.map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="h-[3px] rounded-full"
+                    animate={{
+                      width: i === benefitIndex ? 24 : 6,
+                      backgroundColor: i === benefitIndex ? 'hsl(var(--accent))' : 'hsl(var(--foreground) / 0.18)',
+                    }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                  />
+                ))}
+              </div>
             </motion.div>
 
             {/* CTAs */}
