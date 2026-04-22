@@ -69,7 +69,7 @@ export function HeroSection() {
               className="mb-5 sm:mb-7"
             >
               <span className="inline-flex items-center gap-2.5 bg-accent/10 backdrop-blur-md border border-accent/25 rounded-full px-4 py-1.5 text-accent font-body text-[10px] sm:text-[11px] font-semibold tracking-[0.32em] uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <span className={`w-1.5 h-1.5 rounded-full bg-accent ${prefersReducedMotion ? '' : 'animate-pulse'}`} />
                 Moderne udlejning af sommerhuse
               </span>
             </motion.div>
