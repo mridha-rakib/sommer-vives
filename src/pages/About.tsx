@@ -27,7 +27,7 @@ const reveal = (isInView: boolean, delay = 0) => ({
 });
 
 /* ═══════════════════════════════════════════════════
-   1. HERO — Brand-led with cinematic background video
+   1. HERO — Brand-led with cinematic background video + Emil cutout
    ═══════════════════════════════════════════════════ */
 function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -48,31 +48,56 @@ function HeroSection() {
         )}
       </div>
 
-      <div className="relative z-10 container mx-auto px-5 md:px-10 py-32 md:py-0">
+      <div className="relative z-10 container mx-auto px-5 md:px-10 py-32 md:py-0 w-full">
         <div className="max-w-[1140px] mx-auto">
-          <div className="max-w-[620px]">
-            <motion.span {...fade(0.05)} className="inline-block text-accent/50 font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-5">
-              Om SommerVibes
-            </motion.span>
-            <motion.h1 {...fade(0.15)} className="font-display text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[3.8rem] font-bold leading-[1.05] tracking-[-0.02em] mb-6">
-              Vi bygger fremtidens
-              <br />
-              <span className="text-accent italic font-normal">sommerhusbureau</span>
-            </motion.h1>
-            <motion.p {...fade(0.3)} className="text-[15px] md:text-[16px] text-muted-foreground/85 leading-[1.8] mb-9 max-w-[480px]">
-              SommerVibes er et moderne, grundlægger-drevet bureau — mere personligt end de store, mere digitalt, mere gennemsigtigt. Bygget for husejere, der fortjener en bedre oplevelse.
-            </motion.p>
-            <motion.div {...fade(0.45)} className="flex flex-col sm:flex-row gap-3">
-              <Link to="/kom-i-gang">
-                <Button variant="gold" size="lg" className="gap-2.5 group px-8 h-12 text-[13.5px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.3)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.4)] transition-shadow duration-500">
-                  Udlej dit hus <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
-                </Button>
-              </Link>
-              <Link to="/book-vurdering">
-                <Button variant="outline" size="lg" className="border-accent/20 text-accent/80 hover:bg-accent/[0.05] hover:border-accent/30 px-8 h-12 text-[13.5px] font-medium transition-all duration-300">
-                  Book gratis udlejningstjek
-                </Button>
-              </Link>
+          <div className="flex items-center gap-2 sm:gap-6 md:gap-10 lg:gap-16">
+            <div className="flex-1 min-w-0 max-w-[620px]">
+              <motion.span {...fade(0.05)} className="inline-block text-accent/50 font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-5">
+                Om SommerVibes
+              </motion.span>
+              <motion.h1 {...fade(0.15)} className="font-display text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[3.8rem] font-bold leading-[1.05] tracking-[-0.02em] mb-6">
+                Vi bygger fremtidens
+                <br />
+                <span className="text-accent italic font-normal">sommerhusbureau</span>
+              </motion.h1>
+              <motion.p {...fade(0.3)} className="text-[15px] md:text-[16px] text-muted-foreground/85 leading-[1.8] mb-9 max-w-[480px]">
+                SommerVibes er et moderne, grundlægger-drevet bureau — mere personligt end de store, mere digitalt, mere gennemsigtigt. Bygget for husejere, der fortjener en bedre oplevelse.
+              </motion.p>
+              <motion.div {...fade(0.45)} className="flex flex-col sm:flex-row gap-3">
+                <Link to="/kom-i-gang">
+                  <Button variant="gold" size="lg" className="gap-2.5 group px-8 h-12 text-[13.5px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.3)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.4)] transition-shadow duration-500">
+                    Udlej dit hus <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+                  </Button>
+                </Link>
+                <Link to="/book-vurdering">
+                  <Button variant="outline" size="lg" className="border-accent/20 text-accent/80 hover:bg-accent/[0.05] hover:border-accent/30 px-8 h-12 text-[13.5px] font-medium transition-all duration-300">
+                    Book gratis udlejningstjek
+                  </Button>
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* Advisor cutout — identisk med landing hero */}
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1, delay: 0.8 }}
+              className="relative flex-shrink-0 w-[38vw] sm:w-[34vw] md:w-[32vw] lg:w-[38vw] xl:w-[36vw] max-w-[520px] self-end -mr-6 sm:-mr-8 md:-mr-10 lg:-mr-16">
+              <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[80%] h-[55%] rounded-full blur-[80px] sm:blur-[100px] animate-hero-shimmer" />
+              <div className="absolute top-[25%] left-1/2 -translate-x-1/2 w-[50%] h-[40%] bg-accent/8 rounded-full blur-[50px] animate-hero-shimmer-slow" />
+              <div className="relative" style={{
+                maskImage: 'linear-gradient(to bottom, black 65%, transparent 95%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 65%, transparent 95%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)',
+                maskComposite: 'intersect', WebkitMaskComposite: 'destination-in',
+              } as React.CSSProperties}>
+                <img src="/images/advisor-cutout.png" alt="Emil W. Klockmann — Udlejningschef"
+                  className="w-full h-auto object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              </div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 1.4 }}
+                className="hidden sm:block absolute bottom-[12%] left-1/2 -translate-x-1/2 mr-6 sm:mr-8 md:mr-10 lg:mr-16 w-[90%] max-w-[240px]">
+                <div className="bg-background/90 backdrop-blur-xl rounded-2xl px-4 py-2.5 border border-accent/15 shadow-elevated text-center">
+                  <p className="font-display font-bold text-foreground text-xs sm:text-sm">Emil W. Klockmann</p>
+                  <p className="text-accent text-[10px] sm:text-xs font-semibold">Udlejningschef</p>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
