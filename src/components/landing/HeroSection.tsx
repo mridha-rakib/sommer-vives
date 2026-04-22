@@ -36,7 +36,7 @@ export function HeroSection() {
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/10" />
         <video
-          autoPlay loop muted playsInline
+          autoPlay={!prefersReducedMotion} loop muted playsInline
           onLoadedData={() => setVideoLoaded(true)}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ${videoLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
         >
@@ -49,12 +49,14 @@ export function HeroSection() {
       </div>
 
       {/* Subtle floating accents */}
-      <motion.div
-        aria-hidden
-        className="absolute top-[20%] right-[8%] w-[420px] h-[420px] rounded-full bg-accent/[0.05] blur-[120px] z-0"
-        animate={{ y: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      {!prefersReducedMotion && (
+        <motion.div
+          aria-hidden
+          className="absolute top-[20%] right-[8%] w-[420px] h-[420px] rounded-full bg-accent/[0.05] blur-[120px] z-0"
+          animate={{ y: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      )}
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex items-center">
