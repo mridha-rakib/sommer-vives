@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Star, Handshake, ShieldCheck, MessageCircle, TrendingUp, Sparkles, HeartHandshake } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
