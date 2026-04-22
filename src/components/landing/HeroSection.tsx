@@ -5,12 +5,13 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
-const ROTATING_WORDS = [
-  'vores passion',
-  'vores fornemmeste opgave',
-  'vores hjertesag',
-  'vores fokus hver dag',
-  'vores håndværk',
+const ROTATING_BENEFITS = [
+  { icon: TrendingUp, text: 'Du beholder 85 % af indtægten' },
+  { icon: HeartHandshake, text: 'Personlig rådgiver der kender dit hus' },
+  { icon: Sparkles, text: 'Professionel foto & video inkluderet' },
+  { icon: ShieldCheck, text: 'Kun 6 måneders binding — fair aftale' },
+  { icon: Star, text: 'Vurderet 4,9 / 5 af husejere' },
+  { icon: MessageCircle, text: 'Support 7 dage om ugen' },
 ];
 
 export function HeroSection() {
