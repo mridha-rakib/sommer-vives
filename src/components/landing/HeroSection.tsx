@@ -16,15 +16,17 @@ const ROTATING_BENEFITS = [
 
 export function HeroSection() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [benefitIndex, setBenefitIndex] = useState(0);
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
     const id = setInterval(() => {
       setBenefitIndex((i) => (i + 1) % ROTATING_BENEFITS.length);
     }, 2600);
     return () => clearInterval(id);
-  }, []);
+  }, [prefersReducedMotion]);
 
   const CurrentIcon = ROTATING_BENEFITS[benefitIndex].icon;
 
