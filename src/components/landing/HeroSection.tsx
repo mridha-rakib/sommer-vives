@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Star, Handshake, ShieldCheck, MessageCircle, TrendingUp, Sparkles, HeartHandshake } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
@@ -16,15 +16,17 @@ const ROTATING_BENEFITS = [
 
 export function HeroSection() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [benefitIndex, setBenefitIndex] = useState(0);
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
     const id = setInterval(() => {
       setBenefitIndex((i) => (i + 1) % ROTATING_BENEFITS.length);
     }, 2600);
     return () => clearInterval(id);
-  }, []);
+  }, [prefersReducedMotion]);
 
   const CurrentIcon = ROTATING_BENEFITS[benefitIndex].icon;
 
@@ -34,7 +36,7 @@ export function HeroSection() {
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/10" />
         <video
-          autoPlay loop muted playsInline
+          autoPlay={!prefersReducedMotion} loop muted playsInline
           onLoadedData={() => setVideoLoaded(true)}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ${videoLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
         >
@@ -47,12 +49,14 @@ export function HeroSection() {
       </div>
 
       {/* Subtle floating accents */}
-      <motion.div
-        aria-hidden
-        className="absolute top-[20%] right-[8%] w-[420px] h-[420px] rounded-full bg-accent/[0.05] blur-[120px] z-0"
-        animate={{ y: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      {!prefersReducedMotion && (
+        <motion.div
+          aria-hidden
+          className="absolute top-[20%] right-[8%] w-[420px] h-[420px] rounded-full bg-accent/[0.05] blur-[120px] z-0"
+          animate={{ y: [0, -20, 0], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      )}
 
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex items-center">
@@ -65,7 +69,7 @@ export function HeroSection() {
               className="mb-5 sm:mb-7"
             >
               <span className="inline-flex items-center gap-2.5 bg-accent/10 backdrop-blur-md border border-accent/25 rounded-full px-4 py-1.5 text-accent font-body text-[10px] sm:text-[11px] font-semibold tracking-[0.32em] uppercase">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <span className={`w-1.5 h-1.5 rounded-full bg-accent ${prefersReducedMotion ? '' : 'animate-pulse'}`} />
                 Moderne udlejning af sommerhuse
               </span>
             </motion.div>
@@ -104,10 +108,10 @@ export function HeroSection() {
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={`icon-${benefitIndex}`}
-                      initial={{ opacity: 0, scale: 0.6, rotate: -20 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.6, rotate: 20 }}
-                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.6, rotate: -20 }}
+                      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, rotate: 0 }}
+                      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.6, rotate: 20 }}
+                      transition={{ duration: prefersReducedMotion ? 0.2 : 0.45, ease: [0.22, 1, 0.36, 1] }}
                       className="absolute inset-0 flex items-center justify-center"
                     >
                       <CurrentIcon className="w-4 h-4 text-accent" strokeWidth={2} />
@@ -119,10 +123,10 @@ export function HeroSection() {
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={`text-${benefitIndex}`}
-                      initial={{ opacity: 0, y: 18, filter: 'blur(6px)' }}
-                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                      exit={{ opacity: 0, y: -18, filter: 'blur(6px)' }}
-                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 18, filter: 'blur(6px)' }}
+                      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
+                      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -18, filter: 'blur(6px)' }}
+                      transition={{ duration: prefersReducedMotion ? 0.2 : 0.6, ease: [0.22, 1, 0.36, 1] }}
                       className="text-[15px] sm:text-base md:text-lg text-foreground/90 font-medium leading-snug"
                     >
                       {ROTATING_BENEFITS[benefitIndex].text}
