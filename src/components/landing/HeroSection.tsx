@@ -108,10 +108,10 @@ export function HeroSection() {
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={`icon-${benefitIndex}`}
-                      initial={{ opacity: 0, scale: 0.6, rotate: -20 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.6, rotate: 20 }}
-                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.6, rotate: -20 }}
+                      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1, rotate: 0 }}
+                      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.6, rotate: 20 }}
+                      transition={{ duration: prefersReducedMotion ? 0.2 : 0.45, ease: [0.22, 1, 0.36, 1] }}
                       className="absolute inset-0 flex items-center justify-center"
                     >
                       <CurrentIcon className="w-4 h-4 text-accent" strokeWidth={2} />
@@ -123,10 +123,10 @@ export function HeroSection() {
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={`text-${benefitIndex}`}
-                      initial={{ opacity: 0, y: 18, filter: 'blur(6px)' }}
-                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                      exit={{ opacity: 0, y: -18, filter: 'blur(6px)' }}
-                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 18, filter: 'blur(6px)' }}
+                      animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
+                      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -18, filter: 'blur(6px)' }}
+                      transition={{ duration: prefersReducedMotion ? 0.2 : 0.6, ease: [0.22, 1, 0.36, 1] }}
                       className="text-[15px] sm:text-base md:text-lg text-foreground/90 font-medium leading-snug"
                     >
                       {ROTATING_BENEFITS[benefitIndex].text}
