@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Star, Handshake, ShieldCheck, MessageCircle, TrendingUp, Sparkles, HeartHandshake } from 'lucide-react';
+import { ArrowRight, Star, Handshake, ShieldCheck, MessageCircle, TrendingUp, Sparkles, HeartHandshake, Megaphone, Globe, Key, BarChart3, Wrench, FileCheck, Plus } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
@@ -11,7 +11,16 @@ const ROTATING_BENEFITS = [
   { icon: Sparkles, text: 'Professionel foto & video inkluderet' },
   { icon: ShieldCheck, text: 'Kun 6 måneders binding — fair aftale' },
   { icon: Star, text: 'Vurderet 4,9 / 5 af husejere' },
-  { icon: MessageCircle, text: 'Support 7 dage om ugen' },
+  { icon: MessageCircle, text: 'Vi svarer dine gæster — døgnet rundt' },
+  { icon: Globe, text: 'Udlejes på Airbnb, Booking.com & Vrbo' },
+  { icon: Megaphone, text: 'Premium-markedsføring i DK, DE & NL' },
+  { icon: BarChart3, text: 'Smart prissætning — op til 28 % mere' },
+  { icon: Key, text: 'Nøglefri check-in til dine gæster' },
+  { icon: Sparkles, text: 'Professionel rengøring efter hver gæst' },
+  { icon: ShieldCheck, text: 'Forsikret mod skader — vi tager ansvaret' },
+  { icon: Plus, text: 'Op til 20 % ekstra via tilkøb & service' },
+  { icon: Wrench, text: 'Lokalt netværk klarer reparationer' },
+  { icon: FileCheck, text: 'Digital aftale — ingen skjulte gebyrer' },
 ];
 
 export function HeroSection() {
