@@ -16,6 +16,10 @@ import {
   Mail, ChevronRight, Circle, Loader2, X, CheckCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { devLog } from '@/lib/devLog';
+
+const rtLog = devLog('chat:realtime');
+const arLog = devLog('chat:auto-read');
 
 type ParticipantRole = 'owner' | 'guest' | 'unknown';
 type ThreadTab = 'all' | 'owner' | 'guest';
@@ -99,6 +103,9 @@ export default function AdminBeskeder() {
   // Transient indicator: set when we successfully clear unread in the open thread
   const [allReadFlash, setAllReadFlash] = useState<{ threadId: string; count: number } | null>(null);
   const allReadTimerRef = useRef<number | null>(null);
+  // Mirror of selectedId so realtime callbacks always see the latest value
+  const selectedIdRef = useRef<string | null>(null);
+  useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -193,15 +200,30 @@ export default function AdminBeskeder() {
   const applyRealtime = (event: 'INSERT' | 'UPDATE' | 'DELETE', payload: any) => {
     if (event === 'INSERT') {
       const m = payload.new as Msg;
+      rtLog('INSERT', {
+        id: m.id,
+        thread_id: m.thread_id,
+        sender_type: m.sender_type,
+        is_read: m.is_read,
+        openThread: selectedIdRef.current,
+        willAutoMark:
+          selectedIdRef.current != null &&
+          m.sender_type !== 'admin' &&
+          !m.is_read &&
+          // we approximate: if the new message belongs to the open thread, auto-mark will run
+          true,
+      });
       setAllMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
       setTotalCount(c => (c == null ? c : c + 1));
       const id = m.sender_type === 'admin' ? m.recipient_id : m.sender_id;
       if (id) resolveIdentities([id]);
     } else if (event === 'UPDATE') {
       const m = payload.new as Msg;
+      rtLog('UPDATE', { id: m.id, is_read: m.is_read });
       setAllMessages(prev => prev.map(x => (x.id === m.id ? { ...x, ...m } : x)));
     } else if (event === 'DELETE') {
       const m = payload.old as Msg;
+      rtLog('DELETE', { id: m.id });
       setAllMessages(prev => prev.filter(x => x.id !== m.id));
       setTotalCount(c => (c == null ? c : Math.max(0, c - 1)));
     }
@@ -392,16 +414,25 @@ export default function AdminBeskeder() {
   const markThreadRead = async (
     threadId: string,
     unreadIds: string[],
-    opts: { silentIfNoop?: boolean } = {}
+    opts: { silentIfNoop?: boolean; trigger?: 'auto' | 'manual' } = {}
   ) => {
+    const trigger = opts.trigger || 'auto';
     if (unreadIds.length === 0) {
+      arLog('noop — nothing unread', { threadId, trigger });
       if (!opts.silentIfNoop) {
         toast('Ingen ulæste beskeder i denne tråd', { duration: 1800 });
       }
       return;
     }
+    arLog('start', { threadId, trigger, count: unreadIds.length, ids: unreadIds });
+    const t0 = performance.now();
     const ok = await markMessagesRead(unreadIds);
-    if (!ok) return;
+    const dt = Math.round(performance.now() - t0);
+    if (!ok) {
+      arLog.warn('failed after retries', { threadId, trigger, durationMs: dt });
+      return;
+    }
+    arLog('success', { threadId, trigger, count: unreadIds.length, durationMs: dt });
     toast.success(
       unreadIds.length === 1
         ? '1 besked markeret som læst'
@@ -421,7 +452,7 @@ export default function AdminBeskeder() {
       .map(m => m.id);
     setMarkingRead(true);
     try {
-      await markThreadRead(selected.id, unreadIds);
+      await markThreadRead(selected.id, unreadIds, { trigger: 'manual' });
     } finally {
       setMarkingRead(false);
     }
@@ -435,7 +466,12 @@ export default function AdminBeskeder() {
       .filter(m => m.sender_type !== 'admin' && !m.is_read)
       .map(m => m.id);
     if (unreadIds.length === 0) return;
-    markThreadRead(threadId, unreadIds, { silentIfNoop: true });
+    arLog('auto-trigger', {
+      threadId,
+      reason: 'thread open or new realtime message arrived',
+      unread: unreadIds.length,
+    });
+    markThreadRead(threadId, unreadIds, { silentIfNoop: true, trigger: 'auto' });
   }, [selectedId, selected?.messages.length]);
 
   // Auto-scroll inside drawer
