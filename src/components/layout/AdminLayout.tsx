@@ -13,6 +13,7 @@ import { QuickCreateButtons } from '@/components/admin/QuickCreateButtons';
 import { GlobalSearch } from '@/components/admin/GlobalSearch';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 interface AdminLayoutProps { children: ReactNode; }
 
