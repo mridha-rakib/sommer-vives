@@ -634,6 +634,9 @@ export default function AdminBeskeder() {
         <SheetContent className="sm:max-w-lg bg-card border-border/50 flex flex-col p-0">
           {selected && (() => {
             const v = roleVisuals(selected.role);
+            const unreadInThread = selected.messages.filter(
+              m => m.sender_type !== 'admin' && !m.is_read
+            ).length;
             return (
               <>
                 <div className="px-6 pt-6 pb-4 border-b border-border/30 shrink-0">
@@ -659,6 +662,23 @@ export default function AdminBeskeder() {
                           {v.label}{selected.participantEmail ? ` · ${selected.participantEmail}` : ''} · {selected.messages.length} beskeder
                         </p>
                       </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-3 rounded-lg shrink-0 gap-1.5"
+                        onClick={handleManualMarkRead}
+                        disabled={markingRead || unreadInThread === 0}
+                        title={unreadInThread === 0 ? 'Ingen ulæste beskeder' : `Markér ${unreadInThread} besked${unreadInThread === 1 ? '' : 'er'} som læst`}
+                      >
+                        {markingRead ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <CheckCheck className="w-3.5 h-3.5" />
+                        )}
+                        <span className="text-xs">
+                          Markér som læst{unreadInThread > 0 ? ` (${unreadInThread})` : ''}
+                        </span>
+                      </Button>
                     </div>
                   </SheetHeader>
                 </div>
