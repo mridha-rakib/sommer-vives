@@ -615,8 +615,19 @@ export default function AdminBeskeder() {
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${v.bg}`}>
                         <v.Icon className={`w-5 h-5 ${v.color}`} />
                       </div>
-                      <div className="min-w-0">
-                        <SheetTitle className="text-base truncate">{selected.participantName}</SheetTitle>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <SheetTitle className="text-base truncate">{selected.participantName}</SheetTitle>
+                          {allReadFlash && allReadFlash.threadId === selected.id && (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-medium animate-in fade-in slide-in-from-top-1 duration-300"
+                              aria-live="polite"
+                            >
+                              <CheckCheck className="w-3 h-3" />
+                              Alle læst
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">
                           {v.label}{selected.participantEmail ? ` · ${selected.participantEmail}` : ''} · {selected.messages.length} beskeder
                         </p>
