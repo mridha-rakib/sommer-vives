@@ -386,7 +386,7 @@ export default function AdminBeskeder() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className={`text-sm truncate ${t.unread > 0 ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}>
-                        <Highlight text={t.participantName} query={normalizedQuery} />
+                        <HighlightText text={t.participantName} query={normalizedQuery} />
                       </p>
                       <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-border/40 text-muted-foreground">{v.label}</Badge>
                       {t.unread > 0 && (
@@ -400,7 +400,7 @@ export default function AdminBeskeder() {
                       {!!t.matchedMessage && previewMsg.sender_type !== 'admin' && previewMsg.sender_name && (
                         <span className="font-medium">{previewMsg.sender_name}: </span>
                       )}
-                      <Highlight text={previewMsg.message} query={normalizedQuery} />
+                      <HighlightText text={previewMsg.message} query={normalizedQuery} />
                     </p>
                   </div>
                   <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
