@@ -37,13 +37,25 @@ export default function GuestMessages() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Realtime subscription
+  // Realtime subscription — only react to messages in MY thread, and patch
+  // local state instead of full reload to avoid wiping scroll position.
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel('guest-messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, () => {
-        loadMessages();
+      .channel(`guest-messages-${user.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, (payload) => {
+        const m = payload.new as any;
+        if (m.thread_type !== 'support') return;
+        if (m.sender_id !== user.id && m.recipient_id !== user.id) return;
+        setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+        // Auto-mark admin replies as read while viewing
+        if (m.sender_type !== 'guest' && !m.is_read) {
+          supabase.from('chat_messages').update({ is_read: true }).eq('id', m.id).then(() => {});
+        }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages' }, (payload) => {
+        const m = payload.new as any;
+        setMessages(prev => prev.map(x => (x.id === m.id ? { ...x, ...m } : x)));
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -51,7 +63,6 @@ export default function GuestMessages() {
 
   const loadMessages = async () => {
     if (!user) return;
-    // My messages + admin replies addressed to me
     const { data } = await supabase
       .from('chat_messages')
       .select('*')
@@ -60,6 +71,14 @@ export default function GuestMessages() {
       .order('created_at', { ascending: true })
       .limit(200);
     setMessages(data || []);
+
+    // Mark all unread admin replies as read on open
+    const unreadIds = (data || [])
+      .filter((m: any) => m.sender_type !== 'guest' && !m.is_read)
+      .map((m: any) => m.id);
+    if (unreadIds.length > 0) {
+      supabase.from('chat_messages').update({ is_read: true }).in('id', unreadIds).then(() => {});
+    }
   };
 
   const sendMessage = async () => {
