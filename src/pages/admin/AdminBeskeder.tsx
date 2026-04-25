@@ -95,6 +95,7 @@ export default function AdminBeskeder() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  const [markingRead, setMarkingRead] = useState(false);
   // Transient indicator: set when we successfully clear unread in the open thread
   const [allReadFlash, setAllReadFlash] = useState<{ threadId: string; count: number } | null>(null);
   const allReadTimerRef = useRef<number | null>(null);
@@ -387,6 +388,45 @@ export default function AdminBeskeder() {
     return false;
   };
 
+  // Mark + show toast/flash. Used by auto-effect AND the manual button.
+  const markThreadRead = async (
+    threadId: string,
+    unreadIds: string[],
+    opts: { silentIfNoop?: boolean } = {}
+  ) => {
+    if (unreadIds.length === 0) {
+      if (!opts.silentIfNoop) {
+        toast('Ingen ulæste beskeder i denne tråd', { duration: 1800 });
+      }
+      return;
+    }
+    const ok = await markMessagesRead(unreadIds);
+    if (!ok) return;
+    toast.success(
+      unreadIds.length === 1
+        ? '1 besked markeret som læst'
+        : `${unreadIds.length} beskeder markeret som læst`,
+      { duration: 2000 }
+    );
+    setAllReadFlash({ threadId, count: unreadIds.length });
+    if (allReadTimerRef.current) window.clearTimeout(allReadTimerRef.current);
+    allReadTimerRef.current = window.setTimeout(() => setAllReadFlash(null), 2500);
+  };
+
+  // Manual button handler
+  const handleManualMarkRead = async () => {
+    if (!selected || markingRead) return;
+    const unreadIds = selected.messages
+      .filter(m => m.sender_type !== 'admin' && !m.is_read)
+      .map(m => m.id);
+    setMarkingRead(true);
+    try {
+      await markThreadRead(selected.id, unreadIds);
+    } finally {
+      setMarkingRead(false);
+    }
+  };
+
   // Auto-mark unread as read when opening a thread or when new messages arrive in the open thread
   useEffect(() => {
     if (!selected) return;
@@ -395,20 +435,7 @@ export default function AdminBeskeder() {
       .filter(m => m.sender_type !== 'admin' && !m.is_read)
       .map(m => m.id);
     if (unreadIds.length === 0) return;
-
-    markMessagesRead(unreadIds).then(ok => {
-      if (!ok) return;
-      // Show success toast + transient "Alle læst" badge in drawer header
-      toast.success(
-        unreadIds.length === 1
-          ? '1 besked markeret som læst'
-          : `${unreadIds.length} beskeder markeret som læst`,
-        { duration: 2000 }
-      );
-      setAllReadFlash({ threadId, count: unreadIds.length });
-      if (allReadTimerRef.current) window.clearTimeout(allReadTimerRef.current);
-      allReadTimerRef.current = window.setTimeout(() => setAllReadFlash(null), 2500);
-    });
+    markThreadRead(threadId, unreadIds, { silentIfNoop: true });
   }, [selectedId, selected?.messages.length]);
 
   // Auto-scroll inside drawer
@@ -607,6 +634,9 @@ export default function AdminBeskeder() {
         <SheetContent className="sm:max-w-lg bg-card border-border/50 flex flex-col p-0">
           {selected && (() => {
             const v = roleVisuals(selected.role);
+            const unreadInThread = selected.messages.filter(
+              m => m.sender_type !== 'admin' && !m.is_read
+            ).length;
             return (
               <>
                 <div className="px-6 pt-6 pb-4 border-b border-border/30 shrink-0">
@@ -632,6 +662,23 @@ export default function AdminBeskeder() {
                           {v.label}{selected.participantEmail ? ` · ${selected.participantEmail}` : ''} · {selected.messages.length} beskeder
                         </p>
                       </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-3 rounded-lg shrink-0 gap-1.5"
+                        onClick={handleManualMarkRead}
+                        disabled={markingRead || unreadInThread === 0}
+                        title={unreadInThread === 0 ? 'Ingen ulæste beskeder' : `Markér ${unreadInThread} besked${unreadInThread === 1 ? '' : 'er'} som læst`}
+                      >
+                        {markingRead ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <CheckCheck className="w-3.5 h-3.5" />
+                        )}
+                        <span className="text-xs">
+                          Markér som læst{unreadInThread > 0 ? ` (${unreadInThread})` : ''}
+                        </span>
+                      </Button>
                     </div>
                   </SheetHeader>
                 </div>
