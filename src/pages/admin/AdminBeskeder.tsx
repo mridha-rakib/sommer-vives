@@ -312,17 +312,9 @@ export default function AdminBeskeder() {
       .map(m => m.id);
     if (unreadIds.length === 0) return;
 
-    // Optimistically mark as read in local state so badges update instantly
-    setThreads(prev => prev.map(t =>
-      t.id === selected.id
-        ? {
-            ...t,
-            unread: 0,
-            messages: t.messages.map(m =>
-              unreadIds.includes(m.id) ? { ...m, is_read: true } : m
-            ),
-          }
-        : t
+    // Optimistically mark as read in local message state so badges update instantly
+    setAllMessages(prev => prev.map(m =>
+      unreadIds.includes(m.id) ? { ...m, is_read: true } : m
     ));
 
     supabase
