@@ -103,6 +103,9 @@ export default function AdminBeskeder() {
   // Transient indicator: set when we successfully clear unread in the open thread
   const [allReadFlash, setAllReadFlash] = useState<{ threadId: string; count: number } | null>(null);
   const allReadTimerRef = useRef<number | null>(null);
+  // Mirror of selectedId so realtime callbacks always see the latest value
+  const selectedIdRef = useRef<string | null>(null);
+  useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
