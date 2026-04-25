@@ -5,10 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Building2, CalendarDays, Wallet, MessageCircle, 
-  FileText, LifeBuoy, LogOut, Menu, X, ChevronLeft, Crown, User
+  FileText, LifeBuoy, LogOut, Menu, X, ChevronLeft, Crown, User,
+  Bell, BellOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { OwnerBottomNav } from '@/components/app/OwnerBottomNav';
+import { useUserUnreadMessages } from '@/hooks/useUserUnreadMessages';
+import { useChatNotifications } from '@/lib/chatNotifications';
+import { toast } from 'sonner';
 
 interface OwnerLayoutProps {
   children: ReactNode;
@@ -29,6 +33,28 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  const { notify, muted, setMuted } = useChatNotifications();
+  const unreadMessages = useUserUnreadMessages(user?.id, {
+    onIncoming: (m) => {
+      // Toast even when on /owner/messages — small, non-intrusive
+      const onMessagesPage = location.pathname.startsWith('/owner/messages');
+      notify({
+        fromRole: 'admin',
+        fromName: m.sender_name || 'SommerVibes',
+        body: m.message,
+        url: '/owner/messages',
+        alwaysPlay: !onMessagesPage,
+      });
+      if (!onMessagesPage) {
+        toast.message('Ny besked fra SommerVibes', {
+          description: m.message.length > 80 ? m.message.slice(0, 80) + '…' : m.message,
+          action: { label: 'Åbn', onClick: () => { window.location.href = '/owner/messages'; } },
+          duration: 5000,
+        });
+      }
+    },
+  });
 
   const isActive = (href: string) => {
     if (href === '/owner') return location.pathname === '/owner';
