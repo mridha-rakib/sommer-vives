@@ -5,10 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Building2, CalendarDays, Wallet, MessageCircle, 
-  FileText, LifeBuoy, LogOut, Menu, X, ChevronLeft, Crown, User
+  FileText, LifeBuoy, LogOut, Menu, X, ChevronLeft, Crown, User,
+  Bell, BellOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { OwnerBottomNav } from '@/components/app/OwnerBottomNav';
+import { useUserUnreadMessages } from '@/hooks/useUserUnreadMessages';
+import { useChatNotifications } from '@/lib/chatNotifications';
+import { toast } from 'sonner';
 
 interface OwnerLayoutProps {
   children: ReactNode;
@@ -29,6 +33,28 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  const { notify, muted, setMuted } = useChatNotifications();
+  const unreadMessages = useUserUnreadMessages(user?.id, {
+    onIncoming: (m) => {
+      // Toast even when on /owner/messages — small, non-intrusive
+      const onMessagesPage = location.pathname.startsWith('/owner/messages');
+      notify({
+        fromRole: 'admin',
+        fromName: m.sender_name || 'SommerVibes',
+        body: m.message,
+        url: '/owner/messages',
+        alwaysPlay: !onMessagesPage,
+      });
+      if (!onMessagesPage) {
+        toast.message('Ny besked fra SommerVibes', {
+          description: m.message.length > 80 ? m.message.slice(0, 80) + '…' : m.message,
+          action: { label: 'Åbn', onClick: () => { window.location.href = '/owner/messages'; } },
+          duration: 5000,
+        });
+      }
+    },
+  });
 
   const isActive = (href: string) => {
     if (href === '/owner') return location.pathname === '/owner';
@@ -79,24 +105,41 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-3">
           <div className="space-y-1">
-            {navItems.map(item => (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setSidebarOpen(false)}
-                title={collapsed ? item.name : undefined}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200',
-                  isActive(item.href)
-                    ? 'bg-[hsl(var(--gold)/0.12)] text-[hsl(var(--gold-light))] font-medium border border-[hsl(var(--gold)/0.15)]'
-                    : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
-                  collapsed && 'justify-center px-2'
-                )}
-              >
-                <item.icon className={cn('w-[18px] h-[18px] shrink-0', isActive(item.href) && 'text-[hsl(var(--gold-light))]')} />
-                {!collapsed && <span className="truncate">{item.name}</span>}
-              </Link>
-            ))}
+            {navItems.map(item => {
+              const showBadge = item.href === '/owner/messages' && unreadMessages > 0;
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  title={collapsed ? item.name : undefined}
+                  className={cn(
+                    'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200',
+                    isActive(item.href)
+                      ? 'bg-[hsl(var(--gold)/0.12)] text-[hsl(var(--gold-light))] font-medium border border-[hsl(var(--gold)/0.15)]'
+                      : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
+                    collapsed && 'justify-center px-2'
+                  )}
+                >
+                  <div className="relative shrink-0">
+                    <item.icon className={cn('w-[18px] h-[18px]', isActive(item.href) && 'text-[hsl(var(--gold-light))]')} />
+                    {showBadge && collapsed && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[hsl(var(--gold))] ring-2 ring-card" />
+                    )}
+                  </div>
+                  {!collapsed && (
+                    <>
+                      <span className="truncate flex-1">{item.name}</span>
+                      {showBadge && (
+                        <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[hsl(var(--gold))] text-background text-[10px] font-semibold">
+                          {unreadMessages > 9 ? '9+' : unreadMessages}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </nav>
 
@@ -140,6 +183,13 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
               </button>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMuted(!muted)}
+                title={muted ? 'Slå besked-lyd til' : 'Slå besked-lyd fra'}
+                className="w-8 h-8 rounded-full hover:bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {muted ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+              </button>
               <Link to="/owner/account" className="flex items-center gap-2 pl-2">
                 <div className="w-8 h-8 rounded-full bg-[hsl(var(--gold)/0.15)] border border-[hsl(var(--gold)/0.2)] flex items-center justify-center text-xs font-semibold text-[hsl(var(--gold-light))]">
                   {user?.email?.[0]?.toUpperCase() || 'U'}
