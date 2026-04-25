@@ -1,43 +1,73 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Counts unread support threads (not individual messages) for the admin badge.
- * A thread is "unread" if it has at least one non-admin message with is_read = false.
- * Subscribes to realtime updates so the badge stays in sync.
+ * Counts unread support THREADS (not messages) for the admin badge.
+ *
+ * Uses a SECURITY DEFINER RPC `count_unread_admin_threads` that runs an
+ * aggregate `COUNT(DISTINCT thread_id)` directly in Postgres. This avoids:
+ *   - Over-counting from join duplication
+ *   - Truncation from PostgREST row limits (default 1000)
+ *   - Client-side de-duplication drift between sessions
+ *
+ * Realtime subscription throttles refreshes so a burst of inserts/updates
+ * results in a single re-count.
  */
 export function useUnreadMessages() {
   const [unreadThreads, setUnreadThreads] = useState(0);
+  const refreshTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
-      const { data } = await supabase
-        .from('chat_messages')
-        .select('thread_id, sender_type, is_read')
-        .eq('is_read', false)
-        .neq('sender_type', 'admin')
-        .limit(2000);
-
+      const { data, error } = await supabase.rpc('count_unread_admin_threads');
       if (cancelled) return;
 
-      const threads = new Set<string>();
-      (data || []).forEach((m: any) => {
-        if (m.thread_id) threads.add(m.thread_id);
-      });
-      setUnreadThreads(threads.size);
+      if (error) {
+        // Fallback: fetch distinct thread_ids client-side (capped) so the badge
+        // still works if the RPC ever fails.
+        const { data: rows } = await supabase
+          .from('chat_messages')
+          .select('thread_id')
+          .eq('is_read', false)
+          .neq('sender_type', 'admin')
+          .not('thread_id', 'is', null)
+          .limit(5000);
+        const set = new Set<string>();
+        (rows || []).forEach((r: any) => r.thread_id && set.add(r.thread_id));
+        setUnreadThreads(set.size);
+        return;
+      }
+
+      setUnreadThreads(typeof data === 'number' ? data : 0);
+    };
+
+    const scheduleRefresh = () => {
+      if (refreshTimerRef.current) return;
+      refreshTimerRef.current = window.setTimeout(() => {
+        refreshTimerRef.current = null;
+        load();
+      }, 400);
     };
 
     load();
 
     const channel = supabase
       .channel('admin-unread-badge')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, () => load())
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chat_messages' },
+        scheduleRefresh
+      )
       .subscribe();
 
     return () => {
       cancelled = true;
+      if (refreshTimerRef.current) {
+        window.clearTimeout(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
       supabase.removeChannel(channel);
     };
   }, []);
