@@ -388,6 +388,45 @@ export default function AdminBeskeder() {
     return false;
   };
 
+  // Mark + show toast/flash. Used by auto-effect AND the manual button.
+  const markThreadRead = async (
+    threadId: string,
+    unreadIds: string[],
+    opts: { silentIfNoop?: boolean } = {}
+  ) => {
+    if (unreadIds.length === 0) {
+      if (!opts.silentIfNoop) {
+        toast('Ingen ulæste beskeder i denne tråd', { duration: 1800 });
+      }
+      return;
+    }
+    const ok = await markMessagesRead(unreadIds);
+    if (!ok) return;
+    toast.success(
+      unreadIds.length === 1
+        ? '1 besked markeret som læst'
+        : `${unreadIds.length} beskeder markeret som læst`,
+      { duration: 2000 }
+    );
+    setAllReadFlash({ threadId, count: unreadIds.length });
+    if (allReadTimerRef.current) window.clearTimeout(allReadTimerRef.current);
+    allReadTimerRef.current = window.setTimeout(() => setAllReadFlash(null), 2500);
+  };
+
+  // Manual button handler
+  const handleManualMarkRead = async () => {
+    if (!selected || markingRead) return;
+    const unreadIds = selected.messages
+      .filter(m => m.sender_type !== 'admin' && !m.is_read)
+      .map(m => m.id);
+    setMarkingRead(true);
+    try {
+      await markThreadRead(selected.id, unreadIds);
+    } finally {
+      setMarkingRead(false);
+    }
+  };
+
   // Auto-mark unread as read when opening a thread or when new messages arrive in the open thread
   useEffect(() => {
     if (!selected) return;
@@ -396,20 +435,7 @@ export default function AdminBeskeder() {
       .filter(m => m.sender_type !== 'admin' && !m.is_read)
       .map(m => m.id);
     if (unreadIds.length === 0) return;
-
-    markMessagesRead(unreadIds).then(ok => {
-      if (!ok) return;
-      // Show success toast + transient "Alle læst" badge in drawer header
-      toast.success(
-        unreadIds.length === 1
-          ? '1 besked markeret som læst'
-          : `${unreadIds.length} beskeder markeret som læst`,
-        { duration: 2000 }
-      );
-      setAllReadFlash({ threadId, count: unreadIds.length });
-      if (allReadTimerRef.current) window.clearTimeout(allReadTimerRef.current);
-      allReadTimerRef.current = window.setTimeout(() => setAllReadFlash(null), 2500);
-    });
+    markThreadRead(threadId, unreadIds, { silentIfNoop: true });
   }, [selectedId, selected?.messages.length]);
 
   // Auto-scroll inside drawer
