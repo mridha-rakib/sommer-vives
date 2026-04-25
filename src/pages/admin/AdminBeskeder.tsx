@@ -16,6 +16,10 @@ import {
   Mail, ChevronRight, Circle, Loader2, X, CheckCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { devLog } from '@/lib/devLog';
+
+const rtLog = devLog('chat:realtime');
+const arLog = devLog('chat:auto-read');
 
 type ParticipantRole = 'owner' | 'guest' | 'unknown';
 type ThreadTab = 'all' | 'owner' | 'guest';
