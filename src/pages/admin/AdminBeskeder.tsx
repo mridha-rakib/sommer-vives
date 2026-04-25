@@ -45,10 +45,45 @@ export default function AdminBeskeder() {
   const [reply, setReply] = useState('');
 
   useEffect(() => {
-    supabase.from('message_threads')
-      .select('*, messages:chat_messages(id, message, sender_type, sender_name, created_at, is_read)')
-      .order('last_message_at', { ascending: false }).limit(100)
-      .then(({ data }) => { setThreads(data || []); setLoading(false); });
+    (async () => {
+      // Load all chat_messages and group them into threads on the client.
+      // We don't rely on message_threads, since legacy messages may not have an entry.
+      const { data: msgs } = await supabase
+        .from('chat_messages')
+        .select('id, message, sender_type, sender_id, sender_name, created_at, is_read, thread_type, thread_id, booking_id')
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      const groups = new Map<string, any>();
+      (msgs || []).forEach((m: any) => {
+        // Stable thread key: explicit thread_id, else booking, else per-sender per-type bucket
+        const key = m.thread_id || m.booking_id || `${m.thread_type || 'other'}:${m.sender_id || m.sender_name || 'anon'}`;
+        const existing = groups.get(key);
+        if (!existing) {
+          groups.set(key, {
+            id: key,
+            thread_type: m.thread_type || 'guest',
+            subject: m.sender_name
+              ? `${m.sender_name}`
+              : (m.thread_type === 'support' ? 'Support-henvendelse' : 'Samtale'),
+            status: 'open',
+            last_message_at: m.created_at,
+            messages: [m],
+          });
+        } else {
+          existing.messages.push(m);
+          if (new Date(m.created_at) > new Date(existing.last_message_at)) {
+            existing.last_message_at = m.created_at;
+          }
+        }
+      });
+
+      const threadList = Array.from(groups.values()).sort(
+        (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+      );
+      setThreads(threadList);
+      setLoading(false);
+    })();
   }, []);
 
   const filtered = useMemo(() => {
