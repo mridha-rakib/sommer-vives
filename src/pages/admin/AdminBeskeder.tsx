@@ -366,6 +366,8 @@ export default function AdminBeskeder() {
           <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/30 overflow-hidden">
             {filtered.map(t => {
               const lastMsg = t.messages[t.messages.length - 1];
+              // When searching: prefer the matched message as preview snippet
+              const previewMsg = t.matchedMessage || lastMsg;
               const v = roleVisuals(t.role);
               return (
                 <button
@@ -384,7 +386,7 @@ export default function AdminBeskeder() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className={`text-sm truncate ${t.unread > 0 ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}>
-                        {t.participantName}
+                        <Highlight text={t.participantName} query={normalizedQuery} />
                       </p>
                       <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-border/40 text-muted-foreground">{v.label}</Badge>
                       {t.unread > 0 && (
@@ -394,8 +396,11 @@ export default function AdminBeskeder() {
                       )}
                     </div>
                     <p className={`text-[11px] truncate mt-0.5 ${t.unread > 0 ? 'text-foreground/70' : 'text-muted-foreground'}`}>
-                      {lastMsg.sender_type === 'admin' && <span className="font-medium">Du: </span>}
-                      {lastMsg.message}
+                      {previewMsg.sender_type === 'admin' && <span className="font-medium">Du: </span>}
+                      {!!t.matchedMessage && previewMsg.sender_type !== 'admin' && previewMsg.sender_name && (
+                        <span className="font-medium">{previewMsg.sender_name}: </span>
+                      )}
+                      <Highlight text={previewMsg.message} query={normalizedQuery} />
                     </p>
                   </div>
                   <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
