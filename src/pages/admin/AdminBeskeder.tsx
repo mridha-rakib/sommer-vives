@@ -186,13 +186,35 @@ export default function AdminBeskeder() {
 
   const selected = useMemo(() => threads.find(t => t.id === selectedId) || null, [threads, selectedId]);
 
-  // Auto-mark unread as read when opening a thread
+  // Auto-mark unread as read when opening a thread or when new messages arrive in the open thread
   useEffect(() => {
     if (!selected) return;
-    const unreadIds = selected.messages.filter(m => m.sender_type !== 'admin' && !m.is_read).map(m => m.id);
+    const unreadIds = selected.messages
+      .filter(m => m.sender_type !== 'admin' && !m.is_read)
+      .map(m => m.id);
     if (unreadIds.length === 0) return;
-    supabase.from('chat_messages').update({ is_read: true }).in('id', unreadIds).then(() => load());
-  }, [selectedId]);
+
+    // Optimistically mark as read in local state so badges update instantly
+    setThreads(prev => prev.map(t =>
+      t.id === selected.id
+        ? {
+            ...t,
+            unread: 0,
+            messages: t.messages.map(m =>
+              unreadIds.includes(m.id) ? { ...m, is_read: true } : m
+            ),
+          }
+        : t
+    ));
+
+    supabase
+      .from('chat_messages')
+      .update({ is_read: true })
+      .in('id', unreadIds)
+      .then(({ error }) => {
+        if (error) console.error('Failed to mark messages as read', error);
+      });
+  }, [selectedId, selected?.messages.length]);
 
   // Auto-scroll inside drawer
   useEffect(() => {
