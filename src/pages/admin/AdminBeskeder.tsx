@@ -79,10 +79,17 @@ function HighlightText({ text, query }: { text: string | null | undefined; query
   );
 }
 
+const PAGE_SIZE = 200;
+
 export default function AdminBeskeder() {
   const { user } = useAuth();
-  const [threads, setThreads] = useState<Thread[]>([]);
+  const [allMessages, setAllMessages] = useState<Msg[]>([]);
+  const [profilesMap, setProfilesMap] = useState<Record<string, any>>({});
+  const [roleMap, setRoleMap] = useState<Record<string, ParticipantRole>>({});
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<ThreadTab>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -108,57 +115,119 @@ export default function AdminBeskeder() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const load = async () => {
-    // Pull recent messages — thread_id is now deterministic per participant (DB trigger)
+  // Resolve profiles + roles for a batch of new participant ids
+  const resolveIdentities = async (newIds: string[]) => {
+    const unknown = newIds.filter(id => !profilesMap[id] && !roleMap[id]);
+    if (unknown.length === 0) return;
+    const [{ data: profs }, { data: roles }] = await Promise.all([
+      supabase.from('profiles').select('id, full_name, email').in('id', unknown),
+      supabase.from('user_roles').select('user_id, role').in('user_id', unknown),
+    ]);
+    setProfilesMap(prev => {
+      const next = { ...prev };
+      (profs || []).forEach((p: any) => { next[p.id] = p; });
+      return next;
+    });
+    setRoleMap(prev => {
+      const next = { ...prev };
+      (roles || []).forEach((r: any) => {
+        if (r.role === 'owner' || r.role === 'guest') {
+          if (!next[r.user_id] || r.role === 'owner') next[r.user_id] = r.role;
+        }
+      });
+      return next;
+    });
+  };
+
+  // Initial load — newest PAGE_SIZE
+  const loadInitial = async () => {
+    setLoading(true);
+    const { data: msgs, count } = await supabase
+      .from('chat_messages')
+      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .limit(PAGE_SIZE);
+
+    const list = ((msgs || []) as Msg[]).reverse(); // back to ascending for grouping
+    setAllMessages(list);
+    setTotalCount(count ?? null);
+    setHasMore((msgs?.length || 0) >= PAGE_SIZE && (count == null || (count > (msgs?.length || 0))));
+
+    const ids = Array.from(new Set(list.flatMap(m => [
+      m.sender_type !== 'admin' ? m.sender_id : null,
+      m.sender_type === 'admin' ? m.recipient_id : null,
+    ]).filter(Boolean) as string[]));
+    await resolveIdentities(ids);
+    setLoading(false);
+  };
+
+  // Load older page using cursor
+  const loadMore = async () => {
+    if (loadingMore || !hasMore || allMessages.length === 0) return;
+    setLoadingMore(true);
+    const oldest = allMessages[0].created_at; // ascending → first is oldest
     const { data: msgs } = await supabase
       .from('chat_messages')
       .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read')
-      .order('created_at', { ascending: true })
-      .limit(1000);
+      .lt('created_at', oldest)
+      .order('created_at', { ascending: false })
+      .limit(PAGE_SIZE);
 
-    const list = (msgs || []) as (Msg & { thread_id: string | null })[];
+    const older = ((msgs || []) as Msg[]).reverse();
+    setAllMessages(prev => [...older, ...prev]);
+    setHasMore((msgs?.length || 0) >= PAGE_SIZE);
 
-    // Resolve participant identities (everyone who is NOT admin)
-    const participantIds = Array.from(new Set(
-      list.flatMap(m => [
-        m.sender_type !== 'admin' ? m.sender_id : null,
-        m.sender_type === 'admin' ? m.recipient_id : null,
-      ]).filter(Boolean) as string[]
-    ));
+    const ids = Array.from(new Set(older.flatMap(m => [
+      m.sender_type !== 'admin' ? m.sender_id : null,
+      m.sender_type === 'admin' ? m.recipient_id : null,
+    ]).filter(Boolean) as string[]));
+    await resolveIdentities(ids);
+    setLoadingMore(false);
+  };
 
-    let profiles: Record<string, any> = {};
-    let roleMap: Record<string, ParticipantRole> = {};
-    if (participantIds.length > 0) {
-      const [{ data: profs }, { data: roles }] = await Promise.all([
-        supabase.from('profiles').select('id, full_name, email').in('id', participantIds),
-        supabase.from('user_roles').select('user_id, role').in('user_id', participantIds),
-      ]);
-      profiles = Object.fromEntries((profs || []).map((p: any) => [p.id, p]));
-      (roles || []).forEach((r: any) => {
-        if (r.role === 'owner' || r.role === 'guest') {
-          if (!roleMap[r.user_id] || r.role === 'owner') roleMap[r.user_id] = r.role;
-        }
-      });
+  // Apply realtime delta (insert / update / delete) without re-fetching everything
+  const applyRealtime = (event: 'INSERT' | 'UPDATE' | 'DELETE', payload: any) => {
+    if (event === 'INSERT') {
+      const m = payload.new as Msg;
+      setAllMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+      setTotalCount(c => (c == null ? c : c + 1));
+      const id = m.sender_type === 'admin' ? m.recipient_id : m.sender_id;
+      if (id) resolveIdentities([id]);
+    } else if (event === 'UPDATE') {
+      const m = payload.new as Msg;
+      setAllMessages(prev => prev.map(x => (x.id === m.id ? { ...x, ...m } : x)));
+    } else if (event === 'DELETE') {
+      const m = payload.old as Msg;
+      setAllMessages(prev => prev.filter(x => x.id !== m.id));
+      setTotalCount(c => (c == null ? c : Math.max(0, c - 1)));
     }
+  };
 
-    // Group strictly by deterministic thread_id (DB-managed)
+  useEffect(() => {
+    loadInitial();
+    const channel = supabase
+      .channel('admin-beskeder')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, p => applyRealtime('INSERT', p))
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages' }, p => applyRealtime('UPDATE', p))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chat_messages' }, p => applyRealtime('DELETE', p))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Derive thread list from the loaded messages + identity maps
+  const threads = useMemo<Thread[]>(() => {
     const buckets = new Map<string, Thread>();
-    list.forEach(m => {
-      const participantId =
-        m.sender_type === 'admin' ? m.recipient_id : m.sender_id;
-
-      // Skip admin-to-nobody orphans
+    allMessages.forEach(m => {
+      const participantId = m.sender_type === 'admin' ? m.recipient_id : m.sender_id;
       if (m.sender_type === 'admin' && !participantId) return;
 
-      // Deterministic key from DB; fallback to participant id for old rows
       const key = m.thread_id || participantId || `anon:${m.sender_name || 'ukendt'}`;
       const existing = buckets.get(key);
 
       if (!existing) {
-        const profile = participantId ? profiles[participantId] : null;
-        const role: ParticipantRole = participantId
-          ? (roleMap[participantId] || 'unknown')
-          : 'unknown';
+        const profile = participantId ? profilesMap[participantId] : null;
+        const role: ParticipantRole = participantId ? (roleMap[participantId] || 'unknown') : 'unknown';
         buckets.set(key, {
           id: key,
           participantId,
@@ -171,10 +240,9 @@ export default function AdminBeskeder() {
         });
       } else {
         existing.messages.push(m);
-        // Promote participantId if a later message reveals it
         if (!existing.participantId && participantId) {
           existing.participantId = participantId;
-          const profile = profiles[participantId];
+          const profile = profilesMap[participantId];
           if (profile) {
             existing.participantName = profile.full_name || profile.email || existing.participantName;
             existing.participantEmail = profile.email || existing.participantEmail;
@@ -185,22 +253,12 @@ export default function AdminBeskeder() {
         if (m.sender_type !== 'admin' && !m.is_read) existing.unread += 1;
       }
     });
-
-    const threadList = Array.from(buckets.values())
+    // Ensure messages are chronological inside each thread
+    buckets.forEach(t => t.messages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+    return Array.from(buckets.values())
       .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
+  }, [allMessages, profilesMap, roleMap]);
 
-    setThreads(threadList);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    load();
-    const channel = supabase
-      .channel('admin-beskeder')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, () => load())
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
 
   // Normalize search query (case + accent insensitive)
   const normalizedQuery = useMemo(
@@ -254,17 +312,9 @@ export default function AdminBeskeder() {
       .map(m => m.id);
     if (unreadIds.length === 0) return;
 
-    // Optimistically mark as read in local state so badges update instantly
-    setThreads(prev => prev.map(t =>
-      t.id === selected.id
-        ? {
-            ...t,
-            unread: 0,
-            messages: t.messages.map(m =>
-              unreadIds.includes(m.id) ? { ...m, is_read: true } : m
-            ),
-          }
-        : t
+    // Optimistically mark as read in local message state so badges update instantly
+    setAllMessages(prev => prev.map(m =>
+      unreadIds.includes(m.id) ? { ...m, is_read: true } : m
     ));
 
     supabase
@@ -299,7 +349,7 @@ export default function AdminBeskeder() {
     setSending(false);
     if (error) { toast.error('Kunne ikke sende svar'); return; }
     setReply('');
-    load();
+    // Realtime subscription will append the new message automatically
   };
 
   return (
@@ -435,6 +485,34 @@ export default function AdminBeskeder() {
                 </button>
               );
             })}
+          </div>
+        )}
+
+        {/* Load more / pagination footer */}
+        {!loading && (
+          <div className="flex items-center justify-between gap-3 px-1">
+            <p className="text-[11px] text-muted-foreground">
+              {totalCount != null
+                ? `Viser ${allMessages.length} af ${totalCount} beskeder · ${threads.length} tråde`
+                : `Viser ${allMessages.length} beskeder · ${threads.length} tråde`}
+            </p>
+            {hasMore ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="rounded-xl h-8 text-xs"
+              >
+                {loadingMore ? (
+                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Indlæser…</>
+                ) : (
+                  <>Indlæs ældre beskeder</>
+                )}
+              </Button>
+            ) : allMessages.length > 0 && (
+              <span className="text-[11px] text-muted-foreground/60">Alle beskeder indlæst</span>
+            )}
           </div>
         )}
       </div>
