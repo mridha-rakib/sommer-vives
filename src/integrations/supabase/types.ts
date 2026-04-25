@@ -600,13 +600,6 @@ export type Database = {
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "chat_messages_thread_id_fkey"
-            columns: ["thread_id"]
-            isOneToOne: false
-            referencedRelation: "message_threads"
-            referencedColumns: ["id"]
-          },
         ]
       }
       checkin_guides: {
@@ -3589,6 +3582,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      compute_chat_thread_id: {
+        Args: {
+          p_booking_id: string
+          p_recipient_id: string
+          p_sender_id: string
+          p_sender_name: string
+          p_sender_type: string
+          p_thread_type: string
+        }
+        Returns: string
+      }
       generate_case_number: { Args: { prefix: string }; Returns: string }
       generate_sag_tasks: {
         Args: {
