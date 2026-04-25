@@ -19,19 +19,33 @@ export default function OwnerMessages() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (user) loadMessages();
+    if (!user) return;
+    loadMessages();
+    const channel = supabase
+      .channel(`owner-messages-${user.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, (payload) => {
+        const m = payload.new as any;
+        if (m.thread_type !== 'support') return;
+        if (m.sender_id === user.id || m.recipient_id === user.id) {
+          setMessages(prev => [...prev, m]);
+          setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   const loadMessages = async () => {
     if (!user) return;
     setLoading(true);
+    // Load: my own messages + admin replies addressed to me
     const { data } = await supabase
       .from('chat_messages')
       .select('*')
       .eq('thread_type', 'support')
-      .eq('sender_id', user.id)
+      .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
       .order('created_at', { ascending: true })
-      .limit(100);
+      .limit(200);
     setMessages(data || []);
     setLoading(false);
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
@@ -43,14 +57,13 @@ export default function OwnerMessages() {
     const { error } = await supabase.from('chat_messages').insert({
       thread_type: 'support',
       sender_id: user.id,
-      sender_name: user.email,
+      sender_name: user.user_metadata?.full_name || user.email,
       sender_type: 'owner',
       message: newMessage.trim(),
     });
     setSending(false);
     if (error) { toast.error('Beskeden kunne ikke sendes'); return; }
     setNewMessage('');
-    loadMessages();
   };
 
   return (
