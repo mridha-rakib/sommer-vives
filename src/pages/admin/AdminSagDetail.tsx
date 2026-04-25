@@ -1376,17 +1376,21 @@ export default function AdminSagDetail() {
               <SectionCard title="Ejer" icon={Eye}>
                 {owner ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => navigate(`/admin/crm/udlejere?owner=${owner.id}`)}
+                      className="w-full flex items-center gap-3 p-2 -m-2 rounded-xl hover:bg-muted/30 transition-colors text-left group"
+                    >
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
                         {(owner.full_name || owner.email)[0].toUpperCase()}
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{owner.full_name || 'Ukendt'}</p>
-                        <p className="text-[11px] text-muted-foreground">{owner.email}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">{owner.full_name || 'Ukendt'}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{owner.email}</p>
                       </div>
-                    </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors shrink-0" />
+                    </button>
                     {owner.phone && <p className="text-xs text-muted-foreground">{owner.phone}</p>}
-                    <Button variant="outline" size="sm" className="rounded-xl text-xs w-full" onClick={() => navigate('/admin/crm/udlejere')}>Se ejerprofil</Button>
+                    <Button variant="outline" size="sm" className="rounded-xl text-xs w-full" onClick={() => navigate(`/admin/crm/udlejere?owner=${owner.id}`)}>Se ejerprofil</Button>
                   </div>
                 ) : <p className="text-xs text-muted-foreground/50 italic">Ingen ejer tilknyttet</p>}
               </SectionCard>
