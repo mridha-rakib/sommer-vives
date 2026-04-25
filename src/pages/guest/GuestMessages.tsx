@@ -51,12 +51,15 @@ export default function GuestMessages() {
 
   const loadMessages = async () => {
     if (!user) return;
-    const [{ data: own }, { data: admin }] = await Promise.all([
-      supabase.from('chat_messages').select('*').eq('thread_type', 'support').eq('sender_id', user.id).order('created_at', { ascending: true }).limit(100),
-      supabase.from('chat_messages').select('*').eq('thread_type', 'support').eq('sender_type', 'admin').order('created_at', { ascending: true }).limit(100),
-    ]);
-    const all = [...(own || []), ...(admin || [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    setMessages(Array.from(new Map(all.map(m => [m.id, m])).values()));
+    // My messages + admin replies addressed to me
+    const { data } = await supabase
+      .from('chat_messages')
+      .select('*')
+      .eq('thread_type', 'support')
+      .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+      .order('created_at', { ascending: true })
+      .limit(200);
+    setMessages(data || []);
   };
 
   const sendMessage = async () => {
