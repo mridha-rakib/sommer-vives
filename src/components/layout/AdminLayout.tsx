@@ -381,6 +381,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <div className="hidden md:block">
               <GlobalSearch />
             </div>
+            <button
+              onClick={() => setMuted(!muted)}
+              title={muted ? 'Slå besked-lyd til' : 'Slå besked-lyd fra'}
+              className="w-9 h-9 rounded-xl hover:bg-muted/30 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {muted ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+            </button>
             <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground hover:text-foreground gap-1.5 h-9 rounded-xl">
               <Link to="/"><ExternalLink className="w-3 h-3" />Website</Link>
             </Button>
