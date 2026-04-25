@@ -57,6 +57,28 @@ function roleVisuals(role: ParticipantRole) {
   return { Icon: Bot, color: 'text-muted-foreground', bg: 'bg-muted/30', label: 'Ukendt' };
 }
 
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function HighlightText({ text, query }: { text: string | null | undefined; query: string }) {
+  if (!text) return null;
+  if (!query) return <>{text}</>;
+  const re = new RegExp(`(${escapeRegExp(query)})`, 'ig');
+  const parts = text.split(re);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-primary/25 text-foreground rounded px-0.5">{p}</mark>
+        ) : (
+          <span key={i}>{p}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export default function AdminBeskeder() {
   const { user } = useAuth();
   const [threads, setThreads] = useState<Thread[]>([]);
