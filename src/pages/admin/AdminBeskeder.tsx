@@ -95,6 +95,9 @@ export default function AdminBeskeder() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  // Transient indicator: set when we successfully clear unread in the open thread
+  const [allReadFlash, setAllReadFlash] = useState<{ threadId: string; count: number } | null>(null);
+  const allReadTimerRef = useRef<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
