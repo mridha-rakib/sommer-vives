@@ -197,15 +197,30 @@ export default function AdminBeskeder() {
   const applyRealtime = (event: 'INSERT' | 'UPDATE' | 'DELETE', payload: any) => {
     if (event === 'INSERT') {
       const m = payload.new as Msg;
+      rtLog('INSERT', {
+        id: m.id,
+        thread_id: m.thread_id,
+        sender_type: m.sender_type,
+        is_read: m.is_read,
+        openThread: selectedIdRef.current,
+        willAutoMark:
+          selectedIdRef.current != null &&
+          m.sender_type !== 'admin' &&
+          !m.is_read &&
+          // we approximate: if the new message belongs to the open thread, auto-mark will run
+          true,
+      });
       setAllMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
       setTotalCount(c => (c == null ? c : c + 1));
       const id = m.sender_type === 'admin' ? m.recipient_id : m.sender_id;
       if (id) resolveIdentities([id]);
     } else if (event === 'UPDATE') {
       const m = payload.new as Msg;
+      rtLog('UPDATE', { id: m.id, is_read: m.is_read });
       setAllMessages(prev => prev.map(x => (x.id === m.id ? { ...x, ...m } : x)));
     } else if (event === 'DELETE') {
       const m = payload.old as Msg;
+      rtLog('DELETE', { id: m.id });
       setAllMessages(prev => prev.filter(x => x.id !== m.id));
       setTotalCount(c => (c == null ? c : Math.max(0, c - 1)));
     }
