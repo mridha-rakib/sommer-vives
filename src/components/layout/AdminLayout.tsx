@@ -13,6 +13,7 @@ import { QuickCreateButtons } from '@/components/admin/QuickCreateButtons';
 import { GlobalSearch } from '@/components/admin/GlobalSearch';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 interface AdminLayoutProps { children: ReactNode; }
 
@@ -76,6 +77,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('admin-sidebar-collapsed') === 'true');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const unreadMessages = useUnreadMessages();
+
+  // Inject live badges onto specific nav items
+  const sectionsWithBadges = navSections.map(section => ({
+    ...section,
+    items: section.items.map(it =>
+      it.href === '/admin/beskeder' ? { ...it, badge: unreadMessages } : it
+    ),
+  }));
 
   useEffect(() => {
     localStorage.setItem('admin-sidebar-collapsed', String(collapsed));
@@ -145,15 +155,20 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <Link
             to={item.href}
             onClick={() => setSidebarOpen(false)}
-            title={item.name}
+            title={item.badge && item.badge > 0 ? `${item.name} (${item.badge} ulæste)` : item.name}
             className={cn(
-              'flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200',
+              'relative flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200',
               active
                 ? 'bg-primary/10 text-primary'
                 : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground'
             )}
           >
             <item.icon className="w-4 h-4" />
+            {item.badge && item.badge > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 text-[9px] font-bold bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-sm">
+                {item.badge > 9 ? '9+' : item.badge}
+              </span>
+            )}
           </Link>
         </div>
       );
@@ -259,7 +274,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
         {/* Nav sections */}
         <nav className="flex-1 px-2 py-4 space-y-5 overflow-y-auto scrollbar-hide">
-          {navSections.map((section, idx) => (
+          {sectionsWithBadges.map((section, idx) => (
             <div key={idx}>
               {section.label && !collapsed && (
                 <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.15em]">
