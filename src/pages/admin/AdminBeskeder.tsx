@@ -13,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import {
   MessageSquare, UserCheck, User, Bot, Search, Send,
-  Mail, ChevronRight, Circle, Loader2,
+  Mail, ChevronRight, Circle, Loader2, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
