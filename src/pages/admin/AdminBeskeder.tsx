@@ -68,14 +68,14 @@ export default function AdminBeskeder() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const load = async () => {
-    // Pull recent messages
+    // Pull recent messages — thread_id is now deterministic per participant (DB trigger)
     const { data: msgs } = await supabase
       .from('chat_messages')
-      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_type, booking_id, created_at, is_read')
+      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read')
       .order('created_at', { ascending: true })
       .limit(1000);
 
-    const list = (msgs || []) as Msg[];
+    const list = (msgs || []) as (Msg & { thread_id: string | null })[];
 
     // Resolve participant identities (everyone who is NOT admin)
     const participantIds = Array.from(new Set(
@@ -93,27 +93,24 @@ export default function AdminBeskeder() {
         supabase.from('user_roles').select('user_id, role').in('user_id', participantIds),
       ]);
       profiles = Object.fromEntries((profs || []).map((p: any) => [p.id, p]));
-      // owner > guest > unknown — pick first matching role
       (roles || []).forEach((r: any) => {
         if (r.role === 'owner' || r.role === 'guest') {
-          // Owner takes precedence if a user has both
           if (!roleMap[r.user_id] || r.role === 'owner') roleMap[r.user_id] = r.role;
         }
       });
     }
 
-    // Group by participant
+    // Group strictly by deterministic thread_id (DB-managed)
     const buckets = new Map<string, Thread>();
     list.forEach(m => {
       const participantId =
-        m.sender_type === 'admin'
-          ? m.recipient_id
-          : m.sender_id;
+        m.sender_type === 'admin' ? m.recipient_id : m.sender_id;
 
-      // Skip admin-to-nobody messages (orphans)
+      // Skip admin-to-nobody orphans
       if (m.sender_type === 'admin' && !participantId) return;
 
-      const key = participantId || `anon:${m.sender_name || 'ukendt'}`;
+      // Deterministic key from DB; fallback to participant id for old rows
+      const key = m.thread_id || participantId || `anon:${m.sender_name || 'ukendt'}`;
       const existing = buckets.get(key);
 
       if (!existing) {
@@ -133,6 +130,16 @@ export default function AdminBeskeder() {
         });
       } else {
         existing.messages.push(m);
+        // Promote participantId if a later message reveals it
+        if (!existing.participantId && participantId) {
+          existing.participantId = participantId;
+          const profile = profiles[participantId];
+          if (profile) {
+            existing.participantName = profile.full_name || profile.email || existing.participantName;
+            existing.participantEmail = profile.email || existing.participantEmail;
+          }
+          if (roleMap[participantId]) existing.role = roleMap[participantId];
+        }
         if (new Date(m.created_at) > new Date(existing.lastMessageAt)) existing.lastMessageAt = m.created_at;
         if (m.sender_type !== 'admin' && !m.is_read) existing.unread += 1;
       }
