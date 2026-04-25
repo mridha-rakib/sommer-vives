@@ -81,6 +81,44 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('admin-sidebar-collapsed') === 'true');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const unreadMessages = useUnreadMessages();
+  const { notify, muted, setMuted } = useChatNotifications();
+
+  // Global admin chat notification listener: ping + toast on any new
+  // owner/guest support message, regardless of which admin page we are on.
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-global-chat-notify')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages' },
+        (payload) => {
+          const m = payload.new as any;
+          if (m.thread_type !== 'support') return;
+          if (m.sender_type === 'admin') return;
+          const onBeskederPage = location.pathname.startsWith('/admin/beskeder');
+          notify({
+            fromRole: m.sender_type === 'owner' ? 'owner' : 'guest',
+            fromName: m.sender_name,
+            body: m.message,
+            url: '/admin/beskeder',
+            alwaysPlay: !onBeskederPage,
+          });
+          if (!onBeskederPage) {
+            toast.message(
+              m.sender_type === 'owner' ? 'Ny besked fra ejer' : 'Ny besked fra gæst',
+              {
+                description: (m.sender_name ? `${m.sender_name}: ` : '') +
+                  (m.message.length > 80 ? m.message.slice(0, 80) + '…' : m.message),
+                action: { label: 'Åbn', onClick: () => { window.location.href = '/admin/beskeder'; } },
+                duration: 5000,
+              }
+            );
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [location.pathname, notify]);
 
   // Inject live badges onto specific nav items
   const sectionsWithBadges = navSections.map(section => ({
