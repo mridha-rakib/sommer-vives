@@ -77,6 +77,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('admin-sidebar-collapsed') === 'true');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const unreadMessages = useUnreadMessages();
+
+  // Inject live badges onto specific nav items
+  const sectionsWithBadges = navSections.map(section => ({
+    ...section,
+    items: section.items.map(it =>
+      it.href === '/admin/beskeder' ? { ...it, badge: unreadMessages } : it
+    ),
+  }));
 
   useEffect(() => {
     localStorage.setItem('admin-sidebar-collapsed', String(collapsed));
