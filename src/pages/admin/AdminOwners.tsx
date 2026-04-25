@@ -174,7 +174,7 @@ export default function AdminOwners() {
       </div>
 
       {/* ═══════ DETAIL DRAWER ═══════ */}
-      <Sheet open={!!drawerOwner} onOpenChange={open => { if (!open) setDrawerOwner(null); }}>
+      <Sheet open={!!drawerOwner} onOpenChange={open => { if (!open) { setDrawerOwner(null); if (searchParams.get('owner')) { searchParams.delete('owner'); setSearchParams(searchParams, { replace: true }); } } }}>
         <SheetContent className="w-full sm:max-w-lg p-0 border-l border-border/40 bg-background">
           {drawerOwner && (
             <div className="flex flex-col h-full">
