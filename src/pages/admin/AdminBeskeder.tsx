@@ -315,10 +315,27 @@ export default function AdminBeskeder() {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Søg navn, email, indhold..." value={search} onChange={e => setSearch(e.target.value)}
-              className="pl-9 h-9 bg-muted/20 border-border/40 rounded-xl text-sm" />
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              ref={searchRef}
+              placeholder="Søg navn, email, afsender eller indhold... (tryk /)"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 pr-20 h-9 bg-muted/20 border-border/40 rounded-xl text-sm"
+            />
+            {search ? (
+              <button
+                type="button"
+                onClick={() => { setSearch(''); searchRef.current?.focus(); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-muted/40 text-muted-foreground hover:text-foreground"
+                aria-label="Ryd søgning"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <kbd className="hidden sm:inline-flex absolute right-2 top-1/2 -translate-y-1/2 items-center px-1.5 h-5 rounded border border-border/40 bg-muted/30 text-[10px] font-mono text-muted-foreground">/</kbd>
+            )}
           </div>
           <Tabs value={tab} onValueChange={v => setTab(v as ThreadTab)} className="w-auto">
             <TabsList className="h-9 bg-muted/20 border border-border/30 rounded-xl p-0.5">
@@ -329,6 +346,11 @@ export default function AdminBeskeder() {
               ))}
             </TabsList>
           </Tabs>
+          {normalizedQuery && (
+            <span className="text-[11px] text-muted-foreground">
+              {filtered.length} {filtered.length === 1 ? 'tråd' : 'tråde'} matcher
+            </span>
+          )}
         </div>
 
         {/* Thread list */}
