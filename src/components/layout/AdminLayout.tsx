@@ -155,15 +155,20 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <Link
             to={item.href}
             onClick={() => setSidebarOpen(false)}
-            title={item.name}
+            title={item.badge && item.badge > 0 ? `${item.name} (${item.badge} ulæste)` : item.name}
             className={cn(
-              'flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200',
+              'relative flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200',
               active
                 ? 'bg-primary/10 text-primary'
                 : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground'
             )}
           >
             <item.icon className="w-4 h-4" />
+            {item.badge && item.badge > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 text-[9px] font-bold bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-sm">
+                {item.badge > 9 ? '9+' : item.badge}
+              </span>
+            )}
           </Link>
         </div>
       );
