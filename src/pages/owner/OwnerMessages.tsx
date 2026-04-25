@@ -26,10 +26,16 @@ export default function OwnerMessages() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, (payload) => {
         const m = payload.new as any;
         if (m.thread_type !== 'support') return;
-        if (m.sender_id === user.id || m.recipient_id === user.id) {
-          setMessages(prev => [...prev, m]);
-          setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+        if (m.sender_id !== user.id && m.recipient_id !== user.id) return;
+        setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+        if (m.sender_type !== 'owner' && !m.is_read) {
+          supabase.from('chat_messages').update({ is_read: true }).eq('id', m.id).then(() => {});
         }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages' }, (payload) => {
+        const m = payload.new as any;
+        setMessages(prev => prev.map(x => (x.id === m.id ? { ...x, ...m } : x)));
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -38,7 +44,6 @@ export default function OwnerMessages() {
   const loadMessages = async () => {
     if (!user) return;
     setLoading(true);
-    // Load: my own messages + admin replies addressed to me
     const { data } = await supabase
       .from('chat_messages')
       .select('*')
@@ -49,6 +54,13 @@ export default function OwnerMessages() {
     setMessages(data || []);
     setLoading(false);
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+
+    const unreadIds = (data || [])
+      .filter((m: any) => m.sender_type !== 'owner' && !m.is_read)
+      .map((m: any) => m.id);
+    if (unreadIds.length > 0) {
+      supabase.from('chat_messages').update({ is_read: true }).in('id', unreadIds).then(() => {});
+    }
   };
 
   const handleSend = async () => {
