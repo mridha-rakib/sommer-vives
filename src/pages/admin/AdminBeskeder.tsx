@@ -487,6 +487,34 @@ export default function AdminBeskeder() {
             })}
           </div>
         )}
+
+        {/* Load more / pagination footer */}
+        {!loading && (
+          <div className="flex items-center justify-between gap-3 px-1">
+            <p className="text-[11px] text-muted-foreground">
+              {totalCount != null
+                ? `Viser ${allMessages.length} af ${totalCount} beskeder · ${threads.length} tråde`
+                : `Viser ${allMessages.length} beskeder · ${threads.length} tråde`}
+            </p>
+            {hasMore ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="rounded-xl h-8 text-xs"
+              >
+                {loadingMore ? (
+                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Indlæser…</>
+                ) : (
+                  <>Indlæs ældre beskeder</>
+                )}
+              </Button>
+            ) : allMessages.length > 0 && (
+              <span className="text-[11px] text-muted-foreground/60">Alle beskeder indlæst</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Thread drawer ── */}
