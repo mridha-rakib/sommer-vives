@@ -274,7 +274,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
         {/* Nav sections */}
         <nav className="flex-1 px-2 py-4 space-y-5 overflow-y-auto scrollbar-hide">
-          {navSections.map((section, idx) => (
+          {sectionsWithBadges.map((section, idx) => (
             <div key={idx}>
               {section.label && !collapsed && (
                 <p className="px-3 mb-2 text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.15em]">
