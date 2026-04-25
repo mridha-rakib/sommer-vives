@@ -7,13 +7,16 @@ import {
   LayoutDashboard, Settings, LogOut, Menu, X, Calendar,
   MessageSquare, ListChecks, Target, Users, FolderOpen, Inbox,
   FileText, Wallet, ChevronDown, ChevronLeft,
-  UserCheck, User, ExternalLink
+  UserCheck, User, ExternalLink, Bell, BellOff
 } from 'lucide-react';
 import { QuickCreateButtons } from '@/components/admin/QuickCreateButtons';
 import { GlobalSearch } from '@/components/admin/GlobalSearch';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { useChatNotifications } from '@/lib/chatNotifications';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AdminLayoutProps { children: ReactNode; }
 
