@@ -183,6 +183,13 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
               </button>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMuted(!muted)}
+                title={muted ? 'Slå besked-lyd til' : 'Slå besked-lyd fra'}
+                className="w-8 h-8 rounded-full hover:bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {muted ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+              </button>
               <Link to="/owner/account" className="flex items-center gap-2 pl-2">
                 <div className="w-8 h-8 rounded-full bg-[hsl(var(--gold)/0.15)] border border-[hsl(var(--gold)/0.2)] flex items-center justify-center text-xs font-semibold text-[hsl(var(--gold-light))]">
                   {user?.email?.[0]?.toUpperCase() || 'U'}
