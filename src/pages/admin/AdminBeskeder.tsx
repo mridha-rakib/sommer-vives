@@ -349,7 +349,7 @@ export default function AdminBeskeder() {
     setSending(false);
     if (error) { toast.error('Kunne ikke sende svar'); return; }
     setReply('');
-    load();
+    // Realtime subscription will append the new message automatically
   };
 
   return (
