@@ -3593,6 +3593,7 @@ export type Database = {
         }
         Returns: string
       }
+      count_unread_admin_threads: { Args: never; Returns: number }
       generate_case_number: { Args: { prefix: string }; Returns: string }
       generate_sag_tasks: {
         Args: {
