@@ -2011,10 +2011,32 @@ export default function AdminSagDetail() {
               </Button>
             )}
 
-            {actors.length === 0 && !addingActor ? (
+            {actors.length === 0 && !addingActor && !owner ? (
               <p className="text-xs text-muted-foreground/50 italic py-4 text-center">Ingen aktører tilknyttet — tilføj ægtefæller, rengøringspersonale, håndværkere mv.</p>
             ) : (
               <div className="space-y-2">
+                {/* Primary owner pinned at top */}
+                {owner && (
+                  <button
+                    onClick={() => navigate(`/admin/crm/udlejere?owner=${owner.id}`)}
+                    className="w-full rounded-xl border border-primary/30 bg-primary/5 p-3 flex items-center gap-3 hover:bg-primary/10 transition-colors text-left group"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0 text-xs font-bold text-primary">
+                      {(owner.full_name || owner.email)[0].toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-foreground truncate">{owner.full_name || owner.email}</p>
+                        <Badge className="text-[10px] bg-primary/15 text-primary border-0">Ejer</Badge>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {owner.email && <span className="text-[11px] text-muted-foreground truncate">{owner.email}</span>}
+                        {owner.phone && <span className="text-[11px] text-muted-foreground">{owner.phone}</span>}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors shrink-0" />
+                  </button>
+                )}
                 {actors.map(a => {
                   const roleLabels: Record<string, string> = {
                     kontakt: 'Kontaktperson', rengoring: 'Rengøring', handvaerker: 'Håndværker',
