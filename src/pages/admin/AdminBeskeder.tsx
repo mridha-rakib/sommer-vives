@@ -311,9 +311,10 @@ export default function AdminBeskeder() {
   const markReadAttemptsRef = useRef<Map<string, number>>(new Map());
   const MAX_MARK_READ_RETRIES = 3;
 
-  // Robust mark-as-read with retry, RLS verification and rollback on failure
-  const markMessagesRead = async (ids: string[]) => {
-    if (ids.length === 0) return;
+  // Robust mark-as-read with retry, RLS verification and rollback on failure.
+  // Returns true if ALL ids ended up read in the database.
+  const markMessagesRead = async (ids: string[]): Promise<boolean> => {
+    if (ids.length === 0) return true;
 
     // Snapshot previous state for rollback
     const prevSnapshot = new Map<string, boolean | null>();
@@ -332,16 +333,14 @@ export default function AdminBeskeder() {
         .select('id');
 
       if (!error) {
-        // Verify the rows were actually updated (RLS may silently filter)
         const updatedIds = new Set((data || []).map(r => r.id));
         const stillUnread = ids.filter(id => !updatedIds.has(id));
 
         if (stillUnread.length === 0) {
           markReadAttemptsRef.current.clear();
-          return;
+          return true;
         }
 
-        // Re-check the DB to see if RLS hid them but they were already read
         const { data: check, error: checkErr } = await supabase
           .from('chat_messages')
           .select('id, is_read')
@@ -354,10 +353,9 @@ export default function AdminBeskeder() {
 
           if (allRead && invisible.length === 0) {
             markReadAttemptsRef.current.clear();
-            return;
+            return true;
           }
 
-          // RLS blocked these rows — count attempts and stop after MAX
           const blockedKey = invisible.sort().join(',');
           if (blockedKey) {
             const tries = (markReadAttemptsRef.current.get(blockedKey) || 0) + 1;
@@ -365,11 +363,10 @@ export default function AdminBeskeder() {
             if (tries >= MAX_MARK_READ_RETRIES) {
               console.warn('[AdminBeskeder] RLS blocked mark-as-read for', invisible);
               toast.error('Kunne ikke markere alle beskeder som læst (manglende rettigheder)');
-              // Rollback only the blocked rows so badge reflects reality
               setAllMessages(prev => prev.map(m =>
                 invisible.includes(m.id) ? { ...m, is_read: prevSnapshot.get(m.id) ?? false } : m
               ));
-              return;
+              return false;
             }
           }
         }
@@ -379,26 +376,39 @@ export default function AdminBeskeder() {
         console.warn(`[AdminBeskeder] mark-as-read attempt ${attempt} failed`, error);
       }
 
-      // Exponential backoff before retry
       await new Promise(res => setTimeout(res, 250 * attempt));
     }
 
-    // All retries failed — rollback optimistic update so badge stays accurate
     console.error('[AdminBeskeder] mark-as-read failed after retries', lastError);
     toast.error('Kunne ikke opdatere læsestatus — prøver igen senere');
     setAllMessages(prev => prev.map(m =>
       ids.includes(m.id) ? { ...m, is_read: prevSnapshot.get(m.id) ?? false } : m
     ));
+    return false;
   };
 
   // Auto-mark unread as read when opening a thread or when new messages arrive in the open thread
   useEffect(() => {
     if (!selected) return;
+    const threadId = selected.id;
     const unreadIds = selected.messages
       .filter(m => m.sender_type !== 'admin' && !m.is_read)
       .map(m => m.id);
     if (unreadIds.length === 0) return;
-    markMessagesRead(unreadIds);
+
+    markMessagesRead(unreadIds).then(ok => {
+      if (!ok) return;
+      // Show success toast + transient "Alle læst" badge in drawer header
+      toast.success(
+        unreadIds.length === 1
+          ? '1 besked markeret som læst'
+          : `${unreadIds.length} beskeder markeret som læst`,
+        { duration: 2000 }
+      );
+      setAllReadFlash({ threadId, count: unreadIds.length });
+      if (allReadTimerRef.current) window.clearTimeout(allReadTimerRef.current);
+      allReadTimerRef.current = window.setTimeout(() => setAllReadFlash(null), 2500);
+    });
   }, [selectedId, selected?.messages.length]);
 
   // Auto-scroll inside drawer
