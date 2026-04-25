@@ -304,6 +304,90 @@ export default function AdminBeskeder() {
 
   const selected = useMemo(() => threads.find(t => t.id === selectedId) || null, [threads, selectedId]);
 
+  // Track IDs we've already attempted, so retries don't loop forever per session
+  const markReadAttemptsRef = useRef<Map<string, number>>(new Map());
+  const MAX_MARK_READ_RETRIES = 3;
+
+  // Robust mark-as-read with retry, RLS verification and rollback on failure
+  const markMessagesRead = async (ids: string[]) => {
+    if (ids.length === 0) return;
+
+    // Snapshot previous state for rollback
+    const prevSnapshot = new Map<string, boolean | null>();
+    setAllMessages(prev => {
+      prev.forEach(m => { if (ids.includes(m.id)) prevSnapshot.set(m.id, m.is_read); });
+      return prev.map(m => (ids.includes(m.id) ? { ...m, is_read: true } : m));
+    });
+
+    let lastError: any = null;
+    for (let attempt = 1; attempt <= MAX_MARK_READ_RETRIES; attempt++) {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .update({ is_read: true })
+        .in('id', ids)
+        .eq('is_read', false)
+        .select('id');
+
+      if (!error) {
+        // Verify the rows were actually updated (RLS may silently filter)
+        const updatedIds = new Set((data || []).map(r => r.id));
+        const stillUnread = ids.filter(id => !updatedIds.has(id));
+
+        if (stillUnread.length === 0) {
+          markReadAttemptsRef.current.clear();
+          return;
+        }
+
+        // Re-check the DB to see if RLS hid them but they were already read
+        const { data: check, error: checkErr } = await supabase
+          .from('chat_messages')
+          .select('id, is_read')
+          .in('id', stillUnread);
+
+        if (!checkErr) {
+          const allRead = (check || []).every(r => r.is_read === true);
+          const visible = (check || []).map(r => r.id);
+          const invisible = stillUnread.filter(id => !visible.includes(id));
+
+          if (allRead && invisible.length === 0) {
+            markReadAttemptsRef.current.clear();
+            return;
+          }
+
+          // RLS blocked these rows — count attempts and stop after MAX
+          const blockedKey = invisible.sort().join(',');
+          if (blockedKey) {
+            const tries = (markReadAttemptsRef.current.get(blockedKey) || 0) + 1;
+            markReadAttemptsRef.current.set(blockedKey, tries);
+            if (tries >= MAX_MARK_READ_RETRIES) {
+              console.warn('[AdminBeskeder] RLS blocked mark-as-read for', invisible);
+              toast.error('Kunne ikke markere alle beskeder som læst (manglende rettigheder)');
+              // Rollback only the blocked rows so badge reflects reality
+              setAllMessages(prev => prev.map(m =>
+                invisible.includes(m.id) ? { ...m, is_read: prevSnapshot.get(m.id) ?? false } : m
+              ));
+              return;
+            }
+          }
+        }
+        lastError = new Error('Partial update — rows still unread after attempt ' + attempt);
+      } else {
+        lastError = error;
+        console.warn(`[AdminBeskeder] mark-as-read attempt ${attempt} failed`, error);
+      }
+
+      // Exponential backoff before retry
+      await new Promise(res => setTimeout(res, 250 * attempt));
+    }
+
+    // All retries failed — rollback optimistic update so badge stays accurate
+    console.error('[AdminBeskeder] mark-as-read failed after retries', lastError);
+    toast.error('Kunne ikke opdatere læsestatus — prøver igen senere');
+    setAllMessages(prev => prev.map(m =>
+      ids.includes(m.id) ? { ...m, is_read: prevSnapshot.get(m.id) ?? false } : m
+    ));
+  };
+
   // Auto-mark unread as read when opening a thread or when new messages arrive in the open thread
   useEffect(() => {
     if (!selected) return;
@@ -311,19 +395,7 @@ export default function AdminBeskeder() {
       .filter(m => m.sender_type !== 'admin' && !m.is_read)
       .map(m => m.id);
     if (unreadIds.length === 0) return;
-
-    // Optimistically mark as read in local message state so badges update instantly
-    setAllMessages(prev => prev.map(m =>
-      unreadIds.includes(m.id) ? { ...m, is_read: true } : m
-    ));
-
-    supabase
-      .from('chat_messages')
-      .update({ is_read: true })
-      .in('id', unreadIds)
-      .then(({ error }) => {
-        if (error) console.error('Failed to mark messages as read', error);
-      });
+    markMessagesRead(unreadIds);
   }, [selectedId, selected?.messages.length]);
 
   // Auto-scroll inside drawer
