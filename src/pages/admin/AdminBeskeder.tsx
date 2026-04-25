@@ -13,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import {
   MessageSquare, UserCheck, User, Bot, Search, Send,
-  Mail, ChevronRight, Circle, Loader2,
+  Mail, ChevronRight, Circle, Loader2, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -57,6 +57,28 @@ function roleVisuals(role: ParticipantRole) {
   return { Icon: Bot, color: 'text-muted-foreground', bg: 'bg-muted/30', label: 'Ukendt' };
 }
 
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function HighlightText({ text, query }: { text: string | null | undefined; query: string }) {
+  if (!text) return null;
+  if (!query) return <>{text}</>;
+  const re = new RegExp(`(${escapeRegExp(query)})`, 'ig');
+  const parts = text.split(re);
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-primary/25 text-foreground rounded px-0.5">{p}</mark>
+        ) : (
+          <span key={i}>{p}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export default function AdminBeskeder() {
   const { user } = useAuth();
   const [threads, setThreads] = useState<Thread[]>([]);
@@ -67,6 +89,24 @@ export default function AdminBeskeder() {
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcut: "/" focuses search, "Esc" clears it
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const inField = target && ['INPUT', 'TEXTAREA'].includes(target.tagName);
+      if (e.key === '/' && !inField) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+      if (e.key === 'Escape' && document.activeElement === searchRef.current) {
+        setSearch('');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const load = async () => {
     // Pull recent messages — thread_id is now deterministic per participant (DB trigger)
@@ -162,20 +202,40 @@ export default function AdminBeskeder() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const filtered = useMemo(() => {
-    return threads.filter(t => {
-      if (tab !== 'all' && t.role !== tab) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        return (
-          t.participantName.toLowerCase().includes(q) ||
-          (t.participantEmail || '').toLowerCase().includes(q) ||
-          t.messages.some(m => (m.message || '').toLowerCase().includes(q))
-        );
+  // Normalize search query (case + accent insensitive)
+  const normalizedQuery = useMemo(
+    () => search.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
+    [search]
+  );
+
+  const matches = (text: string | null | undefined) => {
+    if (!text) return false;
+    const t = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return t.includes(normalizedQuery);
+  };
+
+  type FilteredThread = Thread & { matchedMessage?: Msg };
+
+  const filtered = useMemo<FilteredThread[]>(() => {
+    return threads.reduce<FilteredThread[]>((acc, t) => {
+      if (tab !== 'all' && t.role !== tab) return acc;
+
+      if (!normalizedQuery) {
+        acc.push(t);
+        return acc;
       }
-      return true;
-    });
-  }, [threads, tab, search]);
+
+      // Header-level match (name / email)
+      const headerHit = matches(t.participantName) || matches(t.participantEmail);
+      // Message-level match (text or per-message sender_name)
+      const matchedMessage = t.messages.find(m => matches(m.message) || matches(m.sender_name));
+
+      if (headerHit || matchedMessage) {
+        acc.push({ ...t, matchedMessage: matchedMessage || undefined });
+      }
+      return acc;
+    }, []);
+  }, [threads, tab, normalizedQuery]);
 
   const counts = useMemo(() => ({
     total: threads.length,
@@ -277,10 +337,27 @@ export default function AdminBeskeder() {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Søg navn, email, indhold..." value={search} onChange={e => setSearch(e.target.value)}
-              className="pl-9 h-9 bg-muted/20 border-border/40 rounded-xl text-sm" />
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              ref={searchRef}
+              placeholder="Søg navn, email, afsender eller indhold... (tryk /)"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 pr-20 h-9 bg-muted/20 border-border/40 rounded-xl text-sm"
+            />
+            {search ? (
+              <button
+                type="button"
+                onClick={() => { setSearch(''); searchRef.current?.focus(); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-muted/40 text-muted-foreground hover:text-foreground"
+                aria-label="Ryd søgning"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <kbd className="hidden sm:inline-flex absolute right-2 top-1/2 -translate-y-1/2 items-center px-1.5 h-5 rounded border border-border/40 bg-muted/30 text-[10px] font-mono text-muted-foreground">/</kbd>
+            )}
           </div>
           <Tabs value={tab} onValueChange={v => setTab(v as ThreadTab)} className="w-auto">
             <TabsList className="h-9 bg-muted/20 border border-border/30 rounded-xl p-0.5">
@@ -291,6 +368,11 @@ export default function AdminBeskeder() {
               ))}
             </TabsList>
           </Tabs>
+          {normalizedQuery && (
+            <span className="text-[11px] text-muted-foreground">
+              {filtered.length} {filtered.length === 1 ? 'tråd' : 'tråde'} matcher
+            </span>
+          )}
         </div>
 
         {/* Thread list */}
@@ -306,6 +388,8 @@ export default function AdminBeskeder() {
           <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/30 overflow-hidden">
             {filtered.map(t => {
               const lastMsg = t.messages[t.messages.length - 1];
+              // When searching: prefer the matched message as preview snippet
+              const previewMsg = t.matchedMessage || lastMsg;
               const v = roleVisuals(t.role);
               return (
                 <button
@@ -324,7 +408,7 @@ export default function AdminBeskeder() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className={`text-sm truncate ${t.unread > 0 ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}>
-                        {t.participantName}
+                        <HighlightText text={t.participantName} query={normalizedQuery} />
                       </p>
                       <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-border/40 text-muted-foreground">{v.label}</Badge>
                       {t.unread > 0 && (
@@ -334,8 +418,11 @@ export default function AdminBeskeder() {
                       )}
                     </div>
                     <p className={`text-[11px] truncate mt-0.5 ${t.unread > 0 ? 'text-foreground/70' : 'text-muted-foreground'}`}>
-                      {lastMsg.sender_type === 'admin' && <span className="font-medium">Du: </span>}
-                      {lastMsg.message}
+                      {previewMsg.sender_type === 'admin' && <span className="font-medium">Du: </span>}
+                      {!!t.matchedMessage && previewMsg.sender_type !== 'admin' && previewMsg.sender_name && (
+                        <span className="font-medium">{previewMsg.sender_name}: </span>
+                      )}
+                      <HighlightText text={previewMsg.message} query={normalizedQuery} />
                     </p>
                   </div>
                   <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
