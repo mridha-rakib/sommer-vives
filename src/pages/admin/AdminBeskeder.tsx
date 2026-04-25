@@ -162,20 +162,40 @@ export default function AdminBeskeder() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const filtered = useMemo(() => {
-    return threads.filter(t => {
-      if (tab !== 'all' && t.role !== tab) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        return (
-          t.participantName.toLowerCase().includes(q) ||
-          (t.participantEmail || '').toLowerCase().includes(q) ||
-          t.messages.some(m => (m.message || '').toLowerCase().includes(q))
-        );
+  // Normalize search query (case + accent insensitive)
+  const normalizedQuery = useMemo(
+    () => search.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
+    [search]
+  );
+
+  const matches = (text: string | null | undefined) => {
+    if (!text) return false;
+    const t = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return t.includes(normalizedQuery);
+  };
+
+  type FilteredThread = Thread & { matchedMessage?: Msg };
+
+  const filtered = useMemo<FilteredThread[]>(() => {
+    return threads.reduce<FilteredThread[]>((acc, t) => {
+      if (tab !== 'all' && t.role !== tab) return acc;
+
+      if (!normalizedQuery) {
+        acc.push(t);
+        return acc;
       }
-      return true;
-    });
-  }, [threads, tab, search]);
+
+      // Header-level match (name / email)
+      const headerHit = matches(t.participantName) || matches(t.participantEmail);
+      // Message-level match (text or per-message sender_name)
+      const matchedMessage = t.messages.find(m => matches(m.message) || matches(m.sender_name));
+
+      if (headerHit || matchedMessage) {
+        acc.push({ ...t, matchedMessage: matchedMessage || undefined });
+      }
+      return acc;
+    }, []);
+  }, [threads, tab, normalizedQuery]);
 
   const counts = useMemo(() => ({
     total: threads.length,
