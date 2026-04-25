@@ -105,24 +105,41 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-3 px-3">
           <div className="space-y-1">
-            {navItems.map(item => (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setSidebarOpen(false)}
-                title={collapsed ? item.name : undefined}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200',
-                  isActive(item.href)
-                    ? 'bg-[hsl(var(--gold)/0.12)] text-[hsl(var(--gold-light))] font-medium border border-[hsl(var(--gold)/0.15)]'
-                    : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
-                  collapsed && 'justify-center px-2'
-                )}
-              >
-                <item.icon className={cn('w-[18px] h-[18px] shrink-0', isActive(item.href) && 'text-[hsl(var(--gold-light))]')} />
-                {!collapsed && <span className="truncate">{item.name}</span>}
-              </Link>
-            ))}
+            {navItems.map(item => {
+              const showBadge = item.href === '/owner/messages' && unreadMessages > 0;
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  title={collapsed ? item.name : undefined}
+                  className={cn(
+                    'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200',
+                    isActive(item.href)
+                      ? 'bg-[hsl(var(--gold)/0.12)] text-[hsl(var(--gold-light))] font-medium border border-[hsl(var(--gold)/0.15)]'
+                      : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground',
+                    collapsed && 'justify-center px-2'
+                  )}
+                >
+                  <div className="relative shrink-0">
+                    <item.icon className={cn('w-[18px] h-[18px]', isActive(item.href) && 'text-[hsl(var(--gold-light))]')} />
+                    {showBadge && collapsed && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[hsl(var(--gold))] ring-2 ring-card" />
+                    )}
+                  </div>
+                  {!collapsed && (
+                    <>
+                      <span className="truncate flex-1">{item.name}</span>
+                      {showBadge && (
+                        <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[hsl(var(--gold))] text-background text-[10px] font-semibold">
+                          {unreadMessages > 9 ? '9+' : unreadMessages}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </nav>
 
