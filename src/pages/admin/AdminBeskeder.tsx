@@ -27,6 +27,7 @@ type Msg = {
   sender_id: string | null;
   sender_name: string | null;
   recipient_id: string | null;
+  thread_id: string | null;
   thread_type: string | null;
   booking_id: string | null;
   created_at: string;
