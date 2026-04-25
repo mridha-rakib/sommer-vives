@@ -74,6 +74,14 @@ export default function AdminOwners() {
 
   useEffect(() => { load(); }, []);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const id = searchParams.get('owner');
+    if (!id || owners.length === 0) return;
+    const found = owners.find(o => o.id === id);
+    if (found && (!drawerOwner || drawerOwner.id !== id)) openDrawer(found);
+  }, [searchParams, owners]);
+
   const openDrawer = async (owner: Owner) => {
     setDrawerOwner(owner);
     setTab('info');
