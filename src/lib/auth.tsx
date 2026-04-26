@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { DEV_BYPASS_AUTH, DEV_BYPASS_USER, DEV_BYPASS_ROLES } from '@/lib/devBypass';
 
 type UserRole = 'owner' | 'admin';
 
@@ -21,11 +22,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(
+    DEV_BYPASS_AUTH ? ({ id: DEV_BYPASS_USER.id, email: DEV_BYPASS_USER.email } as unknown as User) : null
+  );
   const [session, setSession] = useState<Session | null>(null);
-  const [roles, setRoles] = useState<UserRole[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [rolesLoaded, setRolesLoaded] = useState(false);
+  const [roles, setRoles] = useState<UserRole[]>(
+    DEV_BYPASS_AUTH ? (DEV_BYPASS_ROLES as unknown as UserRole[]) : []
+  );
+  const [loading, setLoading] = useState(!DEV_BYPASS_AUTH);
+  const [rolesLoaded, setRolesLoaded] = useState(DEV_BYPASS_AUTH);
 
   const fetchUserRoles = async (userId: string) => {
     const { data, error } = await supabase
@@ -42,6 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    if (DEV_BYPASS_AUTH) {
+      // Skip Supabase auth entirely while bypass is active
+      return;
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
