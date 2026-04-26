@@ -157,7 +157,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Navigate to="/about#kontakt" replace />} />
             <Route path="/faq" element={<Navigate to="/#faq" replace />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth" element={DEV_BYPASS_AUTH ? <Navigate to="/owner" replace /> : <Auth />} />
             <Route path="/kom-i-gang" element={<GetStarted />} />
             <Route path="/book-vurdering" element={<BookValuation />} />
             <Route path="/beregn-lejeindtaegt" element={<PriceCalculator />} />
@@ -192,7 +192,7 @@ const App = () => (
             <Route path="/owner/properties" element={<Navigate to="/owner/property" replace />} />
 
             {/* ─── Guest Experience ─── */}
-            <Route path="/guest/auth" element={<GuestAuth />} />
+            <Route path="/guest/auth" element={DEV_BYPASS_AUTH ? <Navigate to="/guest" replace /> : <GuestAuth />} />
             <Route path="/guest" element={<GuestProtectedRoute><GuestDashboard /></GuestProtectedRoute>} />
             <Route path="/guest/reservation" element={<GuestProtectedRoute><GuestReservation /></GuestProtectedRoute>} />
             <Route path="/guest/property" element={<GuestProtectedRoute><GuestProperty /></GuestProtectedRoute>} />
@@ -206,7 +206,7 @@ const App = () => (
             <Route path="/guest/support" element={<Navigate to="/guest/messages" replace />} />
 
             {/* ─── Admin Panel ─── */}
-            <Route path="/admin/auth" element={<AdminAuth />} />
+            <Route path="/admin/auth" element={DEV_BYPASS_AUTH ? <Navigate to="/admin" replace /> : <AdminAuth />} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/beskeder" element={<ProtectedRoute requireAdmin><AdminBeskeder /></ProtectedRoute>} />
             <Route path="/admin/kalender" element={<ProtectedRoute requireAdmin><AdminKalender /></ProtectedRoute>} />
