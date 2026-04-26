@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
 import ScrollToTop from "@/components/ScrollToTop";
 import { ComingSoonGate } from "@/components/ComingSoonGate";
+import { DEV_BYPASS_AUTH } from "@/lib/devBypass";
 
 // Public pages
 import Index from "./pages/Index";
@@ -89,7 +90,10 @@ const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
   const { user, loading, isAdmin, rolesLoaded } = useAuth();
-  
+
+  // 🚧 DEV BYPASS: alle routes åbne — se src/lib/devBypass.ts
+  if (DEV_BYPASS_AUTH) return <>{children}</>;
+
   if (loading || (user && !rolesLoaded)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -114,7 +118,10 @@ function ProtectedRoute({ children, requireAdmin = false }: { children: React.Re
 
 function GuestProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  
+
+  // 🚧 DEV BYPASS
+  if (DEV_BYPASS_AUTH) return <>{children}</>;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
