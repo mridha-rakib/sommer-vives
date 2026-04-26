@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/i18n";
 import ScrollToTop from "@/components/ScrollToTop";
 import { ComingSoonGate } from "@/components/ComingSoonGate";
+import { DEV_BYPASS_AUTH } from "@/lib/devBypass";
 
 // Public pages
 import Index from "./pages/Index";
@@ -89,7 +90,10 @@ const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
   const { user, loading, isAdmin, rolesLoaded } = useAuth();
-  
+
+  // 🚧 DEV BYPASS: alle routes åbne — se src/lib/devBypass.ts
+  if (DEV_BYPASS_AUTH) return <>{children}</>;
+
   if (loading || (user && !rolesLoaded)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -114,7 +118,10 @@ function ProtectedRoute({ children, requireAdmin = false }: { children: React.Re
 
 function GuestProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  
+
+  // 🚧 DEV BYPASS
+  if (DEV_BYPASS_AUTH) return <>{children}</>;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -150,7 +157,7 @@ const App = () => (
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Navigate to="/about#kontakt" replace />} />
             <Route path="/faq" element={<Navigate to="/#faq" replace />} />
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth" element={DEV_BYPASS_AUTH ? <Navigate to="/owner" replace /> : <Auth />} />
             <Route path="/kom-i-gang" element={<GetStarted />} />
             <Route path="/book-vurdering" element={<BookValuation />} />
             <Route path="/beregn-lejeindtaegt" element={<PriceCalculator />} />
@@ -185,7 +192,7 @@ const App = () => (
             <Route path="/owner/properties" element={<Navigate to="/owner/property" replace />} />
 
             {/* ─── Guest Experience ─── */}
-            <Route path="/guest/auth" element={<GuestAuth />} />
+            <Route path="/guest/auth" element={DEV_BYPASS_AUTH ? <Navigate to="/guest" replace /> : <GuestAuth />} />
             <Route path="/guest" element={<GuestProtectedRoute><GuestDashboard /></GuestProtectedRoute>} />
             <Route path="/guest/reservation" element={<GuestProtectedRoute><GuestReservation /></GuestProtectedRoute>} />
             <Route path="/guest/property" element={<GuestProtectedRoute><GuestProperty /></GuestProtectedRoute>} />
@@ -199,7 +206,7 @@ const App = () => (
             <Route path="/guest/support" element={<Navigate to="/guest/messages" replace />} />
 
             {/* ─── Admin Panel ─── */}
-            <Route path="/admin/auth" element={<AdminAuth />} />
+            <Route path="/admin/auth" element={DEV_BYPASS_AUTH ? <Navigate to="/admin" replace /> : <AdminAuth />} />
             <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/beskeder" element={<ProtectedRoute requireAdmin><AdminBeskeder /></ProtectedRoute>} />
             <Route path="/admin/kalender" element={<ProtectedRoute requireAdmin><AdminKalender /></ProtectedRoute>} />
