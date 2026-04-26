@@ -3,11 +3,15 @@ import { motion } from 'framer-motion';
 import { Lock, ArrowRight, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DEV_BYPASS_AUTH } from '@/lib/devBypass';
 
 const ACCESS_KEY = 'sv-access-granted';
 const CORRECT_CODE = 'emil121a';
 
 export function ComingSoonGate({ children }: { children: React.ReactNode }) {
+  // Midlertidig bypass — følger samme flag som auth-bypass i src/lib/devBypass.ts
+  if (DEV_BYPASS_AUTH) return <>{children}</>;
+
   const [unlocked, setUnlocked] = useState(false);
   const [checking, setChecking] = useState(true);
   const [code, setCode] = useState('');
