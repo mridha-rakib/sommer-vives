@@ -64,7 +64,7 @@ export function GuestLayout({ children, onLogout, guestEmail }: GuestLayoutProps
       {/* Clean premium header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-4xl mx-auto flex items-center justify-between h-14 px-4">
-          <BrandLogo to="/guest" tagline="Gæsteportal" />
+          <BrandLogo to="/guest" tone="light" tagline="Gæsteportal" />
           <div className="flex items-center gap-3">
             {guestEmail && (
               <span className="text-[11px] text-muted-foreground hidden md:block">{guestEmail}</span>
