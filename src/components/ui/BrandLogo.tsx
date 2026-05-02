@@ -1,39 +1,67 @@
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import logoFullLight from '@/assets/logo/sommervibes-full.png';
+import logoFullDark from '@/assets/logo/sommervibes-full-dark.png';
+import logoMarkLight from '@/assets/logo/sommervibes-mark.png';
+import logoMarkDark from '@/assets/logo/sommervibes-mark-dark.png';
+
+type Variant = 'full' | 'mark';
+type Tone = 'light' | 'dark' | 'auto';
+type Size = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 interface BrandLogoProps {
-  tagline?: string;
+  /** `full` = sun + "SommerVibes" (best for headers). `mark` = stacked logo with "Sommer / Vibes" (best for splash/auth/hero). */
+  variant?: Variant;
+  /** `light` = white text (use on dark bg). `dark` = navy text (use on light bg). `auto` = follows current text color via CSS, defaults to dark. */
+  tone?: Tone;
   to?: string;
-  size?: 'sm' | 'md';
+  size?: Size;
+  tagline?: string;
   className?: string;
 }
 
-export function BrandLogo({ tagline, to = '/', size = 'sm', className }: BrandLogoProps) {
-  const textSize = size === 'md' ? 'text-xl' : 'text-base';
-  const sunSize = size === 'md' ? 'w-[0.65em] h-[0.65em]' : 'w-[0.6em] h-[0.6em]';
+const heightBySize: Record<Variant, Record<Size, string>> = {
+  full: {
+    xs: 'h-5',
+    sm: 'h-7',
+    md: 'h-9',
+    lg: 'h-12',
+    xl: 'h-16',
+  },
+  mark: {
+    xs: 'h-8',
+    sm: 'h-12',
+    md: 'h-16',
+    lg: 'h-24',
+    xl: 'h-32',
+  },
+};
 
-  const logo = (
-    <div className={cn('flex flex-col items-start', className)}>
-      <span className={cn('font-display font-bold tracking-tight text-foreground leading-none', textSize)}>
-        S
-        <span className={cn('inline-block relative -mb-[0.05em] mx-[0.02em]', sunSize)}>
-          <svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_6px_hsl(var(--primary)/0.6)]" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="8" fill="hsl(var(--primary))" />
-            <circle cx="16" cy="16" r="11" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeDasharray="3 4" opacity="0.5" />
-            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
-              const rad = (angle * Math.PI) / 180;
-              const x1 = 16 + 12 * Math.cos(rad);
-              const y1 = 16 + 12 * Math.sin(rad);
-              const x2 = 16 + 15 * Math.cos(rad);
-              const y2 = 16 + 15 * Math.sin(rad);
-              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="round" />;
-            })}
-          </svg>
-        </span>
-        mmer<span className="text-primary italic">Vibes</span>
-      </span>
+export function BrandLogo({
+  variant = 'full',
+  tone = 'dark',
+  to = '/',
+  size = 'sm',
+  tagline,
+  className,
+}: BrandLogoProps) {
+  const isMark = variant === 'mark';
+  const src = isMark
+    ? tone === 'light' ? logoMarkLight : logoMarkDark
+    : tone === 'light' ? logoFullLight : logoFullDark;
+
+  const heightClass = heightBySize[variant][size];
+
+  const content = (
+    <div className={cn('inline-flex flex-col items-start leading-none', className)}>
+      <img
+        src={src}
+        alt="SommerVibes"
+        className={cn(heightClass, 'w-auto select-none')}
+        draggable={false}
+      />
       {tagline && (
-        <span className="text-[11px] uppercase tracking-[0.25em] text-primary/70 font-semibold mt-1 leading-none">
+        <span className="text-[11px] uppercase tracking-[0.25em] text-primary/70 font-semibold mt-1.5 leading-none">
           {tagline}
         </span>
       )}
@@ -41,8 +69,11 @@ export function BrandLogo({ tagline, to = '/', size = 'sm', className }: BrandLo
   );
 
   if (to) {
-    return <Link to={to}>{logo}</Link>;
+    return (
+      <Link to={to} className="inline-flex items-center" aria-label="SommerVibes – forside">
+        {content}
+      </Link>
+    );
   }
-
-  return logo;
+  return content;
 }
