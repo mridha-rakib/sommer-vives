@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, ArrowRight, Home } from 'lucide-react';
+import { Lock, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 import { DEV_BYPASS_AUTH } from '@/lib/devBypass';
 
 const ACCESS_KEY = 'sv-access-granted';
@@ -51,13 +52,8 @@ export function ComingSoonGate({ children }: { children: React.ReactNode }) {
       >
         <div className="relative bg-card border border-border rounded-3xl p-8 md:p-10 text-center shadow-[0_40px_100px_-20px_hsl(var(--foreground)/0.2)]">
           {/* Logo */}
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <Home className="h-4 w-4 text-primary" />
-            </div>
-            <span className="font-display text-lg font-semibold text-foreground">
-              Sommer<span className="text-primary">Vibes</span>
-            </span>
+          <div className="flex items-center justify-center mb-8">
+            <BrandLogo variant="mark" tone="light" size="md" to="" />
           </div>
 
           {/* Icon */}
