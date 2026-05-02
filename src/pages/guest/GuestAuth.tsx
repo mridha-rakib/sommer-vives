@@ -50,14 +50,8 @@ export default function GuestAuth() {
       {/* Header */}
       <header className="border-b border-border">
         <div className="max-w-5xl mx-auto flex items-center justify-between h-14 px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
-              <Home className="h-3.5 w-3.5 text-accent" />
-            </div>
-            <span className="font-display text-base font-semibold text-foreground">
-              Sommer<span className="text-accent">Vibes</span>
-            </span>
-          </Link>
+          <BrandLogo variant="full" tone="light" size="sm" />
+
           <Link to="/auth" className="text-xs text-muted-foreground hover:text-accent transition-colors">
             Ejer-login →
           </Link>
