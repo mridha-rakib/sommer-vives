@@ -546,7 +546,7 @@ export default function PriceCalculator() {
                   kontakt@sommervibes.dk
                 </a>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">08:00 - 16:00 alle hverdage</p>
+              <p className="text-xs text-muted-foreground mt-1">Telefon: mandag–torsdag 10–16</p>
             </div>
           </div>
         </div>
