@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, ArrowRight, Home } from 'lucide-react';
+import { Lock, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 import { DEV_BYPASS_AUTH } from '@/lib/devBypass';
 
 const ACCESS_KEY = 'sv-access-granted';
