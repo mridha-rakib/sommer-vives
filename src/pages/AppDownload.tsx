@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Smartphone, Apple, Bell, BarChart3, CalendarDays, DoorOpen, ShoppingBag, 
-  LifeBuoy, Star, Shield, Zap, ArrowLeft, Home, ArrowDown, Share, Plus, CheckCircle2
+import {
+  Smartphone, Apple, Bell, BarChart3, CalendarDays, DoorOpen, ShoppingBag,
+  LifeBuoy, Star, Shield, Zap, ArrowLeft, ArrowDown, Share, Plus, CheckCircle2
 } from 'lucide-react';
 import { useInstallPrompt } from '@/hooks/useInstallPrompt';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 const ownerFeatures = [
   { icon: BarChart3, title: 'Indtjening i realtid', desc: 'Følg bookinger og udbetalinger direkte' },
