@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Mail, Shield } from "lucide-react";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 export default function AdminAuth() {
   const [email, setEmail] = useState("");
@@ -95,6 +96,9 @@ export default function AdminAuth() {
         <section className="min-h-[calc(100vh-4rem)] flex">
           <aside className="hidden lg:flex lg:w-1/2 bg-slate-900 items-center justify-center p-12">
             <div className="max-w-md text-center">
+              <div className="flex justify-center mb-8">
+                <BrandLogo variant="mark" tone="light" size="xl" to="" />
+              </div>
               <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-6">
                 <Shield className="w-8 h-8 text-accent" />
               </div>
@@ -105,6 +109,9 @@ export default function AdminAuth() {
 
           <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
             <div className="w-full max-w-md">
+              <div className="mb-8 lg:hidden flex justify-center">
+                <BrandLogo variant="mark" tone="dark" size="md" />
+              </div>
               <header className="mb-8">
                 <h1 className="font-display text-3xl font-bold text-primary mb-2">Admin login</h1>
                 <p className="text-muted-foreground">{subtitle}</p>
