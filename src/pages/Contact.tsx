@@ -65,7 +65,7 @@ function ContactContent() {
                 { icon: Mail, title: 'Email', detail: 'kontakt@sommervibes.dk', href: 'mailto:kontakt@sommervibes.dk' },
                 { icon: Phone, title: 'Telefon', detail: '+45 12 34 56 78', href: 'tel:+4512345678' },
                 { icon: MapPin, title: 'Adresse', detail: 'København, Danmark' },
-                { icon: Clock, title: 'Åbningstider', detail: 'Tlf. man–tor 10–16 (fre lukket) · Chat hverdage 10–22, weekend 10–16 · Kontor i Vejen efter aftale' },
+                { icon: Clock, title: 'Åbningstider', detail: 'Tlf. man–tor 10–16 · fre/lør/søn efter aftale · Chat alle dage 10–20' },
               ].map((item, i) => (
                 <motion.div
                   key={i}

@@ -345,7 +345,7 @@ function ContactCloseSection() {
   const contacts = [
     { icon: Phone, title: 'Ring til os', detail: '+45 12 34 56 78', href: 'tel:+4512345678' },
     { icon: Mail, title: 'Skriv til os', detail: 'kontakt@sommervibes.dk', href: 'mailto:kontakt@sommervibes.dk' },
-    { icon: Clock, title: 'Åbningstider', detail: 'Tlf. man–tor 10–16 · Chat hverdage 10–22, weekend 10–16' },
+    { icon: Clock, title: 'Åbningstider', detail: 'Tlf. man–tor 10–16 · Chat alle dage 10–20' },
   ];
 
   return (

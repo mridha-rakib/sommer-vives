@@ -166,7 +166,7 @@ export function ChatWidget() {
                     {isWithinHours() ? (
                       <span className="text-accent">Online nu • svar inden for minutter</span>
                     ) : (
-                      <span>Offline • hverdage 10–22, weekend 10–16</span>
+                      <span>Offline • alle dage 10–20</span>
                     )}
                   </div>
                 </div>
