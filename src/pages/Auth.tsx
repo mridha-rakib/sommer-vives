@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Home, Mail, Lock, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -65,7 +66,9 @@ export default function Auth() {
       <div className="min-h-screen bg-background flex pt-16">
       <div className="hidden lg:flex lg:w-1/2 bg-primary items-center justify-center p-12">
         <div className="max-w-md text-center">
-          <Home className="w-16 h-16 text-accent mx-auto mb-6" />
+          <div className="flex justify-center mb-8">
+            <BrandLogo variant="mark" tone="light" size="xl" to="" />
+          </div>
           <h1 className="font-display text-4xl font-bold text-background mb-4">
             Dit sommerhus. Dine regler.
           </h1>
@@ -77,12 +80,9 @@ export default function Auth() {
 
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <Link to="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <Home className="h-6 w-6 text-primary" />
-            <span className="font-display text-xl font-semibold text-foreground">
-              Sommer<span className="text-primary italic">Vibes</span>
-            </span>
-          </Link>
+          <div className="mb-8 lg:hidden flex justify-center">
+            <BrandLogo variant="mark" tone="dark" size="md" />
+          </div>
 
           <h2 className="font-display text-3xl font-bold text-primary mb-2">
             {mode === 'signup' ? 'Opret ejer-konto' : 'Ejer Login'}
