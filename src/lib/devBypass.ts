@@ -8,7 +8,7 @@
  *
  * SÆT TIL false FØR PRODUKTION / NÅR FIVERR-UDVIKLERE ER FÆRDIGE.
  */
-export const DEV_BYPASS_AUTH = true;
+export const DEV_BYPASS_AUTH = false;
 
 // Emil Klockmann (admin + owner)
 export const DEV_BYPASS_USER = {
