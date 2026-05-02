@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 export function Footer() {
   const { t } = useTranslation();
