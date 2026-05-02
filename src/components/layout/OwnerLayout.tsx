@@ -77,8 +77,8 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
       )} style={{ top: 0, height: '100vh' }}>
         {/* Header */}
         <div className={cn('flex items-center justify-between p-4 border-b border-border/40', collapsed && 'justify-center')}>
-          {!collapsed && <BrandLogo to="/owner" tagline="Ejerportal" />}
-          {collapsed && <BrandLogo to="/owner" tagline="" className="[&>span:first-child]:text-xs" />}
+          {!collapsed && <BrandLogo to="/owner" tone="light" tagline="Ejerportal" />}
+          {collapsed && <BrandLogo to="/owner" tone="light" variant="mark" size="xs" />}
           <button 
             className="hidden md:flex text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => setCollapsed(!collapsed)}

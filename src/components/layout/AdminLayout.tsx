@@ -300,7 +300,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       )}>
         {/* Logo header */}
         <div className="h-14 px-3 flex items-center justify-between border-b border-border/30">
-          {!collapsed && <BrandLogo to="/admin" tagline="Operations" />}
+          {!collapsed && <BrandLogo to="/admin" tone="light" tagline="Operations" />}
           {collapsed && (
             <Link to="/admin" className="mx-auto">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
