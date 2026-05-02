@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Home, ArrowRight, Mail, Lock, UserPlus } from 'lucide-react';
+import { ArrowRight, Mail, Lock, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
+import { BrandLogo } from '@/components/ui/BrandLogo';
 
 export default function GuestAuth() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
