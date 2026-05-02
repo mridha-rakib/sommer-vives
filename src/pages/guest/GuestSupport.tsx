@@ -44,7 +44,7 @@ export default function GuestSupport() {
       <div className="space-y-5">
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Support</h1>
-          <p className="text-sm text-muted-foreground mt-1">Vi er klar alle dage kl. 10–22</p>
+          <p className="text-sm text-muted-foreground mt-1">Chat hverdage 10–22 · weekend 10–16</p>
         </div>
 
         {/* Primary contact */}

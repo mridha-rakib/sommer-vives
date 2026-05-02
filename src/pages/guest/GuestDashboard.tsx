@@ -342,7 +342,7 @@ export default function GuestDashboard() {
                         <p className="text-[11px] text-[hsl(var(--gold))] font-medium">{listing.contact_role}</p>
                       )}
                       <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
-                        Din personlige kontakt · Alle dage 10–22
+                        Din personlige kontakt · Chat hverdage 10–22, weekend 10–16
                       </p>
                     </>
                   ) : (
