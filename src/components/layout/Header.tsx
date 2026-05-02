@@ -62,7 +62,7 @@ export function Header() {
           <BrandLogo
             variant="full"
             size="sm"
-            tone={transparent ? 'light' : 'dark'}
+            tone="light"
             className="flex-shrink-0"
           />
 
