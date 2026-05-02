@@ -33,14 +33,8 @@ export default function AppDownload() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border">
         <div className="max-w-5xl mx-auto flex items-center justify-between h-14 px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
-              <Home className="h-3.5 w-3.5 text-accent" />
-            </div>
-            <span className="font-display text-base font-semibold text-foreground">
-              Sommer<span className="text-accent">Vibes</span>
-            </span>
-          </Link>
+          <BrandLogo variant="full" tone="light" size="sm" />
+
           <Link to="/">
             <Button variant="ghost" size="sm" className="text-muted-foreground gap-1">
               <ArrowLeft className="w-3.5 h-3.5" /> Tilbage
