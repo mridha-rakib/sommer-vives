@@ -102,7 +102,7 @@ export default function GuestMessages() {
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">Beskeder</h1>
-            <p className="text-xs text-muted-foreground mt-1">Vi svarer typisk inden for 1-2 timer · Hverdage 10–22, weekend 10–16</p>
+            <p className="text-xs text-muted-foreground mt-1">Vi svarer typisk inden for 1-2 timer · Alle dage 10–20</p>
           </div>
           <div className="flex items-center gap-1.5">
             <a href="tel:+4542440727">
