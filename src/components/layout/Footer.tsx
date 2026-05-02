@@ -46,11 +46,23 @@ export function Footer() {
                 <MapPin className="h-4 w-4 text-primary" />København, Danmark
               </li>
             </ul>
-            <div className="mt-4 space-y-1">
-              <p className="text-xs text-foreground/50 font-semibold uppercase tracking-wider">{t('footer.hours')}</p>
-              <p className="text-sm text-foreground/70">{t('footer.weekdays')}</p>
-              <p className="text-sm text-foreground/70">{t('footer.weekend')}</p>
-              <p className="text-xs text-foreground/50 mt-2">{t('footer.chatSupport')}</p>
+            <div className="mt-4 space-y-1.5">
+              <p className="text-xs text-foreground/50 font-semibold uppercase tracking-wider mb-2">{t('footer.hours')}</p>
+              {[
+                { day: t('footer.day.mon'), hours: '10.00 – 16.00' },
+                { day: t('footer.day.tue'), hours: '10.00 – 16.00' },
+                { day: t('footer.day.wed'), hours: '10.00 – 16.00' },
+                { day: t('footer.day.thu'), hours: '10.00 – 16.00' },
+                { day: t('footer.day.fri'), hours: t('footer.byAppointment') },
+                { day: t('footer.day.sat'), hours: t('footer.byAppointment') },
+                { day: t('footer.day.sun'), hours: t('footer.byAppointment') },
+              ].map(row => (
+                <div key={row.day} className="flex items-center gap-3 text-sm text-foreground/70">
+                  <span className="w-20 shrink-0">{row.day}</span>
+                  <span>{row.hours}</span>
+                </div>
+              ))}
+              <p className="text-xs text-foreground/50 mt-3">{t('footer.chatSupport')}</p>
             </div>
           </div>
         </div>
