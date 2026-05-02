@@ -59,13 +59,12 @@ export function Header() {
       <nav className="container mx-auto px-4 md:px-8">
         <div className="flex h-16 md:h-[72px] items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-1 flex-shrink-0 group">
-            <span className={`font-display text-2xl md:text-[1.65rem] font-bold tracking-tight transition-colors duration-300 ${
-              transparent ? 'text-foreground' : 'text-foreground'
-            }`}>
-              S<span className="inline-block relative w-[0.65em] h-[0.65em] -mb-[0.05em] mx-[0.02em]"><svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_6px_hsl(var(--primary)/0.6)]" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="8" fill="hsl(var(--primary))" /><circle cx="16" cy="16" r="11" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeDasharray="3 4" opacity="0.5" />{[0,45,90,135,180,225,270,315].map((angle, i) => { const rad = (angle * Math.PI) / 180; const x1 = 16 + 12 * Math.cos(rad); const y1 = 16 + 12 * Math.sin(rad); const x2 = 16 + 15 * Math.cos(rad); const y2 = 16 + 15 * Math.sin(rad); return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--primary))" strokeWidth="1.8" strokeLinecap="round" />; })}</svg></span>mmer<span className="text-primary italic group-hover:brightness-110 transition-all">Vibes</span>
-            </span>
-          </Link>
+          <BrandLogo
+            variant="full"
+            size="sm"
+            tone={transparent ? 'light' : 'dark'}
+            className="flex-shrink-0"
+          />
 
           {/* Desktop Navigation */}
           <div className={`hidden lg:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
