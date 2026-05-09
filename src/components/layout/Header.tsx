@@ -73,15 +73,16 @@ export function Header() {
       <nav className="container mx-auto px-4 md:px-8">
         <div className="flex h-16 md:h-[72px] items-center justify-between">
           {/* Logo */}
-          <BrandLogo
-            variant="full"
-            size="sm"
-            tone="light"
-            className="flex-shrink-0"
-          />
+          <div className="shrink-0">
+            <BrandLogo
+              variant="full"
+              size="sm"
+              tone="light"
+            />
+          </div>
 
           {/* Desktop Navigation */}
-          <div className={`hidden lg:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
+          <div className={`hidden 2xl:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
             transparent
               ? 'bg-foreground/8 backdrop-blur-md border border-foreground/10'
               : 'bg-muted/50 border border-border/50'
@@ -109,7 +110,7 @@ export function Header() {
           </div>
 
           {/* Right side actions */}
-          <div className="hidden lg:flex items-center gap-2">
+          <div className="hidden 2xl:flex items-center gap-2">
             <LanguageSelector />
             {user ? (
               <DropdownMenu>
@@ -227,7 +228,7 @@ export function Header() {
 
           {/* Mobile menu button */}
           <button
-            className={`lg:hidden p-2 rounded-xl transition-colors ${
+            className={`2xl:hidden p-2 rounded-xl transition-colors ${
               transparent
                 ? 'text-foreground hover:bg-foreground/10'
                 : 'text-foreground hover:bg-muted'
@@ -246,7 +247,7 @@ export function Header() {
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
-              className="lg:hidden overflow-hidden"
+              className="2xl:hidden overflow-hidden"
             >
               <div className="pb-5 pt-2">
                 <div className="flex flex-col gap-1 mb-4">

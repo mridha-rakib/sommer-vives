@@ -837,13 +837,24 @@ export default function GetStarted() {
 
   // ─── Render ──────────────────────────────────────────────
 
-  const stepComponents = [Step1, Step2, Step3, Step4, Step5, Step6, Step7, Step8];
-  const CurrentStep = stepComponents[step - 1];
-
   const buttonLabel = () => {
     if (step === 1) return 'Kom i gang';
     if (step === 7) return isSubmitting ? 'Opretter...' : 'Signer og kom i gang';
     return 'Næste';
+  };
+
+  const renderCurrentStep = () => {
+    switch (step) {
+      case 1: return Step1();
+      case 2: return Step2();
+      case 3: return Step3();
+      case 4: return Step4();
+      case 5: return Step5();
+      case 6: return Step6();
+      case 7: return Step7();
+      case 8: return Step8();
+      default: return Step1();
+    }
   };
 
   return (
@@ -867,7 +878,7 @@ export default function GetStarted() {
           <AnimatePresence mode="wait">
             <motion.div key={step} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }}>
-              <CurrentStep />
+              {renderCurrentStep()}
             </motion.div>
           </AnimatePresence>
         </div>
