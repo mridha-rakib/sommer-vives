@@ -83,7 +83,7 @@ function PricingContent() {
               Ingen skjulte gebyrer. Ingen oprettelsesomkostninger.
             </p>
 
-            <Link to="/kom-i-gang">
+            <Link to="/kom-i-gang?source=pricing_get_started">
               <Button variant="gold" size="lg" className="w-full gap-2 group text-base">
                 Kom i gang gratis <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -204,7 +204,7 @@ export default function Pricing() {
             Kom i gang med det samme — eller book en uforpligtende snak først.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/kom-i-gang">
+            <Link to="/kom-i-gang?source=pricing_get_started">
               <Button variant="gold" size="lg" className="gap-2 group">
                 Udlej dit hus <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>

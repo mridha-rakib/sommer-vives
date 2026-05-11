@@ -10,7 +10,9 @@ interface ListingVideo {
   thumbnail_url: string | null;
   emoji: string;
   title: string;
-  youtube_id: string;
+  youtube_id: string | null;
+  video_url?: string | null;
+  video_type?: string | null;
 }
 
 export function VideoGuideGrid({ videos: videosProp, listingId }: { videos?: ListingVideo[]; listingId?: string }) {
@@ -20,7 +22,7 @@ export function VideoGuideGrid({ videos: videosProp, listingId }: { videos?: Lis
     if (videosProp || !listingId) return;
     supabase
       .from('listing_videos')
-      .select('id, sort_order, thumbnail_url, emoji, title, youtube_id')
+      .select('id, sort_order, thumbnail_url, emoji, title, youtube_id, video_url, video_type')
       .eq('listing_id', listingId)
       .eq('is_active', true)
       .order('sort_order')
@@ -53,6 +55,8 @@ export function VideoGuideGrid({ videos: videosProp, listingId }: { videos?: Lis
     if (v.youtube_id) return `https://img.youtube.com/vi/${v.youtube_id}/hqdefault.jpg`;
     return v.thumbnail_url || '/placeholder.svg';
   }, []);
+
+  const canPlay = useCallback((v: ListingVideo) => !!(v.youtube_id || v.video_url), []);
 
   if (videos.length === 0) return null;
 
@@ -110,7 +114,7 @@ export function VideoGuideGrid({ videos: videosProp, listingId }: { videos?: Lis
                 className="flex items-start justify-center gap-6 md:gap-8 lg:gap-10"
               >
                 {visibleVideos.map((video) => {
-                  const hasVideo = !!video.youtube_id;
+                  const hasVideo = canPlay(video);
                   const isHovered = hoveredId === video.id;
 
                   return (
@@ -200,13 +204,17 @@ export function VideoGuideGrid({ videos: videosProp, listingId }: { videos?: Lis
                 <span className="text-sm font-medium text-white/80 font-display">{activeVideo.title}</span>
               </div>
               <div className="relative rounded-xl overflow-hidden bg-black aspect-video shadow-2xl ring-1 ring-white/10">
-                <iframe
-                  src={`https://www.youtube.com/embed/${activeVideo.youtube_id}?autoplay=1&rel=0&modestbranding=1`}
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title={activeVideo.title}
-                />
+                {activeVideo.youtube_id ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${activeVideo.youtube_id}?autoplay=1&rel=0&modestbranding=1`}
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={activeVideo.title}
+                  />
+                ) : (
+                  <video src={activeVideo.video_url || ''} className="w-full h-full" controls autoPlay playsInline />
+                )}
               </div>
             </motion.div>
           </motion.div>

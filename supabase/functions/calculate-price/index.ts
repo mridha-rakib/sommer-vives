@@ -33,6 +33,13 @@ interface FeeRule {
   condition_min_nights: number | null; condition_max_nights: number | null;
 }
 
+interface DiscountRule {
+  id: string; name: string; description: string | null; code: string | null;
+  discount_type: string; discount_value: number; min_nights: number; max_nights: number | null;
+  is_active: boolean; combinable_with_codes: boolean; sort_order: number;
+  starts_at: string | null; ends_at: string | null;
+}
+
 interface ValidationError { code: string; message: string; field?: string; }
 
 interface NightLine {
@@ -42,7 +49,7 @@ interface NightLine {
 }
 
 interface AppliedRule {
-  type: "season" | "override" | "weekend_surcharge" | "min_nights" | "check_in_days" | "check_out_days";
+  type: "season" | "override" | "weekend_surcharge" | "min_nights" | "check_in_days" | "check_out_days" | "discount";
   name: string; detail: string;
 }
 
@@ -61,6 +68,27 @@ function isDateInSeason(date: Date, rule: SeasonRule): boolean {
 
 function applyPercentage(base: number, pct: number): number {
   return Math.round(base * (1 + pct / 100));
+}
+
+function normalizeCode(code: unknown): string {
+  return String(code || "").trim().toLowerCase();
+}
+
+function isDiscountEligible(rule: DiscountRule, nights: number, now: Date): boolean {
+  if (!rule.is_active) return false;
+  if (nights < rule.min_nights) return false;
+  if (rule.max_nights !== null && nights > rule.max_nights) return false;
+  if (rule.starts_at && new Date(rule.starts_at) > now) return false;
+  if (rule.ends_at && new Date(rule.ends_at) < now) return false;
+  return true;
+}
+
+function calculateDiscount(rule: DiscountRule, subtotal: number): number {
+  if (subtotal <= 0) return 0;
+  const raw = rule.discount_type === "fixed"
+    ? Math.round(rule.discount_value)
+    : Math.round(subtotal * (rule.discount_value / 100));
+  return Math.max(0, Math.min(raw, subtotal));
 }
 
 function calcNightPrice(
@@ -140,7 +168,8 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { listing_id, start_date, end_date, guests, selected_addon_ids } = body;
+    const { listing_id, start_date, end_date, guests, selected_addon_ids, discount_code } = body;
+    const requestedDiscountCode = normalizeCode(discount_code);
 
     if (!listing_id || !start_date || !end_date) {
       return new Response(
@@ -159,17 +188,22 @@ Deno.serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const [seasonRes, overrideRes, addOnRes, feeRes] = await Promise.all([
+    const [seasonRes, overrideRes, addOnRes, feeRes, discountRes] = await Promise.all([
       supabase.from("season_rules").select("*").eq("listing_id", listing.id).eq("status", "active"),
       supabase.from("daily_price_overrides").select("*").eq("listing_id", listing.id).gte("date", start_date).lte("date", end_date),
       supabase.from("add_ons").select("*").eq("listing_id", listing.id).eq("is_active", true).order("sort_order"),
       supabase.from("fee_rules").select("*").eq("listing_id", listing.id).eq("is_active", true).order("sort_order"),
+      supabase.from("discount_rules").select("*")
+        .eq("is_active", true)
+        .or(`listing_id.eq.${listing.id},and(listing_id.is.null,owner_id.eq.${listing.owner_id})`)
+        .order("sort_order"),
     ]);
 
     const seasonRules = (seasonRes.data || []) as SeasonRule[];
     const dailyOverrides = (overrideRes.data || []) as DailyOverride[];
     const addOns = (addOnRes.data || []) as AddOn[];
     const feeRules = (feeRes.data || []) as FeeRule[];
+    const discountRules = (discountRes.data || []) as DiscountRule[];
 
     const nightBreakdown: NightLine[] = [];
     const cursor = new Date(start_date + "T12:00:00Z");
@@ -233,7 +267,29 @@ Deno.serve(async (req) => {
       addonTotal += total;
     }
 
-    const grandTotal = nightTotal + feeTotal + addonTotal;
+    const subtotal = nightTotal + feeTotal + addonTotal;
+    const now = new Date();
+    const eligibleRules = discountRules.filter(rule => isDiscountEligible(rule, nights, now));
+    const automaticCandidates = eligibleRules.filter(rule => !rule.code && (!requestedDiscountCode || rule.combinable_with_codes));
+    const automaticDiscount = automaticCandidates
+      .map(rule => ({ rule, amount: calculateDiscount(rule, subtotal) }))
+      .sort((a, b) => b.amount - a.amount)[0] || null;
+
+    let codeDiscount: { rule: DiscountRule; amount: number } | null = null;
+    if (requestedDiscountCode) {
+      const matchingRule = discountRules.find(rule => normalizeCode(rule.code) === requestedDiscountCode) || null;
+      if (!matchingRule) {
+        validationErrors.push({ code: "INVALID_DISCOUNT_CODE", message: "Rabatkoden findes ikke.", field: "discount_code" });
+      } else if (!isDiscountEligible(matchingRule, nights, now)) {
+        validationErrors.push({ code: "DISCOUNT_NOT_ELIGIBLE", message: "Rabatkoden gælder ikke for dette ophold.", field: "discount_code" });
+      } else {
+        codeDiscount = { rule: matchingRule, amount: calculateDiscount(matchingRule, subtotal) };
+      }
+    }
+
+    const discounts = [automaticDiscount, codeDiscount].filter(Boolean) as { rule: DiscountRule; amount: number }[];
+    const discountTotal = discounts.reduce((sum, item) => sum + item.amount, 0);
+    const grandTotal = Math.max(0, subtotal - discountTotal);
 
     // Applied rules
     const appliedRules: AppliedRule[] = [];
@@ -262,6 +318,16 @@ Deno.serve(async (req) => {
     lineItems.push({ label: `Ophold (${nights} ${nights === 1 ? "nat" : "nætter"})`, amount: nightTotal, type: "night" });
     for (const fee of applicableFees) lineItems.push({ label: fee.name, amount: fee.amount, type: "fee" });
     for (const addon of selectedAddons) lineItems.push({ label: `${addon.name} (${addon.quantity}×)`, amount: addon.total, type: "addon" });
+    for (const discount of discounts) {
+      lineItems.push({ label: discount.rule.name, amount: -discount.amount, type: "discount" });
+      appliedRules.push({
+        type: "discount",
+        name: discount.rule.name,
+        detail: discount.rule.discount_type === "fixed"
+          ? `${(discount.amount / 100).toLocaleString("da-DK")} kr rabat`
+          : `${discount.rule.discount_value}% rabat`,
+      });
+    }
 
     return new Response(
       JSON.stringify({
@@ -277,6 +343,16 @@ Deno.serve(async (req) => {
         nights: nightBreakdown, night_count: nights, night_total: nightTotal,
         fees: applicableFees, fee_total: feeTotal,
         selected_addons: selectedAddons, addon_total: addonTotal,
+        discounts: discounts.map(d => ({
+          id: d.rule.id,
+          name: d.rule.name,
+          code: d.rule.code,
+          amount: d.amount,
+          discount_type: d.rule.discount_type,
+          discount_value: d.rule.discount_value,
+        })),
+        discount_total: discountTotal,
+        discount_code: requestedDiscountCode || null,
         available_addons: addOns.map(a => ({ id: a.id, name: a.name, description: a.description, price: a.price, price_type: a.price_type })),
         line_items: lineItems, grand_total: grandTotal,
         currency: listing.currency || "DKK",

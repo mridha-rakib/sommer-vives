@@ -56,6 +56,33 @@ interface Booking {
   status: string | null;
 }
 
+interface SyncConflict {
+  uid: string;
+  provider: string;
+  summary: string;
+  start_date: string;
+  end_date: string;
+  conflict_type: 'booking' | 'block';
+  conflict_id: string;
+  conflict_summary: string;
+}
+
+interface SyncSetting {
+  id: string;
+  provider: string;
+  feed_url: string | null;
+  direction: string;
+  is_active: boolean;
+  last_synced_at: string | null;
+  config: {
+    last_conflicts?: SyncConflict[];
+    last_error?: string | null;
+    last_import_count?: number;
+    last_skipped_count?: number;
+    last_conflict_at?: string | null;
+  } | null;
+}
+
 const MONTHS_DA = ['Januar', 'Februar', 'Marts', 'April', 'Maj', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'December'];
 const DAYS_DA = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
 const DAY_NAMES = ['Søndag', 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag'];
@@ -79,7 +106,9 @@ export function ListingCalendarPricing({ listingId, ownerId, basePricePerNight, 
   const [seasons, setSeasons] = useState<SeasonRule[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [syncSettings, setSyncSettings] = useState<SyncSetting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncingIcal, setSyncingIcal] = useState(false);
 
   // Block dialog
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
@@ -103,20 +132,41 @@ export function ListingCalendarPricing({ listingId, ownerId, basePricePerNight, 
   // Selected day
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
+  const load = async () => {
+    const [seasonsRes, blocksRes, bookingsRes, syncRes] = await Promise.all([
+      supabase.from('season_rules').select('*').eq('listing_id', listingId).order('priority'),
+      supabase.from('listing_blocks').select('*').eq('listing_id', listingId).order('start_date'),
+      supabase.from('bookings').select('id, check_in, check_out, guest_name, status').eq('property_id', listingId).in('status', ['confirmed', 'pending']),
+      supabase.from('sync_settings').select('id, provider, feed_url, direction, is_active, last_synced_at, config').eq('listing_id', listingId).order('provider'),
+    ]);
+    if (seasonsRes.data) setSeasons(seasonsRes.data as SeasonRule[]);
+    if (blocksRes.data) setBlocks(blocksRes.data as Block[]);
+    if (bookingsRes.data) setBookings(bookingsRes.data as Booking[]);
+    if (syncRes.data) setSyncSettings(syncRes.data as unknown as SyncSetting[]);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const load = async () => {
-      const [seasonsRes, blocksRes, bookingsRes] = await Promise.all([
-        supabase.from('season_rules').select('*').eq('listing_id', listingId).order('priority'),
-        supabase.from('listing_blocks').select('*').eq('listing_id', listingId).order('start_date'),
-        supabase.from('bookings').select('id, check_in, check_out, guest_name, status').eq('property_id', listingId).in('status', ['confirmed', 'pending']),
-      ]);
-      if (seasonsRes.data) setSeasons(seasonsRes.data as SeasonRule[]);
-      if (blocksRes.data) setBlocks(blocksRes.data as Block[]);
-      if (bookingsRes.data) setBookings(bookingsRes.data as Booking[]);
-      setLoading(false);
-    };
     load();
   }, [listingId]);
+
+  const runIcalSync = async () => {
+    setSyncingIcal(true);
+    const { data, error } = await supabase.functions.invoke('sync-ical');
+    setSyncingIcal(false);
+    if (error) {
+      toast({ title: 'iCal-sync fejlede', description: error.message, variant: 'destructive' });
+      return;
+    }
+    const results = (data as any)?.results || {};
+    const conflictCount = Object.values(results).reduce((sum: number, r: any) => sum + (r?.skipped || 0), 0);
+    toast({
+      title: conflictCount > 0 ? 'iCal-sync med konflikter' : 'iCal-sync gennemført',
+      description: conflictCount > 0 ? `${conflictCount} importer blev sprunget over pga. konflikter.` : undefined,
+    });
+    setLoading(true);
+    await load();
+  };
 
   // Calendar grid
   const calendarDays = useMemo(() => {
@@ -231,6 +281,9 @@ export function ListingCalendarPricing({ listingId, ownerId, basePricePerNight, 
   };
 
   const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+  const syncConflicts = syncSettings.flatMap(setting =>
+    (setting.config?.last_conflicts || []).map(conflict => ({ ...conflict, setting }))
+  );
 
   if (loading) {
     return (
@@ -242,6 +295,72 @@ export function ListingCalendarPricing({ listingId, ownerId, basePricePerNight, 
 
   return (
     <div className="space-y-6">
+
+      {/* ── ICAL SYNC STATUS ── */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+          <div>
+            <h4 className="font-display text-sm font-semibold text-foreground">iCal-import</h4>
+            <p className="text-[10px] text-muted-foreground">
+              {syncSettings.filter(s => s.direction === 'inbound' && s.is_active).length} aktive inbound feeds
+            </p>
+          </div>
+          <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={runIcalSync} disabled={syncingIcal}>
+            {syncingIcal ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CalendarIcon className="h-3.5 w-3.5" />}
+            Synkronisér iCal
+          </Button>
+        </div>
+
+        {syncSettings.length === 0 ? (
+          <p className="text-xs text-muted-foreground italic">Ingen iCal-feeds konfigureret.</p>
+        ) : (
+          <div className="space-y-2">
+            {syncSettings.filter(s => s.direction === 'inbound').map(setting => {
+              const conflicts = setting.config?.last_conflicts || [];
+              return (
+                <div key={setting.id} className="rounded-lg border border-border/40 bg-muted/10 px-3 py-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="text-[10px]">{setting.provider}</Badge>
+                    <span className="text-xs text-foreground">{setting.is_active ? 'Aktiv' : 'Inaktiv'}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Sidst: {setting.last_synced_at ? new Date(setting.last_synced_at).toLocaleString('da-DK') : 'Aldrig'}
+                    </span>
+                    {setting.config?.last_error && <span className="text-[10px] text-destructive">{setting.config.last_error}</span>}
+                    {conflicts.length > 0 && (
+                      <span className="text-[10px] text-amber-600 font-medium">
+                        {conflicts.length} konflikt{conflicts.length > 1 ? 'er' : ''}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {syncConflicts.length > 0 && (
+          <div className="mt-4 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <p className="text-sm font-semibold text-foreground">iCal-konflikter kræver handling</p>
+            </div>
+            <div className="space-y-2">
+              {syncConflicts.slice(0, 8).map(conflict => (
+                <div key={`${conflict.setting.id}-${conflict.uid}`} className="grid grid-cols-1 md:grid-cols-[130px_1fr_1fr] gap-2 rounded-lg bg-background/60 px-3 py-2 text-xs">
+                  <span className="font-medium text-foreground">{conflict.start_date} → {conflict.end_date}</span>
+                  <span className="text-muted-foreground truncate">{conflict.provider}: {conflict.summary}</span>
+                  <span className="text-amber-700 truncate">
+                    Konflikt med {conflict.conflict_type === 'booking' ? 'booking' : 'blokering'}: {conflict.conflict_summary}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {syncConflicts.length > 8 && (
+              <p className="mt-2 text-[10px] text-muted-foreground">+{syncConflicts.length - 8} flere konflikter i sync-loggen.</p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── PRICING OVERVIEW ── */}
       <div className="rounded-xl border border-border bg-card p-5">

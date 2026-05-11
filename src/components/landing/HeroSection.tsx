@@ -6,21 +6,21 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
 const ROTATING_BENEFITS = [
-  { icon: TrendingUp, text: 'Du beholder 85 % af indtægten' },
-  { icon: HeartHandshake, text: 'Personlig rådgiver der kender dit hus' },
-  { icon: Sparkles, text: 'Professionel foto & video inkluderet' },
-  { icon: ShieldCheck, text: 'Kun 6 måneders binding — fair aftale' },
-  { icon: Star, text: 'Vurderet 4,9 / 5 af husejere' },
-  { icon: MessageCircle, text: 'Vi svarer dine gæster — døgnet rundt' },
-  { icon: Globe, text: 'Udlejes på Airbnb, Booking.com & Vrbo' },
-  { icon: Megaphone, text: 'Premium-markedsføring i DK, DE & NL' },
-  { icon: BarChart3, text: 'Smart prissætning — op til 28 % mere' },
-  { icon: Key, text: 'Nøglefri check-in til dine gæster' },
-  { icon: Sparkles, text: 'Professionel rengøring efter hver gæst' },
-  { icon: ShieldCheck, text: 'Forsikret mod skader — vi tager ansvaret' },
-  { icon: Plus, text: 'Op til 20 % ekstra via tilkøb & service' },
-  { icon: Wrench, text: 'Lokalt netværk klarer reparationer' },
-  { icon: FileCheck, text: 'Digital aftale — ingen skjulte gebyrer' },
+  { icon: TrendingUp, textKey: 'hero.benefit1' },
+  { icon: HeartHandshake, textKey: 'hero.benefit2' },
+  { icon: Sparkles, textKey: 'hero.benefit3' },
+  { icon: ShieldCheck, textKey: 'hero.benefit4' },
+  { icon: Star, textKey: 'hero.benefit5' },
+  { icon: MessageCircle, textKey: 'hero.benefit6' },
+  { icon: Globe, textKey: 'hero.benefit7' },
+  { icon: Megaphone, textKey: 'hero.benefit8' },
+  { icon: BarChart3, textKey: 'hero.benefit9' },
+  { icon: Key, textKey: 'hero.benefit10' },
+  { icon: Sparkles, textKey: 'hero.benefit11' },
+  { icon: ShieldCheck, textKey: 'hero.benefit12' },
+  { icon: Plus, textKey: 'hero.benefit13' },
+  { icon: Wrench, textKey: 'hero.benefit14' },
+  { icon: FileCheck, textKey: 'hero.benefit15' },
 ];
 
 export function HeroSection() {
@@ -47,7 +47,7 @@ export function HeroSection() {
         <video
           autoPlay={!prefersReducedMotion} loop muted playsInline
           onLoadedData={() => setVideoLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1500ms] ${videoLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity [transition-duration:1500ms] ${videoLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
         >
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
@@ -79,7 +79,7 @@ export function HeroSection() {
             >
               <span className="inline-flex items-center gap-2.5 bg-accent/10 backdrop-blur-md border border-accent/25 rounded-full px-4 py-1.5 text-accent font-body text-[10px] sm:text-[11px] font-semibold tracking-[0.32em] uppercase">
                 <span className={`w-1.5 h-1.5 rounded-full bg-accent ${prefersReducedMotion ? '' : 'animate-pulse'}`} />
-                Moderne udlejning af sommerhuse
+                {t('hero.badge')}
               </span>
             </motion.div>
 
@@ -91,7 +91,7 @@ export function HeroSection() {
                          text-[2.25rem] sm:text-[2.75rem] md:text-5xl lg:text-[4.25rem]
                          leading-[1.02]"
             >
-              Dit sommerhus,
+              {t('hero.title1')}
               <br />
               <span
                 className="italic font-normal text-accent"
@@ -102,7 +102,7 @@ export function HeroSection() {
                   backgroundClip: 'text',
                 }}
               >
-                vores passion
+                {t('hero.title2')}
               </span>
             </motion.h1>
 
@@ -138,7 +138,7 @@ export function HeroSection() {
                       transition={{ duration: prefersReducedMotion ? 0.2 : 0.6, ease: [0.22, 1, 0.36, 1] }}
                       className="text-[15px] sm:text-base md:text-lg text-foreground/90 font-medium leading-snug"
                     >
-                      {ROTATING_BENEFITS[benefitIndex].text}
+                      {t(ROTATING_BENEFITS[benefitIndex].textKey)}
                     </motion.span>
                   </AnimatePresence>
                 </div>
@@ -172,7 +172,7 @@ export function HeroSection() {
                   size="xl"
                   className="gap-2.5 text-[15px] group w-full sm:w-auto px-8 shadow-[0_8px_32px_-8px_hsl(var(--accent)/0.55)] hover:shadow-[0_12px_40px_-6px_hsl(var(--accent)/0.7)] transition-all duration-500"
                 >
-                  Book gratis udlejningstjek
+                  {t('hero.cta2')}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -182,7 +182,7 @@ export function HeroSection() {
                   size="xl"
                   className="border-foreground/20 text-foreground hover:bg-foreground/5 hover:border-foreground/35 text-[15px] w-full sm:w-auto px-8"
                 >
-                  Udlej dit hus
+                  {t('hero.cta1')}
                 </Button>
               </Link>
 
@@ -195,7 +195,7 @@ export function HeroSection() {
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-accent fill-accent" strokeWidth={0} />)}
                 </div>
-                <span className="text-[12px] text-foreground/70 font-medium">4,9 / 5 fra ejere</span>
+                <span className="text-[12px] text-foreground/70 font-medium">{t('hero.rating')}</span>
               </motion.div>
             </motion.div>
           </div>
@@ -212,19 +212,19 @@ export function HeroSection() {
           <div className="flex items-center justify-center gap-6 sm:gap-10 md:gap-14 py-3.5 md:py-4 flex-wrap">
             <div className="flex items-center gap-2 text-foreground/65">
               <span className="text-base leading-none">🇩🇰</span>
-              <span className="text-[11.5px] font-medium font-body">100 % dansk bureau</span>
+              <span className="text-[11.5px] font-medium font-body">{t('hero.danishAgency')}</span>
             </div>
             <div className="flex items-center gap-2 text-foreground/65">
               <Handshake className="w-3.5 h-3.5 text-accent" strokeWidth={1.5} />
-              <span className="text-[11.5px] font-medium font-body">Kun 6 måneders binding</span>
+              <span className="text-[11.5px] font-medium font-body">{t('hero.binding')}</span>
             </div>
             <div className="flex items-center gap-2 text-foreground/65">
               <ShieldCheck className="w-3.5 h-3.5 text-accent" strokeWidth={1.5} />
-              <span className="text-[11.5px] font-medium font-body">Indtjeningsgaranti</span>
+              <span className="text-[11.5px] font-medium font-body">{t('hero.earningsGuarantee')}</span>
             </div>
             <div className="flex items-center gap-2 text-foreground/65">
               <MessageCircle className="w-3.5 h-3.5 text-accent" strokeWidth={1.5} />
-              <span className="text-[11.5px] font-medium font-body">Personlig support 7 dage</span>
+              <span className="text-[11.5px] font-medium font-body">{t('hero.personalSupport')}</span>
             </div>
           </div>
         </div>

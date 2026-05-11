@@ -16,8 +16,8 @@ export function WhyUsPricingSection() {
   const comparison = [
     { feature: t('pricing.rowCommission'), us: '15 %', others: '18–25 %' },
     { feature: t('pricing.rowGuestFee'), us: '5 %', others: '12–18 %' },
-    { feature: t('pricing.rowBinding'), us: '6 mdr.', others: '12–24 mdr.' },
-    { feature: t('pricing.rowSetup'), us: 'Gratis', others: '0–5.000 kr.' },
+    { feature: t('pricing.rowBinding'), us: t('pricing.valueBindingUs'), others: t('pricing.valueBindingOthers') },
+    { feature: t('pricing.rowSetup'), us: t('pricing.valueSetupUs'), others: t('pricing.valueSetupOthers') },
     { feature: t('pricing.rowAdvisor'), us: '✓', others: '✗', usIcon: true, othersIcon: true },
   ];
 
@@ -110,7 +110,7 @@ export function WhyUsPricingSection() {
                 </div>
               </div>
 
-              <Link to="/kom-i-gang">
+              <Link to="/kom-i-gang?source=pricing_get_started">
                 <Button variant="gold" size="default" className="w-full gap-2 group text-[13px]">
                   {t('pricing.cta')}<ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </Button>

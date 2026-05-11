@@ -62,7 +62,7 @@ export function PricingSection() {
                 </div>
               </div>
             </div>
-            <Link to="/kom-i-gang">
+            <Link to="/kom-i-gang?source=pricing_get_started">
               <Button variant="gold" size="lg" className="w-full gap-2 group">
                 {t('pricing.cta')}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>

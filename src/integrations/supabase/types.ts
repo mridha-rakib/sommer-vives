@@ -1703,10 +1703,14 @@ export type Database = {
           id: string
           is_active: boolean
           listing_id: string
+          metadata: Json
           owner_id: string
           sort_order: number
           thumbnail_url: string | null
           title: string
+          updated_at: string
+          video_type: string
+          video_url: string | null
           youtube_id: string | null
         }
         Insert: {
@@ -1715,10 +1719,14 @@ export type Database = {
           id?: string
           is_active?: boolean
           listing_id: string
+          metadata?: Json
           owner_id: string
           sort_order?: number
           thumbnail_url?: string | null
           title?: string
+          updated_at?: string
+          video_type?: string
+          video_url?: string | null
           youtube_id?: string | null
         }
         Update: {
@@ -1727,10 +1735,14 @@ export type Database = {
           id?: string
           is_active?: boolean
           listing_id?: string
+          metadata?: Json
           owner_id?: string
           sort_order?: number
           thumbnail_url?: string | null
           title?: string
+          updated_at?: string
+          video_type?: string
+          video_url?: string | null
           youtube_id?: string | null
         }
         Relationships: [
@@ -1813,6 +1825,9 @@ export type Database = {
           deposit: number | null
           description: string | null
           draft_content: Json | null
+          beds24_last_channels: string[] | null
+          beds24_last_publish_payload: Json | null
+          beds24_last_response: Json | null
           external_listing_id: string | null
           external_property_id: string | null
           extra_sections: Json
@@ -1967,6 +1982,9 @@ export type Database = {
           deposit?: number | null
           description?: string | null
           draft_content?: Json | null
+          beds24_last_channels?: string[] | null
+          beds24_last_publish_payload?: Json | null
+          beds24_last_response?: Json | null
           external_listing_id?: string | null
           external_property_id?: string | null
           extra_sections?: Json
@@ -2121,6 +2139,9 @@ export type Database = {
           deposit?: number | null
           description?: string | null
           draft_content?: Json | null
+          beds24_last_channels?: string[] | null
+          beds24_last_publish_payload?: Json | null
+          beds24_last_response?: Json | null
           external_listing_id?: string | null
           external_property_id?: string | null
           extra_sections?: Json

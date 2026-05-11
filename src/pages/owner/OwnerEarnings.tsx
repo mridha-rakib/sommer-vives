@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
-import { supabase } from '@/integrations/supabase/client';
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, TrendingUp, CreditCard, CheckCircle2, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { da, de, enUS, nl } from 'date-fns/locale';
 import { EarningsChart } from '@/components/owner/EarningsChart';
+import { getOwnerFinance, type OwnerFinanceBooking, type OwnerPayout } from '@/lib/owner-finance-api';
+import { useTranslation } from '@/lib/i18n';
 
 export default function OwnerEarnings() {
   const { user } = useAuth();
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [payouts, setPayouts] = useState<any[]>([]);
+  const { t, language } = useTranslation();
+  const [bookings, setBookings] = useState<OwnerFinanceBooking[]>([]);
+  const [payouts, setPayouts] = useState<OwnerPayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'overview' | 'payouts'>('overview');
 
@@ -22,31 +24,39 @@ export default function OwnerEarnings() {
 
   const loadData = async () => {
     if (!user) return;
-    const [bRes, pRes] = await Promise.all([
-      supabase.from('bookings').select('*').eq('owner_id', user.id).neq('status', 'cancelled').order('check_in', { ascending: false }),
-      supabase.from('payouts').select('*').eq('owner_id', user.id).order('created_at', { ascending: false }),
-    ]);
-    setBookings(bRes.data || []);
-    setPayouts(pRes.data || []);
-    setLoading(false);
+    try {
+      const data = await getOwnerFinance(user.id);
+      setBookings(data.bookings);
+      setPayouts(data.payouts);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const totalOwnerPayout = bookings.reduce((s, b) => s + Number(b.owner_payout || 0), 0);
   const completedPayouts = payouts.filter(p => p.status === 'completed').reduce((s, p) => s + Number(p.amount), 0);
   const pendingPayouts = payouts.filter(p => p.status === 'pending').reduce((s, p) => s + Number(p.amount), 0);
+  const dateLocale = { da, en: enUS, de, nl }[language];
+  const moneyLocale = language === 'da' ? 'da-DK' : language === 'de' ? 'de-DE' : language === 'nl' ? 'nl-NL' : 'en-US';
+  const moneySuffix = language === 'da' ? ' kr' : ' DKK';
+  const formatMoney = (value: number) => language === 'da'
+    ? `${value.toLocaleString(moneyLocale)}${moneySuffix}`
+    : `${value.toLocaleString(moneyLocale)}${moneySuffix}`;
+  const shortDateFormat = language === 'en' ? 'MMM d' : 'd. MMM';
+  const longDateFormat = language === 'en' ? 'MMM d, yyyy' : 'd. MMM yyyy';
 
   const kpis = [
-    { label: 'Din indtjening', value: totalOwnerPayout, icon: TrendingUp, accent: true },
-    { label: 'Udbetalt', value: completedPayouts, icon: CheckCircle2, accent: false },
-    { label: 'Afventer', value: pendingPayouts, icon: Clock, accent: false },
+    { label: t('owner.earnings.kpi.earnings'), value: totalOwnerPayout, icon: TrendingUp, accent: true },
+    { label: t('owner.earnings.kpi.paid'), value: completedPayouts, icon: CheckCircle2, accent: false },
+    { label: t('owner.earnings.kpi.pending'), value: pendingPayouts, icon: Clock, accent: false },
   ];
 
   return (
     <OwnerLayout>
       <div className="space-y-6 max-w-4xl mx-auto">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">Økonomi</h1>
-          <p className="text-sm text-muted-foreground mt-1">Følg din indtjening og udbetalinger</p>
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">{t('owner.earnings.title')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('owner.earnings.subtitle')}</p>
         </div>
 
         {/* KPI Cards */}
@@ -61,7 +71,7 @@ export default function OwnerEarnings() {
                 </div>
                 <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-1">{kpi.label}</div>
                 <div className={`font-display text-xl md:text-2xl font-bold ${kpi.accent ? 'text-[hsl(var(--gold-light))]' : 'text-foreground'}`}>
-                  {loading ? '—' : `${kpi.value.toLocaleString('da-DK')} kr`}
+                  {loading ? '—' : formatMoney(kpi.value)}
                 </div>
               </CardContent>
             </Card>
@@ -71,8 +81,8 @@ export default function OwnerEarnings() {
         {/* Tab toggle */}
         <div className="flex gap-1.5 p-1 bg-muted/40 rounded-xl w-fit">
           {[
-            { key: 'overview' as const, label: 'Overblik' },
-            { key: 'payouts' as const, label: 'Udbetalinger' },
+            { key: 'overview' as const, label: t('owner.earnings.tab.overview') },
+            { key: 'payouts' as const, label: t('owner.earnings.tab.payouts') },
           ].map(t => (
             <button
               key={t.key}
@@ -96,18 +106,18 @@ export default function OwnerEarnings() {
             {bookings.length > 0 && (
               <Card>
                 <CardContent className="p-5">
-                  <h3 className="text-sm font-semibold text-foreground mb-4">Seneste bookinger</h3>
+                  <h3 className="text-sm font-semibold text-foreground mb-4">{t('owner.earnings.recentBookings')}</h3>
                   <div className="space-y-2">
                     {bookings.slice(0, 8).map(b => (
                       <div key={b.id} className="flex items-center justify-between py-2.5 border-b border-border/30 last:border-0">
                         <div className="min-w-0">
-                          <div className="text-sm font-medium text-foreground truncate">{b.guest_name || 'Gæst'}</div>
+                          <div className="text-sm font-medium text-foreground truncate">{b.guest_name || t('owner.dashboard.guestFallback')}</div>
                           <div className="text-xs text-muted-foreground">
-                            {format(new Date(b.check_in), 'd. MMM', { locale: da })} – {format(new Date(b.check_out), 'd. MMM', { locale: da })}
+                            {format(new Date(b.check_in), shortDateFormat, { locale: dateLocale })} – {format(new Date(b.check_out), shortDateFormat, { locale: dateLocale })}
                           </div>
                         </div>
                         <span className="text-sm font-semibold text-[hsl(var(--gold-light))] shrink-0">
-                          {Number(b.owner_payout || 0).toLocaleString('da-DK')} kr
+                          {formatMoney(Number(b.owner_payout || 0))}
                         </span>
                       </div>
                     ))}
@@ -124,18 +134,18 @@ export default function OwnerEarnings() {
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <Clock className="w-4 h-4 text-[hsl(var(--gold-light))]" />
-                    <span className="text-sm font-semibold text-foreground">Kommende udbetalinger</span>
+                    <span className="text-sm font-semibold text-foreground">{t('owner.earnings.upcomingPayouts')}</span>
                   </div>
                   <div className="space-y-2">
                     {payouts.filter(p => p.status === 'pending').map(p => (
                       <div key={p.id} className="flex items-center justify-between p-3 rounded-xl bg-card">
                         <div>
-                          <div className="text-sm font-medium text-foreground">{p.description || 'Udbetaling'}</div>
+                          <div className="text-sm font-medium text-foreground">{p.description || t('owner.earnings.payout')}</div>
                           <div className="text-xs text-muted-foreground">
-                            {p.payout_date ? format(new Date(p.payout_date), 'd. MMM yyyy', { locale: da }) : 'Dato afventes'}
+                            {p.payout_date ? format(new Date(p.payout_date), longDateFormat, { locale: dateLocale }) : t('owner.earnings.datePending')}
                           </div>
                         </div>
-                        <span className="text-sm font-bold text-[hsl(var(--gold-light))]">{Number(p.amount).toLocaleString('da-DK')} kr</span>
+                        <span className="text-sm font-bold text-[hsl(var(--gold-light))]">{formatMoney(Number(p.amount))}</span>
                       </div>
                     ))}
                   </div>
@@ -146,33 +156,33 @@ export default function OwnerEarnings() {
             {/* Payout history */}
             <Card>
               <CardContent className="p-5">
-                <h3 className="text-sm font-semibold text-foreground mb-4">Udbetalingshistorik</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-4">{t('owner.earnings.payoutHistory')}</h3>
                 {payouts.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-14 h-14 rounded-2xl bg-muted/40 flex items-center justify-center mx-auto mb-3">
                       <Wallet className="w-6 h-6 text-muted-foreground/30" />
                     </div>
-                    <p className="text-sm text-muted-foreground">Ingen udbetalinger endnu</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">Udbetaling sker automatisk 5 hverdage efter afrejse</p>
+                    <p className="text-sm text-muted-foreground">{t('owner.earnings.emptyPayouts')}</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">{t('owner.earnings.emptyPayoutsHelp')}</p>
                   </div>
                 ) : (
                   <div className="space-y-1.5">
                     {payouts.map(p => (
                       <div key={p.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/30 transition-colors">
                         <div>
-                          <div className="text-sm font-medium text-foreground">{p.description || 'Udbetaling'}</div>
+                          <div className="text-sm font-medium text-foreground">{p.description || t('owner.earnings.payout')}</div>
                           <div className="text-xs text-muted-foreground">
-                            {format(new Date(p.created_at), 'd. MMM yyyy', { locale: da })}
+                            {format(new Date(p.created_at), longDateFormat, { locale: dateLocale })}
                           </div>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           <Badge variant="outline" className={`text-[10px] ${
                             p.status === 'completed' ? 'bg-emerald-400/15 text-emerald-400 border-emerald-400/20' : 'bg-amber-400/15 text-amber-400 border-amber-400/20'
                           }`}>
-                            {p.status === 'completed' ? 'Udbetalt' : 'Afventer'}
+                            {p.status === 'completed' ? t('owner.earnings.status.paid') : t('owner.earnings.status.pending')}
                           </Badge>
                           <span className="text-sm font-semibold text-foreground">
-                            {Number(p.amount).toLocaleString('da-DK')} kr
+                            {formatMoney(Number(p.amount))}
                           </span>
                         </div>
                       </div>
@@ -186,7 +196,7 @@ export default function OwnerEarnings() {
             <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border/40">
               <CreditCard className="w-5 h-5 text-muted-foreground shrink-0" />
               <p className="text-xs text-muted-foreground">
-                Vi overfører automatisk til din konto 5 hverdage efter gæstens afrejse. Ingen opsætning nødvendig.
+                {t('owner.earnings.howItWorks')}
               </p>
             </div>
           </>

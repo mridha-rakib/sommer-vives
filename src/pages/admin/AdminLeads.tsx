@@ -46,6 +46,8 @@ const SOURCE_MAP: Record<string, string> = {
   beregn_lejeindtaegt: 'Beregn lejeindtægt',
   udlejningstjek: 'Book udlejningstjek',
   vil_udleje: 'Vil udleje',
+  pricing_get_started: 'Kom i gang - priser',
+  website_onboarding: 'Kom i gang',
   contact: 'Kontaktformular',
   website: 'Hjemmeside',
   referral: 'Anbefaling',

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
-import { supabase } from '@/integrations/supabase/client';
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +11,14 @@ import {
   Upload, Wifi, BedDouble, Star, Rocket, ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  getOwnerPhotoCount,
+  getOwnerTaskCompletion,
+  getOwnerTaskSignals,
+  type OwnerTaskCompletion,
+  type OwnerTaskSignals,
+} from '@/lib/owner-tasks-api';
+import { useTranslation } from '@/lib/i18n';
 
 interface SmartTask {
   id: string;
@@ -26,10 +33,9 @@ interface SmartTask {
 
 export default function OwnerTasks() {
   const { user } = useAuth();
-  const [property, setProperty] = useState<any>(null);
-  const [onboarding, setOnboarding] = useState<any>(null);
-  const [agreement, setAgreement] = useState<any>(null);
-  const [listings, setListings] = useState<any[]>([]);
+  const { t } = useTranslation();
+  const [signals, setSignals] = useState<OwnerTaskSignals | null>(null);
+  const [completion, setCompletion] = useState<OwnerTaskCompletion | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,61 +44,69 @@ export default function OwnerTasks() {
 
   const loadData = async () => {
     if (!user) return;
-    const [propRes, onbRes, agrRes, listRes] = await Promise.all([
-      supabase.from('properties').select('*').eq('owner_id', user.id).limit(1).single(),
-      supabase.from('owner_onboarding').select('*').eq('owner_id', user.id).limit(1).single(),
-      supabase.from('agreements').select('*').eq('owner_id', user.id).order('created_at', { ascending: false }).limit(1).single(),
-      supabase.from('listings').select('*').eq('owner_id', user.id),
-    ]);
-    setProperty(propRes.data);
-    setOnboarding(onbRes.data);
-    setAgreement(agrRes.data);
-    setListings(listRes.data || []);
-    setLoading(false);
+    try {
+      const data = await getOwnerTaskSignals(user.id);
+      setSignals(data);
+      setCompletion(getOwnerTaskCompletion(data));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const listing = listings[0];
+  const photoCount = signals ? getOwnerPhotoCount(signals) : 0;
+  const done = completion || {
+    profile: false,
+    property: false,
+    agreement: false,
+    bank: false,
+    photos: false,
+    description: false,
+    calendar: false,
+    keybox: false,
+    wifi: false,
+    publish: false,
+  };
 
   const tasks: SmartTask[] = [
     {
-      id: 'profile', label: 'Udfyld dine oplysninger', description: 'Navn, telefon og adresse — så vi kan kontakte dig',
-      icon: Star, done: !!property, href: '/owner/settings', category: 'setup', priority: 1,
+      id: 'profile', label: t('owner.tasks.profile.label'), description: t('owner.tasks.profile.description'),
+      icon: Star, done: done.profile, href: '/owner/settings', category: 'setup', priority: 1,
     },
     {
-      id: 'property', label: 'Fortæl os om dit hus', description: 'Adresse, kapacitet og faciliteter',
-      icon: BedDouble, done: !!(property?.title && property?.address), href: '/owner/property', category: 'setup', priority: 2,
+      id: 'property', label: t('owner.tasks.property.label'), description: t('owner.tasks.property.description'),
+      icon: BedDouble, done: done.property, href: '/owner/property', category: 'setup', priority: 2,
     },
     {
-      id: 'agreement', label: 'Underskriv din aftale', description: 'Digital signering — det tager under 2 minutter',
-      icon: FileSignature, done: agreement?.status === 'signed', href: '/owner/agreement', category: 'setup', priority: 3,
+      id: 'agreement', label: t('owner.tasks.agreement.label'), description: t('owner.tasks.agreement.description'),
+      icon: FileSignature, done: done.agreement, href: '/owner/agreement', category: 'setup', priority: 3,
     },
     {
-      id: 'bank', label: 'Tilføj betalingsoplysninger', description: 'Reg.nr og kontonummer, så vi kan udbetale til dig',
-      icon: CreditCard, done: false, href: '/owner/settings', category: 'setup', priority: 4,
+      id: 'bank', label: t('owner.tasks.bank.label'), description: t('owner.tasks.bank.description'),
+      icon: CreditCard, done: done.bank, href: '/owner/settings', category: 'setup', priority: 4,
     },
     {
-      id: 'photos', label: 'Tilføj billeder af dit hus', description: `${property?.images?.length || 0} af min. 5 — gode billeder gør den største forskel`,
-      icon: Camera, done: !!(property?.images && property.images.length >= 5), href: '/owner/property', category: 'listing', priority: 5,
+      id: 'photos', label: t('owner.tasks.photos.label'), description: t('owner.tasks.photos.description').replace('{count}', String(photoCount)),
+      icon: Camera, done: done.photos, href: '/owner/property', category: 'listing', priority: 5,
     },
     {
-      id: 'description', label: 'Godkend listingteksten', description: 'Vi skriver et udkast — du gennemser og godkender',
-      icon: Upload, done: !!(listing?.description && listing.description.length > 100), href: '/owner/property', category: 'listing', priority: 6,
+      id: 'description', label: t('owner.tasks.description.label'), description: t('owner.tasks.description.description'),
+      icon: Upload, done: done.description, href: '/owner/property', category: 'listing', priority: 6,
     },
     {
-      id: 'calendar', label: 'Sæt din kalender op', description: 'Vælg tilgængelige perioder og evt. minimumsnætter',
-      icon: CalendarDays, done: false, href: '/owner/calendar', category: 'operations', priority: 7,
+      id: 'calendar', label: t('owner.tasks.calendar.label'), description: t('owner.tasks.calendar.description'),
+      icon: CalendarDays, done: done.calendar, href: '/owner/calendar', category: 'operations', priority: 7,
     },
     {
-      id: 'keybox', label: 'Aftal nøgleboks-installation', description: 'Vi klarer selve installationen — du vælger tidspunktet',
-      icon: Key, done: !!onboarding?.keybox_installed_at, href: '/owner/support', category: 'operations', priority: 8,
+      id: 'keybox', label: t('owner.tasks.keybox.label'), description: t('owner.tasks.keybox.description'),
+      icon: Key, done: done.keybox, href: '/owner/support', category: 'operations', priority: 8,
     },
     {
-      id: 'wifi', label: 'Del WiFi-oplysninger', description: 'Netværksnavn og kode, så gæsterne er online med det samme',
-      icon: Wifi, done: false, href: '/owner/property', category: 'operations', priority: 9,
+      id: 'wifi', label: t('owner.tasks.wifi.label'), description: t('owner.tasks.wifi.description'),
+      icon: Wifi, done: done.wifi, href: '/owner/property', category: 'operations', priority: 9,
     },
     {
-      id: 'publish', label: 'Gå live', description: 'Din bolig publiceres på alle portaler — klar til den første booking',
-      icon: Globe, done: !!listing?.is_active, href: '/owner/property', category: 'operations', priority: 10,
+      id: 'publish', label: t('owner.tasks.publish.label'), description: t('owner.tasks.publish.description'),
+      icon: Globe, done: done.publish, href: '/owner/property', category: 'operations', priority: 10,
     },
   ];
 
@@ -101,9 +115,9 @@ export default function OwnerTasks() {
   const nextTask = tasks.find(t => !t.done);
 
   const categories = [
-    { key: 'setup', label: 'Opsætning', tasks: tasks.filter(t => t.category === 'setup') },
-    { key: 'listing', label: 'Listing', tasks: tasks.filter(t => t.category === 'listing') },
-    { key: 'operations', label: 'Drift & klargøring', tasks: tasks.filter(t => t.category === 'operations') },
+    { key: 'setup', label: t('owner.tasks.category.setup'), tasks: tasks.filter(t => t.category === 'setup') },
+    { key: 'listing', label: t('owner.tasks.category.listing'), tasks: tasks.filter(t => t.category === 'listing') },
+    { key: 'operations', label: t('owner.tasks.category.operations'), tasks: tasks.filter(t => t.category === 'operations') },
   ];
 
   if (loading) {
@@ -120,8 +134,8 @@ export default function OwnerTasks() {
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Din klargøring</h1>
-          <p className="text-sm text-muted-foreground mt-1">Vi guider dig hele vejen — fra oprettelse til første gæst</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">{t('owner.tasks.title')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('owner.tasks.subtitle')}</p>
         </div>
 
         {/* Progress header */}
@@ -134,8 +148,8 @@ export default function OwnerTasks() {
                     <Rocket className="w-6 h-6 text-accent" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-foreground">Din fremgang</div>
-                    <div className="text-xs text-muted-foreground">{completedCount} af {tasks.length} trin — du er godt på vej</div>
+                    <div className="text-sm font-semibold text-foreground">{t('owner.tasks.progressTitle')}</div>
+                    <div className="text-xs text-muted-foreground">{t('owner.tasks.progressText').replace('{completed}', String(completedCount)).replace('{total}', String(tasks.length))}</div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -157,7 +171,7 @@ export default function OwnerTasks() {
                       <nextTask.icon className="w-4 h-4 text-accent" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-accent">Anbefalet næste skridt</div>
+                      <div className="text-sm font-semibold text-accent">{t('owner.tasks.nextRecommended')}</div>
                       <div className="text-xs text-foreground">{nextTask.label}</div>
                     </div>
                     <ArrowRight className="w-4 h-4 text-accent group-hover:translate-x-0.5 transition-transform shrink-0" />
@@ -211,7 +225,7 @@ export default function OwnerTasks() {
                           </div>
                           {isNext && (
                             <Badge className="bg-accent text-accent-foreground border-0 text-[10px] shrink-0">
-                              Næste
+                              {t('owner.tasks.next')}
                             </Badge>
                           )}
                           {!task.done && !isNext && (
@@ -232,13 +246,13 @@ export default function OwnerTasks() {
           <Card className="border-emerald-400/30 bg-emerald-400/5">
             <CardContent className="p-6 text-center">
               <Sparkles className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
-              <h3 className="font-display text-xl font-bold text-foreground mb-2">Alt er klart! 🎉</h3>
+              <h3 className="font-display text-xl font-bold text-foreground mb-2">{t('owner.tasks.completeTitle')}</h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-                Din bolig er fuldt opsat og klar til at modtage bookinger. Du kan følge alt fra dit dashboard.
+                {t('owner.tasks.completeDescription')}
               </p>
               <Link to="/owner">
                 <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  Gå til dashboard
+                  {t('owner.tasks.goDashboard')}
                 </Button>
               </Link>
             </CardContent>

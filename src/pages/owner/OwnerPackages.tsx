@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,78 +6,60 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Camera, Plane, Sparkles, Package, Clock, TrendingUp, Loader2, CreditCard, Shield } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { Check, Camera, Plane, Sparkles, Package, TrendingUp, Loader2, Shield } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from '@/lib/i18n';
+import {
+  activateFreeOwnerPackage,
+  createOwnerPackageCheckout,
+  getOwnerPackageProperties,
+  getOwnerPackagePurchases,
+  getOwnerServicePackages,
+  type OwnerServicePackage,
+} from '@/lib/owner-packages-api';
 import { toast } from 'sonner';
-
-interface ServicePackage {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  features: string[];
-  category: string;
-  is_active: boolean;
-}
-
-interface Property {
-  id: string;
-  title: string;
-}
 
 export default function OwnerPackages() {
   const { user } = useAuth();
+  const { t, language } = useTranslation();
   const queryClient = useQueryClient();
-  const [selectedPackage, setSelectedPackage] = useState<ServicePackage | null>(null);
+  const [selectedPackage, setSelectedPackage] = useState<OwnerServicePackage | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
   const [paying, setPaying] = useState(false);
 
   const { data: packages = [] } = useQuery({
     queryKey: ['service-packages'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('service_packages')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order');
-      if (error) throw error;
-      return data.map(p => ({
-        ...p,
-        features: Array.isArray(p.features) ? p.features : JSON.parse(p.features as string || '[]')
-      })) as ServicePackage[];
-    },
+    queryFn: getOwnerServicePackages,
   });
 
   const { data: properties = [] } = useQuery({
     queryKey: ['owner-properties', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase.from('properties').select('id, title').eq('owner_id', user.id);
-      if (error) throw error;
-      return data as Property[];
-    },
+    queryFn: () => getOwnerPackageProperties(user!.id),
     enabled: !!user?.id,
   });
 
   const { data: purchases = [] } = useQuery({
     queryKey: ['package-purchases', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from('package_purchases')
-        .select('*, service_packages(name), properties(title)')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+    queryFn: () => getOwnerPackagePurchases(user!.id),
     enabled: !!user?.id,
   });
 
-  const handlePurchase = (pkg: ServicePackage) => {
+  const moneyLocale = language === 'da'
+    ? 'da-DK'
+    : language === 'de'
+      ? 'de-DE'
+      : language === 'nl'
+        ? 'nl-NL'
+        : 'en-US';
+
+  const formatMoney = (amount: number) => {
+    const formatted = amount.toLocaleString(moneyLocale);
+    return language === 'da' ? `${formatted} kr` : `DKK ${formatted}`;
+  };
+
+  const handlePurchase = (pkg: OwnerServicePackage) => {
     setSelectedPackage(pkg);
     setIsPurchaseOpen(true);
   };
@@ -86,74 +68,45 @@ export default function OwnerPackages() {
     if (!selectedPackage || !user?.id) return;
 
     if (selectedPackage.price === 0) {
-      // Free package — just insert
-      const { error } = await supabase.from('package_purchases').insert({
-        owner_id: user.id,
-        property_id: selectedProperty && selectedProperty !== 'all' ? selectedProperty : null,
-        package_id: selectedPackage.id,
-        amount: 0,
-        status: 'completed',
-        payment_status: 'paid',
-      });
-      if (error) {
-        toast.error('Kunne ikke aktivere pakken.');
-        return;
+      try {
+        await activateFreeOwnerPackage(user.id, selectedPackage.id, selectedProperty);
+        queryClient.invalidateQueries({ queryKey: ['package-purchases'] });
+        toast.success(t('owner.packages.toast.activated'));
+        setIsPurchaseOpen(false);
+      } catch {
+        toast.error(t('owner.packages.toast.activateError'));
       }
-      queryClient.invalidateQueries({ queryKey: ['package-purchases'] });
-      toast.success('Pakken er aktiveret!');
-      setIsPurchaseOpen(false);
       return;
     }
 
     setPaying(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-addon-checkout', {
-        body: {
-          items: [{
-            name: selectedPackage.name,
-            description: selectedPackage.description || '',
-            price: selectedPackage.price,
-            quantity: 1,
-            itemType: 'service_package',
-            referenceId: selectedPackage.id,
-          }],
-          userType: 'owner',
-          successUrl: `${window.location.origin}/owner/packages?payment=success`,
-          cancelUrl: `${window.location.origin}/owner/packages?payment=cancelled`,
-        },
+      const checkoutUrl = await createOwnerPackageCheckout({
+        ownerId: user.id,
+        package: selectedPackage,
+        propertyId: selectedProperty,
+        successUrl: `${window.location.origin}/owner/packages?payment=success`,
+        cancelUrl: `${window.location.origin}/owner/packages?payment=cancelled`,
       });
 
-      if (error || !data?.url) throw new Error('Checkout failed');
-
-      // Also create package_purchase record
-      await supabase.from('package_purchases').insert({
-        owner_id: user.id,
-        property_id: selectedProperty && selectedProperty !== 'all' ? selectedProperty : null,
-        package_id: selectedPackage.id,
-        amount: selectedPackage.price,
-        status: 'pending',
-        payment_status: 'pending',
-      });
-
-      window.location.href = data.url;
+      window.location.href = checkoutUrl;
     } catch {
-      toast.error('Kunne ikke oprette betaling. Prøv igen.');
+      toast.error(t('owner.packages.toast.checkoutError'));
       setPaying(false);
     }
   };
 
-  // Payment result from URL
-  useState(() => {
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
-      toast.success('Betaling gennemført!');
+      toast.success(t('owner.packages.toast.paymentSuccess'));
       window.history.replaceState({}, '', '/owner/packages');
       queryClient.invalidateQueries({ queryKey: ['package-purchases'] });
     } else if (params.get('payment') === 'cancelled') {
-      toast.error('Betaling annulleret.');
+      toast.error(t('owner.packages.toast.paymentCancelled'));
       window.history.replaceState({}, '', '/owner/packages');
     }
-  });
+  }, [queryClient, t]);
 
   const marketingPackages = packages.filter(p => p.category === 'marketing');
   const photoPackages = packages.filter(p => p.category === 'photo');
@@ -166,22 +119,22 @@ export default function OwnerPackages() {
     return <Package className="w-5 h-5 text-accent" />;
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string | null) => {
     const map: Record<string, { className: string; label: string }> = {
-      pending: { className: 'bg-accent/20 text-accent', label: 'Afventer' },
-      processing: { className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', label: 'Under behandling' },
-      completed: { className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', label: 'Fuldført' },
-      cancelled: { className: 'bg-destructive/10 text-destructive', label: 'Annulleret' },
+      pending: { className: 'bg-accent/20 text-accent', label: t('owner.packages.status.pending') },
+      processing: { className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', label: t('owner.packages.status.processing') },
+      completed: { className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', label: t('owner.packages.status.completed') },
+      cancelled: { className: 'bg-destructive/10 text-destructive', label: t('owner.packages.status.cancelled') },
     };
-    const s = map[status] || map.pending;
+    const s = map[status || 'pending'] || map.pending;
     return <Badge className={s.className}>{s.label}</Badge>;
   };
 
-  const PackageCard = ({ pkg, idx, highlighted }: { pkg: ServicePackage; idx: number; highlighted?: boolean }) => (
+  const PackageCard = ({ pkg, idx, highlighted }: { pkg: OwnerServicePackage; idx: number; highlighted?: boolean }) => (
     <Card className={`relative overflow-hidden transition-all hover:shadow-lg ${highlighted ? 'ring-2 ring-accent' : ''}`}>
       {highlighted && (
         <div className="absolute top-0 right-0 bg-accent text-primary text-xs font-bold px-3 py-1 rounded-bl-lg">
-          Populær
+          {t('owner.packages.popular')}
         </div>
       )}
       <CardHeader>
@@ -192,11 +145,11 @@ export default function OwnerPackages() {
         <CardDescription>{pkg.description}</CardDescription>
         <div className="pt-2">
           {pkg.price === 0 ? (
-            <span className="text-2xl font-bold text-accent">Gratis</span>
+            <span className="text-2xl font-bold text-accent">{t('owner.packages.free')}</span>
           ) : (
             <>
-              <span className="text-2xl font-bold text-foreground">{pkg.price.toLocaleString('da-DK')}</span>
-              <span className="text-muted-foreground"> kr</span>
+              <span className="text-2xl font-bold text-foreground">{pkg.price.toLocaleString(moneyLocale)}</span>
+              <span className="text-muted-foreground">{language === 'da' ? ' kr' : ' DKK'}</span>
             </>
           )}
         </div>
@@ -215,7 +168,7 @@ export default function OwnerPackages() {
           className="w-full"
           variant={highlighted ? 'gold' : 'outline'}
         >
-          {pkg.price === 0 ? 'Aktiver gratis' : 'Bestil nu'}
+          {pkg.price === 0 ? t('owner.packages.activateFree') : t('owner.packages.orderNow')}
         </Button>
       </CardContent>
     </Card>
@@ -224,14 +177,14 @@ export default function OwnerPackages() {
   return (
     <OwnerLayout>
       <div className="mb-8">
-        <h1 className="font-display text-3xl font-bold text-foreground">Tilkøb & Services</h1>
-        <p className="text-muted-foreground">Boost dit sommerhus med professionelle services</p>
+        <h1 className="font-display text-3xl font-bold text-foreground">{t('owner.packages.title')}</h1>
+        <p className="text-muted-foreground">{t('owner.packages.subtitle')}</p>
       </div>
 
       <Tabs defaultValue="packages" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="packages">Tilgængelige pakker</TabsTrigger>
-          <TabsTrigger value="purchases">Mine køb ({purchases.length})</TabsTrigger>
+          <TabsTrigger value="packages">{t('owner.packages.tab.available')}</TabsTrigger>
+          <TabsTrigger value="purchases">{t('owner.packages.tab.purchases')} ({purchases.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="packages" className="space-y-8">
@@ -239,7 +192,7 @@ export default function OwnerPackages() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-5 h-5 text-accent" />
-                <h2 className="font-display text-xl font-semibold">Markedsføringspakker</h2>
+                <h2 className="font-display text-xl font-semibold">{t('owner.packages.category.marketing')}</h2>
               </div>
               <div className="grid md:grid-cols-3 gap-6">
                 {marketingPackages.map((pkg, idx) => (
@@ -253,7 +206,7 @@ export default function OwnerPackages() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Camera className="w-5 h-5 text-accent" />
-                <h2 className="font-display text-xl font-semibold">Foto & Video</h2>
+                <h2 className="font-display text-xl font-semibold">{t('owner.packages.category.photo')}</h2>
               </div>
               <div className="grid md:grid-cols-3 gap-6">
                 {photoPackages.map((pkg, idx) => (
@@ -267,7 +220,7 @@ export default function OwnerPackages() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Package className="w-5 h-5 text-accent" />
-                <h2 className="font-display text-xl font-semibold">Øvrige services</h2>
+                <h2 className="font-display text-xl font-semibold">{t('owner.packages.category.other')}</h2>
               </div>
               <div className="grid md:grid-cols-3 gap-6">
                 {otherPackages.map((pkg, idx) => (
@@ -280,7 +233,7 @@ export default function OwnerPackages() {
           {packages.length === 0 && (
             <div className="bg-card border border-border rounded-xl p-12 text-center">
               <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground/40" />
-              <p className="text-muted-foreground">Ingen pakker tilgængelige lige nu.</p>
+              <p className="text-muted-foreground">{t('owner.packages.emptyAvailable')}</p>
             </div>
           )}
         </TabsContent>
@@ -288,18 +241,18 @@ export default function OwnerPackages() {
         <TabsContent value="purchases">
           <Card>
             <CardHeader>
-              <CardTitle>Mine bestillinger</CardTitle>
-              <CardDescription>Oversigt over dine købte pakker og services</CardDescription>
+              <CardTitle>{t('owner.packages.myOrders')}</CardTitle>
+              <CardDescription>{t('owner.packages.myOrdersDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               {purchases.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Du har ikke købt nogen pakker endnu.</p>
+                  <p>{t('owner.packages.emptyPurchases')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {purchases.map((purchase: any) => (
+                  {purchases.map((purchase) => (
                     <div key={purchase.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
@@ -308,12 +261,12 @@ export default function OwnerPackages() {
                         <div>
                           <div className="font-medium">{purchase.service_packages?.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {purchase.properties?.title || 'Alle ejendomme'}
+                            {purchase.properties?.title || t('owner.packages.allProperties')}
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="font-semibold">{purchase.amount.toLocaleString('da-DK')} kr</span>
+                        <span className="font-semibold">{formatMoney(purchase.amount)}</span>
                         {getStatusBadge(purchase.status)}
                       </div>
                     </div>
@@ -329,22 +282,22 @@ export default function OwnerPackages() {
       <Dialog open={isPurchaseOpen} onOpenChange={(o) => { setIsPurchaseOpen(o); if (!o) setPaying(false); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedPackage?.price === 0 ? 'Aktiver' : 'Bestil'} {selectedPackage?.name}</DialogTitle>
+            <DialogTitle>{selectedPackage?.price === 0 ? t('owner.packages.dialog.activate') : t('owner.packages.dialog.order')} {selectedPackage?.name}</DialogTitle>
             <DialogDescription>
               {selectedPackage?.price === 0
-                ? 'Aktiver denne gratis pakke for dit sommerhus.'
-                : 'Du bliver sendt til sikker betaling via Stripe.'}
+                ? t('owner.packages.dialog.freeDescription')
+                : t('owner.packages.dialog.paidDescription')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             {properties.length > 0 && (
               <div>
-                <label className="text-sm font-medium mb-2 block">Vælg ejendom (valgfrit)</label>
+                <label className="text-sm font-medium mb-2 block">{t('owner.packages.chooseProperty')}</label>
                 <Select value={selectedProperty} onValueChange={setSelectedProperty}>
-                  <SelectTrigger><SelectValue placeholder="Alle ejendomme" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t('owner.packages.allProperties')} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Alle ejendomme</SelectItem>
+                    <SelectItem value="all">{t('owner.packages.allProperties')}</SelectItem>
                     {properties.map(property => (
                       <SelectItem key={property.id} value={property.id}>{property.title}</SelectItem>
                     ))}
@@ -357,7 +310,7 @@ export default function OwnerPackages() {
               <div className="flex justify-between items-center">
                 <span className="font-medium">{selectedPackage?.name}</span>
                 <span className="font-bold">
-                  {selectedPackage?.price === 0 ? 'Gratis' : `${selectedPackage?.price.toLocaleString('da-DK')} kr`}
+                  {selectedPackage?.price === 0 ? t('owner.packages.free') : formatMoney(selectedPackage?.price || 0)}
                 </span>
               </div>
             </div>
@@ -365,16 +318,16 @@ export default function OwnerPackages() {
             {selectedPackage?.price !== 0 && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Shield className="w-4 h-4" />
-                <span>Sikker betaling via Stripe. Vi opbevarer aldrig dine kortoplysninger.</span>
+                <span>{t('owner.packages.dialog.secureStripe')}</span>
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPurchaseOpen(false)}>Annuller</Button>
+            <Button variant="outline" onClick={() => setIsPurchaseOpen(false)}>{t('owner.packages.cancel')}</Button>
             <Button variant="gold" onClick={handleCheckout} disabled={paying} className="gap-2">
               {paying && <Loader2 className="h-4 w-4 animate-spin" />}
-              {paying ? 'Åbner betaling...' : selectedPackage?.price === 0 ? 'Aktiver gratis' : 'Betal nu'}
+              {paying ? t('owner.packages.openingPayment') : selectedPackage?.price === 0 ? t('owner.packages.activateFree') : t('owner.packages.payNow')}
             </Button>
           </DialogFooter>
         </DialogContent>

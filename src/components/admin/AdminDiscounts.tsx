@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 
 interface DiscountRule {
-  id: string; name: string; description: string | null; listing_id: string | null;
+  id: string; name: string; description: string | null; code: string | null; listing_id: string | null;
   discount_type: string; discount_value: number; min_nights: number;
   max_nights: number | null; is_active: boolean; combinable_with_codes: boolean; sort_order: number;
 }
@@ -31,7 +31,7 @@ export function AdminDiscounts() {
   const addRule = async () => {
     setSaving('new');
     const { error } = await supabase.from('discount_rules').insert({
-      name: 'Ny rabat', owner_id: user?.id,
+      name: 'Ny rabat', code: null, owner_id: user?.id,
       discount_type: 'percentage', discount_value: 10, min_nights: 4,
       is_active: false, combinable_with_codes: false, sort_order: rules.length,
     });
@@ -92,7 +92,12 @@ export function AdminDiscounts() {
                   </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">Kode</label>
+                  <Input value={rule.code || ''} placeholder="Valgfri"
+                    onChange={(e) => setRules(prev => prev.map(r => r.id === rule.id ? { ...r, code: e.target.value.toUpperCase() || null } : r))}
+                    onBlur={() => updateRule(rule.id, { code: rule.code?.trim() || null })} className="h-8 text-sm mt-1 uppercase" />
+                </div>
                 <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">Rabat (%)</label>
                   <Input type="number" min={0} max={100} value={rule.discount_value}
                     onChange={(e) => setRules(prev => prev.map(r => r.id === rule.id ? { ...r, discount_value: Number(e.target.value) } : r))}

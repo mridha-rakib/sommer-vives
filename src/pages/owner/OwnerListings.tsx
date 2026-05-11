@@ -1,54 +1,27 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import { supabase } from '@/integrations/supabase/client';
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import {
   Bed, Bath, MapPin, Users, Eye, MessageCircle, ChevronDown, ChevronUp,
-  CheckCircle2, AlertCircle, Clock, Wifi, Car, Waves, Home, ImageIcon,
-  CalendarDays, DollarSign, Info, ExternalLink, Loader2
+  CheckCircle2, AlertCircle, Clock, Home, ImageIcon,
+  CalendarDays, DollarSign, Info, Loader2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { formatDKK } from '@/lib/pricing';
+import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from '@/lib/i18n';
+import { getOwnerListings, type OwnerListing } from '@/lib/owner-listings-api';
 import { toast } from 'sonner';
 
-interface OwnerListing {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  address: string | null;
-  region: string | null;
-  max_guests: number;
-  bedrooms: number | null;
-  bathrooms: number | null;
-  base_price_per_night: number;
-  weekend_price_per_night: number | null;
-  cleaning_fee: number | null;
-  is_active: boolean;
-  hero_image: string | null;
-  images: string[] | null;
-  amenities: string[] | null;
-  internal_status: string | null;
-  readiness_score: number | null;
-  channel_airbnb_ready: boolean | null;
-  channel_booking_ready: boolean | null;
-  channel_vrbo_ready: boolean | null;
-  check_in_time: string | null;
-  check_out_time: string | null;
-  min_nights: number | null;
-}
-
-const STATUS_CONFIG: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
-  live: { label: 'Live', icon: CheckCircle2, className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  ready: { label: 'Klar', icon: CheckCircle2, className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  review: { label: 'Til gennemgang', icon: Clock, className: 'bg-amber-50 text-amber-700 border-amber-200' },
-  preparing: { label: 'Under klargøring', icon: Clock, className: 'bg-amber-50 text-amber-700 border-amber-200' },
-  draft: { label: 'Kladde', icon: AlertCircle, className: 'bg-slate-100 text-slate-600 border-slate-200' },
-  paused: { label: 'Pauset', icon: AlertCircle, className: 'bg-orange-50 text-orange-600 border-orange-200' },
+const STATUS_CONFIG: Record<string, { labelKey: string; icon: typeof CheckCircle2; className: string }> = {
+  live: { labelKey: 'owner.listings.status.live', icon: CheckCircle2, className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  ready: { labelKey: 'owner.listings.status.ready', icon: CheckCircle2, className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  review: { labelKey: 'owner.listings.status.review', icon: Clock, className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  preparing: { labelKey: 'owner.listings.status.preparing', icon: Clock, className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  draft: { labelKey: 'owner.listings.status.draft', icon: AlertCircle, className: 'bg-slate-100 text-slate-600 border-slate-200' },
+  paused: { labelKey: 'owner.listings.status.paused', icon: AlertCircle, className: 'bg-orange-50 text-orange-600 border-orange-200' },
 };
 
 function ChannelPill({ name, ready }: { name: string; ready: boolean }) {
@@ -81,12 +54,24 @@ function ReadinessRing({ score }: { score: number }) {
 }
 
 function ListingCard({ listing }: { listing: OwnerListing }) {
+  const { t, language } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const status = STATUS_CONFIG[listing.internal_status || 'draft'] || STATUS_CONFIG.draft;
   const StatusIcon = status.icon;
   const coverImg = listing.hero_image || listing.images?.[0];
   const score = listing.readiness_score || 0;
   const galleryImages = (listing.images || []).slice(0, 4);
+  const localeCode = language === 'da' ? 'da-DK' : language === 'de' ? 'de-DE' : language === 'nl' ? 'nl-NL' : 'en-US';
+  const formatMoney = (oere: number) => {
+    const formatted = (oere / 100).toLocaleString(localeCode);
+    return language === 'da' ? `${formatted} kr` : `DKK ${formatted}`;
+  };
+  const unit = (count: number, singularKey: string, pluralKey: string) => `${count} ${t(count === 1 ? singularKey : pluralKey)}`;
+  const readinessLabel = score >= 80
+    ? t('owner.listings.readiness.readyToPublish')
+    : score >= 50
+      ? t('owner.listings.readiness.almostReady')
+      : t('owner.listings.readiness.missingData');
 
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -111,7 +96,7 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
         <div className="absolute top-3 right-3">
           <Badge variant="outline" className={`text-[10px] font-medium backdrop-blur-sm ${status.className}`}>
             <StatusIcon className="h-3 w-3 mr-1" />
-            {status.label}
+            {t(status.labelKey)}
           </Badge>
         </div>
       </div>
@@ -123,9 +108,9 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
           <div className="flex items-center gap-3">
             <ReadinessRing score={score} />
             <div>
-              <div className="text-xs font-medium text-foreground">Readiness</div>
+              <div className="text-xs font-medium text-foreground">{t('owner.listings.readiness')}</div>
               <div className="text-[11px] text-muted-foreground">
-                {score >= 80 ? 'Klar til publicering' : score >= 50 ? 'Næsten klar' : 'Mangler data'}
+                {readinessLabel}
               </div>
             </div>
           </div>
@@ -142,33 +127,33 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
 
         {/* Property specs */}
         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {listing.max_guests} gæster</span>
-          <span className="flex items-center gap-1"><Bed className="h-3.5 w-3.5" /> {listing.bedrooms || 0} soveværelser</span>
-          <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5" /> {listing.bathrooms || 0} bad</span>
+          <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {unit(listing.max_guests, 'owner.listings.unit.guest.one', 'owner.listings.unit.guest.other')}</span>
+          <span className="flex items-center gap-1"><Bed className="h-3.5 w-3.5" /> {unit(listing.bedrooms || 0, 'owner.listings.unit.bedroom.one', 'owner.listings.unit.bedroom.other')}</span>
+          <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5" /> {unit(listing.bathrooms || 0, 'owner.listings.unit.bath.one', 'owner.listings.unit.bath.other')}</span>
           {listing.min_nights && (
-            <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> Min. {listing.min_nights} nætter</span>
+            <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {t('owner.listings.minNights').replace('{count}', String(listing.min_nights))}</span>
           )}
         </div>
 
         {/* Pricing overview */}
         <div className="bg-muted/30 rounded-lg p-3 space-y-1.5">
           <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-            <DollarSign className="h-3.5 w-3.5 text-primary" /> Prisoversigt
+            <DollarSign className="h-3.5 w-3.5 text-primary" /> {t('owner.listings.pricingOverview')}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
             <div>
-              <div className="text-muted-foreground">Basispris</div>
-              <div className="font-medium text-foreground">{formatDKK(listing.base_price_per_night)} / nat</div>
+              <div className="text-muted-foreground">{t('owner.listings.basePrice')}</div>
+              <div className="font-medium text-foreground">{formatMoney(listing.base_price_per_night)} / {t('owner.listings.night')}</div>
             </div>
             {listing.weekend_price_per_night && (
               <div>
-                <div className="text-muted-foreground">Weekend</div>
-                <div className="font-medium text-foreground">{formatDKK(listing.weekend_price_per_night)} / nat</div>
+                <div className="text-muted-foreground">{t('owner.listings.weekend')}</div>
+                <div className="font-medium text-foreground">{formatMoney(listing.weekend_price_per_night)} / {t('owner.listings.night')}</div>
               </div>
             )}
             <div>
-              <div className="text-muted-foreground">Rengøring</div>
-              <div className="font-medium text-foreground">{formatDKK(listing.cleaning_fee || 0)}</div>
+              <div className="text-muted-foreground">{t('owner.listings.cleaning')}</div>
+              <div className="font-medium text-foreground">{formatMoney(listing.cleaning_fee || 0)}</div>
             </div>
           </div>
         </div>
@@ -178,7 +163,7 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
           onClick={() => setExpanded(!expanded)}
           className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
         >
-          {expanded ? 'Skjul detaljer' : 'Se mere'}
+          {expanded ? t('owner.listings.hideDetails') : t('owner.listings.seeMore')}
           {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
         </button>
 
@@ -188,7 +173,7 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
             {listing.description && (
               <div>
                 <div className="text-xs font-medium text-foreground mb-1 flex items-center gap-1">
-                  <Info className="h-3.5 w-3.5" /> Beskrivelse
+                  <Info className="h-3.5 w-3.5" /> {t('owner.listings.description')}
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">{listing.description}</p>
               </div>
@@ -198,7 +183,7 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
             {galleryImages.length > 0 && (
               <div>
                 <div className="text-xs font-medium text-foreground mb-2 flex items-center gap-1">
-                  <ImageIcon className="h-3.5 w-3.5" /> Billeder ({listing.images?.length || 0})
+                  <ImageIcon className="h-3.5 w-3.5" /> {t('owner.listings.photos')} ({listing.images?.length || 0})
                 </div>
                 <div className="grid grid-cols-4 gap-1.5">
                   {galleryImages.map((img, i) => (
@@ -213,13 +198,13 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
             {/* Amenities */}
             {listing.amenities && listing.amenities.length > 0 && (
               <div>
-                <div className="text-xs font-medium text-foreground mb-2">Faciliteter</div>
+                <div className="text-xs font-medium text-foreground mb-2">{t('owner.listings.amenities')}</div>
                 <div className="flex flex-wrap gap-1.5">
                   {listing.amenities.slice(0, 12).map((a, i) => (
                     <span key={i} className="px-2 py-0.5 bg-muted rounded-full text-[10px] text-muted-foreground">{a}</span>
                   ))}
                   {listing.amenities.length > 12 && (
-                    <span className="px-2 py-0.5 text-[10px] text-muted-foreground">+{listing.amenities.length - 12} mere</span>
+                    <span className="px-2 py-0.5 text-[10px] text-muted-foreground">{t('owner.listings.more').replace('{count}', String(listing.amenities.length - 12))}</span>
                   )}
                 </div>
               </div>
@@ -230,13 +215,13 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
               <div className="flex gap-4 text-xs">
                 {listing.check_in_time && (
                   <div>
-                    <span className="text-muted-foreground">Check-in: </span>
+                    <span className="text-muted-foreground">{t('owner.listings.checkin')}: </span>
                     <span className="font-medium text-foreground">{listing.check_in_time}</span>
                   </div>
                 )}
                 {listing.check_out_time && (
                   <div>
-                    <span className="text-muted-foreground">Check-ud: </span>
+                    <span className="text-muted-foreground">{t('owner.listings.checkout')}: </span>
                     <span className="font-medium text-foreground">{listing.check_out_time}</span>
                   </div>
                 )}
@@ -251,17 +236,17 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
         <div className="flex flex-wrap gap-2">
           <Link to={`/listing/${listing.slug}`} target="_blank" className="flex-1 min-w-[120px]">
             <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-              <Eye className="h-3.5 w-3.5" /> Se listing
+              <Eye className="h-3.5 w-3.5" /> {t('owner.listings.viewListing')}
             </Button>
           </Link>
           <Link to="/owner/support" className="flex-1 min-w-[120px]">
             <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs">
-              <MessageCircle className="h-3.5 w-3.5" /> Kontakt SommerVibes
+              <MessageCircle className="h-3.5 w-3.5" /> {t('owner.listings.contact')}
             </Button>
           </Link>
           <Link to="/owner/property" className="flex-1 min-w-[120px]">
             <Button variant="default" size="sm" className="w-full gap-1.5 text-xs">
-              <Info className="h-3.5 w-3.5" /> Gennemgå oplysninger
+              <Info className="h-3.5 w-3.5" /> {t('owner.listings.reviewInfo')}
             </Button>
           </Link>
         </div>
@@ -272,48 +257,41 @@ function ListingCard({ listing }: { listing: OwnerListing }) {
 
 export default function OwnerListings() {
   const { user } = useAuth();
-  const [listings, setListings] = useState<OwnerListing[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
+  const { data: listings = [], isLoading: loading, error } = useQuery({
+    queryKey: ['owner-listings', user?.id],
+    queryFn: () => getOwnerListings(user!.id),
+    enabled: !!user?.id,
+  });
 
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('listings')
-        .select('id, name, slug, description, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, weekend_price_per_night, cleaning_fee, is_active, hero_image, images, amenities, internal_status, readiness_score, channel_airbnb_ready, channel_booking_ready, channel_vrbo_ready, check_in_time, check_out_time, min_nights')
-        .eq('owner_id', user.id)
-        .order('sort_order');
-      if (error) toast.error('Kunne ikke hente listings');
-      else setListings((data as any[]) || []);
-      setLoading(false);
-    })();
-  }, [user]);
+    if (error) toast.error(t('owner.listings.toast.loadError'));
+  }, [error, t]);
 
   return (
     <OwnerLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Mine listings</h1>
-          <p className="text-sm text-muted-foreground mt-1">Overblik over dine sommerhuse og deres status</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">{t('owner.listings.title')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('owner.listings.subtitle')}</p>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-            <Loader2 className="h-5 w-5 animate-spin" /> Henter dine listings...
+            <Loader2 className="h-5 w-5 animate-spin" /> {t('owner.listings.loading')}
           </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-16 bg-card border border-border rounded-xl">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <Home className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="font-display text-lg font-semibold text-foreground mb-2">Ingen listings endnu</h3>
+            <h3 className="font-display text-lg font-semibold text-foreground mb-2">{t('owner.listings.emptyTitle')}</h3>
             <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto">
-              Når SommerVibes har klargjort din bolig, vil den dukke op her.
+              {t('owner.listings.emptyDescription')}
             </p>
             <Link to="/owner/support">
               <Button className="gap-2">
-                <MessageCircle className="h-4 w-4" /> Kontakt SommerVibes
+                <MessageCircle className="h-4 w-4" /> {t('owner.listings.contact')}
               </Button>
             </Link>
           </div>

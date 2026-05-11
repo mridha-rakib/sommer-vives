@@ -46,51 +46,28 @@ export function Beds24PublishDialog({ listing, open, onClose, onConfirmed }: Pro
 
   const handleConfirm = async () => {
     setSending(true);
-    const now = new Date().toISOString();
-
-    // Update listing sync status
-    const { error: updateError } = await supabase.from('listings').update({
-      sync_status: 'pending',
-      last_sync_at: now,
-      sync_error_message: null,
-    }).eq('id', listing.id);
-
-    if (updateError) {
-      toast.error('Kunne ikke opdatere sync-status');
-      setSending(false);
-      return;
-    }
-
-    // Create audit log entry as sync log
-    const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from('audit_log').insert({
-      action: 'beds24_publish_initiated',
-      entity_type: 'listing',
-      entity_id: listing.id,
-      actor_user_id: user?.id || null,
-      actor_email: user?.email || null,
-      after_data: {
-        sync_status: 'pending',
-        sent_at: now,
-        image_count: imgCount,
-        amenity_count: amenCount,
-        base_price: listing.base_price_per_night,
-        max_guests: listing.max_guests,
-        warnings,
+    const { data, error } = await supabase.functions.invoke('beds24-publish', {
+      body: {
+        listing_id: listing.id,
+        channels: ['airbnb', 'booking', 'vrbo'].filter(ch => listing[`channel_${ch}_ready`] !== false),
       },
     });
 
-    onConfirmed({
-      sync_status: 'pending',
-      last_sync_at: now,
-      sync_error_message: null,
-    });
-
-    toast.success('Listing sendt til Beds24', {
-      description: 'Status ændret til "Sendt til Beds24". Sync bekræftes manuelt.',
-    });
-
     setSending(false);
+
+    if (error || (data as any)?.error) {
+      const message = (data as any)?.error || error?.message || 'Beds24 publicering fejlede';
+      onConfirmed((data as any)?.listing || { sync_status: 'error', sync_error_message: message });
+      toast.error('Publicering fejlede', {
+        description: (data as any)?.rolled_back ? `${message} Lokale ændringer er rullet tilbage.` : message,
+      });
+      return;
+    }
+
+    onConfirmed((data as any)?.listing || {});
+    toast.success('Listing publiceret til Beds24', {
+      description: warnings.length > 0 ? `${warnings.length} advarsler blev sendt med loggen.` : 'Beds24 bekræftede publiceringen.',
+    });
     onClose();
   };
 

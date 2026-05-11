@@ -65,8 +65,11 @@ export function buildVariables(opts: {
   commissionPercent?: number;
   bindingMonths?: number;
   signatureName?: string;
+  localeCode?: string;
+  bindingPeriod?: string;
 }): AgreementVariables {
   const now = new Date();
+  const localeCode = opts.localeCode || 'da-DK';
   return {
     owner_name: opts.ownerName || '',
     owner_address: opts.ownerAddress || '',
@@ -75,10 +78,10 @@ export function buildVariables(opts: {
     property_address: opts.propertyAddress || '',
     property_region: opts.propertyRegion || '',
     commission_rate: `${opts.commissionPercent || 15}%`,
-    agreement_date: now.toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }),
-    binding_period: `${opts.bindingMonths || 6} måneder`,
+    agreement_date: now.toLocaleDateString(localeCode, { day: 'numeric', month: 'long', year: 'numeric' }),
+    binding_period: opts.bindingPeriod || `${opts.bindingMonths || 6} måneder`,
     signature_name: opts.signatureName || '',
-    signature_date: now.toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }),
+    signature_date: now.toLocaleDateString(localeCode, { day: 'numeric', month: 'long', year: 'numeric' }),
   };
 }
 

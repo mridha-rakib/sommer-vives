@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { OwnerBottomNav } from '@/components/app/OwnerBottomNav';
 import { useUserUnreadMessages } from '@/hooks/useUserUnreadMessages';
 import { useChatNotifications } from '@/lib/chatNotifications';
+import { useTranslation } from '@/lib/i18n';
 import { toast } from 'sonner';
 
 interface OwnerLayoutProps {
@@ -19,17 +20,18 @@ interface OwnerLayoutProps {
 }
 
 const navItems = [
-  { name: 'Oversigt', href: '/owner', icon: LayoutDashboard },
-  { name: 'Min bolig', href: '/owner/property', icon: Building2 },
-  { name: 'Bookinger', href: '/owner/bookings', icon: CalendarDays },
-  { name: 'Økonomi', href: '/owner/earnings', icon: Wallet },
-  { name: 'Beskeder', href: '/owner/messages', icon: MessageCircle },
-  { name: 'Dokumenter', href: '/owner/documents', icon: FileText },
-  { name: 'Support', href: '/owner/support', icon: LifeBuoy },
+  { labelKey: 'owner.nav.dashboard', href: '/owner', icon: LayoutDashboard },
+  { labelKey: 'owner.nav.property', href: '/owner/property', icon: Building2 },
+  { labelKey: 'owner.nav.bookings', href: '/owner/bookings', icon: CalendarDays },
+  { labelKey: 'owner.nav.earnings', href: '/owner/earnings', icon: Wallet },
+  { labelKey: 'owner.nav.messages', href: '/owner/messages', icon: MessageCircle },
+  { labelKey: 'owner.nav.documents', href: '/owner/documents', icon: FileText },
+  { labelKey: 'owner.nav.support', href: '/owner/support', icon: LifeBuoy },
 ];
 
 export function OwnerLayout({ children }: OwnerLayoutProps) {
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -47,9 +49,9 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
         alwaysPlay: !onMessagesPage,
       });
       if (!onMessagesPage) {
-        toast.message('Ny besked fra SommerVibes', {
+        toast.message(t('owner.toast.newMessage'), {
           description: m.message.length > 80 ? m.message.slice(0, 80) + '…' : m.message,
-          action: { label: 'Åbn', onClick: () => { window.location.href = '/owner/messages'; } },
+          action: { label: t('owner.toast.open'), onClick: () => { window.location.href = '/owner/messages'; } },
           duration: 5000,
         });
       }
@@ -77,8 +79,16 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
       )} style={{ top: 0, height: '100vh' }}>
         {/* Header */}
         <div className={cn('flex items-center justify-between p-4 border-b border-border/40', collapsed && 'justify-center')}>
-          {!collapsed && <BrandLogo to="/owner" tone="light" tagline="Ejerportal" />}
-          {collapsed && <BrandLogo to="/owner" tone="light" variant="mark" size="xs" />}
+          {!collapsed && <BrandLogo to="/" tone="light" tagline={t('owner.portalLabel')} />}
+          {collapsed && (
+            <BrandLogo
+              to="/"
+              tone="light"
+              variant="mark"
+              size="xs"
+              className="[&_img]:h-8 [&_img]:w-8 [&_img]:object-contain"
+            />
+          )}
           <button 
             className="hidden md:flex text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => setCollapsed(!collapsed)}
@@ -96,7 +106,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[hsl(var(--gold)/0.08)] border border-[hsl(var(--gold)/0.15)]">
               <Crown className="w-3.5 h-3.5 text-[hsl(var(--gold-light))]" />
               <span className="text-[10px] font-semibold tracking-wider uppercase text-[hsl(var(--gold-light))]">
-                Premium Medlem
+                {t('owner.memberBadge')}
               </span>
             </div>
           </div>
@@ -107,12 +117,13 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
           <div className="space-y-1">
             {navItems.map(item => {
               const showBadge = item.href === '/owner/messages' && unreadMessages > 0;
+              const label = t(item.labelKey);
               return (
                 <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  title={collapsed ? item.name : undefined}
+                  title={collapsed ? label : undefined}
                   className={cn(
                     'relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200',
                     isActive(item.href)
@@ -129,7 +140,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
                   </div>
                   {!collapsed && (
                     <>
-                      <span className="truncate flex-1">{item.name}</span>
+                      <span className="truncate flex-1">{label}</span>
                       {showBadge && (
                         <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[hsl(var(--gold))] text-background text-[10px] font-semibold">
                           {unreadMessages > 9 ? '9+' : unreadMessages}
@@ -157,7 +168,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
             )}
           >
             <User className="w-[18px] h-[18px] shrink-0" />
-            {!collapsed && <span>Min konto</span>}
+            {!collapsed && <span>{t('owner.nav.account')}</span>}
           </Link>
           <Button
             variant="ghost"
@@ -169,7 +180,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
             )}
           >
             <LogOut className="w-4 h-4 shrink-0" />
-            {!collapsed && <span className="ml-2">Log ud</span>}
+            {!collapsed && <span className="ml-2">{t('owner.logout')}</span>}
           </Button>
         </div>
       </aside>
@@ -185,7 +196,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setMuted(!muted)}
-                title={muted ? 'Slå besked-lyd til' : 'Slå besked-lyd fra'}
+                title={muted ? t('owner.notifications.soundOn') : t('owner.notifications.soundOff')}
                 className="w-8 h-8 rounded-full hover:bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               >
                 {muted ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}

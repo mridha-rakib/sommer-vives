@@ -3,15 +3,36 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { MessageCircle, Phone, AlertTriangle, HelpCircle, Crown, ChevronRight } from 'lucide-react';
-
-const faqItems = [
-  { q: 'Hvornår modtager jeg min udbetaling?', a: 'Vi overfører automatisk til din konto 5 hverdage efter gæstens afrejse.' },
-  { q: 'Hvordan tilpasser jeg mine priser?', a: 'Kontakt din rådgiver, så justerer vi sammen — du bestemmer altid.' },
-  { q: 'Hvad sker der, hvis der opstår en skade?', a: 'Vi har en skadespool til småskader. Større sager håndterer vi via forsikringen.' },
-  { q: 'Kan jeg blokere perioder til eget brug?', a: 'Selvfølgelig. Gå til din kalender og marker de perioder, du ønsker.' },
-];
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { useAuth } from '@/lib/auth';
+import { createOwnerSupportTicket, type OwnerSupportAction } from '@/lib/owner-support-api';
+import { useTranslation } from '@/lib/i18n';
 
 export default function OwnerSupport() {
+  const { user } = useAuth();
+  const { t } = useTranslation();
+  const [submittingAction, setSubmittingAction] = useState<OwnerSupportAction | null>(null);
+  const faqItems = [
+    { q: t('owner.support.faq.payout.q'), a: t('owner.support.faq.payout.a') },
+    { q: t('owner.support.faq.prices.q'), a: t('owner.support.faq.prices.a') },
+    { q: t('owner.support.faq.damage.q'), a: t('owner.support.faq.damage.a') },
+    { q: t('owner.support.faq.block.q'), a: t('owner.support.faq.block.a') },
+  ];
+
+  const handleAction = async (action: OwnerSupportAction) => {
+    if (!user) return;
+    setSubmittingAction(action);
+    try {
+      await createOwnerSupportTicket({ ownerId: user.id, ownerEmail: user.email, action });
+      toast.success(action === 'call' ? t('owner.support.toast.callBooked') : t('owner.support.toast.urgentSent'));
+    } catch (err: any) {
+      toast.error(err.message || t('owner.support.toast.error'));
+    } finally {
+      setSubmittingAction(null);
+    }
+  };
+
   return (
     <OwnerLayout>
       <div className="space-y-6 max-w-3xl mx-auto">
@@ -20,9 +41,9 @@ export default function OwnerSupport() {
           <div className="w-14 h-14 rounded-2xl bg-[hsl(var(--gold)/0.1)] flex items-center justify-center mx-auto mb-4">
             <Crown className="w-6 h-6 text-[hsl(var(--gold-light))]" />
           </div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">Hvordan kan vi hjælpe?</h1>
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">{t('owner.support.title')}</h1>
           <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-            Dit dedikerede SommerVibes-team er altid klar — vi kender dit hus og dine behov
+            {t('owner.support.subtitle')}
           </p>
         </div>
 
@@ -35,35 +56,35 @@ export default function OwnerSupport() {
                   <MessageCircle className="w-5 h-5 text-[hsl(var(--gold-light))]" />
                 </div>
                 <div className="flex-1">
-                  <div className="text-sm font-semibold text-foreground">Skriv til dit team</div>
-                  <p className="text-xs text-muted-foreground">Direkte besked — vi svarer typisk inden for få timer</p>
+                  <div className="text-sm font-semibold text-foreground">{t('owner.support.messageTeam')}</div>
+                  <p className="text-xs text-muted-foreground">{t('owner.support.messageTeamDesc')}</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-[hsl(var(--gold-light))] transition-colors" />
               </CardContent>
             </Card>
           </Link>
 
-          <Card className="hover:border-[hsl(var(--gold)/0.2)] transition-all cursor-pointer">
+          <Card className="hover:border-[hsl(var(--gold)/0.2)] transition-all cursor-pointer" onClick={() => handleAction('call')}>
             <CardContent className="p-5 flex items-center gap-4">
               <div className="w-11 h-11 rounded-xl bg-muted/50 flex items-center justify-center shrink-0">
                 <Phone className="w-5 h-5 text-muted-foreground" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-semibold text-foreground">Book et opkald</div>
-                <p className="text-xs text-muted-foreground">Vi ringer dig op, når det passer dig bedst</p>
+                <div className="text-sm font-semibold text-foreground">{t('owner.support.bookCall')}</div>
+                <p className="text-xs text-muted-foreground">{submittingAction === 'call' ? t('owner.support.sending') : t('owner.support.bookCallDesc')}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
             </CardContent>
           </Card>
 
-          <Card className="hover:border-destructive/30 transition-all cursor-pointer">
+          <Card className="hover:border-destructive/30 transition-all cursor-pointer" onClick={() => handleAction('urgent')}>
             <CardContent className="p-5 flex items-center gap-4">
               <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5 text-destructive" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-semibold text-foreground">Noget haster?</div>
-                <p className="text-xs text-muted-foreground">Rapportér et akut problem — vi reagerer hurtigt</p>
+                <div className="text-sm font-semibold text-foreground">{t('owner.support.urgent')}</div>
+                <p className="text-xs text-muted-foreground">{submittingAction === 'urgent' ? t('owner.support.sending') : t('owner.support.urgentDesc')}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
             </CardContent>
@@ -75,7 +96,7 @@ export default function OwnerSupport() {
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <HelpCircle className="w-4 h-4 text-[hsl(var(--gold-light))]" />
-              <span className="text-sm font-semibold text-foreground">Ofte stillede spørgsmål</span>
+              <span className="text-sm font-semibold text-foreground">{t('owner.support.faqTitle')}</span>
             </div>
             <div className="space-y-3">
               {faqItems.map((faq, i) => (

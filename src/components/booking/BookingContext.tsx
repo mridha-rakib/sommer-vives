@@ -1,9 +1,16 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface PriceLineItem {
   label: string;
   amount: number; // øre
   type: string;
+}
+
+export interface BookingSubmitResult {
+  bookingId?: string;
+  checkoutUrl?: string;
+  paymentRequired: boolean;
 }
 
 export interface ValidationError {
@@ -58,6 +65,7 @@ export interface BookingState {
   pets: number;
   // Step 3 - Add-ons
   selectedAddonIds: string[];
+  discountCode: string;
   // Step 4 - Details
   name: string;
   email: string;
@@ -73,6 +81,7 @@ const initialState: BookingState = {
   guests: 1,
   pets: 0,
   selectedAddonIds: [],
+  discountCode: '',
   name: '',
   email: '',
   phone: '',
@@ -104,7 +113,8 @@ interface BookingContextValue {
   // Submit
   submitting: boolean;
   submitError: string | null;
-  submitBooking: () => Promise<boolean>;
+  bookingResult: BookingSubmitResult | null;
+  submitBooking: () => Promise<BookingSubmitResult | null>;
 }
 
 const BookingContext = createContext<BookingContextValue | null>(null);
@@ -121,6 +131,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isOpen, setIsOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [bookingResult, setBookingResult] = useState<BookingSubmitResult | null>(null);
 
   // Server pricing
   const [lineItems, setLineItems] = useState<PriceLineItem[]>([]);
@@ -134,6 +145,48 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [quoteMinNights, setQuoteMinNights] = useState(2);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const pricingAbortRef = useRef<AbortController | null>(null);
+  const pricingRequestIdRef = useRef(0);
+
+  const invokeWithRetry = useCallback(async <T,>(
+    functionName: string,
+    body: Record<string, unknown>,
+    options: { timeoutMs?: number; retries?: number } = {},
+  ): Promise<T> => {
+    const timeoutMs = options.timeoutMs ?? 15000;
+    const retries = options.retries ?? 1;
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= retries; attempt += 1) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const { data, error } = await supabase.functions.invoke(functionName, {
+          body,
+          signal: controller.signal,
+        } as any);
+        window.clearTimeout(timeout);
+        if (error) {
+          const context = (error as any).context;
+          let message = error.message;
+          if (context && typeof context.json === 'function') {
+            try {
+              const payload = await context.json();
+              message = payload?.error || payload?.message || message;
+            } catch {}
+          }
+          throw new Error(message);
+        }
+        return data as T;
+      } catch (error) {
+        window.clearTimeout(timeout);
+        lastError = error instanceof Error ? error : new Error(String(error));
+        if (attempt === retries) break;
+        await new Promise(resolve => window.setTimeout(resolve, 350 * (attempt + 1)));
+      }
+    }
+
+    throw lastError || new Error('Request failed');
+  }, []);
 
   const update = useCallback((partial: Partial<BookingState>) => {
     setState(prev => ({ ...prev, ...partial }));
@@ -152,6 +205,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setNightBreakdown([]);
     setQuoteMinNights(2);
     setFetchError(null);
+    setBookingResult(null);
   }, []);
 
   const open = useCallback((listing: ListingInfo, preselected?: { checkIn?: Date; checkOut?: Date; guests?: number }) => {
@@ -176,34 +230,23 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     pricingAbortRef.current?.abort();
     const controller = new AbortController();
     pricingAbortRef.current = controller;
+    const requestId = pricingRequestIdRef.current + 1;
+    pricingRequestIdRef.current = requestId;
 
     setPricingLoading(true);
     setFetchError(null);
     try {
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/calculate-price`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            listing_id: s.listing.id,
-            start_date: s.checkIn.toISOString().split('T')[0],
-            end_date: s.checkOut.toISOString().split('T')[0],
-            guests: s.guests || 1,
-            pets: s.pets || 0,
-            selected_addon_ids: s.selectedAddonIds,
-          }),
-          signal: controller.signal,
-        }
-      );
+      const data = await invokeWithRetry<any>('calculate-price', {
+        listing_id: s.listing.id,
+        start_date: s.checkIn.toISOString().split('T')[0],
+        end_date: s.checkOut.toISOString().split('T')[0],
+        guests: s.guests || 1,
+        pets: s.pets || 0,
+        selected_addon_ids: s.selectedAddonIds,
+        discount_code: s.discountCode || null,
+      }, { timeoutMs: 12000, retries: 1 });
 
-      if (controller.signal.aborted) return;
-      const data = await res.json();
-      if (!res.ok) {
-        setFetchError(data.error || 'Prisberegning fejlede. Prøv igen.');
-        return;
-      }
+      if (controller.signal.aborted || requestId !== pricingRequestIdRef.current) return;
 
       setLineItems(data.line_items || []);
       setTotalPrice(data.grand_total);
@@ -218,55 +261,50 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.error('Pricing fetch failed:', e);
       setFetchError('Kunne ikke kontakte serveren. Tjek din forbindelse.');
     } finally {
-      setPricingLoading(false);
+      if (requestId === pricingRequestIdRef.current) setPricingLoading(false);
     }
-  }, [state]);
+  }, [invokeWithRetry, state]);
 
-  const submitBooking = useCallback(async (): Promise<boolean> => {
-    if (!state.listing || !state.checkIn || !state.checkOut) return false;
+  const submitBooking = useCallback(async (): Promise<BookingSubmitResult | null> => {
+    if (!state.listing || !state.checkIn || !state.checkOut) return null;
     setSubmitting(true);
     setSubmitError(null);
+    setBookingResult(null);
 
     try {
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/create-booking`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            listing_id: state.listing.id,
-            start_date: state.checkIn.toISOString().split('T')[0],
-            end_date: state.checkOut.toISOString().split('T')[0],
-            guest_name: state.name,
-            guest_email: state.email,
-            guest_phone: state.phone || null,
-            guest_message: state.message || null,
-            guests: state.guests,
-            selected_addon_ids: state.selectedAddonIds,
-          }),
-        }
-      );
+      const data = await invokeWithRetry<any>('create-booking', {
+        listing_id: state.listing.id,
+        start_date: state.checkIn.toISOString().split('T')[0],
+        end_date: state.checkOut.toISOString().split('T')[0],
+        guest_name: state.name,
+        guest_email: state.email,
+        guest_phone: state.phone || null,
+        guest_message: state.message || null,
+        guests: state.guests,
+        selected_addon_ids: state.selectedAddonIds,
+        discount_code: state.discountCode || null,
+      }, { timeoutMs: 20000, retries: 1 });
 
-      const data = await res.json();
-      if (!res.ok) {
-        setSubmitError(data.error || 'Der opstod en fejl. Prøv igen.');
-        return false;
-      }
+      const result: BookingSubmitResult = {
+        bookingId: data.booking?.id,
+        checkoutUrl: data.checkout_url,
+        paymentRequired: data.payment_required !== false && !!data.checkout_url,
+      };
 
       if (data.checkout_url) {
         window.location.href = data.checkout_url;
-        return true;
+        return result;
       }
 
-      return true;
-    } catch {
-      setSubmitError('Netværksfejl. Tjek din forbindelse og prøv igen.');
-      return false;
+      setBookingResult(result);
+      return result;
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Netværksfejl. Tjek din forbindelse og prøv igen.');
+      return null;
     } finally {
       setSubmitting(false);
     }
-  }, [state]);
+  }, [invokeWithRetry, state]);
 
   return (
     <BookingContext.Provider value={{
@@ -274,7 +312,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       lineItems, totalPrice, availableAddons, pricingLoading, fetchPricing,
       quoteValid, validationErrors, appliedRules, nightBreakdown,
       quoteMinNights, fetchError,
-      submitting, submitError, submitBooking,
+      submitting, submitError, bookingResult, submitBooking,
     }}>
       {children}
     </BookingContext.Provider>

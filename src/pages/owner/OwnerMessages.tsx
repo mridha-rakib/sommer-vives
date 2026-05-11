@@ -1,81 +1,87 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
-import { supabase } from '@/integrations/supabase/client';
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageCircle, Send, Loader2, Crown } from 'lucide-react';
 import { format } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { da, de, enUS, nl } from 'date-fns/locale';
 import { toast } from 'sonner';
+import {
+  getOwnerMessages,
+  isOwnerSupportMessage,
+  isUnreadForOwner,
+  markOwnerMessageRead,
+  markOwnerMessagesRead,
+  sendOwnerMessage,
+  subscribeOwnerMessages,
+  type OwnerMessage,
+} from '@/lib/owner-messages-api';
+import { useTranslation } from '@/lib/i18n';
 
 export default function OwnerMessages() {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<any[]>([]);
+  const { t, language } = useTranslation();
+  const [messages, setMessages] = useState<OwnerMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const dateLocale = { da, en: enUS, de, nl }[language];
 
   useEffect(() => {
     if (!user) return;
     loadMessages();
-    const channel = supabase
-      .channel(`owner-messages-${user.id}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, (payload) => {
-        const m = payload.new as any;
-        if (m.thread_type !== 'support') return;
-        if (m.sender_id !== user.id && m.recipient_id !== user.id) return;
-        setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+
+    return subscribeOwnerMessages(user.id, {
+      onInsert: (message) => {
+        if (!isOwnerSupportMessage(message, user.id)) return;
+        setMessages(prev => prev.some(x => x.id === message.id) ? prev : [...prev, message]);
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-        if (m.sender_type !== 'owner' && !m.is_read) {
-          supabase.from('chat_messages').update({ is_read: true }).eq('id', m.id).then(() => {});
+        if (isUnreadForOwner(message)) {
+          markOwnerMessageRead(message.id).catch(() => {});
         }
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages' }, (payload) => {
-        const m = payload.new as any;
-        setMessages(prev => prev.map(x => (x.id === m.id ? { ...x, ...m } : x)));
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+      },
+      onUpdate: (message) => {
+        if (!isOwnerSupportMessage(message, user.id)) return;
+        setMessages(prev => prev.map(x => (x.id === message.id ? { ...x, ...message } : x)));
+      },
+    });
   }, [user]);
 
   const loadMessages = async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from('chat_messages')
-      .select('*')
-      .eq('thread_type', 'support')
-      .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-      .order('created_at', { ascending: true })
-      .limit(200);
-    setMessages(data || []);
-    setLoading(false);
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    try {
+      const data = await getOwnerMessages(user.id);
+      setMessages(data);
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
 
-    const unreadIds = (data || [])
-      .filter((m: any) => m.sender_type !== 'owner' && !m.is_read)
-      .map((m: any) => m.id);
-    if (unreadIds.length > 0) {
-      supabase.from('chat_messages').update({ is_read: true }).in('id', unreadIds).then(() => {});
+      const unreadIds = data.filter(isUnreadForOwner).map((message) => message.id);
+      markOwnerMessagesRead(unreadIds).catch(() => {});
+    } catch (err: any) {
+      toast.error(err.message || t('owner.messages.toast.loadError'));
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSend = async () => {
     if (!newMessage.trim() || !user) return;
     setSending(true);
-    const { error } = await supabase.from('chat_messages').insert({
-      thread_type: 'support',
-      sender_id: user.id,
-      sender_name: user.user_metadata?.full_name || user.email,
-      sender_type: 'owner',
-      message: newMessage.trim(),
-    });
-    setSending(false);
-    if (error) { toast.error('Beskeden kunne ikke sendes'); return; }
-    setNewMessage('');
+    try {
+      await sendOwnerMessage({
+        ownerId: user.id,
+        senderName: user.user_metadata?.full_name || user.email,
+        message: newMessage,
+      });
+      setNewMessage('');
+    } catch (err: any) {
+      toast.error(err.message || t('owner.messages.toast.sendError'));
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -87,8 +93,8 @@ export default function OwnerMessages() {
             <Crown className="w-5 h-5 text-[hsl(var(--gold-light))]" />
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold text-foreground">Dit SommerVibes-team</h1>
-            <p className="text-xs text-muted-foreground">Direkte dialog — vi kender dit hus og dine behov</p>
+            <h1 className="font-display text-xl font-bold text-foreground">{t('owner.messages.title')}</h1>
+            <p className="text-xs text-muted-foreground">{t('owner.messages.subtitle')}</p>
           </div>
         </div>
 
@@ -106,9 +112,9 @@ export default function OwnerMessages() {
                   <div className="w-14 h-14 rounded-2xl bg-[hsl(var(--gold)/0.08)] flex items-center justify-center mx-auto mb-3">
                     <MessageCircle className="w-6 h-6 text-[hsl(var(--gold-light))]" />
                   </div>
-                  <p className="text-sm text-foreground font-medium mb-1">Velkommen til din indbakke</p>
+                  <p className="text-sm text-foreground font-medium mb-1">{t('owner.messages.emptyTitle')}</p>
                   <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                    Skriv en besked — dit dedikerede team svarer typisk inden for få timer
+                    {t('owner.messages.emptyDescription')}
                   </p>
                 </div>
               ) : (
@@ -128,7 +134,7 @@ export default function OwnerMessages() {
                         )}
                         <p className="text-sm leading-relaxed">{msg.message}</p>
                         <div className="text-[10px] mt-1.5 text-muted-foreground">
-                          {format(new Date(msg.created_at), 'HH:mm', { locale: da })}
+                          {msg.created_at ? format(new Date(msg.created_at), 'HH:mm', { locale: dateLocale }) : ''}
                         </div>
                       </div>
                     </div>
@@ -144,7 +150,7 @@ export default function OwnerMessages() {
                 <Input
                   value={newMessage}
                   onChange={e => setNewMessage(e.target.value)}
-                  placeholder="Skriv en besked til dit team..."
+                  placeholder={t('owner.messages.inputPlaceholder')}
                   className="flex-1 rounded-xl bg-card"
                   disabled={sending}
                 />

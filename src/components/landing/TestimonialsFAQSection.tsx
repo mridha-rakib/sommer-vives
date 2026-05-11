@@ -15,10 +15,10 @@ interface FAQItem {
   a: string;
 }
 
-const testimonials = [
-  { name: 'Mette & Lars Sørensen', location: 'Blåvand · Premium sommerhus', quote: 'Det føles som et helt andet samarbejde end det, vi kendte fra vores tidligere bureau. Her er der en reel kontaktperson, og vi kan mærke, at de faktisk investerer i vores hus.', rating: 5, earnings: '187.000 kr./år' },
-  { name: 'Thomas Nielsen', location: 'Løkken · Klassisk sommerhus', quote: 'Jeg ville have noget, der var nemt og gennemsigtigt. Det er præcis, hvad jeg fik. Udbetalingerne kommer til tiden, og jeg behøver ikke jagte nogen for at få svar.', rating: 5, earnings: '94.000 kr./år' },
-  { name: 'Anne-Marie Vestergaard', location: 'Marielyst · Ekstraordinært sommerhus', quote: 'Fra billeder til prissætning — alt var håndteret, da vi gik live. Vi havde 32 ugers udlejning i første sæson. Det er svært at bede om mere.', rating: 5, earnings: '243.000 kr./år' },
+const testimonialMeta = [
+  { key: '1', rating: 5 },
+  { key: '2', rating: 5 },
+  { key: '3', rating: 5 },
 ];
 
 interface TestimonialsFAQSectionProps {
@@ -31,9 +31,16 @@ export function TestimonialsFAQSection({ faqItems, faqHeading, faqSubheading }: 
   const { ref, isInView } = useScrollReveal();
   const { t } = useTranslation();
   const [current, setCurrent] = useState(0);
+  const testimonials = testimonialMeta.map((testimonial) => ({
+    name: t(`testimonials.${testimonial.key}.name`),
+    location: t(`testimonials.${testimonial.key}.location`),
+    quote: t(`testimonials.${testimonial.key}.quote`),
+    earnings: t(`testimonials.${testimonial.key}.earnings`),
+    rating: testimonial.rating,
+  }));
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrent(prev => (prev + 1) % testimonials.length), 6000);
+    const timer = setInterval(() => setCurrent(prev => (prev + 1) % testimonialMeta.length), 6000);
     return () => clearInterval(timer);
   }, []);
 

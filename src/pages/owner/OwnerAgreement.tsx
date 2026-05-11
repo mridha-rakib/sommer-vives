@@ -6,8 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
+import { useTranslation, type Language } from '@/lib/i18n';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -18,29 +18,37 @@ import {
 import { SignatureCanvas } from '@/components/agreement/SignatureCanvas';
 import {
   renderTemplate, buildVariables, extractPlaceholders, placeholderLabel,
-  getStatusMeta, type AgreementVariables
+  type AgreementVariables
 } from '@/lib/agreement-engine';
+import {
+  createSignedOwnerAgreement,
+  getOwnerAgreementData,
+  OWNER_AGREEMENT_VERSION,
+  type OwnerAgreement,
+  type OwnerAgreementData,
+} from '@/lib/owner-agreement-api';
 
-const AGREEMENT_VERSION = '1.2';
-
-interface AgreementData {
-  ownerName: string; ownerEmail: string; ownerPhone: string; ownerAddress: string;
-  propertyTitle: string; propertyAddress: string; propertyRegion: string; propertyId: string | null;
-}
+const localeCodes: Record<Language, string> = {
+  da: 'da-DK',
+  en: 'en-US',
+  de: 'de-DE',
+  nl: 'nl-NL',
+};
 
 export default function OwnerAgreement() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingAgreement, setExistingAgreement] = useState<any>(null);
+  const [existingAgreement, setExistingAgreement] = useState<OwnerAgreement | null>(null);
   const [loading, setLoading] = useState(true);
   const [templateHtml, setTemplateHtml] = useState('');
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [showFullDoc, setShowFullDoc] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
-  const [agreementData, setAgreementData] = useState<AgreementData>({
+  const [agreementData, setAgreementData] = useState<OwnerAgreementData>({
     ownerName: '', ownerEmail: '', ownerPhone: '', ownerAddress: '',
     propertyTitle: '', propertyAddress: '', propertyRegion: '', propertyId: null,
   });
@@ -55,93 +63,73 @@ export default function OwnerAgreement() {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-
-      const { data: templates } = await supabase
-        .from('agreement_templates' as any)
-        .select('*')
-        .eq('is_active', true)
-        .limit(1);
-      if (templates && templates.length > 0) {
-        setTemplateHtml((templates[0] as any).body_html || '');
-        setTemplateId((templates[0] as any).id);
+      try {
+        const data = await getOwnerAgreementData(user.id);
+        setTemplateHtml(data.templateHtml);
+        setTemplateId(data.templateId);
+        setAgreementData(data.agreementData);
+        setSignatureName(data.agreementData.ownerName);
+        if (data.existingAgreement) {
+          setExistingAgreement(data.existingAgreement);
+          setStep(6);
+        }
+      } catch (err: any) {
+        toast.error(err.message || t('owner.agreement.toast.loadError'));
+      } finally {
+        setLoading(false);
       }
-
-      const { data: agreements } = await supabase
-        .from('agreements').select('*').eq('owner_id', user.id)
-        .order('created_at', { ascending: false }).limit(1);
-      if (agreements && agreements.length > 0 && agreements[0].status === 'signed') {
-        setExistingAgreement(agreements[0]);
-        setStep(6);
-      }
-
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (profile) {
-        setAgreementData(p => ({ ...p, ownerName: profile.full_name || '', ownerEmail: profile.email || '', ownerPhone: profile.phone || '' }));
-        setSignatureName(profile.full_name || '');
-      }
-
-      const { data: properties } = await supabase.from('properties').select('*').eq('owner_id', user.id).limit(1);
-      if (properties && properties.length > 0) {
-        const pr = properties[0];
-        setAgreementData(p => ({ ...p, propertyTitle: pr.title || '', propertyAddress: pr.address || '', propertyRegion: pr.region || '', propertyId: pr.id }));
-      }
-
-      setLoading(false);
     };
     load();
-  }, [user]);
+  }, [t, user]);
 
   const variables = buildVariables({
     ownerName: agreementData.ownerName, ownerAddress: agreementData.ownerAddress,
     ownerEmail: agreementData.ownerEmail, ownerPhone: agreementData.ownerPhone,
     propertyAddress: agreementData.propertyAddress, propertyRegion: agreementData.propertyRegion,
-    commissionPercent: 15, bindingMonths: 6, signatureName,
+    commissionPercent: 15,
+    bindingMonths: 6,
+    signatureName,
+    localeCode: localeCodes[language],
+    bindingPeriod: t('owner.agreement.bindingMonths').replace('{count}', '6'),
   });
 
   const renderedHtml = renderTemplate(templateHtml, variables);
   const placeholders = extractPlaceholders(templateHtml);
   const missingFields = placeholders.filter(k => !variables[k as keyof AgreementVariables]?.trim());
+  const dateLocaleCode = localeCodes[language];
+  const formatLongDate = (date: Date | string = new Date(), includeTime = false) => new Date(date).toLocaleDateString(
+    dateLocaleCode,
+    includeTime
+      ? { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }
+      : { day: 'numeric', month: 'long', year: 'numeric' },
+  );
+  const getPlaceholderLabel = (key: string) => {
+    const translationKey = `owner.agreement.placeholder.${key}`;
+    const translated = t(translationKey);
+    return translated === translationKey ? placeholderLabel(key) : translated;
+  };
 
   const handleSign = async () => {
     if (!user) return;
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('agreements').insert({
-        owner_id: user.id,
-        property_id: agreementData.propertyId,
-        template_id: templateId,
-        version: AGREEMENT_VERSION,
-        status: 'signed',
-        owner_name: agreementData.ownerName,
-        owner_email: agreementData.ownerEmail,
-        owner_phone: agreementData.ownerPhone,
-        owner_address: agreementData.ownerAddress,
-        property_title: agreementData.propertyTitle,
-        property_address: agreementData.propertyAddress,
-        property_region: agreementData.propertyRegion,
-        commission_percent: 15,
-        binding_months: 6,
-        notice_days: 30,
-        signature_name: signatureName,
-        signature_date: new Date().toISOString().split('T')[0],
-        signed_at: new Date().toISOString(),
-        accept_terms: consent.acceptTerms,
-        accept_privacy: consent.acceptPrivacy,
-        accept_marketing: consent.acceptMarketing,
-        generated_body: renderedHtml,
-        signature_data_url: signatureDataUrl,
-      } as any);
-      if (error) throw error;
-
-      const { data: agreements } = await supabase
-        .from('agreements').select('*').eq('owner_id', user.id)
-        .order('created_at', { ascending: false }).limit(1);
-      if (agreements?.length) setExistingAgreement(agreements[0]);
+      const agreement = await createSignedOwnerAgreement({
+        ownerId: user.id,
+        agreementData,
+        templateId,
+        signatureName,
+        signatureDataUrl,
+        renderedHtml,
+        acceptTerms: consent.acceptTerms,
+        acceptPrivacy: consent.acceptPrivacy,
+        acceptMarketing: consent.acceptMarketing,
+      });
+      setExistingAgreement(agreement);
 
       setStep(6);
-      toast.success('Aftalen er signeret!');
+      toast.success(t('owner.agreement.toast.signed'));
     } catch (err: any) {
-      toast.error(err.message || 'Der opstod en fejl');
+      toast.error(err.message || t('owner.agreement.toast.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -157,8 +145,8 @@ export default function OwnerAgreement() {
       const htmlContent = agreement?.generated_body || renderedHtml;
       const sigName = agreement?.signature_name || signatureName;
       const sigDate = agreement?.signed_at
-        ? new Date(agreement.signed_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })
-        : new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' });
+        ? formatLongDate(agreement.signed_at)
+        : formatLongDate();
       const sigDataUrl = agreement?.signature_data_url || signatureDataUrl;
 
       // Create a temporary container for rendering
@@ -166,12 +154,12 @@ export default function OwnerAgreement() {
       container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;padding:60px;background:white;font-family:system-ui,sans-serif;color:#1a1a1a;font-size:14px;line-height:1.6;';
       container.innerHTML = `
         <div style="text-align:center;margin-bottom:32px;border-bottom:2px solid #e5e7eb;padding-bottom:24px;">
-          <h1 style="font-size:22px;font-weight:700;margin:0 0 4px 0;">Formidlingsaftale</h1>
-          <p style="color:#6b7280;font-size:12px;margin:0;">SommerVibes · Version ${agreement?.version || AGREEMENT_VERSION} · ${sigDate}</p>
+          <h1 style="font-size:22px;font-weight:700;margin:0 0 4px 0;">${t('owner.agreement.title')}</h1>
+          <p style="color:#6b7280;font-size:12px;margin:0;">SommerVibes · ${t('owner.agreement.version')} ${agreement?.version || OWNER_AGREEMENT_VERSION} · ${sigDate}</p>
         </div>
         <div style="font-size:13px;line-height:1.7;">${htmlContent}</div>
         <div style="margin-top:40px;border-top:2px solid #e5e7eb;padding-top:24px;">
-          <p style="font-size:12px;color:#6b7280;margin:0 0 12px 0;">Digital signering</p>
+          <p style="font-size:12px;color:#6b7280;margin:0 0 12px 0;">${t('owner.agreement.digitalSignature')}</p>
           ${sigDataUrl ? `<img src="${sigDataUrl}" style="max-width:200px;height:auto;margin-bottom:8px;" />` : ''}
           <p style="font-size:14px;font-weight:600;margin:0;">${sigName}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0 0;">${sigDate}</p>
@@ -207,15 +195,15 @@ export default function OwnerAgreement() {
         heightLeft -= pageHeight;
       }
 
-      pdf.save(`SommerVibes-Formidlingsaftale-${sigDate.replace(/\s/g, '-')}.pdf`);
-      toast.success('PDF downloadet!');
+      pdf.save(`SommerVibes-${t('owner.agreement.pdfFilename')}-${sigDate.replace(/\s/g, '-')}.pdf`);
+      toast.success(t('owner.agreement.toast.pdfDownloaded'));
     } catch (err) {
       console.error('PDF generation error:', err);
-      toast.error('Kunne ikke generere PDF. Prøv igen.');
+      toast.error(t('owner.agreement.toast.pdfError'));
     } finally {
       setGeneratingPdf(false);
     }
-  }, [existingAgreement, renderedHtml, signatureName, signatureDataUrl]);
+  }, [existingAgreement, formatLongDate, renderedHtml, signatureName, signatureDataUrl, t]);
 
   const canSign = consent.acceptAgreement && consent.acceptTerms && consent.acceptPrivacy
     && signatureName.trim().length > 2 && signatureDataUrl !== null;
@@ -232,12 +220,12 @@ export default function OwnerAgreement() {
 
   // ─── Step bar ────────────────────────────────────────────
   const STEPS_META = [
-    { label: 'Introduktion', icon: Eye },
-    { label: 'Forhåndsvisning', icon: FileText },
-    { label: 'Dine data', icon: Sparkles },
-    { label: 'Bekræftelse', icon: Check },
-    { label: 'Signering', icon: PenLine },
-    { label: 'Signeret', icon: CheckCircle2 },
+    { label: t('owner.agreement.step.intro'), icon: Eye },
+    { label: t('owner.agreement.step.preview'), icon: FileText },
+    { label: t('owner.agreement.step.data'), icon: Sparkles },
+    { label: t('owner.agreement.step.confirm'), icon: Check },
+    { label: t('owner.agreement.step.signing'), icon: PenLine },
+    { label: t('owner.agreement.step.signed'), icon: CheckCircle2 },
   ];
 
   const StepBar = () => (
@@ -289,14 +277,14 @@ export default function OwnerAgreement() {
   // ─── Build the "done" step data ────────────────────────
   const agreement = existingAgreement;
   const signedDate = agreement?.signed_at
-    ? new Date(agreement.signed_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-    : new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' });
+    ? formatLongDate(agreement.signed_at, true)
+    : formatLongDate();
 
   const nextSteps = [
-    { icon: Phone, title: 'Vi kontakter dig', desc: 'Inden for 24 timer ringer vi og planlægger det næste', time: '1-2 dage' },
-    { icon: Home, title: 'Ejendomsgennemgang', desc: 'Vi kommer forbi og gennemgår det praktiske', time: '3-7 dage' },
-    { icon: Globe, title: 'Din bolig går online', desc: 'Vi opretter og optimerer dine annoncer', time: '1-2 uger' },
-    { icon: Calendar, title: 'Første bookinger', desc: 'Gæster finder dit hus — vi håndterer alt', time: '2-4 uger' },
+    { icon: Phone, title: t('owner.agreement.next.contact.title'), desc: t('owner.agreement.next.contact.desc'), time: t('owner.agreement.next.contact.time') },
+    { icon: Home, title: t('owner.agreement.next.review.title'), desc: t('owner.agreement.next.review.desc'), time: t('owner.agreement.next.review.time') },
+    { icon: Globe, title: t('owner.agreement.next.online.title'), desc: t('owner.agreement.next.online.desc'), time: t('owner.agreement.next.online.time') },
+    { icon: Calendar, title: t('owner.agreement.next.bookings.title'), desc: t('owner.agreement.next.bookings.desc'), time: t('owner.agreement.next.bookings.time') },
   ];
 
   return (
@@ -313,22 +301,22 @@ export default function OwnerAgreement() {
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
                   <FileSignature className="w-8 h-8 text-primary" />
                 </div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">Formidlingsaftale</h2>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">{t('owner.agreement.title')}</h2>
                 <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                  Gennemgå og underskriv din formidlingsaftale med SommerVibes. Det tager kun et par minutter.
+                  {t('owner.agreement.intro')}
                 </p>
                 <Card className="border-border/30 bg-card/30 text-left mb-8">
                   <CardContent className="p-5 space-y-1">
-                    <InfoRow label="Aftaleversion" value={`v${AGREEMENT_VERSION}`} />
-                    <InfoRow label="Dato" value={new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })} />
-                    <InfoRow label="Ejer" value={agreementData.ownerName} />
-                    <InfoRow label="Bolig" value={agreementData.propertyTitle || 'Ikke angivet'} />
-                    <InfoRow label="Kommission" value="15%" highlight />
-                    <InfoRow label="Binding" value="6 måneder" />
+                    <InfoRow label={t('owner.agreement.agreementVersion')} value={`v${OWNER_AGREEMENT_VERSION}`} />
+                    <InfoRow label={t('owner.agreement.date')} value={formatLongDate()} />
+                    <InfoRow label={t('owner.agreement.owner')} value={agreementData.ownerName} />
+                    <InfoRow label={t('owner.agreement.home')} value={agreementData.propertyTitle || t('owner.agreement.notSpecified')} />
+                    <InfoRow label={t('owner.agreement.commission')} value="15%" highlight />
+                    <InfoRow label={t('owner.agreement.binding')} value={t('owner.agreement.bindingMonths').replace('{count}', '6')} />
                   </CardContent>
                 </Card>
                 <div className="flex items-center gap-2 justify-center text-muted-foreground/60 text-xs">
-                  <Lock className="w-3 h-3" /> Krypteret og sikker digital signering
+                  <Lock className="w-3 h-3" /> {t('owner.agreement.secureSigning')}
                 </div>
               </div>
             )}
@@ -337,13 +325,13 @@ export default function OwnerAgreement() {
             {step === 2 && (
               <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-6">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">Forhåndsvisning af aftalen</h2>
-                  <p className="text-muted-foreground text-sm">Din aftale med dine data indsat — gennemgå inden signering</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">{t('owner.agreement.previewTitle')}</h2>
+                  <p className="text-muted-foreground text-sm">{t('owner.agreement.previewSubtitle')}</p>
                 </div>
                 {missingFields.length > 0 && (
                   <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-                    <strong>Manglende felter:</strong> {missingFields.map(k => placeholderLabel(k)).join(', ')}
-                    <span className="text-xs block mt-1 text-amber-600">Gå til næste trin for at udfylde.</span>
+                    <strong>{t('owner.agreement.missingFields')}:</strong> {missingFields.map(k => getPlaceholderLabel(k)).join(', ')}
+                    <span className="text-xs block mt-1 text-amber-600">{t('owner.agreement.missingFieldsHelp')}</span>
                   </div>
                 )}
                 <Card className="border-border/30 bg-white shadow-sm">
@@ -362,13 +350,13 @@ export default function OwnerAgreement() {
                 </Card>
                 <div className="mt-4 text-center">
                   <button onClick={() => setShowFullDoc(!showFullDoc)} className="text-primary text-xs underline">
-                    {showFullDoc ? 'Skjul variabel-overblik' : 'Vis alle indsatte variabler'}
+                    {showFullDoc ? t('owner.agreement.hideVariables') : t('owner.agreement.showVariables')}
                   </button>
                   {showFullDoc && (
                     <Card className="mt-3 border-border/30 bg-card/30 text-left">
                       <CardContent className="p-4 space-y-1">
                         {placeholders.map(k => (
-                          <InfoRow key={k} label={placeholderLabel(k)} value={variables[k as keyof AgreementVariables] || '—'}
+                          <InfoRow key={k} label={getPlaceholderLabel(k)} value={variables[k as keyof AgreementVariables] || '—'}
                             highlight={!variables[k as keyof AgreementVariables]?.trim()} />
                         ))}
                       </CardContent>
@@ -382,43 +370,43 @@ export default function OwnerAgreement() {
             {step === 3 && (
               <div className="max-w-xl mx-auto">
                 <div className="text-center mb-8">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">Bekræft dine oplysninger</h2>
-                  <p className="text-muted-foreground text-sm">Disse data indsættes i din aftale</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">{t('owner.agreement.dataTitle')}</h2>
+                  <p className="text-muted-foreground text-sm">{t('owner.agreement.dataSubtitle')}</p>
                 </div>
                 <Card className="border-border/30 bg-card/40 backdrop-blur-sm">
                   <CardContent className="p-5 md:p-7 space-y-4">
                     <div>
-                      <Label className="text-foreground font-medium text-sm">Fulde navn *</Label>
+                      <Label className="text-foreground font-medium text-sm">{t('owner.agreement.fullName')} *</Label>
                       <Input value={agreementData.ownerName}
                         onChange={e => setAgreementData(p => ({ ...p, ownerName: e.target.value }))}
                         className="mt-1.5 bg-background/50" />
                     </div>
                     <div>
-                      <Label className="text-foreground font-medium text-sm">E-mail</Label>
+                      <Label className="text-foreground font-medium text-sm">{t('owner.agreement.email')}</Label>
                       <Input value={agreementData.ownerEmail}
                         onChange={e => setAgreementData(p => ({ ...p, ownerEmail: e.target.value }))}
                         className="mt-1.5 bg-background/50" />
                     </div>
                     <div>
-                      <Label className="text-foreground font-medium text-sm">Telefon</Label>
+                      <Label className="text-foreground font-medium text-sm">{t('owner.agreement.phone')}</Label>
                       <Input value={agreementData.ownerPhone}
                         onChange={e => setAgreementData(p => ({ ...p, ownerPhone: e.target.value }))}
                         className="mt-1.5 bg-background/50" />
                     </div>
                     <div>
-                      <Label className="text-foreground font-medium text-sm">Adresse</Label>
+                      <Label className="text-foreground font-medium text-sm">{t('owner.agreement.address')}</Label>
                       <Input value={agreementData.ownerAddress}
                         onChange={e => setAgreementData(p => ({ ...p, ownerAddress: e.target.value }))}
                         className="mt-1.5 bg-background/50" />
                     </div>
                     <div className="border-t border-border/20 pt-4">
-                      <Label className="text-foreground font-medium text-sm">Boligens adresse</Label>
+                      <Label className="text-foreground font-medium text-sm">{t('owner.agreement.propertyAddress')}</Label>
                       <Input value={agreementData.propertyAddress}
                         onChange={e => setAgreementData(p => ({ ...p, propertyAddress: e.target.value }))}
                         className="mt-1.5 bg-background/50" />
                     </div>
                     <div>
-                      <Label className="text-foreground font-medium text-sm">Region</Label>
+                      <Label className="text-foreground font-medium text-sm">{t('owner.agreement.region')}</Label>
                       <Input value={agreementData.propertyRegion}
                         onChange={e => setAgreementData(p => ({ ...p, propertyRegion: e.target.value }))}
                         className="mt-1.5 bg-background/50" />
@@ -432,44 +420,44 @@ export default function OwnerAgreement() {
             {step === 4 && (
               <div className="max-w-xl mx-auto">
                 <div className="text-center mb-8">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">Bekræft vilkårene</h2>
-                  <p className="text-muted-foreground text-sm">Accepter de relevante punkter for at gå videre</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">{t('owner.agreement.confirmTitle')}</h2>
+                  <p className="text-muted-foreground text-sm">{t('owner.agreement.confirmSubtitle')}</p>
                 </div>
                 <Card className="border-border/30 bg-card/30">
                   <CardContent className="p-5 space-y-4">
                     <div className="p-4 rounded-xl bg-muted/20 border border-border/20 space-y-1.5 mb-2">
-                      <InfoRow label="Ejer" value={agreementData.ownerName} />
-                      <InfoRow label="Bolig" value={agreementData.propertyTitle || `Bolig i ${agreementData.propertyRegion}`} />
-                      <InfoRow label="Kommission" value="15%" highlight />
-                      <InfoRow label="Binding" value="6 måneder" />
+                      <InfoRow label={t('owner.agreement.owner')} value={agreementData.ownerName} />
+                      <InfoRow label={t('owner.agreement.home')} value={agreementData.propertyTitle || t('owner.agreement.homeInRegion').replace('{region}', agreementData.propertyRegion)} />
+                      <InfoRow label={t('owner.agreement.commission')} value="15%" highlight />
+                      <InfoRow label={t('owner.agreement.binding')} value={t('owner.agreement.bindingMonths').replace('{count}', '6')} />
                     </div>
                     <div className="space-y-3 pt-2">
                       <label className="flex items-start gap-3 p-3 rounded-xl bg-primary/5 border border-primary/15 cursor-pointer">
                         <Checkbox checked={consent.acceptAgreement}
                           onCheckedChange={(c) => setConsent(p => ({ ...p, acceptAgreement: c === true }))} className="mt-0.5" />
                         <span className="text-sm text-foreground/80 leading-relaxed">
-                          Jeg accepterer formidlingsaftalen med SommerVibes, herunder 15% kommission og 6 måneders binding. *
+                          {t('owner.agreement.acceptAgreement')} *
                         </span>
                       </label>
                       <label className="flex items-start gap-3 cursor-pointer">
                         <Checkbox checked={consent.acceptTerms}
                           onCheckedChange={(c) => setConsent(p => ({ ...p, acceptTerms: c === true }))} className="mt-0.5" />
                         <span className="text-sm text-muted-foreground leading-relaxed">
-                          Jeg accepterer <span className="text-primary underline" onClick={e => { e.preventDefault(); window.open('/terms', '_blank'); }}>handelsbetingelserne</span>. *
+                          {t('owner.agreement.acceptTermsPrefix')} <span className="text-primary underline" onClick={e => { e.preventDefault(); window.open('/terms', '_blank'); }}>{t('owner.agreement.terms')}</span>. *
                         </span>
                       </label>
                       <label className="flex items-start gap-3 cursor-pointer">
                         <Checkbox checked={consent.acceptPrivacy}
                           onCheckedChange={(c) => setConsent(p => ({ ...p, acceptPrivacy: c === true }))} className="mt-0.5" />
                         <span className="text-sm text-muted-foreground leading-relaxed">
-                          Jeg har læst <span className="text-primary underline" onClick={e => { e.preventDefault(); window.open('/privacy', '_blank'); }}>privatlivspolitikken</span>. *
+                          {t('owner.agreement.acceptPrivacyPrefix')} <span className="text-primary underline" onClick={e => { e.preventDefault(); window.open('/privacy', '_blank'); }}>{t('owner.agreement.privacy')}</span>. *
                         </span>
                       </label>
                       <label className="flex items-start gap-3 cursor-pointer">
                         <Checkbox checked={consent.acceptMarketing}
                           onCheckedChange={(c) => setConsent(p => ({ ...p, acceptMarketing: c === true }))} className="mt-0.5" />
                         <span className="text-sm text-muted-foreground leading-relaxed">
-                          Ja tak, jeg vil gerne modtage nyheder og tips (valgfrit)
+                          {t('owner.agreement.acceptMarketing')}
                         </span>
                       </label>
                     </div>
@@ -485,27 +473,27 @@ export default function OwnerAgreement() {
                   <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                     <PenLine className="w-7 h-7 text-primary" />
                   </div>
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">Signer aftalen</h2>
-                  <p className="text-muted-foreground text-sm">Tegn din underskrift og bekræft med dit navn</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">{t('owner.agreement.signTitle')}</h2>
+                  <p className="text-muted-foreground text-sm">{t('owner.agreement.signSubtitle')}</p>
                 </div>
                 <Card className="border-border/30 bg-card/30">
                   <CardContent className="p-5 space-y-5">
                     <div>
-                      <Label className="text-foreground font-medium text-sm mb-2 block">Din håndskrevne underskrift *</Label>
+                      <Label className="text-foreground font-medium text-sm mb-2 block">{t('owner.agreement.handwrittenSignature')} *</Label>
                       <SignatureCanvas onSignatureChange={setSignatureDataUrl} />
                     </div>
                     <div>
-                      <Label className="text-foreground font-medium text-sm">Bekræft med dit fulde navn *</Label>
-                      <Input placeholder="Skriv dit fulde navn" value={signatureName}
+                      <Label className="text-foreground font-medium text-sm">{t('owner.agreement.confirmFullName')} *</Label>
+                      <Input placeholder={t('owner.agreement.fullNamePlaceholder')} value={signatureName}
                         onChange={e => setSignatureName(e.target.value)} className="mt-1.5 bg-background/50 h-12" />
                     </div>
                     <div className="text-center text-muted-foreground/50 text-xs space-y-0.5">
-                      <p>Dato: {new Date().toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                      <p>Aftaleversion: v{AGREEMENT_VERSION}</p>
+                      <p>{t('owner.agreement.date')}: {formatLongDate()}</p>
+                      <p>{t('owner.agreement.agreementVersion')}: v{OWNER_AGREEMENT_VERSION}</p>
                     </div>
                     <div className="flex items-center gap-2 justify-center text-muted-foreground/50 text-xs pt-2">
                       <Lock className="w-3 h-3" />
-                      <span>Krypteret og sikker · IP-logget · Tidsstemplet</span>
+                      <span>{t('owner.agreement.signatureSecurity')}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -519,8 +507,8 @@ export default function OwnerAgreement() {
                   <div className="w-20 h-20 rounded-full bg-accent/10 border-2 border-accent/30 flex items-center justify-center mx-auto mb-6">
                     <CheckCircle2 className="w-10 h-10 text-accent" />
                   </div>
-                  <h2 className="font-display text-3xl font-bold text-foreground mb-2">Aftalen er signeret</h2>
-                  <p className="text-muted-foreground mb-6">Tak — vi glæder os til samarbejdet!</p>
+                  <h2 className="font-display text-3xl font-bold text-foreground mb-2">{t('owner.agreement.signedTitle')}</h2>
+                  <p className="text-muted-foreground mb-6">{t('owner.agreement.signedSubtitle')}</p>
                 </motion.div>
 
                 <Card className="border-border/30 bg-card/30 text-left mb-8">
@@ -528,32 +516,32 @@ export default function OwnerAgreement() {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <FileSignature className="w-4 h-4 text-primary" />
-                        <span className="font-semibold text-foreground text-sm">Formidlingsaftale</span>
+                        <span className="font-semibold text-foreground text-sm">{t('owner.agreement.title')}</span>
                       </div>
-                      <span className="text-[10px] px-2.5 py-1 rounded-full bg-accent/10 text-accent font-semibold uppercase tracking-wider">Signeret</span>
+                      <span className="text-[10px] px-2.5 py-1 rounded-full bg-accent/10 text-accent font-semibold uppercase tracking-wider">{t('owner.agreement.status.signed')}</span>
                     </div>
                     <div className="space-y-1.5">
-                      <InfoRow label="Version" value={`v${agreement?.version || AGREEMENT_VERSION}`} />
-                      <InfoRow label="Signeret af" value={agreement?.signature_name || signatureName} />
-                      <InfoRow label="Dato" value={signedDate} />
-                      <InfoRow label="Kommission" value={`${agreement?.commission_percent || 15}%`} highlight />
-                      <InfoRow label="Binding" value={`${agreement?.binding_months || 6} måneder`} />
+                      <InfoRow label={t('owner.agreement.version')} value={`v${agreement?.version || OWNER_AGREEMENT_VERSION}`} />
+                      <InfoRow label={t('owner.agreement.signedBy')} value={agreement?.signature_name || signatureName} />
+                      <InfoRow label={t('owner.agreement.date')} value={signedDate} />
+                      <InfoRow label={t('owner.agreement.commission')} value={`${agreement?.commission_percent || 15}%`} highlight />
+                      <InfoRow label={t('owner.agreement.binding')} value={t('owner.agreement.bindingMonths').replace('{count}', String(agreement?.binding_months || 6))} />
                     </div>
                     <div className="border-t border-border/20 mt-4 pt-4 flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-muted-foreground/50 text-xs">
-                        <Lock className="w-3 h-3" /> Arkiveret kopi
+                        <Lock className="w-3 h-3" /> {t('owner.agreement.archivedCopy')}
                       </div>
                       <Button variant="outline" size="sm" className="text-xs gap-1.5 h-8"
                         onClick={handleDownloadPdf} disabled={generatingPdf}>
                         {generatingPdf ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-                        {generatingPdf ? 'Genererer...' : 'Download PDF'}
+                        {generatingPdf ? t('owner.agreement.generating') : t('owner.agreement.downloadPdf')}
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
 
                 <div className="text-left mb-8">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-5 text-center">Hvad sker der nu?</h3>
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-5 text-center">{t('owner.agreement.whatNext')}</h3>
                   {nextSteps.map((s, i) => {
                     const Icon = s.icon;
                     return (
@@ -577,10 +565,10 @@ export default function OwnerAgreement() {
 
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button variant="gold" size="lg" className="gap-2" onClick={() => navigate('/owner')}>
-                    Gå til ejerdashboard <ArrowRight className="w-4 h-4" />
+                    {t('owner.agreement.goDashboard')} <ArrowRight className="w-4 h-4" />
                   </Button>
                   <Button variant="outline" size="lg" className="border-border gap-2 text-muted-foreground" onClick={() => navigate('/contact')}>
-                    <Phone className="w-4 h-4" /> Kontakt os
+                    <Phone className="w-4 h-4" /> {t('owner.agreement.contactUs')}
                   </Button>
                 </div>
               </div>
@@ -592,12 +580,12 @@ export default function OwnerAgreement() {
           <div className="flex items-center justify-between mt-8 max-w-2xl mx-auto">
             <Button variant="outline" onClick={() => setStep(s => s - 1)} disabled={step === 1}
               className="gap-2 h-11 px-5 border-border/50">
-              <ArrowLeft className="h-4 w-4" /> Tilbage
+              <ArrowLeft className="h-4 w-4" /> {t('owner.agreement.back')}
             </Button>
-            <span className="text-xs text-muted-foreground/50">Trin {step} af 5</span>
+            <span className="text-xs text-muted-foreground/50">{t('owner.agreement.stepCounter').replace('{step}', String(step)).replace('{total}', '5')}</span>
             <Button variant="gold" onClick={handleNext} disabled={!canNextStep() || isSubmitting}
               className="gap-2 h-11 px-7">
-              {step === 5 ? (isSubmitting ? 'Signerer...' : 'Signer aftalen') : 'Næste'}
+              {step === 5 ? (isSubmitting ? t('owner.agreement.signing') : t('owner.agreement.signAgreement')) : t('owner.agreement.next')}
               {step < 5 && <ArrowRight className="h-4 w-4" />}
             </Button>
           </div>

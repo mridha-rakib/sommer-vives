@@ -109,6 +109,20 @@ interface ListingFull {
 }
 
 interface Props { listingId: string; onBack: () => void; }
+interface ListingVideo {
+  id: string;
+  listing_id: string;
+  owner_id: string;
+  title: string;
+  youtube_id: string | null;
+  video_url?: string | null;
+  video_type?: string | null;
+  thumbnail_url: string | null;
+  emoji: string | null;
+  sort_order: number;
+  is_active: boolean;
+  metadata?: Record<string, any> | null;
+}
 
 // ── Constants ──
 const PROPERTY_TYPES = [
@@ -126,6 +140,35 @@ const STATUS_OPTIONS = [
   { value: 'live', label: 'Live', icon: Zap, color: 'text-primary' },
   { value: 'paused', label: 'Pauset', icon: Circle, color: 'text-amber-500' },
 ];
+
+const AMENITY_PRESETS = [
+  { label: 'Basis', items: ['WiFi', 'Gratis parkering', 'Køkken', 'Vaskemaskine', 'Tørretumbler', 'Opvarmning'] },
+  { label: 'Familie', items: ['Barneseng', 'Høj stol', 'Legetøj', 'Trappegitter', 'Børneservice'] },
+  { label: 'Wellness', items: ['Sauna', 'Spa', 'Pool', 'Udendørs bruser', 'Koldtvandskar'] },
+  { label: 'Udeområde', items: ['Terrasse', 'Grill', 'Havemøbler', 'Bålplads', 'Privat have'] },
+  { label: 'Arbejde', items: ['Dedikeret arbejdsplads', 'Skærm', 'Ergonomisk stol', 'Hurtigt internet'] },
+  { label: 'Kanal-ready', items: ['Aircondition', 'Pejs', 'EV-oplader', 'Havudsigt', 'Kæledyr tilladt'] },
+];
+
+function normalizeTextList(items: string[]) {
+  const seen = new Set<string>();
+  return items
+    .map(item => item.trim())
+    .filter(Boolean)
+    .filter(item => {
+      const key = item.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function extractYouTubeId(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  const match = trimmed.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+  return match?.[1] || (/^[A-Za-z0-9_-]{6,}$/.test(trimmed) ? trimmed : '');
+}
 
 const STUDIO_STEPS: StudioStep[] = [
   { id: 'setup', label: 'Grundopsætning', icon: Settings, description: 'Kernedata, slug, status' },
@@ -362,6 +405,299 @@ function IntroFeatureEditor({ features, onChange }: { features: any[]; onChange:
   );
 }
 
+function AmenityBulkEditor({
+  amenities,
+  highlighted,
+  onAmenitiesChange,
+  onHighlightedChange,
+}: {
+  amenities: string[];
+  highlighted: string[];
+  onAmenitiesChange: (items: string[]) => void;
+  onHighlightedChange: (items: string[]) => void;
+}) {
+  const [bulkText, setBulkText] = useState('');
+  const [removeText, setRemoveText] = useState('');
+
+  const addItems = (items: string[]) => onAmenitiesChange(normalizeTextList([...amenities, ...items]));
+  const importBulk = () => {
+    const parsed = bulkText.split(/[\n,;]/).map(v => v.trim()).filter(Boolean);
+    addItems(parsed);
+    setBulkText('');
+  };
+  const removeBulk = () => {
+    const removeSet = new Set(removeText.split(/[\n,;]/).map(v => v.trim().toLowerCase()).filter(Boolean));
+    onAmenitiesChange(amenities.filter(item => !removeSet.has(item.toLowerCase())));
+    onHighlightedChange(highlighted.filter(item => !removeSet.has(item.toLowerCase())));
+    setRemoveText('');
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {AMENITY_PRESETS.map(group => (
+          <div key={group.label} className="rounded-xl border border-border/40 bg-muted/10 p-3">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <p className="text-xs font-semibold text-foreground">{group.label}</p>
+              <Button type="button" variant="outline" size="sm" className="h-7 text-[11px]" onClick={() => addItems(group.items)}>
+                Tilføj alle
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {group.items.map(item => {
+                const active = amenities.some(a => a.toLowerCase() === item.toLowerCase());
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => active
+                      ? onAmenitiesChange(amenities.filter(a => a.toLowerCase() !== item.toLowerCase()))
+                      : addItems([item])
+                    }
+                    className={cn(
+                      'rounded-full border px-2 py-1 text-[10px] transition-colors',
+                      active ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border/40 text-muted-foreground hover:bg-muted/30'
+                    )}
+                  >
+                    {active ? '✓ ' : '+ '}{item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <StudioField label="Bulk-import" hint="Komma, semikolon eller ny linje">
+          <Textarea value={bulkText} onChange={e => setBulkText(e.target.value)} rows={4} placeholder="WiFi, Sauna, Pool..." />
+          <Button type="button" variant="outline" size="sm" className="mt-2 h-8 text-xs" onClick={importBulk} disabled={!bulkText.trim()}>
+            Importér til liste
+          </Button>
+        </StudioField>
+        <StudioField label="Bulk-fjern" hint="Fjerner også fra fremhævede">
+          <Textarea value={removeText} onChange={e => setRemoveText(e.target.value)} rows={4} placeholder="Faciliteter der skal fjernes..." />
+          <Button type="button" variant="outline" size="sm" className="mt-2 h-8 text-xs text-destructive" onClick={removeBulk} disabled={!removeText.trim()}>
+            Fjern fra lister
+          </Button>
+        </StudioField>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => onAmenitiesChange(normalizeTextList(amenities))}>
+          Ryd dubletter
+        </Button>
+        <Button type="button" variant="outline" size="sm" className="h-8 text-xs" onClick={() => onHighlightedChange(normalizeTextList(amenities).slice(0, 8))}>
+          Brug første 8 som fremhævede
+        </Button>
+        <Button type="button" variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" onClick={() => onHighlightedChange(highlighted.filter(h => amenities.some(a => a.toLowerCase() === h.toLowerCase())))}>
+          Synkronisér highlights
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ListingVideoManager({
+  listing,
+  videos,
+  onChange,
+}: {
+  listing: ListingFull;
+  videos: ListingVideo[];
+  onChange: (videos: ListingVideo[]) => void;
+}) {
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
+  const [emoji, setEmoji] = useState('▶️');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const loadVideos = async () => {
+    const { data } = await supabase
+      .from('listing_videos')
+      .select('*')
+      .eq('listing_id', listing.id)
+      .order('sort_order');
+    onChange((data as unknown as ListingVideo[]) || []);
+  };
+
+  const addVideo = async (videoUrl: string, source: 'url' | 'upload') => {
+    const youtubeId = extractYouTubeId(videoUrl);
+    const payload = {
+      listing_id: listing.id,
+      owner_id: listing.owner_id,
+      title: title.trim() || (source === 'upload' ? 'Uploadet video' : 'Videoguide'),
+      emoji: emoji.trim() || '▶️',
+      thumbnail_url: thumbnailUrl.trim() || null,
+      youtube_id: youtubeId || null,
+      video_url: youtubeId ? null : videoUrl.trim(),
+      video_type: youtubeId ? 'youtube' : source,
+      sort_order: videos.length,
+      is_active: true,
+      metadata: { source },
+    };
+    const { data, error } = await supabase.from('listing_videos').insert(payload as any).select('*').single();
+    if (error) throw error;
+    onChange([...(videos || []), data as unknown as ListingVideo]);
+    setTitle('');
+    setUrl('');
+    setThumbnailUrl('');
+    setEmoji('▶️');
+  };
+
+  const handleAddUrl = async () => {
+    if (!url.trim()) return;
+    setSaving(true);
+    try {
+      await addVideo(url, 'url');
+      toast({ title: 'Video tilføjet' });
+    } catch (err) {
+      toast({ title: 'Video kunne ikke gemmes', description: err instanceof Error ? err.message : String(err), variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpload = async (file: File) => {
+    if (!file.type.startsWith('video/')) {
+      toast({ title: 'Vælg en videofil', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 500 * 1024 * 1024) {
+      toast({ title: 'Videoen er for stor', description: 'Maks. 500 MB', variant: 'destructive' });
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'mp4';
+      const path = `${listing.slug}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from('listing-videos').upload(path, file, { cacheControl: '31536000', upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from('listing-videos').getPublicUrl(path);
+      await addVideo(data.publicUrl, 'upload');
+      toast({ title: 'Video uploadet' });
+    } catch (err) {
+      toast({ title: 'Upload fejlede', description: err instanceof Error ? err.message : String(err), variant: 'destructive' });
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const updateVideo = async (id: string, patch: Partial<ListingVideo>) => {
+    const next = videos.map(v => v.id === id ? { ...v, ...patch } : v);
+    onChange(next);
+    const { error } = await supabase.from('listing_videos').update(patch as any).eq('id', id);
+    if (error) {
+      toast({ title: 'Video kunne ikke opdateres', description: error.message, variant: 'destructive' });
+      loadVideos();
+    }
+  };
+
+  const moveVideo = async (id: string, direction: -1 | 1) => {
+    const index = videos.findIndex(v => v.id === id);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= videos.length) return;
+    const next = [...videos];
+    [next[index], next[target]] = [next[target], next[index]];
+    const normalized = next.map((v, i) => ({ ...v, sort_order: i }));
+    onChange(normalized);
+    const updates = normalized.map(v => supabase.from('listing_videos').update({ sort_order: v.sort_order }).eq('id', v.id));
+    const results = await Promise.all(updates);
+    const failed = results.find(r => r.error);
+    if (failed?.error) {
+      toast({ title: 'Sortering kunne ikke gemmes', description: failed.error.message, variant: 'destructive' });
+      loadVideos();
+    }
+  };
+
+  const deleteVideo = async (id: string) => {
+    const { error } = await supabase.from('listing_videos').delete().eq('id', id);
+    if (error) {
+      toast({ title: 'Video kunne ikke slettes', description: error.message, variant: 'destructive' });
+      return;
+    }
+    onChange(videos.filter(v => v.id !== id).map((v, i) => ({ ...v, sort_order: i })));
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-border/40 bg-muted/10 p-4 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-[80px_1fr_1fr] gap-3">
+          <StudioField label="Emoji">
+            <StudioInput value={emoji} onChange={setEmoji} placeholder="▶️" />
+          </StudioField>
+          <StudioField label="Titel">
+            <StudioInput value={title} onChange={setTitle} placeholder="Sådan bruger du spaen" />
+          </StudioField>
+          <StudioField label="Thumbnail URL">
+            <StudioInput value={thumbnailUrl} onChange={setThumbnailUrl} placeholder="Valgfri thumbnail" />
+          </StudioField>
+        </div>
+        <StudioField label="YouTube eller direkte video-URL">
+          <div className="flex flex-col md:flex-row gap-2">
+            <StudioInput value={url} onChange={setUrl} placeholder="https://youtube.com/watch?v=..." />
+            <Button type="button" onClick={handleAddUrl} disabled={saving || !url.trim()} className="gap-1.5">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Tilføj
+            </Button>
+          </div>
+        </StudioField>
+        <div className="flex items-center gap-2">
+          <input ref={fileRef} type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" className="hidden" onChange={e => e.target.files?.[0] && handleUpload(e.target.files[0])} />
+          <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading} className="gap-1.5">
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />} Upload videofil
+          </Button>
+          <span className="text-xs text-muted-foreground">MP4, WebM eller MOV. Maks. 500 MB.</span>
+        </div>
+      </div>
+
+      {videos.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border/50 py-10 text-center text-sm text-muted-foreground">
+          Ingen videoguides endnu
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {videos.map((video, index) => (
+            <div key={video.id} className="rounded-xl border border-border/40 bg-card p-3">
+              <div className="flex flex-col md:flex-row gap-3">
+                <div className="w-full md:w-28 aspect-video rounded-lg bg-muted overflow-hidden shrink-0">
+                  {video.thumbnail_url ? (
+                    <img src={video.thumbnail_url} alt={video.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl">{video.emoji || '▶️'}</div>
+                  )}
+                </div>
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <StudioInput value={video.title || ''} onChange={value => updateVideo(video.id, { title: value })} placeholder="Titel" />
+                  <StudioInput value={video.emoji || ''} onChange={value => updateVideo(video.id, { emoji: value })} placeholder="Emoji" />
+                  <StudioInput value={video.youtube_id || ''} onChange={value => updateVideo(video.id, { youtube_id: extractYouTubeId(value) || value, video_type: 'youtube' })} placeholder="YouTube ID" />
+                  <StudioInput value={video.video_url || ''} onChange={value => updateVideo(video.id, { video_url: value, video_type: value ? 'url' : video.video_type })} placeholder="Direkte video URL" />
+                </div>
+                <div className="flex md:flex-col gap-1">
+                  <Button type="button" variant="ghost" size="sm" disabled={index === 0} onClick={() => moveVideo(video.id, -1)}>Op</Button>
+                  <Button type="button" variant="ghost" size="sm" disabled={index === videos.length - 1} onClick={() => moveVideo(video.id, 1)}>Ned</Button>
+                  <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => deleteVideo(video.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+                <Switch checked={video.is_active} onCheckedChange={checked => updateVideo(video.id, { is_active: checked })} />
+                <span>{video.is_active ? 'Aktiv' : 'Skjult'}</span>
+                <Badge variant="outline" className="text-[10px]">{video.video_type || (video.youtube_id ? 'youtube' : 'url')}</Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════
 // MAIN COMPONENT
 // ══════════════════════════════════════════
@@ -374,6 +710,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
   const [currentStep, setCurrentStep] = useState('setup');
   const [previewOpen, setPreviewOpen] = useState(false);
   const [sideNavCollapsed, setSideNavCollapsed] = useState(false);
+  const [listingVideos, setListingVideos] = useState<ListingVideo[]>([]);
 
   // AI states
   const [aiImproving, setAiImproving] = useState(false);
@@ -388,8 +725,13 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from('listings').select('*').eq('id', listingId).single();
+      const [listingRes, videosRes] = await Promise.all([
+        supabase.from('listings').select('*').eq('id', listingId).single(),
+        supabase.from('listing_videos').select('*').eq('listing_id', listingId).order('sort_order'),
+      ]);
+      const data = listingRes.data;
       if (data) setListing(data as unknown as ListingFull);
+      if (videosRes.data) setListingVideos(videosRes.data as unknown as ListingVideo[]);
       setLoading(false);
     };
     load();
@@ -1122,6 +1464,12 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                 </StudioContentBlock>
 
                 <StudioContentBlock title="Quick amenities" subtitle="Simpel amenity-liste" icon={<Check className="h-4 w-4 text-primary" />}>
+                  <AmenityBulkEditor
+                    amenities={listing.amenities || []}
+                    highlighted={listing.highlighted_amenities || []}
+                    onAmenitiesChange={v => update('amenities', v)}
+                    onHighlightedChange={v => update('highlighted_amenities', v)}
+                  />
                   <StudioBulletEditor items={listing.amenities || []} onChange={v => update('amenities', v)} placeholder="F.eks. WiFi, Pool, Sauna..." maxItems={30} />
                   <StudioField label="Knaptekst for 'vis alle'">
                     <StudioInput value={listing.amenities_button_text || 'Vis alle faciliteter'} onChange={v => update('amenities_button_text', v)} />
@@ -1219,7 +1567,7 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                 </StudioContentBlock>
 
                 <StudioContentBlock title="Videoguide-kort" subtitle="Administreres via listing_videos tabellen" icon={<Camera className="h-4 w-4 text-primary" />}>
-                  <p className="text-sm text-muted-foreground">Videoguide-kort tilgås via den dedikerede videoguide-editor i listing-opsætningen.</p>
+                  <ListingVideoManager listing={listing} videos={listingVideos} onChange={setListingVideos} />
                 </StudioContentBlock>
               </>
             )}
@@ -1371,6 +1719,16 @@ export function ListingEditorV2({ listingId, onBack }: Props) {
                       update('combo_hero_images' as any, next);
                     }}
                   />
+                  <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-border/40 bg-muted/10 px-4 py-3">
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Billedrækkefølge og labels</p>
+                      <p className="text-[11px] text-muted-foreground">Gemmer galleri-sortering, hero, soveværelseslabels, kategorier og kombi-hero.</p>
+                    </div>
+                    <Button type="button" size="sm" onClick={handleSave} disabled={saving || !isDirty} className="gap-1.5">
+                      {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                      Gem medieændringer
+                    </Button>
+                  </div>
                 </StudioContentBlock>
               </>
             )}

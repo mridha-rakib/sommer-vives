@@ -1,126 +1,38 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useState, useEffect, useCallback } from 'react';
-import { ArrowRight, ChevronLeft, ChevronRight, Megaphone, MessageCircle, SparklesIcon, Globe, Key, Shield, TrendingUp, Settings, Wrench, UserCheck, BarChart3, QrCode, FileCheck, HeartHandshake } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Megaphone, MessageCircle, SparklesIcon, Globe, Key, Shield, TrendingUp, Settings, Wrench, UserCheck, BarChart3, QrCode, FileCheck, HeartHandshake, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '@/lib/i18n';
 
 import heroInterior from '@/assets/services/hero-interior.jpg';
 
 /* ── All services with detailed, sales-driven copy ── */
-const allServices = [
-  {
-    icon: Megaphone,
-    tag: 'Synlighed',
-    title: 'BOOST-markedsføring',
-    headline: '4 ugers gratis eksponering',
-    desc: 'Når dit sommerhus går live, får det automatisk premium-placering på tværs af DK, DE og NL. Ingen annonceringsomkostninger, ingen ventetid — bare bookinger fra dag ét.',
-    highlight: 'Gratis ved opstart',
-  },
-  {
-    icon: MessageCircle,
-    tag: 'Kommunikation',
-    title: 'Gæstedialog 24/7',
-    headline: 'Vi svarer, så du ikke behøver',
-    desc: 'Fra forespørgsler til check-out beskeder — vi håndterer al gæstekommunikation professionelt og hurtigt. Du slipper for besværet, gæsten føler sig velkommen.',
-    highlight: 'Gennemsnitlig svartid: 12 min',
-  },
-  {
-    icon: Globe,
-    tag: 'Distribution',
-    title: 'Multi-kanal eksponering',
-    headline: 'Én annonce, fire platforme',
-    desc: 'Dit sommerhus publiceres automatisk på Airbnb, Booking.com, Vrbo og SommerVibes.dk — med synkroniseret kalender, priser og tilgængelighed.',
-    highlight: '4x flere potentielle gæster',
-  },
-  {
-    icon: SparklesIcon,
-    tag: 'Klargøring',
-    title: 'Professionel rengøring',
-    headline: 'Hotelstandard ved hver afgang',
-    desc: 'Koordineret slutrengøring via vores netværk af lokale, kvalitetsgodkendte rengøringspartnere. Linned, håndklæder og velkomstpakker som tilvalg.',
-    highlight: 'Kvalitetssikret & dokumenteret',
-  },
-  {
-    icon: BarChart3,
-    tag: 'Optimering',
-    title: 'Dynamisk prissætning',
-    headline: 'Den rette pris, hver eneste nat',
-    desc: 'Vores prisalgoritme justerer automatisk ud fra sæson, efterspørgsel, konkurrence og lokale events — så du aldrig sælger for billigt eller mister bookinger.',
-    highlight: 'Op til 28% mere omsætning',
-  },
-  {
-    icon: Key,
-    tag: 'Adgang',
-    title: 'Nøglefri selvcheck-in',
-    headline: 'Gæsten ankommer, du er fri',
-    desc: 'Med professionel nøgleboksinstallation og digitale adgangskoder kan gæster checke ind selv — uanset tidspunkt. Ingen nøgleoverdragelse, ingen stress.',
-    highlight: 'Inkl. installation af nøgleboks',
-  },
-  {
-    icon: Shield,
-    tag: 'Sikkerhed',
-    title: 'Tryghedsgaranti',
-    headline: 'Beskyttet mod uforudsete skader',
-    desc: 'Hver booking inkluderer skadespool-dækning. Vi håndterer dokumentation, kommunikation med gæsten og eventuelt erstatningskrav — uden besvær for dig.',
-    highlight: 'Skadespool inkluderet',
-  },
-  {
-    icon: TrendingUp,
-    tag: 'Indtjening',
-    title: 'Merindtjening via tilkøb',
-    headline: 'Tjen mere end bare overnatning',
-    desc: 'Forbrugsafregning, sengepakker, tidlig check-in, brænde og lokale oplevelser — alt som betalte tilvalg der tilfalder dig. Andre bureauer tilbyder ikke dette.',
-    highlight: 'Op til 20% ekstra omsætning',
-  },
-  {
-    icon: QrCode,
-    tag: 'Gæsteoplevelse',
-    title: 'Digital husguide & QR-skilte',
-    headline: 'Alt gæsten behøver, i lommen',
-    desc: 'Personlige QR-koder ved ankomst giver gæsten adgang til WiFi, husregler, lokal guide og kontaktoplysninger — ingen papirmapper, altid opdateret.',
-    highlight: 'Professionelt & moderne',
-  },
-  {
-    icon: FileCheck,
-    tag: 'Juridisk',
-    title: 'Ejeraftale & compliance',
-    headline: 'Gennemsigtig og fleksibel aftale',
-    desc: 'Digital underskrift, ingen binding og fuld gennemsigtighed. Du kan altid se status, ændre vilkår eller opsige — alt online via din portal.',
-    highlight: 'Ingen bindingsperiode',
-  },
-  {
-    icon: Settings,
-    tag: 'Kontrol',
-    title: 'Fuld fleksibilitet & kontrol',
-    headline: 'Dit hus, dine regler',
-    desc: 'Blokér datoer til eget brug, sæt minstepriser, vælg hvem der må booke og hvornår. Du har altid sidste ord — vi udfører.',
-    highlight: 'Du bestemmer altid',
-  },
-  {
-    icon: Wrench,
-    tag: 'Vedligehold',
-    title: 'Vedligeholdelsesnetværk',
-    headline: 'Problemer løst, før du ved det',
-    desc: 'Vores lokale partnere håndterer akutte reparationer, sæsonklargøring og løbende vedligehold. Du får besked, fotos og prisoverslag inden vi handler.',
-    highlight: 'Lokalt partnernetværk',
-  },
-  {
-    icon: UserCheck,
-    tag: 'Personlig',
-    title: 'Dedikeret rådgiver',
-    headline: 'Én kontaktperson, altid',
-    desc: 'Du får en personlig rådgiver der kender dit hus, din situation og dine mål. Ingen callcenter, ingen ventetider — bare en direkte linje.',
-    highlight: 'Direkte kontakt',
-  },
-  {
-    icon: HeartHandshake,
-    tag: 'Kommission',
-    title: 'Kun 15% kommission',
-    headline: 'Markedets mest retfærdige model',
-    desc: 'Ingen opstartsgebyr, ingen skjulte omkostninger. Du betaler kun 15% af realiserede bookinger — og beholder alle indtægter fra tilkøb og forbrugsafregning.',
-    highlight: 'Ingen skjulte gebyrer',
-  },
+const serviceMeta: { icon: LucideIcon; key: string }[] = [
+  { icon: Megaphone, key: 's1' },
+  { icon: MessageCircle, key: 's2' },
+  { icon: Globe, key: 's3' },
+  { icon: SparklesIcon, key: 's4' },
+  { icon: BarChart3, key: 's5' },
+  { icon: Key, key: 's6' },
+  { icon: Shield, key: 's7' },
+  { icon: TrendingUp, key: 's8' },
+  { icon: QrCode, key: 's9' },
+  { icon: FileCheck, key: 's10' },
+  { icon: Settings, key: 's11' },
+  { icon: Wrench, key: 's12' },
+  { icon: UserCheck, key: 's13' },
+  { icon: HeartHandshake, key: 's14' },
 ];
+
+type Service = {
+  icon: LucideIcon;
+  tag: string;
+  title: string;
+  headline: string;
+  desc: string;
+  highlight: string;
+};
 
 /* ── Animations ── */
 const fade = (inView: boolean, delay = 0) => ({
@@ -130,7 +42,7 @@ const fade = (inView: boolean, delay = 0) => ({
 });
 
 /* ── Featured Carousel ── */
-function ServiceCarousel({ services }: { services: typeof allServices }) {
+function ServiceCarousel({ services }: { services: Service[] }) {
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -228,6 +140,15 @@ function ServiceCarousel({ services }: { services: typeof allServices }) {
 export function PremiumServicesSection() {
   const { ref, isInView } = useScrollReveal();
   const { ref: ref2, isInView: isInView2 } = useScrollReveal();
+  const { t } = useTranslation();
+  const services = serviceMeta.map(({ icon, key }) => ({
+    icon,
+    tag: t(`services.${key}.tag`),
+    title: t(`services.${key}.title`),
+    headline: t(`services.${key}.headline`),
+    desc: t(`services.${key}.desc`),
+    highlight: t(`services.${key}.highlight`),
+  }));
 
   return (
     <section className="py-14 md:py-28 bg-background">
@@ -247,14 +168,14 @@ export function PremiumServicesSection() {
           <motion.div {...fade(isInView, 0.1)} className="absolute inset-0 flex flex-col justify-center px-7 md:px-12 lg:px-16">
             <div className="max-w-[440px]">
               <span className="text-accent/50 text-[9px] font-semibold tracking-[0.35em] uppercase block mb-3">
-                Alt inkluderet
+                {t('services.eyebrow')}
               </span>
               <h2 className="font-display text-[1.5rem] md:text-[2rem] lg:text-[2.4rem] font-semibold text-white leading-[1.08] tracking-[-0.02em] mb-3">
-                14 services, én partner
-                <span className="block text-accent italic font-normal mt-0.5">nul besvær</span>
+                {t('services.title')}
+                <span className="block text-accent italic font-normal mt-0.5">{t('services.titleAccent')}</span>
               </h2>
               <p className="text-white/55 text-[14px] leading-[1.7] mb-5 max-w-[360px]">
-                Alt fra markedsføring og gæstekommunikation til rengøring og vedligehold — samlet i én løsning med fuld gennemsigtighed.
+                {t('services.desc')}
               </p>
             </div>
           </motion.div>
@@ -262,22 +183,22 @@ export function PremiumServicesSection() {
 
         {/* ── Slideshow / Carousel ── */}
         <motion.div {...fade(isInView, 0.25)} className="mb-16 md:mb-20">
-          <ServiceCarousel services={allServices} />
+          <ServiceCarousel services={services} />
         </motion.div>
 
         {/* ── Full service grid — all 14 services ── */}
         <div ref={ref2} className="hidden md:block">
           <motion.div {...fade(isInView2)} className="mb-10">
             <span className="text-accent/40 text-[9px] font-semibold tracking-[0.35em] uppercase block mb-2">
-              Komplet oversigt
+              {t('services.gridEyebrow')}
             </span>
             <h3 className="font-display text-xl md:text-2xl font-semibold text-white">
-              Alt hvad vi gør for dig
+              {t('services.gridTitle')}
             </h3>
           </motion.div>
 
           <div className="hidden md:grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-14">
-            {allServices.map((s, i) => {
+            {services.map((s, i) => {
               const Icon = s.icon;
               return (
                 <motion.div
@@ -316,10 +237,10 @@ export function PremiumServicesSection() {
             to="/kom-i-gang"
             className="btn-gold inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl text-sm"
           >
-            Kom i gang — helt gratis
+            {t('services.cta')}
             <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
           </Link>
-          <p className="text-white/25 text-[11px] mt-3">Ingen opstartsgebyr · Ingen binding · 15% kommission</p>
+          <p className="text-white/25 text-[11px] mt-3">{t('services.ctaSub')}</p>
         </motion.div>
       </div>
     </section>

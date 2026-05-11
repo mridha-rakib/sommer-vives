@@ -7,6 +7,16 @@ const corsHeaders = {
 };
 
 interface ICalEvent { uid: string; dtstart: string; dtend: string; summary: string; }
+interface ImportConflict {
+  uid: string;
+  provider: string;
+  summary: string;
+  start_date: string;
+  end_date: string;
+  conflict_type: "booking" | "block";
+  conflict_id: string;
+  conflict_summary: string;
+}
 
 function parseICS(text: string): ICalEvent[] {
   const events: ICalEvent[] = [];
@@ -33,6 +43,10 @@ function icalDateToISO(d: string): string {
   return `${d.substring(0, 4)}-${d.substring(4, 6)}-${d.substring(6, 8)}`;
 }
 
+function rangesOverlap(startA: string, endA: string, startB: string, endB: string): boolean {
+  return startA < endB && endA > startB;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -48,7 +62,7 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
-  const results: Record<string, { status: string; count: number; error?: string }> = {};
+  const results: Record<string, { status: string; count: number; imported?: number; skipped?: number; conflicts?: ImportConflict[]; error?: string }> = {};
 
   for (const feed of syncSettings) {
     if (!feed.feed_url) { results[feed.id] = { status: "skipped", count: 0, error: "No feed URL" }; continue; }
@@ -59,19 +73,83 @@ Deno.serve(async (req) => {
       const text = await response.text();
       const events = parseICS(text);
 
+      const normalizedEvents = events.map(e => ({
+        uid: e.uid,
+        start_date: icalDateToISO(e.dtstart),
+        end_date: icalDateToISO(e.dtend),
+        summary: e.summary || `${feed.provider} Reservation`,
+      })).filter(e => e.start_date && e.end_date && e.start_date < e.end_date);
+
+      const earliest = normalizedEvents.reduce<string | null>((min, e) => !min || e.start_date < min ? e.start_date : min, null);
+      const latest = normalizedEvents.reduce<string | null>((max, e) => !max || e.end_date > max ? e.end_date : max, null);
+
+      const [bookingRes, blockRes] = await Promise.all([
+        earliest && latest
+          ? supabase.from("bookings")
+              .select("id, check_in, check_out, guest_name, status")
+              .eq("property_id", feed.listing_id)
+              .in("status", ["confirmed", "pending"])
+              .lt("check_in", latest)
+              .gt("check_out", earliest)
+          : Promise.resolve({ data: [] }),
+        earliest && latest
+          ? supabase.from("listing_blocks")
+              .select("id, start_date, end_date, source, summary, reason")
+              .eq("listing_id", feed.listing_id)
+              .lt("start_date", latest)
+              .gt("end_date", earliest)
+              .neq("source", `${feed.provider}_import`)
+          : Promise.resolve({ data: [] }),
+      ]);
+
+      const conflicts: ImportConflict[] = [];
+      const importableEvents = normalizedEvents.filter(e => {
+        const booking = (bookingRes.data || []).find((b: any) => rangesOverlap(e.start_date, e.end_date, b.check_in, b.check_out));
+        if (booking) {
+          conflicts.push({
+            uid: e.uid,
+            provider: feed.provider,
+            summary: e.summary,
+            start_date: e.start_date,
+            end_date: e.end_date,
+            conflict_type: "booking",
+            conflict_id: booking.id,
+            conflict_summary: `${booking.guest_name || "Booking"} (${booking.status || "unknown"})`,
+          });
+          return false;
+        }
+
+        const block = (blockRes.data || []).find((b: any) => rangesOverlap(e.start_date, e.end_date, b.start_date, b.end_date));
+        if (block) {
+          conflicts.push({
+            uid: e.uid,
+            provider: feed.provider,
+            summary: e.summary,
+            start_date: e.start_date,
+            end_date: e.end_date,
+            conflict_type: "block",
+            conflict_id: block.id,
+            conflict_summary: block.summary || block.reason || block.source || "Blokering",
+          });
+          return false;
+        }
+
+        return true;
+      });
+
       // Delete old imports for this listing from this provider, then insert fresh
       await supabase.from("listing_blocks").delete()
         .eq("listing_id", feed.listing_id)
         .eq("source", `${feed.provider}_import`);
 
-      const blocks = events.map(e => ({
+      const blocks = importableEvents.map(e => ({
         listing_id: feed.listing_id,
         owner_id: feed.owner_id,
-        start_date: icalDateToISO(e.dtstart),
-        end_date: icalDateToISO(e.dtend),
+        start_date: e.start_date,
+        end_date: e.end_date,
         source: `${feed.provider}_import`,
         external_uid: e.uid,
-        summary: e.summary || `${feed.provider} Reservation`,
+        summary: e.summary,
       }));
 
       if (blocks.length > 0) {
@@ -79,12 +157,36 @@ Deno.serve(async (req) => {
         if (error) throw new Error(error.message);
       }
 
-      // Update last synced
-      await supabase.from("sync_settings").update({ last_synced_at: new Date().toISOString() }).eq("id", feed.id);
+      const nextConfig = {
+        ...((feed.config && typeof feed.config === "object") ? feed.config : {}),
+        last_import_count: blocks.length,
+        last_skipped_count: conflicts.length,
+        last_conflicts: conflicts,
+        last_conflict_at: conflicts.length > 0 ? new Date().toISOString() : null,
+        last_error: null,
+      };
 
-      results[feed.id] = { status: "success", count: events.length };
+      await supabase.from("sync_settings").update({
+        last_synced_at: new Date().toISOString(),
+        config: nextConfig,
+      }).eq("id", feed.id);
+
+      results[feed.id] = {
+        status: conflicts.length > 0 ? "success_with_conflicts" : "success",
+        count: events.length,
+        imported: blocks.length,
+        skipped: conflicts.length,
+        conflicts,
+      };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      await supabase.from("sync_settings").update({
+        config: {
+          ...((feed.config && typeof feed.config === "object") ? feed.config : {}),
+          last_error: msg,
+          last_error_at: new Date().toISOString(),
+        },
+      }).eq("id", feed.id);
       results[feed.id] = { status: "error", count: 0, error: msg };
     }
   }

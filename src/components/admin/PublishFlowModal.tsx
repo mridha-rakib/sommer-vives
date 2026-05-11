@@ -78,40 +78,24 @@ export function PublishFlowModal({ listing, open, onClose, onPublished }: Props)
 
   const handlePublish = async () => {
     setPublishing(true);
-    const now = new Date().toISOString();
+    const { data, error } = await supabase.functions.invoke('beds24-publish', {
+      body: { listing_id: listing.id, channels: Array.from(selected) },
+    });
+    setPublishing(false);
 
-    const { error } = await supabase.from('listings').update({
-      sync_status: 'pending',
-      last_sync_at: now,
-      sync_error_message: null,
-    }).eq('id', listing.id);
-
-    if (error) {
-      toast.error('Kunne ikke starte publicering');
-      setPublishing(false);
+    if (error || (data as any)?.error) {
+      const message = (data as any)?.error || error?.message || 'Beds24 publicering fejlede';
+      onPublished((data as any)?.listing || { sync_status: 'error', sync_error_message: message });
+      toast.error('Publicering fejlede', {
+        description: (data as any)?.rolled_back ? `${message} Lokale ændringer er rullet tilbage.` : message,
+      });
       return;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from('audit_log').insert({
-      action: 'beds24_publish_initiated',
-      entity_type: 'listing',
-      entity_id: listing.id,
-      actor_user_id: user?.id || null,
-      actor_email: user?.email || null,
-      after_data: {
-        sync_status: 'pending',
-        sent_at: now,
-        channels: Array.from(selected),
-        image_count: listing.images?.length || 0,
-      },
+    onPublished((data as any)?.listing || {});
+    toast.success('Publicering gennemført', {
+      description: `${selected.size} kanal${selected.size > 1 ? 'er' : ''} bekræftet via Beds24`,
     });
-
-    onPublished({ sync_status: 'pending', last_sync_at: now, sync_error_message: null });
-    toast.success('Publicering startet', {
-      description: `${selected.size} kanal${selected.size > 1 ? 'er' : ''} via Beds24`,
-    });
-    setPublishing(false);
     onClose();
   };
 

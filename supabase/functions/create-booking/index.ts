@@ -23,6 +23,34 @@ interface DailyOverride {
   price_type: string; price_percentage: number | null;
 }
 
+interface DiscountRule {
+  id: string; name: string; description: string | null; code: string | null;
+  discount_type: string; discount_value: number; min_nights: number; max_nights: number | null;
+  is_active: boolean; combinable_with_codes: boolean; sort_order: number;
+  starts_at: string | null; ends_at: string | null;
+}
+
+function normalizeCode(code: unknown): string {
+  return String(code || "").trim().toLowerCase();
+}
+
+function isDiscountEligible(rule: DiscountRule, nights: number, now: Date): boolean {
+  if (!rule.is_active) return false;
+  if (nights < rule.min_nights) return false;
+  if (rule.max_nights !== null && nights > rule.max_nights) return false;
+  if (rule.starts_at && new Date(rule.starts_at) > now) return false;
+  if (rule.ends_at && new Date(rule.ends_at) < now) return false;
+  return true;
+}
+
+function calculateDiscount(rule: DiscountRule, subtotal: number): number {
+  if (subtotal <= 0) return 0;
+  const raw = rule.discount_type === "fixed"
+    ? Math.round(rule.discount_value)
+    : Math.round(subtotal * (rule.discount_value / 100));
+  return Math.max(0, Math.min(raw, subtotal));
+}
+
 function isDateInSeason(date: Date, rule: SeasonRule): boolean {
   const m = date.getMonth() + 1, d = date.getDate();
   const v = m * 100 + d, s = rule.start_month * 100 + rule.start_day, e = rule.end_month * 100 + rule.end_day;
@@ -56,8 +84,9 @@ Deno.serve(async (req) => {
   }
 
   const body = await req.json();
-  const { listing_id, start_date, end_date, guest_name, guest_email, guest_phone, guest_message, guests, selected_addon_ids, source } = body;
+  const { listing_id, start_date, end_date, guest_name, guest_email, guest_phone, guest_message, guests, selected_addon_ids, discount_code, source } = body;
   const bookingSource = source || "direct";
+  const requestedDiscountCode = normalizeCode(discount_code);
 
   if (!listing_id || !start_date || !end_date || !guest_name || !guest_email) {
     return new Response(JSON.stringify({ error: "Missing required fields" }),
@@ -103,17 +132,22 @@ Deno.serve(async (req) => {
   }
 
   // Server-side price calculation
-  const [seasonRes, overrideRes, addOnRes, feeRes] = await Promise.all([
+  const [seasonRes, overrideRes, addOnRes, feeRes, discountRes] = await Promise.all([
     supabase.from("season_rules").select("*").eq("listing_id", listing.id).eq("status", "active"),
     supabase.from("daily_price_overrides").select("*").eq("listing_id", listing.id).gte("date", start_date).lte("date", end_date),
     supabase.from("add_ons").select("*").eq("listing_id", listing.id).eq("is_active", true),
     supabase.from("fee_rules").select("*").eq("listing_id", listing.id).eq("is_active", true),
+    supabase.from("discount_rules").select("*")
+      .eq("is_active", true)
+      .or(`listing_id.eq.${listing.id},and(listing_id.is.null,owner_id.eq.${listing.owner_id})`)
+      .order("sort_order"),
   ]);
 
   const seasonRules = (seasonRes.data || []) as SeasonRule[];
   const dailyOverrides = (overrideRes.data || []) as DailyOverride[];
   const addOns = addOnRes.data || [];
   const feeRules = feeRes.data || [];
+  const discountRules = (discountRes.data || []) as DiscountRule[];
 
   const cursor = new Date(start_date + "T12:00:00Z");
   const endDt = new Date(end_date + "T12:00:00Z");
@@ -162,7 +196,31 @@ Deno.serve(async (req) => {
     addonTotal += total;
   }
 
-  const totalPrice = nightTotal + feeTotal + addonTotal;
+  const subtotal = nightTotal + feeTotal + addonTotal;
+  const now = new Date();
+  const eligibleRules = discountRules.filter(rule => isDiscountEligible(rule, nights, now));
+  const automaticCandidates = eligibleRules.filter(rule => !rule.code && (!requestedDiscountCode || rule.combinable_with_codes));
+  const automaticDiscount = automaticCandidates
+    .map(rule => ({ rule, amount: calculateDiscount(rule, subtotal) }))
+    .sort((a, b) => b.amount - a.amount)[0] || null;
+
+  let codeDiscount: { rule: DiscountRule; amount: number } | null = null;
+  if (requestedDiscountCode) {
+    const matchingRule = discountRules.find(rule => normalizeCode(rule.code) === requestedDiscountCode) || null;
+    if (!matchingRule) {
+      return new Response(JSON.stringify({ error: "Rabatkoden findes ikke." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (!isDiscountEligible(matchingRule, nights, now)) {
+      return new Response(JSON.stringify({ error: "Rabatkoden gælder ikke for dette ophold." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    codeDiscount = { rule: matchingRule, amount: calculateDiscount(matchingRule, subtotal) };
+  }
+
+  const discounts = [automaticDiscount, codeDiscount].filter(Boolean) as { rule: DiscountRule; amount: number }[];
+  const discountTotal = discounts.reduce((sum, item) => sum + item.amount, 0);
+  const totalPrice = Math.max(0, subtotal - discountTotal);
 
   // Upsert guest
   let guestId: string | null = null;
@@ -217,11 +275,21 @@ Deno.serve(async (req) => {
   lineItems.push({ booking_id: booking.id, item_type: "night", label: `Ophold (${nights} nætter)`, quantity: nights, unit_price: Math.round(nightTotal / nights), total: nightTotal });
   for (const fi of feeItems) lineItems.push({ booking_id: booking.id, item_type: "fee", label: fi.name, quantity: 1, unit_price: fi.amount, total: fi.amount });
   for (const ai of addonItems) lineItems.push({ booking_id: booking.id, item_type: "addon", label: ai.name, quantity: ai.quantity, unit_price: ai.unit_price, total: ai.total });
+  for (const d of discounts) lineItems.push({ booking_id: booking.id, item_type: "discount", label: d.rule.name, quantity: 1, unit_price: -d.amount, total: -d.amount });
   if (lineItems.length > 0) await supabase.from("booking_line_items").insert(lineItems);
 
-  // Manual bookings: done
-  if (bookingSource === "manual") {
-    return new Response(JSON.stringify({ success: true, booking, total_price: totalPrice }),
+  // Manual or fully discounted bookings: done without Stripe.
+  if (bookingSource === "manual" || totalPrice <= 0) {
+    const finalStatus = bookingSource === "manual" ? "confirmed" : "confirmed";
+    const finalPaymentStatus = bookingSource === "manual" ? "manual" : "comped";
+    const { data: finalBooking } = await supabase.from("bookings").update({
+      status: finalStatus,
+      payment_status: finalPaymentStatus,
+      amount_paid: totalPrice,
+      amount_remaining: 0,
+    }).eq("id", booking.id).select().single();
+
+    return new Response(JSON.stringify({ success: true, booking: finalBooking || booking, total_price: totalPrice, payment_required: false }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 
@@ -239,19 +307,34 @@ Deno.serve(async (req) => {
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
     const origin = req.headers.get("origin") || "https://sommerdroem.lovable.app";
 
-    const stripeLineItems: any[] = [{
-      price_data: {
-        currency: "dkk",
-        product_data: { name: `${listing.name} — ${nights} nætter`, description: `${start_date} → ${end_date} · ${guestCount} gæster` },
-        unit_amount: nightTotal,
-      },
-      quantity: 1,
-    }];
-    for (const fi of feeItems) {
-      stripeLineItems.push({ price_data: { currency: "dkk", product_data: { name: fi.name }, unit_amount: fi.amount }, quantity: 1 });
-    }
-    for (const ai of addonItems) {
-      stripeLineItems.push({ price_data: { currency: "dkk", product_data: { name: ai.name }, unit_amount: ai.unit_price }, quantity: ai.quantity });
+    const stripeLineItems: any[] = [];
+    if (discountTotal > 0) {
+      stripeLineItems.push({
+        price_data: {
+          currency: "dkk",
+          product_data: {
+            name: `${listing.name} — samlet booking`,
+            description: `${start_date} → ${end_date} · ${guestCount} gæster · inkl. rabat`,
+          },
+          unit_amount: totalPrice,
+        },
+        quantity: 1,
+      });
+    } else {
+      stripeLineItems.push({
+        price_data: {
+          currency: "dkk",
+          product_data: { name: `${listing.name} — ${nights} nætter`, description: `${start_date} → ${end_date} · ${guestCount} gæster` },
+          unit_amount: nightTotal,
+        },
+        quantity: 1,
+      });
+      for (const fi of feeItems) {
+        stripeLineItems.push({ price_data: { currency: "dkk", product_data: { name: fi.name }, unit_amount: fi.amount }, quantity: 1 });
+      }
+      for (const ai of addonItems) {
+        stripeLineItems.push({ price_data: { currency: "dkk", product_data: { name: ai.name }, unit_amount: ai.unit_price }, quantity: ai.quantity });
+      }
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -261,7 +344,7 @@ Deno.serve(async (req) => {
       expires_at: Math.floor(Date.now() / 1000) + HOLD_MINUTES * 60,
       success_url: `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}`,
       cancel_url: `${origin}/booking-cancelled?booking_id=${booking.id}`,
-      metadata: { booking_id: booking.id, listing_id, hold_token: holdToken },
+      metadata: { booking_id: booking.id, listing_id, hold_token: holdToken, discount_code: requestedDiscountCode || "" },
     });
 
     await supabase.from("bookings").update({ stripe_session_id: session.id }).eq("id", booking.id);

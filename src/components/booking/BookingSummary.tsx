@@ -16,6 +16,7 @@ export const BookingSummary = ({ collapsible = false }: { collapsible?: boolean 
   const nightItems = lineItems.filter((i) => i.type === 'night');
   const feeItems = lineItems.filter((i) => i.type === 'fee');
   const addonItems = lineItems.filter((i) => i.type === 'addon');
+  const discountItems = lineItems.filter((i) => i.type === 'discount');
 
   const SOURCE_LABELS: Record<string, string> = {
     base: 'Grundpris',
@@ -130,6 +131,18 @@ export const BookingSummary = ({ collapsible = false }: { collapsible?: boolean 
                 <div key={i} className="flex justify-between">
                   <span className="text-muted-foreground">{item.label}</span>
                   <span className="text-foreground font-medium">{formatDKK(item.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {discountItems.length > 0 && (
+            <div className="border-t border-border pt-4 space-y-2">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">Rabatter</span>
+              {discountItems.map((item, i) => (
+                <div key={i} className="flex justify-between">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="text-emerald-500 font-medium">−{formatDKK(Math.abs(item.amount))}</span>
                 </div>
               ))}
             </div>

@@ -379,6 +379,16 @@ export const SortableImageGallery = memo(function SortableImageGallery({
     onImageLabelsChange(filtered);
   };
 
+  const setSelectedImageLabel = (label: string) => {
+    const urls = Array.from(selected);
+    const untouched = imageLabels.filter(l => !selected.has(l.url));
+    const next = label === '_none'
+      ? untouched
+      : [...untouched, ...urls.map(url => ({ url, label }))];
+    onImageLabelsChange(next);
+    toast({ title: `${urls.length} billede${urls.length > 1 ? 'r' : ''} opdateret` });
+  };
+
   const removeImage = (url: string) => {
     onImagesChange(images.filter(i => i !== url));
     onBedroomImagesChange(bedroomImages.filter(b => b.url !== url));
@@ -518,6 +528,17 @@ export const SortableImageGallery = memo(function SortableImageGallery({
           <span className="text-sm font-semibold text-foreground">{selected.size} valgt</span>
           <Button size="sm" variant="outline" className="h-7 text-[11px] rounded-lg" onClick={() => setSelected(new Set(images))}>Vælg alle</Button>
           <Button size="sm" variant="ghost" className="h-7 text-[11px] gap-1 rounded-lg" onClick={() => setSelected(new Set())}><X className="h-3 w-3" /> Fravælg</Button>
+          <Select onValueChange={setSelectedImageLabel}>
+            <SelectTrigger className="h-7 w-[170px] rounded-lg text-[11px]">
+              <SelectValue placeholder="Sæt kategori" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">Fjern kategori</SelectItem>
+              {IMAGE_CATEGORIES.filter(c => c.value).map(c => (
+                <SelectItem key={c.value} value={c.value}>{c.icon} {c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="flex-1" />
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -540,6 +561,11 @@ export const SortableImageGallery = memo(function SortableImageGallery({
       )}
 
       {/* ═══ IMAGE GRID ═══ */}
+      {filterCategory !== 'all' && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-600">
+          Reordering gemmes i den fulde billedrækkefølge. Skift til "Alle" for den mest præcise drag-and-drop sortering.
+        </div>
+      )}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={filteredImages} strategy={rectSortingStrategy}>
           <div className={cn(

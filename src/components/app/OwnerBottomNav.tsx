@@ -3,18 +3,20 @@ import { LayoutDashboard, CalendarDays, Wallet, MessageCircle, User } from 'luci
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useUserUnreadMessages } from '@/hooks/useUserUnreadMessages';
+import { useTranslation } from '@/lib/i18n';
 
 const tabs = [
-  { name: 'Oversigt', href: '/owner', icon: LayoutDashboard },
-  { name: 'Bookinger', href: '/owner/bookings', icon: CalendarDays },
-  { name: 'Økonomi', href: '/owner/earnings', icon: Wallet },
-  { name: 'Beskeder', href: '/owner/messages', icon: MessageCircle, badgeKey: 'messages' as const },
-  { name: 'Konto', href: '/owner/account', icon: User },
+  { labelKey: 'owner.nav.dashboard', href: '/owner', icon: LayoutDashboard },
+  { labelKey: 'owner.nav.bookings', href: '/owner/bookings', icon: CalendarDays },
+  { labelKey: 'owner.nav.earnings', href: '/owner/earnings', icon: Wallet },
+  { labelKey: 'owner.nav.messages', href: '/owner/messages', icon: MessageCircle, badgeKey: 'messages' as const },
+  { labelKey: 'owner.nav.accountShort', href: '/owner/account', icon: User },
 ];
 
 export function OwnerBottomNav() {
   const location = useLocation();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const unread = useUserUnreadMessages(user?.id);
 
   const isActive = (href: string) => {
@@ -27,6 +29,7 @@ export function OwnerBottomNav() {
       <div className="flex items-center justify-around h-16 px-1 pb-[env(safe-area-inset-bottom)]">
         {tabs.map(tab => {
           const showBadge = tab.badgeKey === 'messages' && unread > 0;
+          const label = t(tab.labelKey);
           return (
             <Link
               key={tab.href}
@@ -46,7 +49,7 @@ export function OwnerBottomNav() {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-medium">{tab.name}</span>
+              <span className="text-[10px] font-medium">{label}</span>
             </Link>
           );
         })}
