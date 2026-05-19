@@ -5,18 +5,21 @@ import { KPICard } from '@/components/admin/ui/KPICard';
 import { StatusChip } from '@/components/admin/ui/StatusChip';
 import { EmptyState } from '@/components/admin/ui/EmptyState';
 import { supabase } from '@/integrations/supabase/client';
-import { formatDKK } from '@/lib/status-badges';
+import { formatDKK } from '@/lib/pricing';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
-  CreditCard, ArrowUpRight, Wallet, TrendingUp, Search,
-  Receipt, ShoppingBag, AlertCircle, CheckCircle2, Clock,
-  ExternalLink, Download, ChevronRight, Banknote
+  CreditCard, ArrowUpRight, TrendingUp, Search,
+  ShoppingBag, AlertCircle, CheckCircle2, Clock,
+  ExternalLink, ChevronRight, Banknote, Loader2
 } from 'lucide-react';
 
 type Tab = 'overview' | 'payments' | 'payouts' | 'addons' | 'outstanding';
@@ -31,6 +34,7 @@ const TABS: { key: Tab; label: string }[] = [
 
 const PAY_STATUS: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'muted' }> = {
   paid: { label: 'Betalt', variant: 'success' },
+  partially_paid: { label: 'Delvist betalt', variant: 'warning' },
   pending: { label: 'Afventer', variant: 'warning' },
   failed: { label: 'Fejlet', variant: 'danger' },
   refunded: { label: 'Refunderet', variant: 'muted' },
@@ -44,15 +48,23 @@ function fmtDate(d: string) {
 }
 
 export default function AdminOekonomi() {
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('overview');
   const [search, setSearch] = useState('');
   const [detail, setDetail] = useState<any>(null);
-  const [detailType, setDetailType] = useState<'payment' | 'payout' | 'order'>('payment');
+  const [detailType, setDetailType] = useState<'payment' | 'payout' | 'order' | 'booking'>('payment');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [refundAmount, setRefundAmount] = useState('');
+  const [refundReason, setRefundReason] = useState('');
 
   const { data: payments = [], isLoading: loadP } = useQuery({
     queryKey: ['admin-payments'],
     queryFn: async () => {
-      const { data } = await supabase.from('payments').select('*').order('created_at', { ascending: false }).limit(200);
+      const { data } = await supabase
+        .from('payments')
+        .select('*, booking:bookings(id, case_number, guest_name, guest_email, amount_paid, amount_remaining, total_amount, payment_status, status, currency, created_at, owner_id, property_id)')
+        .order('created_at', { ascending: false })
+        .limit(200);
       return data || [];
     },
   });
@@ -73,23 +85,138 @@ export default function AdminOekonomi() {
     },
   });
 
-  const loading = loadP || loadPo || loadO;
+  const { data: outstandingBookings = [], isLoading: loadB } = useQuery({
+    queryKey: ['admin-outstanding-bookings'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('bookings')
+        .select('id, case_number, guest_name, guest_email, amount_paid, amount_remaining, total_amount, payment_status, status, currency, created_at, owner_id, property_id')
+        .gt('amount_remaining', 0)
+        .neq('status', 'cancelled')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      return data || [];
+    },
+  });
 
-  const totalPaid = payments.filter((p: any) => p.status === 'paid').reduce((s: number, p: any) => s + (p.amount || 0), 0);
+  const loading = loadP || loadPo || loadO || loadB;
+
+  const totalPaid = payments
+    .filter((p: any) => p.status === 'paid' || p.status === 'completed')
+    .reduce((s: number, p: any) => s + ((p.amount || 0) - (p.refunded_amount || 0)), 0);
   const totalPayouts = payouts.reduce((s: number, p: any) => s + (p.amount || 0), 0);
   const pendingPayments = payments.filter((p: any) => p.status === 'pending');
   const addonRevenue = orders.filter((o: any) => o.payment_status === 'paid').reduce((s: number, o: any) => s + (o.total || 0), 0);
-  const outstanding = payments.filter((p: any) => p.status === 'pending' || p.status === 'processing');
+  const outstandingPayments = payments.filter((p: any) => p.status === 'pending' || p.status === 'processing');
+  const outstanding = [
+    ...outstandingPayments,
+    ...outstandingBookings.filter((b: any) => !outstandingPayments.some((p: any) => p.booking_id === b.id)),
+  ];
 
-  const openDetail = (item: any, type: 'payment' | 'payout' | 'order') => {
+  const openDetail = (item: any, type: 'payment' | 'payout' | 'order' | 'booking') => {
     setDetail(item);
     setDetailType(type);
+    setRefundAmount('');
+    setRefundReason('');
   };
 
   const filterBySearch = (items: any[], keys: string[]) => {
     if (!search.trim()) return items;
     const q = search.toLowerCase();
     return items.filter((i: any) => keys.some(k => String(i[k] || '').toLowerCase().includes(q)));
+  };
+
+  const refreshFinance = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-payments'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-payouts'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-outstanding-bookings'] });
+  };
+
+  const getDetailBooking = () => detailType === 'payment' ? detail?.booking : detailType === 'booking' ? detail : null;
+
+  const createPaymentLink = async () => {
+    const booking = getDetailBooking();
+    if (!booking?.id) return;
+    setActionLoading('payment-link');
+    const { data, error } = await supabase.functions.invoke('create-booking-payment', {
+      body: { bookingId: booking.id },
+    });
+    setActionLoading(null);
+    if (error) {
+      toast.error(error.message || 'Betalingslink kunne ikke oprettes');
+      return;
+    }
+    if (data?.checkout_url) {
+      window.open(data.checkout_url, '_blank', 'noopener,noreferrer');
+      toast.success('Betalingslink oprettet');
+      refreshFinance();
+    }
+  };
+
+  const issueRefund = async () => {
+    if (!detail?.id) return;
+    const refundAmountMinor = refundAmount.trim() ? Math.round(Number(refundAmount.replace(',', '.')) * 100) : null;
+    if (refundAmountMinor !== null && (!Number.isFinite(refundAmountMinor) || refundAmountMinor <= 0)) {
+      toast.error('Indtast et gyldigt refunderingsbeløb');
+      return;
+    }
+    const refundable = Math.max(0, Number(detail.amount || 0) - Number(detail.refunded_amount || 0));
+    if (refundAmountMinor !== null && refundAmountMinor > refundable) {
+      toast.error('Beløbet overstiger det refunderbare beløb');
+      return;
+    }
+    if (!window.confirm('Refundér denne betaling via Stripe?')) return;
+    setActionLoading('refund');
+    const { error } = await supabase.functions.invoke('issue-refund', {
+      body: {
+        paymentId: detail.id,
+        amount: refundAmountMinor,
+        reason: 'requested_by_customer',
+        note: refundReason.trim() || null,
+      },
+    });
+    setActionLoading(null);
+    if (error) {
+      toast.error(error.message || 'Refundering kunne ikke gennemføres');
+      return;
+    }
+    toast.success('Betalingen er refunderet');
+    refreshFinance();
+    setDetail(null);
+  };
+
+  const createConnectLink = async () => {
+    if (!detail?.owner_id) return;
+    setActionLoading('connect');
+    const { data, error } = await supabase.functions.invoke('create-connect-account', {
+      body: { ownerId: detail.owner_id },
+    });
+    setActionLoading(null);
+    if (error) {
+      toast.error(error.message || 'Connect-link kunne ikke oprettes');
+      return;
+    }
+    if (data?.onboarding_url) {
+      window.open(data.onboarding_url, '_blank', 'noopener,noreferrer');
+      toast.success('Stripe Connect-link oprettet');
+    }
+  };
+
+  const executePayout = async () => {
+    if (!detail?.id) return;
+    if (!window.confirm('Udbetal dette beløb via Stripe Connect?')) return;
+    setActionLoading('payout');
+    const { error } = await supabase.functions.invoke('execute-owner-payout', {
+      body: { payoutId: detail.id },
+    });
+    setActionLoading(null);
+    if (error) {
+      toast.error(error.message || 'Udbetaling kunne ikke gennemføres');
+      return;
+    }
+    toast.success('Udbetalingen er gennemført');
+    refreshFinance();
+    setDetail(null);
   };
 
   return (
@@ -343,17 +470,18 @@ export default function AdminOekonomi() {
                 <p className="text-xs text-muted-foreground mt-1">Alt er opdateret</p>
               </div>
             ) : outstanding.map((p: any) => {
-              const s = PAY_STATUS[p.status] || PAY_STATUS.pending;
+              const isBooking = !p.payment_method && p.amount_remaining !== undefined;
+              const s = PAY_STATUS[p.status || p.payment_status] || PAY_STATUS.pending;
               return (
-                <button key={p.id} onClick={() => openDetail(p, 'payment')} className="w-full text-left">
+                <button key={`${isBooking ? 'booking' : 'payment'}-${p.id}`} onClick={() => openDetail(p, isBooking ? 'booking' : 'payment')} className="w-full text-left">
                   <Card className="border-amber-500/20 bg-card/60 hover:border-amber-500/40 transition-all">
                     <CardContent className="py-3.5 px-5 flex items-center gap-4">
                       <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
                         <AlertCircle className="h-4 w-4 text-amber-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground">{formatDKK(p.amount)}</p>
-                        <p className="text-[11px] text-muted-foreground">{p.payment_method || 'Stripe'} · {fmtDate(p.created_at)}</p>
+                        <p className="text-sm font-medium text-foreground">{formatDKK(isBooking ? p.amount_remaining : p.amount)}</p>
+                        <p className="text-[11px] text-muted-foreground">{isBooking ? (p.case_number || p.guest_name || 'Booking') : (p.payment_method || 'Stripe')} · {fmtDate(p.created_at)}</p>
                       </div>
                       <StatusChip label={s.label} variant={s.variant} dot />
                     </CardContent>
@@ -375,13 +503,14 @@ export default function AdminOekonomi() {
                   {detailType === 'payment' && 'Betaling'}
                   {detailType === 'payout' && 'Udbetaling'}
                   {detailType === 'order' && 'Tilkøbsordre'}
+                  {detailType === 'booking' && 'Udestående betaling'}
                 </SheetTitle>
               </SheetHeader>
 
               <div className="mt-6 space-y-5">
                 {/* Amount */}
                 <div className="text-center py-6 rounded-xl bg-muted/20 border border-border/30">
-                  <p className="text-3xl font-bold text-foreground">{formatDKK(detail.amount || detail.total || 0)}</p>
+                  <p className="text-3xl font-bold text-foreground">{formatDKK(detail.amount || detail.total || detail.amount_remaining || 0)}</p>
                   <div className="mt-2">
                     <StatusChip
                       label={(PAY_STATUS[detail.status || detail.payment_status] || PAY_STATUS.pending).label}
@@ -427,6 +556,30 @@ export default function AdminOekonomi() {
                       <span className="text-foreground font-medium">{fmtDate(detail.paid_at)}</span>
                     </div>
                   )}
+                  {detail.case_number && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Booking</span>
+                      <span className="text-foreground font-medium">{detail.case_number}</span>
+                    </div>
+                  )}
+                  {detail.guest_name && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Gæst</span>
+                      <span className="text-foreground font-medium text-right max-w-[200px]">{detail.guest_name}</span>
+                    </div>
+                  )}
+                  {getDetailBooking()?.amount_remaining > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Restbeløb</span>
+                      <span className="text-foreground font-medium">{formatDKK(getDetailBooking().amount_remaining)}</span>
+                    </div>
+                  )}
+                  {detail.refunded_amount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Refunderet</span>
+                      <span className="text-foreground font-medium">{formatDKK(detail.refunded_amount)}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Order items */}
@@ -446,11 +599,69 @@ export default function AdminOekonomi() {
                 )}
 
                 {/* Stripe ref */}
-                {(detail.stripe_payment_id || detail.stripe_payment_intent_id) && (
+                {(detail.stripe_payment_id || detail.stripe_payment_intent_id || detail.stripe_transfer_id || detail.stripe_payout_id) && (
                   <div className="pt-3 border-t border-border/30">
                     <p className="text-[11px] text-muted-foreground font-mono truncate">
-                      Ref: {detail.stripe_payment_intent_id || detail.stripe_payment_id}
+                      Ref: {detail.stripe_payment_intent_id || detail.stripe_payment_id || detail.stripe_transfer_id || detail.stripe_payout_id}
                     </p>
+                  </div>
+                )}
+
+                {(detailType === 'payment' || detailType === 'booking' || detailType === 'payout') && (
+                  <div className="pt-3 border-t border-border/30 space-y-2">
+                    {(detailType === 'payment' && (detail.status === 'completed' || detail.status === 'paid') && detail.stripe_payment_intent_id && detail.status !== 'refunded') && (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <p className="text-[11px] text-muted-foreground mb-1">Beløb (DKK)</p>
+                            <Input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              value={refundAmount}
+                              onChange={(event) => setRefundAmount(event.target.value)}
+                              placeholder={`${Math.max(0, (Number(detail.amount || 0) - Number(detail.refunded_amount || 0)) / 100).toLocaleString('da-DK')}`}
+                              className="h-9 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-[11px] text-muted-foreground mb-1">Refunderbart</p>
+                            <div className="h-9 rounded-md border border-input bg-background px-3 flex items-center text-sm text-foreground">
+                              {formatDKK(Math.max(0, Number(detail.amount || 0) - Number(detail.refunded_amount || 0)))}
+                            </div>
+                          </div>
+                        </div>
+                        <Textarea
+                          value={refundReason}
+                          onChange={(event) => setRefundReason(event.target.value)}
+                          placeholder="Intern note (valgfri)"
+                          rows={2}
+                          className="min-h-[64px] text-sm"
+                        />
+                        <Button onClick={issueRefund} disabled={actionLoading === 'refund'} variant="outline" className="w-full justify-center gap-2">
+                          {actionLoading === 'refund' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CreditCard className="h-3.5 w-3.5" />}
+                          Refundér via Stripe
+                        </Button>
+                      </div>
+                    )}
+                    {getDetailBooking()?.amount_remaining > 0 && (
+                      <Button onClick={createPaymentLink} disabled={actionLoading === 'payment-link'} variant="outline" className="w-full justify-center gap-2">
+                        {actionLoading === 'payment-link' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                        Opret betalingslink
+                      </Button>
+                    )}
+                    {detailType === 'payout' && detail.status !== 'completed' && (
+                      <>
+                        <Button onClick={executePayout} disabled={actionLoading === 'payout'} className="w-full justify-center gap-2">
+                          {actionLoading === 'payout' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowUpRight className="h-3.5 w-3.5" />}
+                          Udbetal via Stripe
+                        </Button>
+                        <Button onClick={createConnectLink} disabled={actionLoading === 'connect'} variant="outline" className="w-full justify-center gap-2">
+                          {actionLoading === 'connect' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
+                          Opret Connect-link
+                        </Button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

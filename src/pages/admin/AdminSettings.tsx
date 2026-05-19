@@ -95,11 +95,12 @@ export default function AdminSettings() {
         case 'tax_free_amount':
           setTaxFreeAmount(String(setting.value));
           break;
-        case 'marketing_processing_days':
+        case 'marketing_processing_days': {
           const days = typeof setting.value === 'string' ? JSON.parse(setting.value) : setting.value;
           setProcessingMin(String(days.min));
           setProcessingMax(String(days.max));
           break;
+        }
       }
     });
   }, [settings]);

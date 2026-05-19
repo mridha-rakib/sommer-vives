@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import ScrollToTop from "@/components/ScrollToTop";
 import { ComingSoonGate } from "@/components/ComingSoonGate";
 import { DEV_BYPASS_AUTH } from "@/lib/devBypass";
+import { isPasswordRecoveryUrl } from "@/lib/passwordRecovery";
 
 // Public pages
 import Index from "./pages/Index";
@@ -27,6 +28,7 @@ import Terms from "./pages/Terms";
 import AppDownload from "./pages/AppDownload";
 import Listings from "./pages/Listings";
 import ListingDetail from "./pages/ListingDetail";
+import BookingReturn from "./pages/BookingReturn";
 
 // Owner pages
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
@@ -73,6 +75,14 @@ import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminAuditLog from "./pages/admin/AdminAuditLog";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminPipelineTemplates from "./pages/admin/AdminPipelineTemplates";
+import AdminAutomations from "./pages/admin/AdminAutomations";
+import AdminCleaning from "./pages/admin/AdminCleaning";
+import AdminCMS from "./pages/admin/AdminCMS";
+import AdminKeyboxes from "./pages/admin/AdminKeyboxes";
+import AdminMaintenance from "./pages/admin/AdminMaintenance";
+import AdminServicePartners from "./pages/admin/AdminServicePartners";
+import AdminStayContent from "./pages/admin/AdminStayContent";
+import AdminSupportTickets from "./pages/admin/AdminSupportTickets";
 
 // Guest pages
 import GuestAuth from "./pages/guest/GuestAuth";
@@ -88,8 +98,16 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
-  const { user, loading, isAdmin, rolesLoaded } = useAuth();
+function ProtectedRoute({
+  children,
+  requireAdmin = false,
+  requireOwner = false,
+}: {
+  children: React.ReactNode;
+  requireAdmin?: boolean;
+  requireOwner?: boolean;
+}) {
+  const { user, loading, isAdmin, isOwner, rolesLoaded } = useAuth();
 
   // 🚧 DEV BYPASS: alle routes åbne — se src/lib/devBypass.ts
   if (DEV_BYPASS_AUTH) return <>{children}</>;
@@ -112,17 +130,21 @@ function ProtectedRoute({ children, requireAdmin = false }: { children: React.Re
   if (requireAdmin && !isAdmin) {
     return <Navigate to="/admin/auth" replace />;
   }
+
+  if (requireOwner && !isOwner) {
+    return <Navigate to={isAdmin ? "/admin" : "/auth"} replace />;
+  }
   
   return <>{children}</>;
 }
 
 function GuestProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, rolesLoaded, isGuest, isAdmin, isOwner } = useAuth();
 
   // 🚧 DEV BYPASS
   if (DEV_BYPASS_AUTH) return <>{children}</>;
 
-  if (loading) {
+  if (loading || (user && !rolesLoaded)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -132,6 +154,10 @@ function GuestProtectedRoute({ children }: { children: React.ReactNode }) {
   
   if (!user) {
     return <Navigate to="/guest/auth" replace />;
+  }
+
+  if (!isGuest) {
+    return <Navigate to={isAdmin ? "/admin" : isOwner ? "/owner" : "/guest/auth"} replace />;
   }
   
   return <>{children}</>;
@@ -149,10 +175,11 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             {/* ─── Public Website ─── */}
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={isPasswordRecoveryUrl() ? <Auth /> : <Index />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/listings" element={<Listings />} />
+            <Route path="/listing/:slug/" element={<ListingDetail />} />
             <Route path="/listing/:slug" element={<ListingDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Navigate to="/about#kontakt" replace />} />
@@ -169,26 +196,28 @@ const App = () => (
             {/* Legacy redirects */}
             <Route path="/rentals" element={<Navigate to="/listings" replace />} />
             <Route path="/property/:id" element={<Navigate to="/listings" replace />} />
+            <Route path="/booking-success" element={<BookingReturn kind="success" />} />
+            <Route path="/booking-cancelled" element={<BookingReturn kind="cancelled" />} />
 
             {/* ─── Owner Experience ─── */}
-            <Route path="/owner" element={<ProtectedRoute><OwnerDashboard /></ProtectedRoute>} />
-            <Route path="/owner/property" element={<ProtectedRoute><OwnerProperty /></ProtectedRoute>} />
-            <Route path="/owner/bookings" element={<ProtectedRoute><OwnerBookings /></ProtectedRoute>} />
-            <Route path="/owner/listings" element={<ProtectedRoute><OwnerListings /></ProtectedRoute>} />
-            <Route path="/owner/calendar" element={<ProtectedRoute><OwnerCalendar /></ProtectedRoute>} />
-            <Route path="/owner/earnings" element={<ProtectedRoute><OwnerEarnings /></ProtectedRoute>} />
-            <Route path="/owner/packages" element={<ProtectedRoute><OwnerPackages /></ProtectedRoute>} />
-            <Route path="/owner/guests" element={<ProtectedRoute><OwnerGuests /></ProtectedRoute>} />
-            <Route path="/owner/messages" element={<ProtectedRoute><OwnerMessages /></ProtectedRoute>} />
-            <Route path="/owner/documents" element={<ProtectedRoute><OwnerDocuments /></ProtectedRoute>} />
-            <Route path="/owner/agreement" element={<ProtectedRoute><OwnerAgreement /></ProtectedRoute>} />
-            <Route path="/owner/payouts" element={<ProtectedRoute><OwnerPayouts /></ProtectedRoute>} />
-            <Route path="/owner/operations" element={<ProtectedRoute><OwnerOperations /></ProtectedRoute>} />
-            <Route path="/owner/tasks" element={<ProtectedRoute><OwnerTasks /></ProtectedRoute>} />
-            <Route path="/owner/support" element={<ProtectedRoute><OwnerSupport /></ProtectedRoute>} />
-            <Route path="/owner/account" element={<ProtectedRoute><OwnerAccount /></ProtectedRoute>} />
-            <Route path="/owner/settings" element={<ProtectedRoute><OwnerSettings /></ProtectedRoute>} />
-            <Route path="/owner/inquiries" element={<ProtectedRoute><OwnerInquiries /></ProtectedRoute>} />
+            <Route path="/owner" element={<ProtectedRoute requireOwner><OwnerDashboard /></ProtectedRoute>} />
+            <Route path="/owner/property" element={<ProtectedRoute requireOwner><OwnerProperty /></ProtectedRoute>} />
+            <Route path="/owner/bookings" element={<ProtectedRoute requireOwner><OwnerBookings /></ProtectedRoute>} />
+            <Route path="/owner/listings" element={<ProtectedRoute requireOwner><OwnerListings /></ProtectedRoute>} />
+            <Route path="/owner/calendar" element={<ProtectedRoute requireOwner><OwnerCalendar /></ProtectedRoute>} />
+            <Route path="/owner/earnings" element={<ProtectedRoute requireOwner><OwnerEarnings /></ProtectedRoute>} />
+            <Route path="/owner/packages" element={<ProtectedRoute requireOwner><OwnerPackages /></ProtectedRoute>} />
+            <Route path="/owner/guests" element={<ProtectedRoute requireOwner><OwnerGuests /></ProtectedRoute>} />
+            <Route path="/owner/messages" element={<ProtectedRoute requireOwner><OwnerMessages /></ProtectedRoute>} />
+            <Route path="/owner/documents" element={<ProtectedRoute requireOwner><OwnerDocuments /></ProtectedRoute>} />
+            <Route path="/owner/agreement" element={<ProtectedRoute requireOwner><OwnerAgreement /></ProtectedRoute>} />
+            <Route path="/owner/payouts" element={<ProtectedRoute requireOwner><OwnerPayouts /></ProtectedRoute>} />
+            <Route path="/owner/operations" element={<ProtectedRoute requireOwner><OwnerOperations /></ProtectedRoute>} />
+            <Route path="/owner/tasks" element={<ProtectedRoute requireOwner><OwnerTasks /></ProtectedRoute>} />
+            <Route path="/owner/support" element={<ProtectedRoute requireOwner><OwnerSupport /></ProtectedRoute>} />
+            <Route path="/owner/account" element={<ProtectedRoute requireOwner><OwnerAccount /></ProtectedRoute>} />
+            <Route path="/owner/settings" element={<ProtectedRoute requireOwner><OwnerSettings /></ProtectedRoute>} />
+            <Route path="/owner/inquiries" element={<ProtectedRoute requireOwner><OwnerInquiries /></ProtectedRoute>} />
             <Route path="/owner/properties" element={<Navigate to="/owner/property" replace />} />
 
             {/* ─── Guest Experience ─── */}
@@ -230,6 +259,25 @@ const App = () => (
             <Route path="/admin/audit-log" element={<ProtectedRoute requireAdmin><AdminAuditLog /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
             <Route path="/admin/indstillinger/pipeline-opgaver" element={<ProtectedRoute requireAdmin><AdminPipelineTemplates /></ProtectedRoute>} />
+            <Route path="/admin/indstillinger/profil" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/indstillinger/virksomhed" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/indstillinger/integrationer" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+            <Route path="/admin/indstillinger/tekster" element={<ProtectedRoute requireAdmin><AdminTemplates /></ProtectedRoute>} />
+            <Route path="/admin/automatiseringer" element={<ProtectedRoute requireAdmin><AdminAutomations /></ProtectedRoute>} />
+            <Route path="/admin/automations" element={<ProtectedRoute requireAdmin><AdminAutomations /></ProtectedRoute>} />
+            <Route path="/admin/rengoring" element={<ProtectedRoute requireAdmin><AdminCleaning /></ProtectedRoute>} />
+            <Route path="/admin/cleaning" element={<ProtectedRoute requireAdmin><AdminCleaning /></ProtectedRoute>} />
+            <Route path="/admin/cms" element={<ProtectedRoute requireAdmin><AdminCMS /></ProtectedRoute>} />
+            <Route path="/admin/noeglebokse" element={<ProtectedRoute requireAdmin><AdminKeyboxes /></ProtectedRoute>} />
+            <Route path="/admin/keyboxes" element={<ProtectedRoute requireAdmin><AdminKeyboxes /></ProtectedRoute>} />
+            <Route path="/admin/vedligehold" element={<ProtectedRoute requireAdmin><AdminMaintenance /></ProtectedRoute>} />
+            <Route path="/admin/maintenance" element={<ProtectedRoute requireAdmin><AdminMaintenance /></ProtectedRoute>} />
+            <Route path="/admin/servicepartnere" element={<ProtectedRoute requireAdmin><AdminServicePartners /></ProtectedRoute>} />
+            <Route path="/admin/service-partners" element={<ProtectedRoute requireAdmin><AdminServicePartners /></ProtectedRoute>} />
+            <Route path="/admin/opholdsindhold" element={<ProtectedRoute requireAdmin><AdminStayContent /></ProtectedRoute>} />
+            <Route path="/admin/stay-content" element={<ProtectedRoute requireAdmin><AdminStayContent /></ProtectedRoute>} />
+            <Route path="/admin/support-sager" element={<ProtectedRoute requireAdmin><AdminSupportTickets /></ProtectedRoute>} />
+            <Route path="/admin/support-tickets" element={<ProtectedRoute requireAdmin><AdminSupportTickets /></ProtectedRoute>} />
             {/* Legacy admin redirects */}
             <Route path="/admin/listings" element={<Navigate to="/admin/sager" replace />} />
             <Route path="/admin/owners" element={<Navigate to="/admin/crm/udlejere" replace />} />

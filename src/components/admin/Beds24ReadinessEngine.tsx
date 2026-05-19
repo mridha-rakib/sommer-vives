@@ -15,7 +15,25 @@ interface CheckItem {
   tab?: string;
 }
 
-function runChecks(listing: any): CheckItem[] {
+interface Beds24ReadinessListing {
+  name?: string | null;
+  description?: string | null;
+  long_description?: string | null;
+  images?: string[] | null;
+  hero_image?: string | null;
+  base_price_per_night?: number | null;
+  cleaning_fee?: number | null;
+  max_guests?: number | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  amenities?: string[] | null;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+  checkin_info?: string | null;
+  checkout_info?: string | null;
+}
+
+function runChecks(listing: Beds24ReadinessListing): CheckItem[] {
   const items: CheckItem[] = [];
 
   // Descriptions
@@ -56,7 +74,7 @@ function calcScore(items: CheckItem[]): number {
 }
 
 interface Props {
-  listing: any;
+  listing: Beds24ReadinessListing;
   onNavigateTab?: (tab: string) => void;
   onStatusReady?: () => void;
 }

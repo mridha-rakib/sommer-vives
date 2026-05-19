@@ -1,7 +1,21 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
+import { useTranslation } from '@/lib/i18n';
+
+const bestValueCopy = {
+  da: {
+    title: 'Mest for pengene!',
+    body: ' Et populært valg blandt vores gæster',
+  },
+  en: {
+    title: 'Best value!',
+    body: ' A popular choice among our guests',
+  },
+};
 
 export function BestValueBadge() {
+  const { language } = useTranslation();
+  const copy = language === 'en' ? bestValueCopy.en : bestValueCopy.da;
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
 
@@ -61,8 +75,8 @@ export function BestValueBadge() {
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 0.4, delay: 0.4 }}
         >
-          <span className="font-semibold">Mest for pengene!</span>
-          <span className="text-muted-foreground"> Et populært valg blandt vores gæster</span>
+          <span className="font-semibold">{copy.title}</span>
+          <span className="text-muted-foreground">{copy.body}</span>
         </motion.p>
       </motion.div>
     </div>

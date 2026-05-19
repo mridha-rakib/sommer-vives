@@ -3,12 +3,32 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { Link } from 'react-router-dom';
+import { useTranslation } from '@/lib/i18n';
 
 interface ContactHostProps {
   ownerImage?: string;
 }
 
+const contactHostCopy = {
+  da: {
+    eyebrow: 'KONTAKT OS',
+    title: 'Udlejningschef',
+    body: 'Har du spørgsmål til opholdet, datoer eller særlige ønsker? Skriv til mig — jeg hjælper gerne med at finde den rette løsning.',
+    write: 'Skriv til mig',
+    seeHomes: 'Se sommerhuse',
+  },
+  en: {
+    eyebrow: 'CONTACT US',
+    title: 'Rental Manager',
+    body: 'Do you have questions about the stay, dates, or special requests? Write to me — I’ll be happy to help find the right solution.',
+    write: 'Write to me',
+    seeHomes: 'See holiday homes',
+  },
+};
+
 export const ContactHost = ({ ownerImage = '/images/owner-emil-light.jpg' }: ContactHostProps) => {
+  const { language } = useTranslation();
+  const copy = language === 'en' ? contactHostCopy.en : contactHostCopy.da;
   const { ref, isInView } = useScrollReveal();
 
   return (
@@ -34,14 +54,14 @@ export const ContactHost = ({ ownerImage = '/images/owner-emil-light.jpg' }: Con
             className="max-w-xs md:max-w-none"
           >
             <span className="text-xs font-medium tracking-[0.3em] uppercase mb-4 block text-primary">
-              KONTAKT OS
+              {copy.eyebrow}
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-2">
               Emil Klockmann
             </h2>
-            <p className="text-primary text-sm font-medium mb-5">Udlejningschef</p>
+            <p className="text-primary text-sm font-medium mb-5">{copy.title}</p>
             <p className="text-muted-foreground text-base leading-relaxed mb-6">
-              Har du spørgsmål til opholdet, datoer eller særlige ønsker? Skriv til mig — jeg hjælper gerne med at finde den rette løsning.
+              {copy.body}
             </p>
             <div className="space-y-3 mb-6">
               <a href="mailto:info@sommervibes.dk" className="flex items-center gap-3 text-foreground font-medium hover:text-primary transition-colors">
@@ -59,12 +79,12 @@ export const ContactHost = ({ ownerImage = '/images/owner-emil-light.jpg' }: Con
             </div>
             <div className="flex items-center gap-3">
               <Button asChild variant="outline" className="px-6 h-11 rounded-lg font-semibold">
-                <a href="mailto:info@sommervibes.dk">Skriv til mig</a>
+                <a href="mailto:info@sommervibes.dk">{copy.write}</a>
               </Button>
               <Button asChild variant="gold" className="px-6 h-11 rounded-lg font-semibold gap-2">
                 <Link to="/listings">
                   <Home className="h-4 w-4" />
-                  Se sommerhuse
+                  {copy.seeHomes}
                 </Link>
               </Button>
             </div>

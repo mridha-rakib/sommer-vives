@@ -7,10 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   MessageCircle, Send, Phone, Mail, HelpCircle, ChevronDown, ChevronUp,
-  AlertTriangle, Crown, LifeBuoy
+  AlertTriangle, Crown, LifeBuoy, Paperclip, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { ChatAttachment } from '@/components/chat/ChatAttachment';
+import { notifyChatPush, uploadChatAttachment } from '@/lib/chatAttachments';
+import { useChatTyping } from '@/hooks/useChatTyping';
+import type { Database } from '@/integrations/supabase/types';
+
+type GuestChatMessage = Database['public']['Tables']['chat_messages']['Row'];
 
 const faqItems = [
   { q: 'Hvordan finder jeg adgangskoden?', a: 'Den sendes via SMS og e-mail 24 timer inden ankomst. Du kan også finde den under "Boligen" → "Ankomst".' },
@@ -22,12 +28,20 @@ const faqItems = [
 
 export default function GuestMessages() {
   const { user, signOut } = useAuth();
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<GuestChatMessage[]>([]);
   const [newMsg, setNewMsg] = useState('');
+  const [newFile, setNewFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [showFaq, setShowFaq] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { signalTyping, typingLabel } = useChatTyping({
+    channelKey: messages[0]?.thread_id || (user ? `user-${user.id}` : null),
+    selfKey: user?.id,
+    selfName: user?.user_metadata?.full_name || user?.email || 'Gæst',
+    selfRole: 'guest',
+  });
 
   useEffect(() => {
     if (user) loadMessages();
@@ -44,7 +58,7 @@ export default function GuestMessages() {
     const channel = supabase
       .channel(`guest-messages-${user.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, (payload) => {
-        const m = payload.new as any;
+        const m = payload.new as GuestChatMessage;
         if (m.thread_type !== 'support') return;
         if (m.sender_id !== user.id && m.recipient_id !== user.id) return;
         setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
@@ -54,7 +68,7 @@ export default function GuestMessages() {
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages' }, (payload) => {
-        const m = payload.new as any;
+        const m = payload.new as GuestChatMessage;
         setMessages(prev => prev.map(x => (x.id === m.id ? { ...x, ...m } : x)));
       })
       .subscribe();
@@ -74,23 +88,33 @@ export default function GuestMessages() {
 
     // Mark all unread admin replies as read on open
     const unreadIds = (data || [])
-      .filter((m: any) => m.sender_type !== 'guest' && !m.is_read)
-      .map((m: any) => m.id);
+      .filter((m) => m.sender_type !== 'guest' && !m.is_read)
+      .map((m) => m.id);
     if (unreadIds.length > 0) {
       supabase.from('chat_messages').update({ is_read: true }).in('id', unreadIds).then(() => {});
     }
   };
 
   const sendMessage = async () => {
-    if (!newMsg.trim() || !user) return;
+    if ((!newMsg.trim() && !newFile) || !user) return;
     setSending(true);
-    await supabase.from('chat_messages').insert({
-      message: newMsg.trim(), sender_type: 'guest', sender_id: user.id,
-      sender_name: user.user_metadata?.full_name || user.email, thread_type: 'support',
-    });
-    setNewMsg('');
-    await loadMessages();
-    setSending(false);
+    try {
+      const attachment = newFile ? await uploadChatAttachment(newFile, `guest-${user.id}`) : {};
+      const { data, error } = await supabase.from('chat_messages').insert({
+        message: newMsg.trim(), sender_type: 'guest', sender_id: user.id,
+        sender_name: user.user_metadata?.full_name || user.email, thread_type: 'support',
+        ...attachment,
+      }).select('id').single();
+      if (error) throw error;
+      notifyChatPush(data?.id);
+      setNewMsg('');
+      setNewFile(null);
+      await loadMessages();
+    } catch {
+      // Keep the draft intact so the user can retry.
+    } finally {
+      setSending(false);
+    }
   };
 
   const hasMessages = messages.length > 0;
@@ -199,7 +223,13 @@ export default function GuestMessages() {
                   {!isOwn && msg.sender_name && (
                     <div className="text-[10px] font-semibold text-[hsl(var(--gold))] mb-0.5">{msg.sender_name}</div>
                   )}
-                  <p className="text-sm leading-relaxed">{msg.message}</p>
+                  {msg.message && <p className="text-sm leading-relaxed">{msg.message}</p>}
+                  <ChatAttachment
+                    url={msg.attachment_url}
+                    name={msg.attachment_name}
+                    size={msg.attachment_size}
+                    isOwn={isOwn}
+                  />
                   <div className={cn('text-[10px] mt-1', isOwn ? 'text-muted-foreground' : 'text-muted-foreground')}>
                     {new Date(msg.created_at).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' })}
                   </div>
@@ -211,11 +241,38 @@ export default function GuestMessages() {
         </div>
 
         {/* Input area */}
+        {typingLabel && (
+          <p className="text-[11px] text-muted-foreground mb-2">{typingLabel} skriver...</p>
+        )}
+        {newFile && (
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+            <span className="truncate">{newFile.name}</span>
+            <button type="button" onClick={() => setNewFile(null)} className="shrink-0 hover:text-foreground">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
         <div className="flex gap-2 items-end">
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={e => setNewFile(e.target.files?.[0] || null)}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="rounded-xl h-11 w-11 shrink-0"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending}
+          >
+            <Paperclip className="w-4 h-4" />
+          </Button>
           <div className="flex-1 relative">
             <Input
               value={newMsg}
-              onChange={e => setNewMsg(e.target.value)}
+              onChange={e => { setNewMsg(e.target.value); signalTyping(); }}
               placeholder="Skriv en besked..."
               className="rounded-xl border-border/40 pr-3 h-11 text-sm bg-card/60"
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
@@ -223,7 +280,7 @@ export default function GuestMessages() {
           </div>
           <Button
             onClick={sendMessage}
-            disabled={sending || !newMsg.trim()}
+            disabled={sending || (!newMsg.trim() && !newFile)}
             variant="gold"
             size="icon"
             className="rounded-xl h-11 w-11 shrink-0"

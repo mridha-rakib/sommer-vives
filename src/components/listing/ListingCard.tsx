@@ -33,7 +33,7 @@ export const ListingCard = ({
 }: ListingCardProps) => {
   return (
     <Link
-      to={`/listing/${id}`}
+      to={`/listing/${id}/`}
       className="rounded-2xl overflow-hidden group block cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/30 border border-border bg-card"
     >
       {/* Image */}

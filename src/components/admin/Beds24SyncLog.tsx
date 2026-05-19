@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { StatusChip, type StatusVariant } from '@/components/admin/ui/StatusChip';
 import { cn } from '@/lib/utils';
@@ -24,11 +24,19 @@ interface Props {
   listingId: string;
 }
 
+interface Beds24AuditLog {
+  id: string;
+  action: string;
+  created_at: string | null;
+  actor_email: string | null;
+  after_data: Record<string, unknown> | null;
+}
+
 export function Beds24SyncLog({ listingId }: Props) {
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<Beds24AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase
       .from('audit_log')
@@ -38,11 +46,11 @@ export function Beds24SyncLog({ listingId }: Props) {
       .like('action', 'beds24%')
       .order('created_at', { ascending: false })
       .limit(50);
-    setLogs(data || []);
+    setLogs((data || []) as Beds24AuditLog[]);
     setLoading(false);
-  };
+  }, [listingId]);
 
-  useEffect(() => { fetchLogs(); }, [listingId]);
+  useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
   return (
     <div className="rounded-xl border border-border/40 bg-card/60 overflow-hidden">
@@ -79,10 +87,15 @@ export function Beds24SyncLog({ listingId }: Props) {
             <tbody>
               {logs.map(log => {
                 const resolved = resolveAction(log.action);
-                const afterData = log.after_data as Record<string, any> | null;
-                const syncStatus = afterData?.sync_status || null;
-                const errorMsg = afterData?.sync_error_message || afterData?.error || null;
-                const warnings = afterData?.warnings as string[] | undefined;
+                const afterData = log.after_data;
+                const syncStatus = typeof afterData?.sync_status === 'string' ? afterData.sync_status : null;
+                const errorMsg =
+                  typeof afterData?.sync_error_message === 'string'
+                    ? afterData.sync_error_message
+                    : typeof afterData?.error === 'string'
+                      ? afterData.error
+                      : null;
+                const warnings = Array.isArray(afterData?.warnings) ? afterData.warnings : undefined;
 
                 return (
                   <tr key={log.id} className="border-b border-border/10 hover:bg-muted/5 transition-colors">

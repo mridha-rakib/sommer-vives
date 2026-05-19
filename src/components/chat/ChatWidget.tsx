@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageCircle, X, Send, Clock } from 'lucide-react';
+import { MessageCircle, X, Send, Clock, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChatAttachment } from '@/components/chat/ChatAttachment';
+import { notifyChatPush, uploadChatAttachment } from '@/lib/chatAttachments';
+import { useChatTyping } from '@/hooks/useChatTyping';
 
 interface ChatMessage {
   id: string;
@@ -13,6 +16,13 @@ interface ChatMessage {
   sender_name: string | null;
   created_at: string | null;
   is_read: boolean | null;
+  sender_id: string | null;
+  recipient_id: string | null;
+  thread_id: string | null;
+  attachment_url: string | null;
+  attachment_name: string | null;
+  attachment_type: string | null;
+  attachment_size: number | null;
 }
 
 function getSessionId() {
@@ -28,22 +38,31 @@ export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState(() => localStorage.getItem('sv_chat_name') || '');
   const [nameSet, setNameSet] = useState(() => !!localStorage.getItem('sv_chat_name'));
   const [sending, setSending] = useState(false);
   const [unread, setUnread] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const sessionId = useRef(getSessionId());
 
-  const bookingId = sessionId.current; // We use session_id as a pseudo booking_id for support threads
+  const participantId = user?.id || sessionId.current;
+  const typingChannel = messages[0]?.thread_id || `user-${participantId}`;
+  const { signalTyping, typingLabel } = useChatTyping({
+    channelKey: typingChannel,
+    selfKey: participantId,
+    selfName: user?.email?.split('@')[0] || name || 'Gæst',
+    selfRole: user ? 'owner' : 'guest',
+  });
 
   const loadMessages = useCallback(async () => {
     const { data } = await supabase
       .from('chat_messages')
-      .select('id, message, sender_type, sender_name, created_at, is_read')
+      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size')
       .eq('thread_type', 'support')
-      .eq('booking_id', bookingId)
+      .or(`sender_id.eq.${participantId},recipient_id.eq.${participantId}`)
       .order('created_at', { ascending: true });
     if (data) {
       setMessages(data);
@@ -51,7 +70,7 @@ export function ChatWidget() {
         setUnread(data.filter(m => m.sender_type === 'admin' && !m.is_read).length);
       }
     }
-  }, [bookingId, open]);
+  }, [participantId, open]);
 
   useEffect(() => {
     if (open && nameSet) loadMessages();
@@ -60,14 +79,14 @@ export function ChatWidget() {
   // Realtime subscription
   useEffect(() => {
     const channel = supabase
-      .channel(`chat-${bookingId}`)
+      .channel(`chat-${participantId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'chat_messages',
-        filter: `booking_id=eq.${bookingId}`,
       }, (payload) => {
         const msg = payload.new as ChatMessage;
+        if (msg.sender_id !== participantId && msg.recipient_id !== participantId) return;
         setMessages(prev => [...prev, msg]);
         if (!open && msg.sender_type === 'admin') {
           setUnread(prev => prev + 1);
@@ -76,7 +95,7 @@ export function ChatWidget() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [bookingId, open]);
+  }, [participantId, open]);
 
   // Auto-scroll
   useEffect(() => {
@@ -86,19 +105,25 @@ export function ChatWidget() {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || sending) return;
+    if ((!input.trim() && !file) || sending) return;
     setSending(true);
     const msg = input.trim();
     setInput('');
-
-    await supabase.from('chat_messages').insert({
-      booking_id: bookingId,
-      thread_type: 'support',
-      sender_type: user ? 'owner' : 'guest',
-      sender_id: user?.id || null,
-      sender_name: user?.email?.split('@')[0] || name,
-      message: msg,
-    });
+    try {
+      const attachment = file ? await uploadChatAttachment(file, `widget-${participantId}`) : {};
+      const { data } = await supabase.from('chat_messages').insert({
+        thread_type: 'support',
+        sender_type: user ? 'owner' : 'guest',
+        sender_id: participantId,
+        sender_name: user?.email?.split('@')[0] || name,
+        message: msg,
+        ...attachment,
+      }).select('id').single();
+      setFile(null);
+      notifyChatPush(data?.id);
+    } catch {
+      setInput(msg);
+    }
 
     setSending(false);
   };
@@ -221,7 +246,13 @@ export function ChatWidget() {
                           {!isMe && msg.sender_name && (
                             <div className="text-xs font-semibold text-accent mb-1">{msg.sender_name}</div>
                           )}
-                          <p className="whitespace-pre-wrap">{msg.message}</p>
+                          {msg.message && <p className="whitespace-pre-wrap">{msg.message}</p>}
+                          <ChatAttachment
+                            url={msg.attachment_url}
+                            name={msg.attachment_name}
+                            size={msg.attachment_size}
+                            isOwn={isMe}
+                          />
                           <div className={`text-[10px] mt-1 ${isMe ? 'text-accent-foreground/60' : 'text-muted-foreground'}`}>
                             {msg.created_at ? new Date(msg.created_at).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) : ''}
                           </div>
@@ -233,18 +264,44 @@ export function ChatWidget() {
 
                 {/* Input */}
                 <div className="p-3 border-t border-border bg-background">
+                  {typingLabel && (
+                    <p className="text-[11px] text-muted-foreground mb-2">{typingLabel} skriver...</p>
+                  )}
+                  {file && (
+                    <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                      <span className="truncate">{file.name}</span>
+                      <button type="button" onClick={() => setFile(null)} className="shrink-0 hover:text-foreground">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                   <form
                     onSubmit={e => { e.preventDefault(); handleSend(); }}
                     className="flex gap-2"
                   >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={e => setFile(e.target.files?.[0] || null)}
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={sending}
+                    >
+                      <Paperclip className="w-4 h-4" />
+                    </Button>
                     <Input
                       value={input}
-                      onChange={e => setInput(e.target.value)}
+                      onChange={e => { setInput(e.target.value); signalTyping(); }}
                       placeholder="Skriv en besked..."
                       className="bg-card flex-1"
                       disabled={sending}
                     />
-                    <Button type="submit" size="icon" variant="gold" disabled={!input.trim() || sending}>
+                    <Button type="submit" size="icon" variant="gold" disabled={(!input.trim() && !file) || sending}>
                       <Send className="w-4 h-4" />
                     </Button>
                   </form>

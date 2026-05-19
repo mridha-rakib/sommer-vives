@@ -35,7 +35,7 @@ export function useUnreadMessages() {
           .not('thread_id', 'is', null)
           .limit(5000);
         const set = new Set<string>();
-        (rows || []).forEach((r: any) => r.thread_id && set.add(r.thread_id));
+        (rows || []).forEach((r: { thread_id: string | null }) => r.thread_id && set.add(r.thread_id));
         setUnreadThreads(set.size);
         return;
       }
@@ -52,6 +52,7 @@ export function useUnreadMessages() {
     };
 
     load();
+    const reconcile = () => load();
 
     const channel = supabase
       .channel('admin-unread-badge')
@@ -60,7 +61,13 @@ export function useUnreadMessages() {
         { event: '*', schema: 'public', table: 'chat_messages' },
         scheduleRefresh
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') reconcile();
+      });
+
+    window.addEventListener('online', reconcile);
+    window.addEventListener('focus', reconcile);
+    document.addEventListener('visibilitychange', reconcile);
 
     return () => {
       cancelled = true;
@@ -68,6 +75,9 @@ export function useUnreadMessages() {
         window.clearTimeout(refreshTimerRef.current);
         refreshTimerRef.current = null;
       }
+      window.removeEventListener('online', reconcile);
+      window.removeEventListener('focus', reconcile);
+      document.removeEventListener('visibilitychange', reconcile);
       supabase.removeChannel(channel);
     };
   }, []);

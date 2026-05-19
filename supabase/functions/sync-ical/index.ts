@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
   // Fetch all active sync settings
   const { data: syncSettings } = await supabase
     .from("sync_settings").select("*")
-    .eq("is_active", true).eq("direction", "inbound");
+    .eq("is_active", true).in("direction", ["inbound", "both"]);
 
   if (!syncSettings || syncSettings.length === 0) {
     return new Response(JSON.stringify({ message: "No active sync feeds" }),

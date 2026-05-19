@@ -49,17 +49,14 @@ export function devLog(scope: string): Logger {
 
   const base = (level: 'log' | 'warn' | 'error') =>
     (msg: string, ...data: unknown[]) =>
-      // eslint-disable-next-line no-console
       console[level](`%c[${scope}]%c ${stamp()} — ${msg}`, style, 'color:inherit', ...data);
 
   const fn = base('log') as Logger;
   fn.warn = base('warn');
   fn.error = base('error');
   fn.group = (label, body) => {
-    // eslint-disable-next-line no-console
     console.groupCollapsed(`%c[${scope}]%c ${label}`, style, 'color:inherit');
     try { body(); } finally {
-      // eslint-disable-next-line no-console
       console.groupEnd();
     }
   };

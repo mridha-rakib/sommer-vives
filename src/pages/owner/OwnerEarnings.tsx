@@ -39,9 +39,10 @@ export default function OwnerEarnings() {
   const dateLocale = { da, en: enUS, de, nl }[language];
   const moneyLocale = language === 'da' ? 'da-DK' : language === 'de' ? 'de-DE' : language === 'nl' ? 'nl-NL' : 'en-US';
   const moneySuffix = language === 'da' ? ' kr' : ' DKK';
-  const formatMoney = (value: number) => language === 'da'
-    ? `${value.toLocaleString(moneyLocale)}${moneySuffix}`
-    : `${value.toLocaleString(moneyLocale)}${moneySuffix}`;
+  const formatMoney = (value: number) => {
+    const formatted = (value / 100).toLocaleString(moneyLocale);
+    return language === 'da' ? `${formatted}${moneySuffix}` : `${formatted}${moneySuffix}`;
+  };
   const shortDateFormat = language === 'en' ? 'MMM d' : 'd. MMM';
   const longDateFormat = language === 'en' ? 'MMM d, yyyy' : 'd. MMM yyyy';
 

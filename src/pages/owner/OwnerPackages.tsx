@@ -19,6 +19,7 @@ import {
   type OwnerServicePackage,
 } from '@/lib/owner-packages-api';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function OwnerPackages() {
   const { user } = useAuth();
@@ -99,6 +100,15 @@ export default function OwnerPackages() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
+      const orderId = params.get('order_id');
+      const sessionId = params.get('session_id');
+      if (orderId || sessionId) {
+        supabase.functions.invoke('verify-payment', {
+          body: { orderId, sessionId },
+        }).finally(() => {
+          queryClient.invalidateQueries({ queryKey: ['package-purchases'] });
+        });
+      }
       toast.success(t('owner.packages.toast.paymentSuccess'));
       window.history.replaceState({}, '', '/owner/packages');
       queryClient.invalidateQueries({ queryKey: ['package-purchases'] });

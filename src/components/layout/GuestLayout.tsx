@@ -32,7 +32,7 @@ const desktopNavItems = [
 export function GuestLayout({ children, onLogout, guestEmail }: GuestLayoutProps) {
   const location = useLocation();
   const { user } = useAuth();
-  const { notify, muted, setMuted } = useChatNotifications();
+  const { notify, muted, setMuted } = useChatNotifications(user?.id);
 
   const unread = useUserUnreadMessages(user?.id, {
     onIncoming: (m) => {

@@ -9,14 +9,32 @@ import {
   FileText, Users, ArrowRight, Loader2
 } from 'lucide-react';
 
-interface Props {
-  listing: any;
-  open: boolean;
-  onClose: () => void;
-  onConfirmed: (updatedFields: any) => void;
+interface Beds24PublishListing {
+  id: string;
+  images?: string[] | null;
+  amenities?: string[] | null;
+  base_price_per_night?: number | null;
+  description?: string | null;
+  max_guests?: number | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  [key: `channel_${string}_ready`]: boolean | undefined;
 }
 
-function check(val: any): boolean {
+interface Beds24PublishResponse {
+  error?: string;
+  listing?: Record<string, unknown>;
+  rolled_back?: boolean;
+}
+
+interface Props {
+  listing: Beds24PublishListing;
+  open: boolean;
+  onClose: () => void;
+  onConfirmed: (updatedFields: Record<string, unknown>) => void;
+}
+
+function check(val: unknown): boolean {
   if (val === null || val === undefined || val === '' || val === 0) return false;
   if (Array.isArray(val) && val.length === 0) return false;
   return true;
@@ -55,16 +73,18 @@ export function Beds24PublishDialog({ listing, open, onClose, onConfirmed }: Pro
 
     setSending(false);
 
-    if (error || (data as any)?.error) {
-      const message = (data as any)?.error || error?.message || 'Beds24 publicering fejlede';
-      onConfirmed((data as any)?.listing || { sync_status: 'error', sync_error_message: message });
+    const response = data as Beds24PublishResponse | null;
+
+    if (error || response?.error) {
+      const message = response?.error || error?.message || 'Beds24 publicering fejlede';
+      onConfirmed(response?.listing || { sync_status: 'error', sync_error_message: message });
       toast.error('Publicering fejlede', {
-        description: (data as any)?.rolled_back ? `${message} Lokale ændringer er rullet tilbage.` : message,
+        description: response?.rolled_back ? `${message} Lokale ændringer er rullet tilbage.` : message,
       });
       return;
     }
 
-    onConfirmed((data as any)?.listing || {});
+    onConfirmed(response?.listing || {});
     toast.success('Listing publiceret til Beds24', {
       description: warnings.length > 0 ? `${warnings.length} advarsler blev sendt med loggen.` : 'Beds24 bekræftede publiceringen.',
     });

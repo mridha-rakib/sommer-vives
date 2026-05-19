@@ -9,7 +9,7 @@ export const StepAddons = () => {
 
   useEffect(() => {
     if (state.checkIn && state.checkOut) fetchPricing();
-  }, [state.selectedAddonIds]);
+  }, [fetchPricing, state.checkIn, state.checkOut, state.selectedAddonIds]);
 
   const toggleAddon = (addonId: string) => {
     const current = state.selectedAddonIds;

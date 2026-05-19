@@ -67,6 +67,41 @@ export const AMENITY_MAP: AmenityMapping[] = [
 // ── Field mapping: SommerVibes → Channel ──
 export type ChannelKey = 'airbnb' | 'booking' | 'vrbo';
 
+interface BedroomCard {
+  title?: string | null;
+  bed_types?: string | null;
+  bed_count?: number | string | null;
+}
+
+export interface ChannelListing {
+  name?: string | null;
+  tagline?: string | null;
+  description?: string | null;
+  long_description?: string | null;
+  about_property?: string | null;
+  about_area?: string | null;
+  house_rules?: string | null;
+  highlights?: string | string[] | null;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+  checkin_info?: string | null;
+  access_arrival?: string | null;
+  access_smart_lock?: string | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  max_guests?: number | null;
+  sqm?: number | null;
+  bedroom_cards?: BedroomCard[] | null;
+  deposit?: number | string | null;
+  currency?: string | null;
+  hero_image?: string | null;
+  images?: string[] | null;
+  amenities?: string[] | null;
+  address?: string | null;
+  base_price_per_night?: number | null;
+  [key: string]: unknown;
+}
+
 export interface ChannelFieldMapping {
   channelField: string;
   label: string;
@@ -78,17 +113,17 @@ export interface ChannelFieldMapping {
   hint?: string;
   masterSource: string;
   platformSpecific?: boolean;
-  getMasterValue: (listing: Record<string, any>) => string | string[] | null;
+  getMasterValue: (listing: ChannelListing) => string | string[] | null;
 }
 
 export function getChannelFields(channel: ChannelKey): ChannelFieldMapping[] {
   const shared = {
-    title: (listing: Record<string, any>) => listing.tagline || listing.name || null,
-    description: (listing: Record<string, any>) =>
+    title: (listing: ChannelListing) => listing.tagline || listing.name || null,
+    description: (listing: ChannelListing) =>
       [listing.long_description, listing.about_property, listing.about_area].filter(Boolean).join('\n\n') || listing.description || null,
-    houseRules: (listing: Record<string, any>) => listing.house_rules || null,
-    highlights: (listing: Record<string, any>) => listing.highlights || null,
-    checkin: (listing: Record<string, any>) => {
+    houseRules: (listing: ChannelListing) => listing.house_rules || null,
+    highlights: (listing: ChannelListing) => listing.highlights || null,
+    checkin: (listing: ChannelListing) => {
       const parts: string[] = [];
       if (listing.check_in_time) parts.push(`Check-in: fra kl. ${listing.check_in_time}`);
       if (listing.check_out_time) parts.push(`Check-out: senest kl. ${listing.check_out_time}`);
@@ -97,14 +132,14 @@ export function getChannelFields(channel: ChannelKey): ChannelFieldMapping[] {
       if (listing.access_smart_lock) parts.push(`Smart lock: ${listing.access_smart_lock}`);
       return parts.length ? parts.join('\n') : null;
     },
-    roomSetup: (listing: Record<string, any>) => {
+    roomSetup: (listing: ChannelListing) => {
       const parts: string[] = [];
       if (listing.bedrooms) parts.push(`${listing.bedrooms} soveværelse(r)`);
       if (listing.bathrooms) parts.push(`${listing.bathrooms} badeværelse(r)`);
       if (listing.max_guests) parts.push(`Max ${listing.max_guests} gæster`);
       if (listing.sqm) parts.push(`${listing.sqm} m²`);
       const cards = listing.bedroom_cards || [];
-      cards.forEach((c: any) => {
+      cards.forEach((c) => {
         if (c.title) parts.push(`${c.title}: ${c.bed_types || `${c.bed_count} seng(e)`}`);
       });
       return parts.length ? parts.join('\n') : null;
@@ -145,7 +180,7 @@ export interface ValidationResult {
   tab: string;
 }
 
-export function validateChannel(listing: Record<string, any>, channel: ChannelKey): ValidationResult[] {
+export function validateChannel(listing: ChannelListing, channel: ChannelKey): ValidationResult[] {
   const results: ValidationResult[] = [];
   const fields = getChannelFields(channel);
   const tab = channel === 'booking' ? 'bookingcom' : channel;
@@ -238,7 +273,7 @@ export function getChannelImageOrder(
 }
 
 // ── Channel readiness score ──
-export function calcChannelScore(listing: Record<string, any>, channel: ChannelKey): {
+export function calcChannelScore(listing: ChannelListing, channel: ChannelKey): {
   score: number;
   errors: ValidationResult[];
   warnings: ValidationResult[];

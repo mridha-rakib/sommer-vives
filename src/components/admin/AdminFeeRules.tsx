@@ -19,13 +19,22 @@ interface FeeRule {
   id: string; listing_id: string; name: string; description: string | null;
   amount: number; fee_type: string; is_mandatory: boolean; is_active: boolean;
   sort_order: number; condition_min_nights: number | null; condition_max_nights: number | null;
+  applies_to_channels: string[] | null;
 }
 
 interface ListingOption { id: string; name: string; }
 
 const FEE_TYPES: Record<string, string> = {
-  fixed: 'Fast beløb', per_night: 'Pr. nat', per_guest: 'Pr. gæst', per_pet: 'Pr. kæledyr',
+  fixed: 'Fast beløb', per_night: 'Pr. nat', per_guest: 'Pr. gæst', per_pet: 'Pr. kæledyr', percentage: 'Procent',
 };
+
+const CHANNEL_OPTIONS = [
+  { value: 'direct', label: 'Direkte' },
+  { value: 'airbnb', label: 'Airbnb' },
+  { value: 'booking_com', label: 'Booking.com' },
+  { value: 'vrbo', label: 'Vrbo' },
+  { value: 'other', label: 'Andet' },
+];
 
 export function AdminFeeRules() {
   const { toast } = useToast();
@@ -49,6 +58,7 @@ export function AdminFeeRules() {
   const [useCondition, setUseCondition] = useState(false);
   const [condMinNights, setCondMinNights] = useState<number | ''>('');
   const [condMaxNights, setCondMaxNights] = useState<number | ''>('');
+  const [appliesToChannels, setAppliesToChannels] = useState<string[]>([]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -59,7 +69,7 @@ export function AdminFeeRules() {
     if (lRes.data) { setListings(lRes.data); if (!selectedListingId && lRes.data.length > 0) setSelectedListingId(lRes.data[0].id); }
     if (fRes.data) setFees(fRes.data as FeeRule[]);
     setLoading(false);
-  }, []);
+  }, [selectedListingId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -69,7 +79,7 @@ export function AdminFeeRules() {
     setEditing(null); setName(''); setDescription(''); setAmount(0);
     setFeeType('fixed'); setIsMandatory(true); setIsActive(true);
     setSortOrder(filtered.length); setUseCondition(false);
-    setCondMinNights(''); setCondMaxNights(''); setDialogOpen(true);
+    setCondMinNights(''); setCondMaxNights(''); setAppliesToChannels([]); setDialogOpen(true);
   };
 
   const openEdit = (fee: FeeRule) => {
@@ -78,7 +88,9 @@ export function AdminFeeRules() {
     setIsActive(fee.is_active); setSortOrder(fee.sort_order);
     const hasCond = fee.condition_min_nights !== null || fee.condition_max_nights !== null;
     setUseCondition(hasCond); setCondMinNights(fee.condition_min_nights ?? '');
-    setCondMaxNights(fee.condition_max_nights ?? ''); setDialogOpen(true);
+    setCondMaxNights(fee.condition_max_nights ?? '');
+    setAppliesToChannels(fee.applies_to_channels || []);
+    setDialogOpen(true);
   };
 
   const handleSave = async () => {
@@ -91,6 +103,7 @@ export function AdminFeeRules() {
       is_mandatory: isMandatory, is_active: isActive, sort_order: sortOrder,
       condition_min_nights: useCondition && condMinNights !== '' ? +condMinNights : null,
       condition_max_nights: useCondition && condMaxNights !== '' ? +condMaxNights : null,
+      applies_to_channels: appliesToChannels.length > 0 ? appliesToChannels : null,
     };
     let error;
     if (editing) { ({ error } = await supabase.from('fee_rules').update(data).eq('id', editing.id)); }
@@ -119,6 +132,14 @@ export function AdminFeeRules() {
     if (fee.condition_min_nights !== null) parts.push(`≥ ${fee.condition_min_nights} nætter`);
     if (fee.condition_max_nights !== null) parts.push(`≤ ${fee.condition_max_nights} nætter`);
     return parts.join(' og ');
+  };
+
+  const formatFeeAmount = (fee: FeeRule) => (
+    fee.fee_type === 'percentage' ? `${(fee.amount / 100).toLocaleString('da-DK')}%` : formatDKK(fee.amount)
+  );
+
+  const toggleChannel = (channel: string, checked: boolean) => {
+    setAppliesToChannels(prev => checked ? [...prev, channel] : prev.filter(c => c !== channel));
   };
 
   if (loading) return <div className="flex items-center justify-center py-20 text-muted-foreground gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Henter gebyrer...</div>;
@@ -169,7 +190,7 @@ export function AdminFeeRules() {
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs mt-3">
-                <div><span className="text-muted-foreground">Beløb</span><p className="font-medium text-primary">{formatDKK(fee.amount)}</p></div>
+                <div><span className="text-muted-foreground">Beløb</span><p className="font-medium text-primary">{formatFeeAmount(fee)}</p></div>
                 <div><span className="text-muted-foreground">Type</span><p className="font-medium text-foreground">{FEE_TYPES[fee.fee_type] || fee.fee_type}</p></div>
                 <div><span className="text-muted-foreground">Betingelse</span><p className="font-medium text-foreground">{formatCondition(fee)}</p></div>
               </div>
@@ -188,10 +209,10 @@ export function AdminFeeRules() {
             <div className="space-y-1.5"><Label className="text-sm">Navn</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Fx 'Rengøring'" /></div>
             <div className="space-y-1.5"><Label className="text-sm">Beskrivelse (valgfri)</Label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-sm">Beløb (DKK)</Label><Input type="number" min={0} value={amount} onChange={(e) => setAmount(+e.target.value)} /></div>
+              <div className="space-y-1.5"><Label className="text-sm">{feeType === 'percentage' ? 'Procent (%)' : 'Beløb (DKK)'}</Label><Input type="number" min={0} value={amount} onChange={(e) => setAmount(+e.target.value)} /></div>
               <div className="space-y-1.5"><Label className="text-sm">Type</Label>
                 <Select value={feeType} onValueChange={setFeeType}><SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="fixed">Fast beløb</SelectItem><SelectItem value="per_night">Pr. nat</SelectItem><SelectItem value="per_guest">Pr. gæst</SelectItem><SelectItem value="per_pet">Pr. kæledyr</SelectItem></SelectContent>
+                  <SelectContent><SelectItem value="fixed">Fast beløb</SelectItem><SelectItem value="per_night">Pr. nat</SelectItem><SelectItem value="per_guest">Pr. gæst</SelectItem><SelectItem value="per_pet">Pr. kæledyr</SelectItem><SelectItem value="percentage">Procent</SelectItem></SelectContent>
                 </Select>
               </div>
             </div>
@@ -207,6 +228,18 @@ export function AdminFeeRules() {
                   <div className="space-y-1"><Label className="text-xs">Max. nætter</Label><Input type="number" min={1} value={condMaxNights} onChange={(e) => setCondMaxNights(e.target.value ? +e.target.value : '')} placeholder="—" /></div>
                 </div>
               )}
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Kanaler</Label>
+              <p className="text-xs text-muted-foreground">Ingen valgt betyder alle kanaler.</p>
+              <div className="grid grid-cols-2 gap-2">
+                {CHANNEL_OPTIONS.map((option) => (
+                  <div key={option.value} className="flex items-center gap-2">
+                    <Checkbox checked={appliesToChannels.includes(option.value)} onCheckedChange={(c) => toggleChannel(option.value, !!c)} />
+                    <Label className="text-sm">{option.label}</Label>
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="space-y-1.5"><Label className="text-sm">Sortering</Label><Input type="number" min={0} value={sortOrder} onChange={(e) => setSortOrder(+e.target.value)} /></div>
           </div>

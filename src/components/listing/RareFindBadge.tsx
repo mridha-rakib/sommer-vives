@@ -1,7 +1,21 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
+import { useTranslation } from '@/lib/i18n';
+
+const rareFindCopy = {
+  da: {
+    title: 'Sjældent fund!',
+    body: ' Dette sommerhus er som regel booket',
+  },
+  en: {
+    title: 'Rare find!',
+    body: ' This holiday home is usually booked',
+  },
+};
 
 export function RareFindBadge() {
+  const { language } = useTranslation();
+  const copy = language === 'en' ? rareFindCopy.en : rareFindCopy.da;
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
 
@@ -53,8 +67,8 @@ export function RareFindBadge() {
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 0.4, delay: 0.4 }}
         >
-          <span className="font-semibold">Sjældent fund!</span>
-          <span className="text-muted-foreground"> Dette sommerhus er som regel booket</span>
+          <span className="font-semibold">{copy.title}</span>
+          <span className="text-muted-foreground">{copy.body}</span>
         </motion.p>
       </motion.div>
     </div>

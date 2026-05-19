@@ -29,7 +29,7 @@ interface ListingRow {
   is_active: boolean; amenities: string[] | null; house_rules: string | null;
   practical_info: string | null; images: string[] | null; hero_image: string | null;
   currency: string; region: string | null; owner_id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface Props { listing: ListingRow; onBack: () => void; }
@@ -103,20 +103,9 @@ export function ListingEditor({ listing, onBack }: Props) {
   const formRef = useRef(form);
   formRef.current = form;
 
-  /* auto-save after 2s idle */
-  const scheduleSave = useCallback(() => {
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => persist(formRef.current), 2000);
-  }, []);
-
-  const updateField = <K extends keyof ContentFields>(key: K, value: ContentFields[K]) => {
-    setForm(prev => ({ ...prev, [key]: value }));
-    scheduleSave();
-  };
-
-  const persist = async (data: ContentFields) => {
+  const persist = useCallback(async (data: ContentFields) => {
     setSaving(true);
-    const payload: Record<string, any> = {
+    const payload: Record<string, unknown> = {
       name: data.name, description: data.description || null,
       address: data.address || null, region: data.region || null, city: data.city || null,
       max_guests: data.max_guests, bedrooms: data.bedrooms, bathrooms: data.bathrooms,
@@ -139,6 +128,17 @@ export function ListingEditor({ listing, onBack }: Props) {
     } else {
       setLastSaved(new Date());
     }
+  }, [listing.id, toast]);
+
+  /* auto-save after 2s idle */
+  const scheduleSave = useCallback(() => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => persist(formRef.current), 2000);
+  }, [persist]);
+
+  const updateField = <K extends keyof ContentFields>(key: K, value: ContentFields[K]) => {
+    setForm(prev => ({ ...prev, [key]: value }));
+    scheduleSave();
   };
 
   useEffect(() => () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); }, []);

@@ -39,7 +39,7 @@ export function AdminSeasonRules() {
     }
     if (rRes.data) setRules(rRes.data as SeasonRule[]);
     setLoading(false);
-  }, []);
+  }, [selectedListingId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -102,7 +102,7 @@ export function AdminSeasonRules() {
               {listings.map((l) => (<SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>))}
             </SelectContent>
           </Select>
-          <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+          <Select value={filter} onValueChange={(v) => setFilter(v as 'all' | 'active' | 'draft')}>
             <SelectTrigger className="w-[110px] h-9 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle</SelectItem>

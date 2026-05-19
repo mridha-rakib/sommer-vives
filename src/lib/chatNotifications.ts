@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { registerPushSubscription, useWebPushRegistration } from '@/lib/webPush';
 
 type Role = 'admin' | 'owner' | 'guest';
 
@@ -23,8 +24,10 @@ let _unlockBound = false;
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   if (_audioCtx) return _audioCtx;
+  type AudioWindow = Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext };
+  const audioWindow = window as AudioWindow;
   const Ctx: typeof AudioContext | undefined =
-    (window as any).AudioContext || (window as any).webkitAudioContext;
+    audioWindow.AudioContext || audioWindow.webkitAudioContext;
   if (!Ctx) return null;
   try {
     _audioCtx = new Ctx();
@@ -174,7 +177,9 @@ export function notifyNewMessage(opts: NotifyOptions) {
       } as NotificationOptions);
       if (opts.url) {
         n.onclick = () => {
-          try { window.focus(); } catch {}
+          try { window.focus(); } catch {
+            // Window focus is best-effort.
+          }
           window.location.href = opts.url!;
           n.close();
         };
@@ -195,17 +200,22 @@ export function notifyNewMessage(opts: NotifyOptions) {
  *
  * Returns a stable `notify` reference plus mute controls.
  */
-export function useChatNotifications() {
+export function useChatNotifications(userId?: string | null) {
   const [muted, setMutedState] = useChatMuted();
   const notifyRef = useRef(notifyNewMessage);
+  useWebPushRegistration(userId);
 
   useEffect(() => {
     bindAudioUnlock();
     // Ask for permission lazily — non-blocking.
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-      ensureNotificationPermission().catch(() => {});
+      ensureNotificationPermission()
+        .then(permission => {
+          if (permission === 'granted' && userId) registerPushSubscription(userId).catch(() => {});
+        })
+        .catch(() => {});
     }
-  }, []);
+  }, [userId]);
 
   return useMemo(
     () => ({

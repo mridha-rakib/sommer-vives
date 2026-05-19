@@ -71,6 +71,7 @@ export interface BookingState {
   email: string;
   phone: string;
   message: string;
+  paymentOption: 'full' | 'deposit';
 }
 
 const initialState: BookingState = {
@@ -86,6 +87,7 @@ const initialState: BookingState = {
   email: '',
   phone: '',
   message: '',
+  paymentOption: 'full',
 };
 
 interface BookingContextValue {
@@ -118,6 +120,35 @@ interface BookingContextValue {
 }
 
 const BookingContext = createContext<BookingContextValue | null>(null);
+
+type FunctionInvokeOptions = NonNullable<Parameters<typeof supabase.functions.invoke>[1]> & {
+  signal?: AbortSignal;
+};
+
+interface FunctionErrorContext {
+  json?: () => Promise<{ error?: string; message?: string }>;
+}
+
+interface FunctionErrorWithContext extends Error {
+  context?: FunctionErrorContext;
+}
+
+interface CalculatePriceResponse {
+  line_items?: PriceLineItem[];
+  grand_total: number;
+  available_addons?: AvailableAddon[];
+  valid?: boolean;
+  validation_errors?: ValidationError[];
+  applied_rules?: AppliedRule[];
+  nights?: NightBreakdown[];
+  min_nights?: number;
+}
+
+interface CreateBookingResponse {
+  booking?: { id?: string };
+  checkout_url?: string;
+  payment_required?: boolean;
+}
 
 export const useBooking = () => {
   const ctx = useContext(BookingContext);
@@ -163,16 +194,18 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const { data, error } = await supabase.functions.invoke(functionName, {
           body,
           signal: controller.signal,
-        } as any);
+        } as FunctionInvokeOptions);
         window.clearTimeout(timeout);
         if (error) {
-          const context = (error as any).context;
+          const context = (error as FunctionErrorWithContext).context;
           let message = error.message;
           if (context && typeof context.json === 'function') {
             try {
               const payload = await context.json();
               message = payload?.error || payload?.message || message;
-            } catch {}
+            } catch {
+              // Keep the original Supabase error message if the response body is not JSON.
+            }
           }
           throw new Error(message);
         }
@@ -236,7 +269,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setPricingLoading(true);
     setFetchError(null);
     try {
-      const data = await invokeWithRetry<any>('calculate-price', {
+      const data = await invokeWithRetry<CalculatePriceResponse>('calculate-price', {
         listing_id: s.listing.id,
         start_date: s.checkIn.toISOString().split('T')[0],
         end_date: s.checkOut.toISOString().split('T')[0],
@@ -256,8 +289,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setAppliedRules(data.applied_rules || []);
       setNightBreakdown(data.nights || []);
       setQuoteMinNights(data.min_nights || 2);
-    } catch (e: any) {
-      if (e.name === 'AbortError') return;
+    } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') return;
       console.error('Pricing fetch failed:', e);
       setFetchError('Kunne ikke kontakte serveren. Tjek din forbindelse.');
     } finally {
@@ -272,7 +305,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setBookingResult(null);
 
     try {
-      const data = await invokeWithRetry<any>('create-booking', {
+      const data = await invokeWithRetry<CreateBookingResponse>('create-booking', {
         listing_id: state.listing.id,
         start_date: state.checkIn.toISOString().split('T')[0],
         end_date: state.checkOut.toISOString().split('T')[0],
@@ -281,8 +314,11 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         guest_phone: state.phone || null,
         guest_message: state.message || null,
         guests: state.guests,
+        pets: state.pets || 0,
         selected_addon_ids: state.selectedAddonIds,
         discount_code: state.discountCode || null,
+        payment_option: state.paymentOption,
+        deposit_amount: state.paymentOption === 'deposit' ? Math.round(totalPrice * 0.3) : null,
       }, { timeoutMs: 20000, retries: 1 });
 
       const result: BookingSubmitResult = {
@@ -304,7 +340,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setSubmitting(false);
     }
-  }, [invokeWithRetry, state]);
+  }, [invokeWithRetry, state, totalPrice]);
 
   return (
     <BookingContext.Provider value={{

@@ -23,8 +23,8 @@ export function EarningsChart({ bookings }: EarningsChartProps) {
       .forEach(b => {
         const key = format(startOfMonth(parseISO(b.check_in)), 'yyyy-MM');
         if (!months[key]) months[key] = { gross: 0, net: 0 };
-        months[key].gross += Number(b.total_amount || 0);
-        months[key].net += Number(b.owner_payout || 0);
+        months[key].gross += Number(b.total_amount || 0) / 100;
+        months[key].net += Number(b.owner_payout || 0) / 100;
       });
 
     return Object.entries(months)

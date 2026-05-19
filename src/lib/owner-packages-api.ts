@@ -112,6 +112,7 @@ export async function createOwnerPackageCheckout(input: CreateOwnerPackageChecko
         referenceId: input.package.id,
       }],
       userType: 'owner',
+      propertyId: normalizePropertyId(input.propertyId),
       successUrl: input.successUrl,
       cancelUrl: input.cancelUrl,
     },
@@ -121,17 +122,6 @@ export async function createOwnerPackageCheckout(input: CreateOwnerPackageChecko
   if (error || !checkoutData?.url) {
     throw new Error(error?.message || 'Checkout failed');
   }
-
-  const { error: purchaseError } = await supabase.from('package_purchases').insert({
-    owner_id: input.ownerId,
-    property_id: normalizePropertyId(input.propertyId),
-    package_id: input.package.id,
-    amount: input.package.price,
-    status: 'pending',
-    payment_status: 'pending',
-  });
-
-  if (purchaseError) throw new Error(purchaseError.message);
 
   return checkoutData.url;
 }

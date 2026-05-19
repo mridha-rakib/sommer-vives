@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,7 +54,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+    const checkoutAmount = Math.round(Number(booking.amount_remaining ?? booking.total_amount ?? 0));
+    if (!Number.isFinite(checkoutAmount) || checkoutAmount <= 0) {
+      return new Response(
+        JSON.stringify({ error: "No outstanding amount to pay" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -72,10 +83,10 @@ Deno.serve(async (req) => {
         {
           price_data: {
             currency: (booking.currency || "DKK").toLowerCase(),
-            unit_amount: Math.round(Number(booking.total_amount) * 100),
+            unit_amount: checkoutAmount,
             product_data: {
               name: `Booking ${booking.case_number || bookingId.slice(0, 8)}`,
-              description: `${booking.check_in} – ${booking.check_out} · ${booking.nights || ""} nætter`,
+              description: `${booking.check_in} - ${booking.check_out} · ${booking.nights || ""} nætter`,
             },
           },
           quantity: 1,
@@ -92,6 +103,16 @@ Deno.serve(async (req) => {
       })
       .eq("id", bookingId);
 
+    if (!session.url) {
+      return new Response(
+        JSON.stringify({ error: "Stripe did not return a checkout URL" }),
+        {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     return new Response(
       JSON.stringify({ url: session.url, sessionId: session.id }),
       {
@@ -99,10 +120,11 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (err: any) {
+  } catch (err) {
     console.error("Checkout error:", err);
+    const message = err instanceof Error ? err.message : String(err);
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: message }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

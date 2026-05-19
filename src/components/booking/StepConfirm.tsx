@@ -2,6 +2,7 @@ import { useBooking } from './BookingContext';
 import { BookingSummary } from './BookingSummary';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CreditCard, Loader2, AlertCircle, Shield, Home, Tag, CheckCircle2, ArrowRight } from 'lucide-react';
 import { formatDKK } from '@/lib/pricing';
 import { useEffect, useRef, useState } from 'react';
@@ -15,6 +16,8 @@ export const StepConfirm = () => {
   const didMountRef = useRef(false);
   const discountError = validationErrors.find((error) => error.field === 'discount_code');
   const hasDiscount = lineItems.some((item) => item.type === 'discount');
+  const depositAmount = Math.round(totalPrice * 0.3);
+  const remainingAmount = Math.max(0, totalPrice - depositAmount);
 
   useEffect(() => {
     if (!didMountRef.current) {
@@ -22,7 +25,7 @@ export const StepConfirm = () => {
       return;
     }
     if (state.checkIn && state.checkOut) fetchPricing();
-  }, [state.discountCode]);
+  }, [fetchPricing, state.checkIn, state.checkOut, state.discountCode]);
 
   const applyDiscount = () => {
     update({ discountCode: discountDraft.trim() });
@@ -157,10 +160,41 @@ export const StepConfirm = () => {
           </div>
           <p className="text-xs text-muted-foreground text-center">
             {totalPrice > 0 ? 'Du betaler' : 'Total efter rabat'}{' '}
-            <strong className="text-foreground">{formatDKK(totalPrice)}</strong>{' '}
-            {totalPrice > 0 ? 'i fuld betaling.' : '.'}
+            <strong className="text-foreground">{formatDKK(state.paymentOption === 'deposit' ? depositAmount : totalPrice)}</strong>{' '}
+            {totalPrice > 0 ? (state.paymentOption === 'deposit' ? 'nu.' : 'i fuld betaling.') : '.'}
           </p>
         </div>
+
+        {totalPrice > 0 && (
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <CreditCard className="h-4 w-4 text-primary" />
+              <h4 className="font-display text-sm font-semibold text-foreground uppercase tracking-wider">Betaling</h4>
+            </div>
+            <RadioGroup value={state.paymentOption} onValueChange={(value) => update({ paymentOption: value as 'full' | 'deposit' })} className="space-y-2">
+              <label className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <RadioGroupItem value="full" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Betal hele beløbet</p>
+                    <p className="text-xs text-muted-foreground">Ingen restbetaling senere</p>
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-foreground">{formatDKK(totalPrice)}</span>
+              </label>
+              <label className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <RadioGroupItem value="deposit" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Betal depositum</p>
+                    <p className="text-xs text-muted-foreground">Restbeløb: {formatDKK(remainingAmount)}</p>
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-foreground">{formatDKK(depositAmount)}</span>
+              </label>
+            </RadioGroup>
+          </div>
+        )}
 
         {submitError && (
           <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl flex items-start gap-3">
@@ -175,7 +209,7 @@ export const StepConfirm = () => {
           ) : totalPrice <= 0 ? (
             <><CheckCircle2 className="h-5 w-5" /> Bekræft booking</>
           ) : (
-            <><CreditCard className="h-5 w-5" /> Betal — {formatDKK(totalPrice)}</>
+            <><CreditCard className="h-5 w-5" /> Betal — {formatDKK(state.paymentOption === 'deposit' ? depositAmount : totalPrice)}</>
           )}
         </Button>
 

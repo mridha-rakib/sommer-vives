@@ -9,6 +9,7 @@ const corsHeaders = {
 
 const WEEKEND_MULTIPLIER = 1.25;
 const HOLD_MINUTES = 30;
+const SOURCE_CHANNELS = new Set(["direct", "airbnb", "booking_com", "vrbo", "other"]);
 
 interface SeasonRule {
   id: string; listing_id: string; name: string;
@@ -28,18 +29,100 @@ interface DiscountRule {
   discount_type: string; discount_value: number; min_nights: number; max_nights: number | null;
   is_active: boolean; combinable_with_codes: boolean; sort_order: number;
   starts_at: string | null; ends_at: string | null;
+  min_days_before_checkin: number | null; max_days_before_checkin: number | null;
+}
+
+interface AddOn {
+  id: string;
+  name: string;
+  price: number;
+  price_type: string;
+}
+
+interface FeeRule {
+  name: string;
+  fee_type: string;
+  amount: number;
+  is_mandatory: boolean;
+  applies_to_channels: string[] | null;
+  condition_min_nights: number | null;
+  condition_max_nights: number | null;
+}
+
+interface BookingLineItem {
+  booking_id: string;
+  item_type: "night" | "fee" | "addon" | "discount";
+  label: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
+interface StripeCheckoutLineItem {
+  price_data: {
+    currency: string;
+    product_data: {
+      name: string;
+      description?: string;
+    };
+    unit_amount: number;
+  };
+  quantity: number;
+}
+
+type JsonRecord = Record<string, unknown>;
+
+async function triggerAutomationEvent(event: string, eventId: string, payload: JsonRecord) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) return;
+
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/execute-automations`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({ event, eventId, payload }),
+    });
+
+    if (!response.ok) {
+      console.error(`[CREATE-BOOKING] Automation event ${event} failed: ${await response.text()}`);
+    }
+  } catch (error) {
+    console.error(`[CREATE-BOOKING] Automation event ${event} failed:`, error);
+  }
 }
 
 function normalizeCode(code: unknown): string {
   return String(code || "").trim().toLowerCase();
 }
 
-function isDiscountEligible(rule: DiscountRule, nights: number, now: Date): boolean {
+function normalizeSourceChannel(channel: unknown): string {
+  const value = String(channel || "direct").trim().toLowerCase();
+  return SOURCE_CHANNELS.has(value) ? value : "direct";
+}
+
+function appliesToChannel(channels: string[] | null | undefined, sourceChannel: string): boolean {
+  if (!channels || channels.length === 0) return true;
+  return channels.includes(sourceChannel);
+}
+
+function getDaysBeforeCheckin(checkIn: Date, now: Date): number {
+  const checkInDay = Date.UTC(checkIn.getUTCFullYear(), checkIn.getUTCMonth(), checkIn.getUTCDate());
+  const nowDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((checkInDay - nowDay) / (24 * 60 * 60 * 1000));
+}
+
+function isDiscountEligible(rule: DiscountRule, nights: number, now: Date, daysBeforeCheckin: number): boolean {
   if (!rule.is_active) return false;
   if (nights < rule.min_nights) return false;
   if (rule.max_nights !== null && nights > rule.max_nights) return false;
   if (rule.starts_at && new Date(rule.starts_at) > now) return false;
   if (rule.ends_at && new Date(rule.ends_at) < now) return false;
+  if (rule.min_days_before_checkin !== null && daysBeforeCheckin < rule.min_days_before_checkin) return false;
+  if (rule.max_days_before_checkin !== null && daysBeforeCheckin > rule.max_days_before_checkin) return false;
   return true;
 }
 
@@ -49,6 +132,22 @@ function calculateDiscount(rule: DiscountRule, subtotal: number): number {
     ? Math.round(rule.discount_value)
     : Math.round(subtotal * (rule.discount_value / 100));
   return Math.max(0, Math.min(raw, subtotal));
+}
+
+function calculateFeeAmount(
+  fee: FeeRule,
+  nights: number,
+  guestCount: number,
+  petCount: number,
+  percentageBase: number
+): number {
+  switch (fee.fee_type) {
+    case "per_night": return fee.amount * nights;
+    case "per_guest": return fee.amount * guestCount;
+    case "per_pet": return fee.amount * petCount;
+    case "percentage": return Math.round(percentageBase * ((fee.amount / 100) / 100));
+    default: return fee.amount;
+  }
 }
 
 function isDateInSeason(date: Date, rule: SeasonRule): boolean {
@@ -84,8 +183,9 @@ Deno.serve(async (req) => {
   }
 
   const body = await req.json();
-  const { listing_id, start_date, end_date, guest_name, guest_email, guest_phone, guest_message, guests, selected_addon_ids, discount_code, source } = body;
+  const { listing_id, start_date, end_date, guest_name, guest_email, guest_phone, guest_message, guests, pets, selected_addon_ids, discount_code, source, source_channel, channel, payment_option, deposit_amount } = body;
   const bookingSource = source || "direct";
+  const bookingChannel = normalizeSourceChannel(source_channel || channel || bookingSource);
   const requestedDiscountCode = normalizeCode(discount_code);
 
   if (!listing_id || !start_date || !end_date || !guest_name || !guest_email) {
@@ -145,8 +245,8 @@ Deno.serve(async (req) => {
 
   const seasonRules = (seasonRes.data || []) as SeasonRule[];
   const dailyOverrides = (overrideRes.data || []) as DailyOverride[];
-  const addOns = addOnRes.data || [];
-  const feeRules = feeRes.data || [];
+  const addOns = (addOnRes.data || []) as AddOn[];
+  const feeRules = (feeRes.data || []) as FeeRule[];
   const discountRules = (discountRes.data || []) as DiscountRule[];
 
   const cursor = new Date(start_date + "T12:00:00Z");
@@ -162,43 +262,43 @@ Deno.serve(async (req) => {
   }
 
   const nights = nightLineItems.length;
-  const guestCount = guests || 1;
-
-  // Fees
-  const feeItems: { name: string; amount: number; fee_type: string }[] = [];
-  let feeTotal = 0;
-  for (const fee of feeRules) {
-    if (!(fee as any).is_mandatory) continue;
-    if ((fee as any).condition_min_nights !== null && nights < (fee as any).condition_min_nights) continue;
-    if ((fee as any).condition_max_nights !== null && nights > (fee as any).condition_max_nights) continue;
-    let amount: number;
-    switch ((fee as any).fee_type) {
-      case "per_night": amount = (fee as any).amount * nights; break;
-      case "per_guest": amount = (fee as any).amount * guestCount; break;
-      default: amount = (fee as any).amount;
-    }
-    if (amount > 0) { feeItems.push({ name: (fee as any).name, amount, fee_type: (fee as any).fee_type }); feeTotal += amount; }
-  }
+  const guestCount = Math.max(1, Number(guests || 1));
+  const petCount = Math.max(0, Number(pets || 0));
 
   // Add-ons
   const selIds: string[] = selected_addon_ids || [];
   const addonItems: { addon_id: string; name: string; unit_price: number; quantity: number; total: number }[] = [];
   let addonTotal = 0;
   for (const ao of addOns) {
-    if (!selIds.includes((ao as any).id)) continue;
+    if (!selIds.includes(ao.id)) continue;
     let qty = 1, total: number;
-    switch ((ao as any).price_type) {
-      case "per_guest": qty = guestCount; total = (ao as any).price * qty; break;
-      case "per_night": qty = nights; total = (ao as any).price * qty; break;
-      default: total = (ao as any).price;
+    switch (ao.price_type) {
+      case "per_guest": qty = guestCount; total = ao.price * qty; break;
+      case "per_night": qty = nights; total = ao.price * qty; break;
+      default: total = ao.price;
     }
-    addonItems.push({ addon_id: (ao as any).id, name: (ao as any).name, unit_price: (ao as any).price, quantity: qty, total });
+    addonItems.push({ addon_id: ao.id, name: ao.name, unit_price: ao.price, quantity: qty, total });
     addonTotal += total;
+  }
+
+  // Fees
+  const feePercentageBase = nightTotal + addonTotal;
+  const feeItems: { name: string; amount: number; fee_type: string }[] = [];
+  let feeTotal = 0;
+  for (const fee of feeRules) {
+    if (!fee.is_mandatory) continue;
+    if (!appliesToChannel(fee.applies_to_channels, bookingChannel)) continue;
+    if (fee.condition_min_nights !== null && nights < fee.condition_min_nights) continue;
+    if (fee.condition_max_nights !== null && nights > fee.condition_max_nights) continue;
+    const amount = calculateFeeAmount(fee, nights, guestCount, petCount, feePercentageBase);
+    if (amount > 0) { feeItems.push({ name: fee.name, amount, fee_type: fee.fee_type }); feeTotal += amount; }
   }
 
   const subtotal = nightTotal + feeTotal + addonTotal;
   const now = new Date();
-  const eligibleRules = discountRules.filter(rule => isDiscountEligible(rule, nights, now));
+  const checkInDate = new Date(start_date + "T12:00:00Z");
+  const daysBeforeCheckin = getDaysBeforeCheckin(checkInDate, now);
+  const eligibleRules = discountRules.filter(rule => isDiscountEligible(rule, nights, now, daysBeforeCheckin));
   const automaticCandidates = eligibleRules.filter(rule => !rule.code && (!requestedDiscountCode || rule.combinable_with_codes));
   const automaticDiscount = automaticCandidates
     .map(rule => ({ rule, amount: calculateDiscount(rule, subtotal) }))
@@ -211,7 +311,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Rabatkoden findes ikke." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    if (!isDiscountEligible(matchingRule, nights, now)) {
+    if (!isDiscountEligible(matchingRule, nights, now, daysBeforeCheckin)) {
       return new Response(JSON.stringify({ error: "Rabatkoden gælder ikke for dette ophold." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -221,6 +321,14 @@ Deno.serve(async (req) => {
   const discounts = [automaticDiscount, codeDiscount].filter(Boolean) as { rule: DiscountRule; amount: number }[];
   const discountTotal = discounts.reduce((sum, item) => sum + item.amount, 0);
   const totalPrice = Math.max(0, subtotal - discountTotal);
+  const ownerPayout = Math.round(totalPrice * 0.85);
+  const platformEarnings = Math.max(0, totalPrice - ownerPayout);
+  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+
+  if (bookingSource !== "manual" && totalPrice > 0 && !stripeKey) {
+    return new Response(JSON.stringify({ error: "Stripe not configured" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
 
   // Upsert guest
   let guestId: string | null = null;
@@ -255,7 +363,10 @@ Deno.serve(async (req) => {
       cleaning_fee: 0,
       service_fee: feeTotal,
       total_amount: totalPrice,
-      source_channel: bookingSource === "manual" ? "direct" : "direct",
+      platform_fee_percent: 15,
+      platform_earnings: platformEarnings,
+      owner_payout: ownerPayout,
+      source_channel: bookingChannel,
       status: bookingSource === "manual" ? "confirmed" : "pending",
       payment_status: bookingSource === "manual" ? "manual" : "pending",
       amount_paid: bookingSource === "manual" ? totalPrice : 0,
@@ -271,12 +382,34 @@ Deno.serve(async (req) => {
   }
 
   // Save line items
-  const lineItems: any[] = [];
+  const lineItems: BookingLineItem[] = [];
   lineItems.push({ booking_id: booking.id, item_type: "night", label: `Ophold (${nights} nætter)`, quantity: nights, unit_price: Math.round(nightTotal / nights), total: nightTotal });
   for (const fi of feeItems) lineItems.push({ booking_id: booking.id, item_type: "fee", label: fi.name, quantity: 1, unit_price: fi.amount, total: fi.amount });
   for (const ai of addonItems) lineItems.push({ booking_id: booking.id, item_type: "addon", label: ai.name, quantity: ai.quantity, unit_price: ai.unit_price, total: ai.total });
   for (const d of discounts) lineItems.push({ booking_id: booking.id, item_type: "discount", label: d.rule.name, quantity: 1, unit_price: -d.amount, total: -d.amount });
   if (lineItems.length > 0) await supabase.from("booking_line_items").insert(lineItems);
+
+  const automationPayload = {
+    linked_type: "booking",
+    linked_id: booking.id,
+    booking_id: booking.id,
+    listing_id: listing.id,
+    property_id: listing.id,
+    owner_id: listing.owner_id,
+    guest_name,
+    guest_email,
+    guest_phone: guest_phone || null,
+    house_name: listing.name,
+    check_in: start_date,
+    check_out: end_date,
+    start_date,
+    end_date,
+    guests: guestCount,
+    nights,
+    total_amount: totalPrice,
+    source_channel: bookingChannel,
+    link: `/admin/sager/${listing.id}`,
+  };
 
   // Manual or fully discounted bookings: done without Stripe.
   if (bookingSource === "manual" || totalPrice <= 0) {
@@ -288,6 +421,30 @@ Deno.serve(async (req) => {
       amount_paid: totalPrice,
       amount_remaining: 0,
     }).eq("id", booking.id).select().single();
+
+    const { data: existingBlock } = await supabase
+      .from("listing_blocks")
+      .select("id")
+      .eq("external_uid", `booking-${booking.id}`)
+      .maybeSingle();
+    if (!existingBlock) {
+      await supabase.from("listing_blocks").insert({
+        listing_id: listing.id,
+        owner_id: listing.owner_id,
+        start_date,
+        end_date,
+        source: bookingSource === "manual" ? "manual_booking" : "direct_booking",
+        external_uid: `booking-${booking.id}`,
+        summary: "Booking bekræftet",
+      });
+    }
+
+    await triggerAutomationEvent("booking_created", `booking_created:${booking.id}`, automationPayload);
+    await triggerAutomationEvent("booking_confirmed", `booking_confirmed:${booking.id}`, {
+      ...automationPayload,
+      status: finalStatus,
+      payment_status: finalPaymentStatus,
+    });
 
     return new Response(JSON.stringify({ success: true, booking: finalBooking || booking, total_price: totalPrice, payment_required: false }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -304,11 +461,27 @@ Deno.serve(async (req) => {
 
   // Create Stripe Checkout Session
   try {
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
-    const origin = req.headers.get("origin") || "https://sommerdroem.lovable.app";
+    const stripe = new Stripe(stripeKey!, { apiVersion: "2025-08-27.basil" });
+    const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || Deno.env.get("VITE_SITE_URL") || "https://sommervibes.dk";
+    const requestedDeposit = Math.round(Number(deposit_amount || 0));
+    const checkoutAmount = payment_option === "deposit"
+      ? Math.min(totalPrice, Math.max(1, requestedDeposit || Math.round(totalPrice * 0.3)))
+      : totalPrice;
 
-    const stripeLineItems: any[] = [];
-    if (discountTotal > 0) {
+    const stripeLineItems: StripeCheckoutLineItem[] = [];
+    if (checkoutAmount < totalPrice) {
+      stripeLineItems.push({
+        price_data: {
+          currency: "dkk",
+          product_data: {
+            name: `${listing.name} — depositum`,
+            description: `${start_date} → ${end_date} · restbeløb betales senere`,
+          },
+          unit_amount: checkoutAmount,
+        },
+        quantity: 1,
+      });
+    } else if (discountTotal > 0) {
       stripeLineItems.push({
         price_data: {
           currency: "dkk",
@@ -341,15 +514,34 @@ Deno.serve(async (req) => {
       customer_email: guest_email,
       line_items: stripeLineItems,
       mode: "payment",
+      client_reference_id: booking.id,
       expires_at: Math.floor(Date.now() / 1000) + HOLD_MINUTES * 60,
       success_url: `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}`,
       cancel_url: `${origin}/booking-cancelled?booking_id=${booking.id}`,
-      metadata: { booking_id: booking.id, listing_id, hold_token: holdToken, discount_code: requestedDiscountCode || "" },
+      metadata: {
+        booking_id: booking.id,
+        listing_id,
+        source: "direct_booking",
+        hold_token: holdToken,
+        discount_code: requestedDiscountCode || "",
+        payment_kind: checkoutAmount < totalPrice ? "deposit" : "full",
+        outstanding_after_checkout: String(Math.max(0, totalPrice - checkoutAmount)),
+      },
     });
 
-    await supabase.from("bookings").update({ stripe_session_id: session.id }).eq("id", booking.id);
+    if (!session.url) {
+      throw new Error("Stripe did not return a checkout URL");
+    }
 
-    return new Response(JSON.stringify({ success: true, booking, checkout_url: session.url, total_price: totalPrice }),
+    await supabase.from("bookings").update({ stripe_session_id: session.id }).eq("id", booking.id);
+    await triggerAutomationEvent("booking_created", `booking_created:${booking.id}`, {
+      ...automationPayload,
+      stripe_session_id: session.id,
+      checkout_amount: checkoutAmount,
+      payment_status: "pending",
+    });
+
+    return new Response(JSON.stringify({ success: true, booking, checkout_url: session.url, total_price: totalPrice, checkout_amount: checkoutAmount }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (stripeError) {
     await supabase.from("availability_holds").update({ released: true }).eq("hold_token", holdToken);

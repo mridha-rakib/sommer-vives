@@ -7,7 +7,8 @@ const corsHeaders = {
 interface LineItem { label: string; quantity: number; unit_price: number; total: number; item_type: string; }
 
 function formatDKK(øre: number): string {
-  return (øre / 100).toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const amount = Number.isFinite(Number(øre)) ? Number(øre) : 0;
+  return (amount / 100).toLocaleString("da-DK", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
 function formatDate(dateStr: string): string {
@@ -15,35 +16,63 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString("da-DK", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function isEmail(value: unknown): value is string {
+  return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function json(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "POST required" }, 405);
 
   const body = await req.json();
   const { to, guest_name, house_name, start_date, end_date, guests, total_price, booking_id, line_items, check_in_time, check_out_time, address } = body;
 
-  if (!to || !guest_name || !house_name) {
-    return new Response(JSON.stringify({ error: "Missing required fields" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (!isEmail(to) || !guest_name || !house_name || !start_date || !end_date) {
+    return json({ error: "Missing or invalid required fields" }, 400);
   }
 
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (!resendKey) {
     console.error("[EMAIL] RESEND_API_KEY not configured");
-    return new Response(JSON.stringify({ error: "Email service not configured" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ error: "Email service not configured" }, 500);
   }
 
-  const items: LineItem[] = line_items || [];
+  const fromEmail = Deno.env.get("RESEND_FROM_EMAIL");
+  if (!fromEmail) {
+    console.error("[EMAIL] RESEND_FROM_EMAIL not configured");
+    return json({ error: "Email sender not configured" }, 500);
+  }
+
+  const items: LineItem[] = Array.isArray(line_items) ? line_items : [];
   const lineItemsHtml = items.map((item: LineItem) => `
     <tr>
-      <td style="color:#6b7c6e;padding:6px 0;font-size:13px;">${item.label}</td>
+      <td style="color:#6b7c6e;padding:6px 0;font-size:13px;">${escapeHtml(item.label)}</td>
       <td style="color:#1a3a2a;text-align:right;padding:6px 0;font-size:13px;">${formatDKK(item.total)} kr.</td>
     </tr>
   `).join("");
 
-  const shortId = booking_id ? booking_id.slice(0, 8).toUpperCase() : "—";
-  const totalFormatted = total_price ? formatDKK(total_price) : "—";
-  const siteUrl = "https://sommerdroem.lovable.app";
+  const safeGuestName = escapeHtml(guest_name);
+  const safeHouseName = escapeHtml(house_name);
+  const safeAddress = escapeHtml(address || "Se booking-detaljer");
+  const shortId = booking_id ? escapeHtml(String(booking_id).slice(0, 8).toUpperCase()) : "-";
+  const totalFormatted = total_price === undefined || total_price === null ? "-" : formatDKK(total_price);
+  const siteUrl = (Deno.env.get("SITE_URL") || Deno.env.get("VITE_SITE_URL") || "https://sommervibes.dk").replace(/\/+$/, "");
 
   const emailHtml = `
 <!DOCTYPE html>
@@ -61,7 +90,7 @@ Deno.serve(async (req) => {
       <div style="background:#1a3a2a;padding:24px;text-align:center;">
         <div style="font-size:24px;margin-bottom:8px;">✓</div>
         <h2 style="color:#e8dcc8;font-size:22px;margin:0 0 4px;font-weight:600;">Booking bekræftet</h2>
-        <p style="color:#8a9e8f;margin:0;font-size:13px;">Tak, ${guest_name}! Din booking er bekræftet og betalt.</p>
+        <p style="color:#8a9e8f;margin:0;font-size:13px;">Tak, ${safeGuestName}! Din booking er bekræftet og betalt.</p>
       </div>
 
       <div style="padding:24px;">
@@ -71,7 +100,7 @@ Deno.serve(async (req) => {
         </div>
 
         <table style="width:100%;font-size:14px;border-collapse:collapse;">
-          <tr><td style="color:#6b7c6e;padding:10px 0;border-bottom:1px solid #e8e4dc;">Sommerhus</td><td style="color:#1a3a2a;text-align:right;padding:10px 0;font-weight:600;border-bottom:1px solid #e8e4dc;">${house_name}</td></tr>
+          <tr><td style="color:#6b7c6e;padding:10px 0;border-bottom:1px solid #e8e4dc;">Sommerhus</td><td style="color:#1a3a2a;text-align:right;padding:10px 0;font-weight:600;border-bottom:1px solid #e8e4dc;">${safeHouseName}</td></tr>
           <tr><td style="color:#6b7c6e;padding:10px 0;border-bottom:1px solid #e8e4dc;">Ankomst</td><td style="color:#1a3a2a;text-align:right;padding:10px 0;border-bottom:1px solid #e8e4dc;">${formatDate(start_date)}</td></tr>
           <tr><td style="color:#6b7c6e;padding:10px 0;border-bottom:1px solid #e8e4dc;">Afrejse</td><td style="color:#1a3a2a;text-align:right;padding:10px 0;border-bottom:1px solid #e8e4dc;">${formatDate(end_date)}</td></tr>
           <tr><td style="color:#6b7c6e;padding:10px 0;border-bottom:1px solid #e8e4dc;">Gæster</td><td style="color:#1a3a2a;text-align:right;padding:10px 0;border-bottom:1px solid #e8e4dc;">${guests}</td></tr>
@@ -97,7 +126,7 @@ Deno.serve(async (req) => {
       <table style="width:100%;font-size:13px;border-collapse:collapse;">
         <tr><td style="color:#6b7c6e;padding:6px 0;width:100px;">Check-in</td><td style="color:#1a3a2a;padding:6px 0;font-weight:600;">Kl. ${check_in_time || "15:00"}</td></tr>
         <tr><td style="color:#6b7c6e;padding:6px 0;">Check-out</td><td style="color:#1a3a2a;padding:6px 0;font-weight:600;">Kl. ${check_out_time || "10:00"}</td></tr>
-        <tr><td style="color:#6b7c6e;padding:6px 0;">Adresse</td><td style="color:#1a3a2a;padding:6px 0;font-weight:600;">${address || "Se booking-detaljer"}</td></tr>
+        <tr><td style="color:#6b7c6e;padding:6px 0;">Adresse</td><td style="color:#1a3a2a;padding:6px 0;font-weight:600;">${safeAddress}</td></tr>
         <tr><td style="color:#6b7c6e;padding:6px 0;">Kontakt</td><td style="color:#1a3a2a;padding:6px 0;font-weight:600;">kontakt@sommervibes.dk</td></tr>
       </table>
     </div>
@@ -121,24 +150,30 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendKey}` },
       body: JSON.stringify({
-        from: "SommerVibes <onboarding@resend.dev>",
+        from: fromEmail,
         to: [to],
-        subject: `Booking bekræftet — ${house_name} · Ref. ${shortId} ☀️`,
+        subject: `Booking bekræftet - ${house_name} · Ref. ${shortId} ☀️`,
         html: emailHtml,
+        text: [
+          `Booking bekræftet - ${house_name}`,
+          `Reference: ${booking_id ? String(booking_id).slice(0, 8).toUpperCase() : "-"}`,
+          `Ankomst: ${formatDate(start_date)}`,
+          `Afrejse: ${formatDate(end_date)}`,
+          `Gæster: ${guests || 1}`,
+          `Total betalt: ${totalFormatted} kr.`,
+          `Se mere på ${siteUrl}`,
+        ].join("\n"),
       }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       console.error("[EMAIL] Resend error:", JSON.stringify(data));
-      return new Response(JSON.stringify({ error: data.message || "Email sending failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return json({ error: data.message || "Email sending failed" }, 500);
     }
     console.log(`[EMAIL] Sent to ${to}, id: ${data.id}`);
-    return new Response(JSON.stringify({ success: true, email_id: data.id }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ success: true, email_id: data.id });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ error: msg }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return json({ error: msg }, 500);
   }
 });

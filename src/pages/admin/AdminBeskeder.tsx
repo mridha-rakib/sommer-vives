@@ -13,10 +13,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import {
   MessageSquare, UserCheck, User, Bot, Search, Send,
-  Mail, ChevronRight, Circle, Loader2, X, CheckCheck,
+  Mail, ChevronRight, Circle, Loader2, X, CheckCheck, Paperclip,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { devLog } from '@/lib/devLog';
+import { ChatAttachment } from '@/components/chat/ChatAttachment';
+import { notifyChatPush, uploadChatAttachment } from '@/lib/chatAttachments';
+import { useChatTyping } from '@/hooks/useChatTyping';
 
 const rtLog = devLog('chat:realtime');
 const arLog = devLog('chat:auto-read');
@@ -36,6 +39,10 @@ type Msg = {
   booking_id: string | null;
   created_at: string;
   is_read: boolean | null;
+  attachment_url: string | null;
+  attachment_name: string | null;
+  attachment_type: string | null;
+  attachment_size: number | null;
 };
 
 type Thread = {
@@ -47,6 +54,22 @@ type Thread = {
   messages: Msg[];
   lastMessageAt: string;
   unread: number;
+};
+
+type ProfileInfo = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+};
+
+type RoleRow = {
+  user_id: string;
+  role: string;
+};
+
+type ChatRealtimePayload = {
+  new?: Msg;
+  old?: Msg;
 };
 
 const TAB_CFG: Record<ThreadTab, { label: string; icon: React.ElementType }> = {
@@ -88,7 +111,7 @@ const PAGE_SIZE = 200;
 export default function AdminBeskeder() {
   const { user } = useAuth();
   const [allMessages, setAllMessages] = useState<Msg[]>([]);
-  const [profilesMap, setProfilesMap] = useState<Record<string, any>>({});
+  const [profilesMap, setProfilesMap] = useState<Record<string, ProfileInfo>>({});
   const [roleMap, setRoleMap] = useState<Record<string, ParticipantRole>>({});
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -98,6 +121,7 @@ export default function AdminBeskeder() {
   const [tab, setTab] = useState<ThreadTab>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reply, setReply] = useState('');
+  const [replyFile, setReplyFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const [markingRead, setMarkingRead] = useState(false);
   // Transient indicator: set when we successfully clear unread in the open thread
@@ -108,6 +132,7 @@ export default function AdminBeskeder() {
   useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Keyboard shortcut: "/" focuses search, "Esc" clears it
   useEffect(() => {
@@ -136,12 +161,12 @@ export default function AdminBeskeder() {
     ]);
     setProfilesMap(prev => {
       const next = { ...prev };
-      (profs || []).forEach((p: any) => { next[p.id] = p; });
+      ((profs || []) as ProfileInfo[]).forEach((p) => { next[p.id] = p; });
       return next;
     });
     setRoleMap(prev => {
       const next = { ...prev };
-      (roles || []).forEach((r: any) => {
+      ((roles || []) as RoleRow[]).forEach((r) => {
         if (r.role === 'owner' || r.role === 'guest') {
           if (!next[r.user_id] || r.role === 'owner') next[r.user_id] = r.role;
         }
@@ -155,7 +180,7 @@ export default function AdminBeskeder() {
     setLoading(true);
     const { data: msgs, count } = await supabase
       .from('chat_messages')
-      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read', { count: 'exact' })
+      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size', { count: 'exact' })
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE);
 
@@ -179,7 +204,7 @@ export default function AdminBeskeder() {
     const oldest = allMessages[0].created_at; // ascending → first is oldest
     const { data: msgs } = await supabase
       .from('chat_messages')
-      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read')
+      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size')
       .lt('created_at', oldest)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE);
@@ -197,7 +222,7 @@ export default function AdminBeskeder() {
   };
 
   // Apply realtime delta (insert / update / delete) without re-fetching everything
-  const applyRealtime = (event: 'INSERT' | 'UPDATE' | 'DELETE', payload: any) => {
+  const applyRealtime = (event: 'INSERT' | 'UPDATE' | 'DELETE', payload: ChatRealtimePayload) => {
     if (event === 'INSERT') {
       const m = payload.new as Msg;
       rtLog('INSERT', {
@@ -312,7 +337,7 @@ export default function AdminBeskeder() {
       // Header-level match (name / email)
       const headerHit = matches(t.participantName) || matches(t.participantEmail);
       // Message-level match (text or per-message sender_name)
-      const matchedMessage = t.messages.find(m => matches(m.message) || matches(m.sender_name));
+      const matchedMessage = t.messages.find(m => matches(m.message) || matches(m.sender_name) || matches(m.attachment_name));
 
       if (headerHit || matchedMessage) {
         acc.push({ ...t, matchedMessage: matchedMessage || undefined });
@@ -329,6 +354,12 @@ export default function AdminBeskeder() {
   }), [threads]);
 
   const selected = useMemo(() => threads.find(t => t.id === selectedId) || null, [threads, selectedId]);
+  const { signalTyping, typingLabel } = useChatTyping({
+    channelKey: selected?.id,
+    selfKey: user?.id,
+    selfName: 'SommerVibes Support',
+    selfRole: 'admin',
+  });
 
   // Track IDs we've already attempted, so retries don't loop forever per session
   const markReadAttemptsRef = useRef<Map<string, number>>(new Map());
@@ -346,7 +377,7 @@ export default function AdminBeskeder() {
       return prev.map(m => (ids.includes(m.id) ? { ...m, is_read: true } : m));
     });
 
-    let lastError: any = null;
+    let lastError: unknown = null;
     for (let attempt = 1; attempt <= MAX_MARK_READ_RETRIES; attempt++) {
       const { data, error } = await supabase
         .from('chat_messages')
@@ -480,23 +511,34 @@ export default function AdminBeskeder() {
   }, [selected?.messages.length]);
 
   const sendReply = async () => {
-    if (!selected || !reply.trim() || sending) return;
+    if (!selected || (!reply.trim() && !replyFile) || sending) return;
     if (!selected.participantId) {
       toast.error('Kan ikke svare — afsender mangler en bruger-id');
       return;
     }
     setSending(true);
-    const { error } = await supabase.from('chat_messages').insert({
+    let attachment = {};
+    try {
+      if (replyFile) attachment = await uploadChatAttachment(replyFile, selected.id);
+    } catch (err: unknown) {
+      setSending(false);
+      toast.error(err instanceof Error ? err.message : 'Kunne ikke uploade fil');
+      return;
+    }
+    const { data, error } = await supabase.from('chat_messages').insert({
       thread_type: 'support',
       sender_type: 'admin',
       sender_id: user?.id || null,
       sender_name: 'SommerVibes Support',
       recipient_id: selected.participantId,
       message: reply.trim(),
-    });
+      ...attachment,
+    }).select('id').single();
     setSending(false);
     if (error) { toast.error('Kunne ikke sende svar'); return; }
     setReply('');
+    setReplyFile(null);
+    notifyChatPush(data?.id);
     // Realtime subscription will append the new message automatically
   };
 
@@ -620,7 +662,7 @@ export default function AdminBeskeder() {
                       {!!t.matchedMessage && previewMsg.sender_type !== 'admin' && previewMsg.sender_name && (
                         <span className="font-medium">{previewMsg.sender_name}: </span>
                       )}
-                      <HighlightText text={previewMsg.message} query={normalizedQuery} />
+                      <HighlightText text={previewMsg.message || previewMsg.attachment_name || 'Vedhæftet fil'} query={normalizedQuery} />
                     </p>
                   </div>
                   <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
@@ -737,7 +779,13 @@ export default function AdminBeskeder() {
                               {new Date(m.created_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.message}</p>
+                          {m.message && <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.message}</p>}
+                          <ChatAttachment
+                            url={m.attachment_url}
+                            name={m.attachment_name}
+                            size={m.attachment_size}
+                            isOwn={isAdmin}
+                          />
                         </div>
                       </div>
                     );
@@ -745,17 +793,44 @@ export default function AdminBeskeder() {
                 </div>
 
                 <div className="px-6 py-4 border-t border-border/30 shrink-0">
+                  {typingLabel && (
+                    <p className="text-[11px] text-muted-foreground mb-2">{typingLabel} skriver...</p>
+                  )}
+                  {replyFile && (
+                    <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                      <span className="truncate">{replyFile.name}</span>
+                      <button type="button" onClick={() => setReplyFile(null)} className="shrink-0 hover:text-foreground">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                   <div className="flex gap-2">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={e => setReplyFile(e.target.files?.[0] || null)}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl h-[44px] w-[44px] px-0 shrink-0"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={!selected.participantId || sending}
+                    >
+                      <Paperclip className="w-4 h-4" />
+                    </Button>
                     <Textarea
                       placeholder={selected.participantId ? 'Skriv et svar...' : 'Kan ikke svare anonyme afsendere'}
                       value={reply}
                       disabled={!selected.participantId || sending}
-                      onChange={e => setReply(e.target.value)}
+                      onChange={e => { setReply(e.target.value); signalTyping(); }}
                       onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(); } }}
                       className="min-h-[44px] max-h-[120px] bg-muted/20 border-border/40 rounded-xl text-sm resize-none"
                       rows={1}
                     />
-                    <Button size="sm" className="rounded-xl h-[44px] px-4 shrink-0" onClick={sendReply} disabled={!reply.trim() || sending || !selected.participantId}>
+                    <Button size="sm" className="rounded-xl h-[44px] px-4 shrink-0" onClick={sendReply} disabled={(!reply.trim() && !replyFile) || sending || !selected.participantId}>
                       {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     </Button>
                   </div>

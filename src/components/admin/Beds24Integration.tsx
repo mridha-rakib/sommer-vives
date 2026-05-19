@@ -33,9 +33,18 @@ function mapSyncStatus(s: string | null): Beds24Status {
   return 'not_connected';
 }
 
+interface ListingBeds24State {
+  id: string;
+  sync_status: string | null;
+  external_property_id: string | null;
+  external_listing_id: string | null;
+  sync_error_message: string | null;
+  last_sync_at: string | null;
+}
+
 interface Props {
-  listing: any;
-  onUpdate: (data: any) => void;
+  listing: ListingBeds24State;
+  onUpdate: (data: Partial<ListingBeds24State> & { channel_manager_partner?: string }) => void;
 }
 
 export function Beds24Integration({ listing, onUpdate }: Props) {

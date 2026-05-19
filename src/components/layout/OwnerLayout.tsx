@@ -36,7 +36,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  const { notify, muted, setMuted } = useChatNotifications();
+  const { notify, muted, setMuted } = useChatNotifications(user?.id);
   const unreadMessages = useUserUnreadMessages(user?.id, {
     onIncoming: (m) => {
       // Toast even when on /owner/messages — small, non-intrusive

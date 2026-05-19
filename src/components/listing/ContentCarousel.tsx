@@ -49,7 +49,7 @@ function BodyText({ body, inView }: { body: string; inView?: boolean }) {
         const trimmed = line.trim();
         if (!trimmed) return null;
 
-        if (/^[•–\-]/.test(trimmed)) {
+        if (/^[•–-]/.test(trimmed)) {
           const idx = bulletIndex++;
           return (
             <motion.div
@@ -60,7 +60,7 @@ function BodyText({ body, inView }: { body: string; inView?: boolean }) {
               transition={{ duration: 0.35, delay: 0.15 + idx * 0.04, ease: 'easeOut' }}
             >
               <span className="text-primary/60 text-[5px] mt-[5px] shrink-0">◆</span>
-              <span>{trimmed.replace(/^[•–\-]\s*/, '')}</span>
+              <span>{trimmed.replace(/^[•–-]\s*/, '')}</span>
             </motion.div>
           );
         }

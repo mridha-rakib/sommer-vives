@@ -4,7 +4,7 @@ import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageCircle, Send, Loader2, Crown } from 'lucide-react';
+import { MessageCircle, Send, Loader2, Crown, Paperclip, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { da, de, enUS, nl } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -19,6 +19,13 @@ import {
   type OwnerMessage,
 } from '@/lib/owner-messages-api';
 import { useTranslation } from '@/lib/i18n';
+import { ChatAttachment } from '@/components/chat/ChatAttachment';
+import { notifyChatPush, uploadChatAttachment } from '@/lib/chatAttachments';
+import { useChatTyping } from '@/hooks/useChatTyping';
+
+function errorMessage(err: unknown) {
+  return err instanceof Error ? err.message : null;
+}
 
 export default function OwnerMessages() {
   const { user } = useAuth();
@@ -26,9 +33,17 @@ export default function OwnerMessages() {
   const [messages, setMessages] = useState<OwnerMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState('');
+  const [newFile, setNewFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const dateLocale = { da, en: enUS, de, nl }[language];
+  const { signalTyping, typingLabel } = useChatTyping({
+    channelKey: messages[0]?.thread_id || (user ? `user-${user.id}` : null),
+    selfKey: user?.id,
+    selfName: user?.user_metadata?.full_name || user?.email || 'Ejer',
+    selfRole: 'owner',
+  });
 
   useEffect(() => {
     if (!user) return;
@@ -60,25 +75,29 @@ export default function OwnerMessages() {
 
       const unreadIds = data.filter(isUnreadForOwner).map((message) => message.id);
       markOwnerMessagesRead(unreadIds).catch(() => {});
-    } catch (err: any) {
-      toast.error(err.message || t('owner.messages.toast.loadError'));
+    } catch (err: unknown) {
+      toast.error(errorMessage(err) || t('owner.messages.toast.loadError'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleSend = async () => {
-    if (!newMessage.trim() || !user) return;
+    if ((!newMessage.trim() && !newFile) || !user) return;
     setSending(true);
     try {
-      await sendOwnerMessage({
+      const attachment = newFile ? await uploadChatAttachment(newFile, `owner-${user.id}`) : null;
+      const data = await sendOwnerMessage({
         ownerId: user.id,
         senderName: user.user_metadata?.full_name || user.email,
         message: newMessage,
+        attachment,
       });
+      notifyChatPush(data?.id);
       setNewMessage('');
-    } catch (err: any) {
-      toast.error(err.message || t('owner.messages.toast.sendError'));
+      setNewFile(null);
+    } catch (err: unknown) {
+      toast.error(errorMessage(err) || t('owner.messages.toast.sendError'));
     } finally {
       setSending(false);
     }
@@ -132,7 +151,13 @@ export default function OwnerMessages() {
                             SommerVibes
                           </div>
                         )}
-                        <p className="text-sm leading-relaxed">{msg.message}</p>
+                        {msg.message && <p className="text-sm leading-relaxed">{msg.message}</p>}
+                        <ChatAttachment
+                          url={msg.attachment_url}
+                          name={msg.attachment_name}
+                          size={msg.attachment_size}
+                          isOwn={isOwner}
+                        />
                         <div className="text-[10px] mt-1.5 text-muted-foreground">
                           {msg.created_at ? format(new Date(msg.created_at), 'HH:mm', { locale: dateLocale }) : ''}
                         </div>
@@ -146,15 +171,42 @@ export default function OwnerMessages() {
 
             {/* Input */}
             <div className="p-4 border-t border-border/40 bg-muted/5">
+              {typingLabel && (
+                <p className="text-[11px] text-muted-foreground mb-2">{typingLabel} skriver...</p>
+              )}
+              {newFile && (
+                <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                  <span className="truncate">{newFile.name}</span>
+                  <button type="button" onClick={() => setNewFile(null)} className="shrink-0 hover:text-foreground">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
               <form onSubmit={e => { e.preventDefault(); handleSend(); }} className="flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  onChange={e => setNewFile(e.target.files?.[0] || null)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 rounded-xl"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                >
+                  <Paperclip className="w-4 h-4" />
+                </Button>
                 <Input
                   value={newMessage}
-                  onChange={e => setNewMessage(e.target.value)}
+                  onChange={e => { setNewMessage(e.target.value); signalTyping(); }}
                   placeholder={t('owner.messages.inputPlaceholder')}
                   className="flex-1 rounded-xl bg-card"
                   disabled={sending}
                 />
-                <Button type="submit" disabled={!newMessage.trim() || sending} size="icon" className="shrink-0 rounded-xl bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-background">
+                <Button type="submit" disabled={(!newMessage.trim() && !newFile) || sending} size="icon" className="shrink-0 rounded-xl bg-[hsl(var(--gold))] hover:bg-[hsl(var(--gold-dark))] text-background">
                   {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </Button>
               </form>

@@ -122,7 +122,7 @@ export default function OwnerCalendar() {
       .channel(`owner-calendar-${selectedProperty}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'availability_blocks', filter: `property_id=eq.${selectedProperty}` },
+        { event: '*', schema: 'public', table: 'listing_blocks', filter: `listing_id=eq.${selectedProperty}` },
         () => queryClient.invalidateQueries({ queryKey: ['availability-blocks', selectedProperty] }),
       )
       .on(

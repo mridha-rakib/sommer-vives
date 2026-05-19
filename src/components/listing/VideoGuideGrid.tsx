@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/lib/i18n';
 
 interface ListingVideo {
   id: string;
@@ -15,7 +16,24 @@ interface ListingVideo {
   video_type?: string | null;
 }
 
+const videoGuideCopy = {
+  da: {
+    eyebrow: 'Videoguides',
+    title: 'Alt er gjort nemt for dig',
+    subtitle: 'Se vores korte videoer og bliv klar til dit ophold på få minutter',
+    more: 'flere',
+  },
+  en: {
+    eyebrow: 'Video guides',
+    title: 'Everything is made easy for you',
+    subtitle: 'Watch our short videos and get ready for your stay in minutes',
+    more: 'more',
+  },
+};
+
 export function VideoGuideGrid({ videos: videosProp, listingId }: { videos?: ListingVideo[]; listingId?: string }) {
+  const { language } = useTranslation();
+  const copy = language === 'en' ? videoGuideCopy.en : videoGuideCopy.da;
   const [fetchedVideos, setFetchedVideos] = useState<ListingVideo[]>([]);
 
   useEffect(() => {
@@ -77,13 +95,13 @@ export function VideoGuideGrid({ videos: videosProp, listingId }: { videos?: Lis
             className="mb-5 lg:mb-6 text-center"
           >
             <span className="inline-block text-[11px] font-medium tracking-[0.2em] uppercase text-primary/80 mb-2">
-              Videoguides
+              {copy.eyebrow}
             </span>
             <h2 className="font-display text-2xl md:text-3xl font-semibold text-foreground mb-2">
-              Alt er gjort nemt for dig
+              {copy.title}
             </h2>
             <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto">
-              Se vores korte videoer og bliv klar til dit ophold på få minutter
+              {copy.subtitle}
             </p>
           </motion.div>
 
@@ -164,7 +182,7 @@ export function VideoGuideGrid({ videos: videosProp, listingId }: { videos?: Lis
                   <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
                 <span className="mt-2 text-[10px] text-muted-foreground/50 tracking-wide uppercase font-medium">
-                  {videos.length - (activePage + 1) * perPage} flere
+                  {videos.length - (activePage + 1) * perPage} {copy.more}
                 </span>
               </motion.button>
             )}

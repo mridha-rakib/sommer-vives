@@ -2,8 +2,9 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_BYPASS_AUTH, DEV_BYPASS_USER, DEV_BYPASS_ROLES } from '@/lib/devBypass';
+import type { Database } from '@/integrations/supabase/types';
 
-type UserRole = 'owner' | 'admin';
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +18,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isOwner: boolean;
+  isGuest: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -108,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: { full_name: fullName },
+        data: { full_name: fullName, account_type: 'owner' },
       },
     });
     return { error: error as Error | null };
@@ -127,14 +129,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRolesLoaded(true);
   };
 
-  const isAdmin = roles.includes('admin');
+  const isAdmin = roles.includes('admin') || roles.includes('super_admin');
   const isOwner = roles.includes('owner');
+  const isGuest = roles.includes('guest');
 
   return (
     <AuthContext.Provider value={{
       user, session, roles, loading, rolesLoaded,
       signIn, signUp, signInWithPassword, signOut,
-      isAdmin, isOwner,
+      isAdmin, isOwner, isGuest,
     }}>
       {children}
     </AuthContext.Provider>

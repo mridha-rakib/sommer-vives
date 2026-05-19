@@ -51,7 +51,7 @@ export function AdminGuestsPage() {
     if (error) toast({ title: 'Fejl ved hentning af gæster', description: error.message, variant: 'destructive' });
     setGuests((data || []) as Guest[]);
     setLoading(false);
-  }, []);
+  }, [toast]);
 
   useEffect(() => { fetchGuests(); }, [fetchGuests]);
 

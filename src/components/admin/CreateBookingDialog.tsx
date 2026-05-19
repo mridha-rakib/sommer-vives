@@ -35,6 +35,8 @@ interface CreateBookingDialogProps {
   onSuccess?: () => void;
 }
 
+type SourceChannel = 'direct' | 'airbnb' | 'booking_com' | 'vrbo' | 'other';
+
 export function CreateBookingDialog({ open, onOpenChange, onSuccess }: CreateBookingDialogProps) {
   const [loading, setLoading] = useState(false);
   const [properties, setProperties] = useState<Property[]>([]);
@@ -46,7 +48,7 @@ export function CreateBookingDialog({ open, onOpenChange, onSuccess }: CreateBoo
     check_in: '',
     check_out: '',
     guests_count: 2,
-    source_channel: 'direct' as const,
+    source_channel: 'direct' as SourceChannel,
     notes: '',
   });
 
@@ -214,7 +216,7 @@ export function CreateBookingDialog({ open, onOpenChange, onSuccess }: CreateBoo
             </div>
             <div>
               <Label>Kanal</Label>
-              <Select value={form.source_channel} onValueChange={(v: any) => setForm(f => ({ ...f, source_channel: v }))}>
+              <Select value={form.source_channel} onValueChange={(v) => setForm(f => ({ ...f, source_channel: v as SourceChannel }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

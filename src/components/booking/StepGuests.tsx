@@ -37,7 +37,7 @@ export const StepGuests = () => {
 
   useEffect(() => {
     if (state.checkIn && state.checkOut) fetchPricing();
-  }, [state.guests, state.pets]);
+  }, [fetchPricing, state.checkIn, state.checkOut, state.guests, state.pets]);
 
   return (
     <div className="space-y-8">

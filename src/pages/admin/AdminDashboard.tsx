@@ -33,6 +33,30 @@ const TASK_STATUS: Record<string, { label: string; variant: 'muted' | 'info' | '
   done: { label: 'Færdig', variant: 'success' },
 };
 
+function getPercentTrend(rows: any[], dateField: string, today: Date) {
+  const currentStart = new Date(today);
+  currentStart.setDate(currentStart.getDate() - 30);
+  const previousStart = new Date(today);
+  previousStart.setDate(previousStart.getDate() - 60);
+
+  const current = rows.filter(row => {
+    const value = row?.[dateField];
+    if (!value) return false;
+    const date = new Date(value);
+    return date >= currentStart && date <= today;
+  }).length;
+  const previous = rows.filter(row => {
+    const value = row?.[dateField];
+    if (!value) return false;
+    const date = new Date(value);
+    return date >= previousStart && date < currentStart;
+  }).length;
+
+  if (current === 0 && previous === 0) return undefined;
+  const value = previous === 0 ? 100 : Math.round(((current - previous) / previous) * 100);
+  return { value, positive: value >= 0 };
+}
+
 function SectionCard({ title, icon: Icon, linkTo, linkLabel, children, className }: {
   title: string; icon: React.ElementType; linkTo: string; linkLabel?: string;
   children: React.ReactNode; className?: string;
@@ -74,7 +98,9 @@ export default function AdminDashboard() {
   const [leads, setLeads] = useState<any[]>([]);
   const [allLeads, setAllLeads] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
+  const [allTasks, setAllTasks] = useState<any[]>([]);
   const [agreements, setAgreements] = useState<any[]>([]);
+  const [allAgreements, setAllAgreements] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [onboarding, setOnboarding] = useState<any[]>([]);
@@ -86,20 +112,24 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const load = async () => {
-      const [leadsRes, allLeadsRes, tasksRes, agreementsRes, msgCountRes, msgsRes, docsRes, onbRes] = await Promise.all([
+      const [leadsRes, allLeadsRes, tasksRes, allTasksRes, agreementsRes, allAgreementsRes, msgCountRes, msgsRes, docsRes, onbRes] = await Promise.all([
         supabase.from('leads').select('*').in('status', ['new', 'contacted']).order('created_at', { ascending: false }).limit(5),
-        supabase.from('leads').select('id, status'),
+        supabase.from('leads').select('id, status, created_at'),
         supabase.from('system_tasks' as any).select('*').neq('status', 'done').order('created_at', { ascending: false }).limit(8),
+        supabase.from('system_tasks' as any).select('id, status, priority, created_at').neq('status', 'done'),
         supabase.from('agreements').select('*').eq('status', 'signed').order('signed_at', { ascending: false }).limit(5),
+        supabase.from('agreements').select('id, status, signed_at, created_at').eq('status', 'signed'),
         supabase.from('chat_messages').select('id', { count: 'exact' }).eq('is_read', false),
         supabase.from('chat_messages').select('id, message, sender_name, sender_type, created_at').order('created_at', { ascending: false }).limit(5),
         supabase.from('documents').select('id, title, document_type, created_at').order('created_at', { ascending: false }).limit(5),
-        supabase.from('owner_onboarding').select('id, status, owner_id, current_step').neq('status', 'completed').limit(20),
+        supabase.from('owner_onboarding').select('id, status, owner_id, current_step, created_at').neq('status', 'completed'),
       ]);
       setLeads(leadsRes.data || []);
       setAllLeads(allLeadsRes.data || []);
       setTasks(tasksRes.data || []);
+      setAllTasks(allTasksRes.data || []);
       setAgreements(agreementsRes.data || []);
+      setAllAgreements(allAgreementsRes.data || []);
       setUnreadCount(msgCountRes.count || 0);
       setMessages(msgsRes.data || []);
       setDocuments(docsRes.data || []);
@@ -114,6 +144,12 @@ export default function AdminDashboard() {
     acc[l.status] = (acc[l.status] || 0) + 1;
     return acc;
   }, {});
+  const activeLeadCount = allLeads.filter(l => l.status === 'new' || l.status === 'contacted').length;
+  const urgentTaskCount = allTasks.filter(t => t.priority === 'urgent' || t.priority === 'high').length;
+  const leadTrend = getPercentTrend(allLeads.filter(l => l.status === 'new' || l.status === 'contacted'), 'created_at', today);
+  const taskTrend = getPercentTrend(allTasks, 'created_at', today);
+  const agreementTrend = getPercentTrend(allAgreements, 'signed_at', today);
+  const onboardingTrend = getPercentTrend(onboarding, 'created_at', today);
 
   const quickActions = [
     { label: 'Opret lead', href: '/admin/leads', icon: Target },
@@ -158,12 +194,12 @@ export default function AdminDashboard() {
             ))
           ) : (
             <>
-              <KPICard title="Nye leads" value={leads.length} icon={Target} variant="gold" subtitle="Aktive" />
-              <KPICard title="Aktive opgaver" value={tasks.length} icon={ListChecks} variant={tasks.length > 0 ? 'warning' : 'default'} />
-              <KPICard title="Haster" value={tasks.filter(t => t.priority === 'urgent' || t.priority === 'high').length} icon={Calendar} variant={tasks.filter(t => t.priority === 'urgent' || t.priority === 'high').length > 0 ? 'warning' : 'default'} />
+              <KPICard title="Nye leads" value={activeLeadCount} icon={Target} variant="gold" subtitle="30 dage" trend={leadTrend} />
+              <KPICard title="Aktive opgaver" value={allTasks.length} icon={ListChecks} variant={allTasks.length > 0 ? 'warning' : 'default'} subtitle="30 dage" trend={taskTrend} />
+              <KPICard title="Haster" value={urgentTaskCount} icon={Calendar} variant={urgentTaskCount > 0 ? 'warning' : 'default'} />
               <KPICard title="Nye beskeder" value={unreadCount} icon={MessageSquare} variant={unreadCount > 0 ? 'warning' : 'default'} />
-              <KPICard title="Nye aftaler" value={agreements.length} icon={FileSignature} variant="success" subtitle="Underskrevne" />
-              <KPICard title="Under klargøring" value={onboarding.length} icon={FolderOpen} variant="gold" />
+              <KPICard title="Nye aftaler" value={allAgreements.length} icon={FileSignature} variant="success" subtitle="30 dage" trend={agreementTrend} />
+              <KPICard title="Under klargøring" value={onboarding.length} icon={FolderOpen} variant="gold" subtitle="30 dage" trend={onboardingTrend} />
             </>
           )}
         </div>

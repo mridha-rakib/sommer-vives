@@ -12,6 +12,11 @@ import { da, de, enUS, nl } from 'date-fns/locale';
 import { useTranslation } from '@/lib/i18n';
 import { useQuery } from '@tanstack/react-query';
 import { getOwnerDashboard } from '@/lib/owner-dashboard-api';
+import { SmartNextSteps } from '@/components/owner/SmartNextSteps';
+import {
+  getOwnerTaskCompletion,
+  getOwnerTaskSignals,
+} from '@/lib/owner-tasks-api';
 
 export default function OwnerDashboard() {
   const { user } = useAuth();
@@ -27,6 +32,11 @@ export default function OwnerDashboard() {
   } = useQuery({
     queryKey: ['owner-dashboard', user?.id],
     queryFn: () => getOwnerDashboard(user!.id),
+    enabled: !!user?.id,
+  });
+  const { data: taskSignals } = useQuery({
+    queryKey: ['owner-task-signals', user?.id],
+    queryFn: () => getOwnerTaskSignals(user!.id),
     enabled: !!user?.id,
   });
 
@@ -53,13 +63,14 @@ export default function OwnerDashboard() {
   const shortDateFormat = language === 'en' ? 'MMM d' : 'd. MMM';
   const localeCode = language === 'da' ? 'da-DK' : language === 'de' ? 'de-DE' : language === 'nl' ? 'nl-NL' : 'en-US';
   const formatMoney = (amount: number) => {
-    const formatted = amount.toLocaleString(localeCode);
+    const formatted = (amount / 100).toLocaleString(localeCode);
     return language === 'da' ? `${formatted} kr` : `DKK ${formatted}`;
   };
   const formatDaysUntil = (days: number) =>
     (days === 1 ? t('owner.dashboard.daysUntilOne') : t('owner.dashboard.daysUntil')).replace('{count}', String(days));
 
   const firstName = ownerName.split(' ')[0] || t('owner.dashboard.defaultFirstName');
+  const taskCompletion = taskSignals ? getOwnerTaskCompletion(taskSignals) : null;
 
   if (isError) {
     return (
@@ -181,6 +192,17 @@ export default function OwnerDashboard() {
               </Link>
             </CardContent>
           </Card>
+        )}
+
+        {taskSignals && (
+          <SmartNextSteps
+            property={taskSignals.property}
+            onboarding={taskSignals.onboarding}
+            agreement={taskSignals.agreement}
+            listings={taskSignals.listings}
+            signals={taskSignals}
+            completion={taskCompletion}
+          />
         )}
 
         {/* ── Recent Bookings ── */}

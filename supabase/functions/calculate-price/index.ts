@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const WEEKEND_MULTIPLIER = 1.25;
 const DA_DAYS = ["Søndag", "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag"];
+const SOURCE_CHANNELS = new Set(["direct", "airbnb", "booking_com", "vrbo", "other"]);
 
 interface SeasonRule {
   id: string; listing_id: string; name: string;
@@ -31,6 +32,7 @@ interface FeeRule {
   id: string; name: string; description: string | null;
   amount: number; fee_type: string; is_mandatory: boolean; is_active: boolean;
   condition_min_nights: number | null; condition_max_nights: number | null;
+  applies_to_channels: string[] | null;
 }
 
 interface DiscountRule {
@@ -38,6 +40,7 @@ interface DiscountRule {
   discount_type: string; discount_value: number; min_nights: number; max_nights: number | null;
   is_active: boolean; combinable_with_codes: boolean; sort_order: number;
   starts_at: string | null; ends_at: string | null;
+  min_days_before_checkin: number | null; max_days_before_checkin: number | null;
 }
 
 interface ValidationError { code: string; message: string; field?: string; }
@@ -74,12 +77,30 @@ function normalizeCode(code: unknown): string {
   return String(code || "").trim().toLowerCase();
 }
 
-function isDiscountEligible(rule: DiscountRule, nights: number, now: Date): boolean {
+function normalizeSourceChannel(channel: unknown): string {
+  const value = String(channel || "direct").trim().toLowerCase();
+  return SOURCE_CHANNELS.has(value) ? value : "direct";
+}
+
+function appliesToChannel(channels: string[] | null | undefined, sourceChannel: string): boolean {
+  if (!channels || channels.length === 0) return true;
+  return channels.includes(sourceChannel);
+}
+
+function getDaysBeforeCheckin(checkIn: Date, now: Date): number {
+  const checkInDay = Date.UTC(checkIn.getUTCFullYear(), checkIn.getUTCMonth(), checkIn.getUTCDate());
+  const nowDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((checkInDay - nowDay) / (24 * 60 * 60 * 1000));
+}
+
+function isDiscountEligible(rule: DiscountRule, nights: number, now: Date, daysBeforeCheckin: number): boolean {
   if (!rule.is_active) return false;
   if (nights < rule.min_nights) return false;
   if (rule.max_nights !== null && nights > rule.max_nights) return false;
   if (rule.starts_at && new Date(rule.starts_at) > now) return false;
   if (rule.ends_at && new Date(rule.ends_at) < now) return false;
+  if (rule.min_days_before_checkin !== null && daysBeforeCheckin < rule.min_days_before_checkin) return false;
+  if (rule.max_days_before_checkin !== null && daysBeforeCheckin > rule.max_days_before_checkin) return false;
   return true;
 }
 
@@ -89,6 +110,22 @@ function calculateDiscount(rule: DiscountRule, subtotal: number): number {
     ? Math.round(rule.discount_value)
     : Math.round(subtotal * (rule.discount_value / 100));
   return Math.max(0, Math.min(raw, subtotal));
+}
+
+function calculateFeeAmount(
+  fee: FeeRule,
+  nights: number,
+  guestCount: number,
+  petCount: number,
+  percentageBase: number
+): number {
+  switch (fee.fee_type) {
+    case "per_night": return fee.amount * nights;
+    case "per_guest": return fee.amount * guestCount;
+    case "per_pet": return fee.amount * petCount;
+    case "percentage": return Math.round(percentageBase * ((fee.amount / 100) / 100));
+    default: return fee.amount;
+  }
 }
 
 function calcNightPrice(
@@ -168,8 +205,9 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { listing_id, start_date, end_date, guests, selected_addon_ids, discount_code } = body;
+    const { listing_id, start_date, end_date, guests, pets, selected_addon_ids, discount_code, source_channel, channel, source } = body;
     const requestedDiscountCode = normalizeCode(discount_code);
+    const requestedChannel = normalizeSourceChannel(source_channel || channel || source);
 
     if (!listing_id || !start_date || !end_date) {
       return new Response(
@@ -218,7 +256,8 @@ Deno.serve(async (req) => {
     }
 
     const nights = nightBreakdown.length;
-    const guestCount = guests || 1;
+    const guestCount = Math.max(1, Number(guests || 1));
+    const petCount = Math.max(0, Number(pets || 0));
 
     const checkInDate = new Date(start_date + "T12:00:00Z");
     const checkOutDate = new Date(end_date + "T12:00:00Z");
@@ -231,25 +270,6 @@ Deno.serve(async (req) => {
     const checkOutDays = activeSeason?.check_out_days || null;
 
     const validationErrors = validateBooking(checkInDate, checkOutDate, nights, minNights, checkInDays, checkOutDays, guestCount, listing.max_guests);
-
-    // Fees
-    const applicableFees: { id: string; name: string; amount: number; fee_type: string; description: string | null }[] = [];
-    let feeTotal = 0;
-    for (const fee of feeRules) {
-      if (!fee.is_mandatory) continue;
-      if (fee.condition_min_nights !== null && nights < fee.condition_min_nights) continue;
-      if (fee.condition_max_nights !== null && nights > fee.condition_max_nights) continue;
-      let amount: number;
-      switch (fee.fee_type) {
-        case "per_night": amount = fee.amount * nights; break;
-        case "per_guest": amount = fee.amount * guestCount; break;
-        default: amount = fee.amount;
-      }
-      if (amount > 0) {
-        applicableFees.push({ id: fee.id, name: fee.name, amount, fee_type: fee.fee_type, description: fee.description });
-        feeTotal += amount;
-      }
-    }
 
     // Add-ons
     const selectedAddonIds: string[] = selected_addon_ids || [];
@@ -267,9 +287,26 @@ Deno.serve(async (req) => {
       addonTotal += total;
     }
 
+    // Fees
+    const feePercentageBase = nightTotal + addonTotal;
+    const applicableFees: { id: string; name: string; amount: number; fee_type: string; description: string | null }[] = [];
+    let feeTotal = 0;
+    for (const fee of feeRules) {
+      if (!fee.is_mandatory) continue;
+      if (!appliesToChannel(fee.applies_to_channels, requestedChannel)) continue;
+      if (fee.condition_min_nights !== null && nights < fee.condition_min_nights) continue;
+      if (fee.condition_max_nights !== null && nights > fee.condition_max_nights) continue;
+      const amount = calculateFeeAmount(fee, nights, guestCount, petCount, feePercentageBase);
+      if (amount > 0) {
+        applicableFees.push({ id: fee.id, name: fee.name, amount, fee_type: fee.fee_type, description: fee.description });
+        feeTotal += amount;
+      }
+    }
+
     const subtotal = nightTotal + feeTotal + addonTotal;
     const now = new Date();
-    const eligibleRules = discountRules.filter(rule => isDiscountEligible(rule, nights, now));
+    const daysBeforeCheckin = getDaysBeforeCheckin(checkInDate, now);
+    const eligibleRules = discountRules.filter(rule => isDiscountEligible(rule, nights, now, daysBeforeCheckin));
     const automaticCandidates = eligibleRules.filter(rule => !rule.code && (!requestedDiscountCode || rule.combinable_with_codes));
     const automaticDiscount = automaticCandidates
       .map(rule => ({ rule, amount: calculateDiscount(rule, subtotal) }))
@@ -280,7 +317,7 @@ Deno.serve(async (req) => {
       const matchingRule = discountRules.find(rule => normalizeCode(rule.code) === requestedDiscountCode) || null;
       if (!matchingRule) {
         validationErrors.push({ code: "INVALID_DISCOUNT_CODE", message: "Rabatkoden findes ikke.", field: "discount_code" });
-      } else if (!isDiscountEligible(matchingRule, nights, now)) {
+      } else if (!isDiscountEligible(matchingRule, nights, now, daysBeforeCheckin)) {
         validationErrors.push({ code: "DISCOUNT_NOT_ELIGIBLE", message: "Rabatkoden gælder ikke for dette ophold.", field: "discount_code" });
       } else {
         codeDiscount = { rule: matchingRule, amount: calculateDiscount(matchingRule, subtotal) };
@@ -353,6 +390,7 @@ Deno.serve(async (req) => {
         })),
         discount_total: discountTotal,
         discount_code: requestedDiscountCode || null,
+        source_channel: requestedChannel,
         available_addons: addOns.map(a => ({ id: a.id, name: a.name, description: a.description, price: a.price, price_type: a.price_type })),
         line_items: lineItems, grand_total: grandTotal,
         currency: listing.currency || "DKK",

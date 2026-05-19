@@ -105,7 +105,7 @@ export default function OwnerBookings() {
   const shortDateFormat = language === 'en' ? 'MMM d' : 'd. MMM';
   const formatMoney = (amount: number | null | undefined) => {
     if (!amount) return '—';
-    const formatted = Number(amount).toLocaleString(localeCodes[language]);
+    const formatted = (Number(amount) / 100).toLocaleString(localeCodes[language]);
     return language === 'da' ? `${formatted} kr` : `DKK ${formatted}`;
   };
   const translateRegion = (value?: string | null) => {

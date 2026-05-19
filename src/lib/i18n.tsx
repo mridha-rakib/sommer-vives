@@ -2938,6 +2938,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('preferred-language', lang);
+    window.dispatchEvent(new Event('preferred-language-change'));
   };
 
   const t = (key: string): string => {

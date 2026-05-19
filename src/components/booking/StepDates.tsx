@@ -34,7 +34,7 @@ export const StepDates = () => {
       finally { setLoading(false); }
     };
     fetchAvailability();
-  }, [state.listing?.id]);
+  }, [state.listing]);
 
   const handleSelect = (r: DateRange | undefined) => {
     const checkIn = r?.from ?? null;
@@ -56,7 +56,7 @@ export const StepDates = () => {
 
   useEffect(() => {
     if (state.checkIn && state.checkOut && state.nights > 0) fetchPricing();
-  }, [state.checkIn, state.checkOut, state.nights, state.guests, state.pets]);
+  }, [fetchPricing, state.checkIn, state.checkOut, state.nights, state.guests, state.pets]);
 
   const today = new Date();
   const isDateBlocked = (date: Date): boolean => {

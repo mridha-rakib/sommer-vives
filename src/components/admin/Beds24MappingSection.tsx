@@ -9,7 +9,24 @@ interface MappingRow {
   required: boolean;
 }
 
-function buildMappingRows(listing: any): MappingRow[] {
+interface Beds24MappingListing {
+  name?: string | null;
+  description?: string | null;
+  long_description?: string | null;
+  max_guests?: number | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  amenities?: string[] | null;
+  images?: string[] | null;
+  base_price_per_night?: number | null;
+  min_nights?: number | null;
+  checkin_info?: string | null;
+  checkout_info?: string | null;
+  check_in_time?: string | null;
+  check_out_time?: string | null;
+}
+
+function buildMappingRows(listing: Beds24MappingListing): MappingRow[] {
   return [
     { internalField: 'Internt navn', beds24Field: 'propName', value: listing.name, required: true },
     { internalField: 'Offentlig titel', beds24Field: 'propName (public)', value: listing.name, required: true },
@@ -34,7 +51,7 @@ function isValid(row: MappingRow): boolean {
 }
 
 interface Props {
-  listing: any;
+  listing: Beds24MappingListing;
 }
 
 export function Beds24MappingSection({ listing }: Props) {

@@ -35,7 +35,7 @@ export default function GuestAuth() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/guest`, data: { full_name: name } },
+      options: { emailRedirectTo: `${window.location.origin}/guest`, data: { full_name: name, account_type: 'guest' } },
     });
     if (error) {
       toast.error(error.message);

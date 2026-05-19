@@ -194,6 +194,7 @@ export interface AgreementTemplate {
 
 export interface Agreement {
   id: string;
+  booking_id: string | null;
   owner_id: string;
   property_id: string | null;
   template_id: string | null;
@@ -286,6 +287,9 @@ export interface Payout {
   description: string | null;
   payout_date: string | null;
   stripe_payout_id: string | null;
+  stripe_transfer_id?: string | null;
+  executed_at?: string | null;
+  failure_reason?: string | null;
   created_at: string;
 }
 

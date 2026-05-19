@@ -81,7 +81,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('admin-sidebar-collapsed') === 'true');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const unreadMessages = useUnreadMessages();
-  const { notify, muted, setMuted } = useChatNotifications();
+  const { notify, muted, setMuted } = useChatNotifications(user?.id);
 
   // Global admin chat notification listener: ping + toast on any new
   // owner/guest support message, regardless of which admin page we are on.

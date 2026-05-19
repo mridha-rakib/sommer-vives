@@ -2,17 +2,19 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
-type AvailabilityBlockRow = Database['public']['Tables']['availability_blocks']['Row'];
-type PropertyRow = Database['public']['Tables']['properties']['Row'];
+type ListingBlockRow = Database['public']['Tables']['listing_blocks']['Row'];
+type ListingRow = Database['public']['Tables']['listings']['Row'];
 type BookingRow = Database['public']['Tables']['bookings']['Row'];
 
 export type OwnerCalendarBlockType = 'blocked' | 'personal' | 'maintenance';
-type AvailabilityBlockDbType = 'blocked' | 'booked' | 'maintenance';
 
-export type OwnerCalendarProperty = Pick<PropertyRow, 'id' | 'title'>;
+export type OwnerCalendarProperty = Pick<ListingRow, 'id'> & {
+  title: string;
+};
 
-export type OwnerCalendarBlock = Omit<AvailabilityBlockRow, 'block_type'> & {
+export type OwnerCalendarBlock = Pick<ListingBlockRow, 'id' | 'start_date' | 'end_date'> & {
   block_type: OwnerCalendarBlockType;
+  notes: string | null;
 };
 
 export type OwnerCalendarBooking = Pick<
@@ -30,38 +32,47 @@ export interface CreateOwnerCalendarBlockInput {
 
 const toDateKey = (date: Date) => format(date, 'yyyy-MM-dd');
 
-const toDbBlockType = (blockType: OwnerCalendarBlockType): AvailabilityBlockDbType => {
-  if (blockType === 'personal') return 'booked';
-  return blockType;
+const toListingBlockSource = (blockType: OwnerCalendarBlockType): string => {
+  if (blockType === 'personal') return 'owner_personal';
+  if (blockType === 'maintenance') return 'owner_maintenance';
+  return 'owner_block';
 };
 
-export const toUiBlockType = (blockType: string | null): OwnerCalendarBlockType => {
-  if (blockType === 'booked') return 'personal';
-  if (blockType === 'maintenance') return 'maintenance';
+export const toUiBlockType = (source: string | null, reason: string | null): OwnerCalendarBlockType => {
+  const value = reason || source;
+  if (value === 'personal' || value === 'owner_personal') return 'personal';
+  if (value === 'maintenance' || value === 'owner_maintenance') return 'maintenance';
   return 'blocked';
 };
 
-const normalizeBlock = (block: AvailabilityBlockRow): OwnerCalendarBlock => ({
-  ...block,
-  block_type: toUiBlockType(block.block_type),
+const normalizeBlock = (block: ListingBlockRow): OwnerCalendarBlock => ({
+  id: block.id,
+  start_date: block.start_date,
+  end_date: block.end_date,
+  block_type: toUiBlockType(block.source, block.reason),
+  notes: block.summary || block.reason || null,
 });
 
 export async function getOwnerCalendarProperties(ownerId: string): Promise<OwnerCalendarProperty[]> {
   const { data, error } = await supabase
-    .from('properties')
-    .select('id, title')
+    .from('listings')
+    .select('id, name')
     .eq('owner_id', ownerId)
-    .order('created_at', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (error) throw new Error(error.message);
-  return data || [];
+  return (data || []).map(listing => ({
+    id: listing.id,
+    title: listing.name,
+  }));
 }
 
 export async function getOwnerCalendarBlocks(propertyId: string): Promise<OwnerCalendarBlock[]> {
   const { data, error } = await supabase
-    .from('availability_blocks')
+    .from('listing_blocks')
     .select('*')
-    .eq('property_id', propertyId)
+    .eq('listing_id', propertyId)
+    .in('source', ['manual', 'owner_block', 'owner_personal', 'owner_maintenance'])
     .order('start_date', { ascending: true });
 
   if (error) throw new Error(error.message);
@@ -81,12 +92,22 @@ export async function getOwnerCalendarBookings(propertyId: string): Promise<Owne
 }
 
 export async function createOwnerCalendarBlock(input: CreateOwnerCalendarBlockInput) {
-  const { error } = await supabase.from('availability_blocks').insert({
-    property_id: input.propertyId,
+  const { data: listing, error: listingError } = await supabase
+    .from('listings')
+    .select('owner_id')
+    .eq('id', input.propertyId)
+    .single();
+
+  if (listingError) throw new Error(listingError.message);
+
+  const { error } = await supabase.from('listing_blocks').insert({
+    listing_id: input.propertyId,
+    owner_id: listing.owner_id,
     start_date: toDateKey(input.from),
     end_date: toDateKey(input.to),
-    block_type: toDbBlockType(input.blockType),
-    notes: input.notes?.trim() || null,
+    source: toListingBlockSource(input.blockType),
+    reason: input.blockType,
+    summary: input.notes?.trim() || null,
   });
 
   if (error) throw new Error(error.message);
@@ -94,7 +115,7 @@ export async function createOwnerCalendarBlock(input: CreateOwnerCalendarBlockIn
 
 export async function deleteOwnerCalendarBlock(blockId: string) {
   const { error } = await supabase
-    .from('availability_blocks')
+    .from('listing_blocks')
     .delete()
     .eq('id', blockId);
 

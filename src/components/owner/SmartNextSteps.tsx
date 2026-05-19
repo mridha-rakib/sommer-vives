@@ -4,8 +4,14 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { 
   ArrowRight, FileSignature, Camera, Key, Globe, CalendarDays, 
-  CreditCard, Upload, Settings, Sparkles, Bell
+  CreditCard, Sparkles, Bell, Wifi
 } from 'lucide-react';
+import {
+  getOwnerPhotoCount,
+  getOwnerTaskCompletion,
+  type OwnerTaskCompletion,
+  type OwnerTaskSignals,
+} from '@/lib/owner-tasks-api';
 
 interface SmartAction {
   id: string;
@@ -22,16 +28,24 @@ interface SmartNextStepsProps {
   onboarding: any;
   agreement: any;
   listings: any[];
+  signals?: OwnerTaskSignals | null;
+  completion?: OwnerTaskCompletion | null;
   className?: string;
 }
 
-export function SmartNextSteps({ property, onboarding, agreement, listings, className }: SmartNextStepsProps) {
-  const listing = listings?.[0];
+export function SmartNextSteps({ property, onboarding, agreement, listings, signals, completion, className }: SmartNextStepsProps) {
+  const listing = signals?.listing || listings?.[0];
+  const resolvedProperty = signals?.property || property;
+  const resolvedOnboarding = signals?.onboarding || onboarding;
+  const resolvedAgreement = signals?.agreement || agreement;
+  const resolvedListings = signals?.listings || listings || [];
+  const done = completion || (signals ? getOwnerTaskCompletion(signals) : null);
+  const photoCount = signals ? getOwnerPhotoCount(signals) : Math.max(resolvedProperty?.images?.length || 0, listing?.images?.length || 0);
 
   const allActions: SmartAction[] = [];
 
   // Onboarding actions
-  if (!agreement || agreement.status !== 'signed') {
+  if (!(done?.agreement ?? (resolvedAgreement?.status === 'signed' || !!resolvedOnboarding?.agreement_signed_at))) {
     allActions.push({
       id: 'sign-agreement',
       title: 'Underskriv din aftale',
@@ -43,11 +57,23 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
     });
   }
 
-  if (!property?.images || property.images.length < 5) {
+  if (!(done?.bank ?? false)) {
+    allActions.push({
+      id: 'bank',
+      title: 'Tilføj udbetalingskonto',
+      description: 'Angiv dine bankoplysninger, så udbetalinger kan køre automatisk.',
+      href: '/owner/settings',
+      icon: CreditCard,
+      priority: 'high',
+      category: 'onboarding',
+    });
+  }
+
+  if (!(done?.photos ?? photoCount >= 5)) {
     allActions.push({
       id: 'upload-photos',
       title: 'Tilføj billeder af dit hus',
-      description: `${property?.images?.length || 0} af 5 — gode billeder er det vigtigste for flere bookinger.`,
+      description: `${photoCount} af 5 — gode billeder er det vigtigste for flere bookinger.`,
       href: '/owner/property',
       icon: Camera,
       priority: 'high',
@@ -55,7 +81,7 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
     });
   }
 
-  if (onboarding && !onboarding.keybox_installed_at) {
+  if (!(done?.keybox ?? !!resolvedOnboarding?.keybox_installed_at)) {
     allActions.push({
       id: 'keybox',
       title: 'Aftal nøgleboks-installation',
@@ -67,7 +93,7 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
     });
   }
 
-  if (!listing) {
+  if (!listing && resolvedListings.length === 0) {
     allActions.push({
       id: 'create-listing',
       title: 'Opret din listing',
@@ -77,7 +103,7 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
       priority: 'high',
       category: 'listing',
     });
-  } else if (!listing.is_active) {
+  } else if (!(done?.publish ?? !!listing?.is_active)) {
     allActions.push({
       id: 'activate-listing',
       title: 'Publicér din bolig',
@@ -101,7 +127,7 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
     });
   }
 
-  if (!property?.description || property.description.length < 100) {
+  if (!(done?.description ?? (!!resolvedProperty?.description && resolvedProperty.description.length >= 100))) {
     allActions.push({
       id: 'improve-desc',
       title: 'Styrk din boligbeskrivelse',
@@ -113,15 +139,29 @@ export function SmartNextSteps({ property, onboarding, agreement, listings, clas
     });
   }
 
-  allActions.push({
-    id: 'setup-calendar',
-    title: 'Sæt din kalender op',
-    description: 'Vælg hvilke perioder dit hus er tilgængeligt — resten styrer vi.',
-    href: '/owner/calendar',
-    icon: CalendarDays,
-    priority: 'medium',
-    category: 'operations',
-  });
+  if (!(done?.calendar ?? false)) {
+    allActions.push({
+      id: 'setup-calendar',
+      title: 'Sæt din kalender op',
+      description: 'Vælg hvilke perioder dit hus er tilgængeligt — resten styrer vi.',
+      href: '/owner/calendar',
+      icon: CalendarDays,
+      priority: 'medium',
+      category: 'operations',
+    });
+  }
+
+  if (!(done?.wifi ?? false)) {
+    allActions.push({
+      id: 'wifi',
+      title: 'Tilføj WiFi-oplysninger',
+      description: 'Gem netværk og kode i husguiden, så gæsterne kan komme online med det samme.',
+      href: '/owner/property',
+      icon: Wifi,
+      priority: 'low',
+      category: 'operations',
+    });
+  }
 
   // Sort by priority
   const priorityOrder = { high: 0, medium: 1, low: 2 };

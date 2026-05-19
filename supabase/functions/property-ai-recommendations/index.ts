@@ -5,17 +5,78 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function fallbackRecommendation(property: any, type: "pricing" | "improvements") {
+  const capacity = Number(property?.capacity || property?.max_guests || 4);
+  const nightlyPrice = Number(property?.price_per_night || property?.base_price_per_night || 0);
+  const weeklyPrice = Number(property?.price_per_week || 0);
+  const lowSeason = nightlyPrice || Math.max(750, capacity * 175);
+  const highSeason = Math.round(lowSeason * 1.35);
+  const weekend = Math.round(lowSeason * 1.15);
+  const amenities = Array.isArray(property?.amenities) ? property.amenities : [];
+  const imageCount = Array.isArray(property?.images) ? property.images.length : 0;
+
+  if (type === "pricing") {
+    return [
+      "### Prisstrategi",
+      `- Basispris: ca. ${lowSeason.toLocaleString("da-DK")} kr. pr. nat i lavsæson.`,
+      `- Højsæson: ca. ${highSeason.toLocaleString("da-DK")} kr. pr. nat i sommer, påske og jul.`,
+      `- Weekend: ca. ${weekend.toLocaleString("da-DK")} kr. pr. nat fredag/lørdag.`,
+      "- Minimum ophold: 2 nætter udenfor sæson og 5-7 nætter i højsæson.",
+      weeklyPrice > 0
+        ? `- Ugepris er sat til ${weeklyPrice.toLocaleString("da-DK")} kr.; sammenlign med natpris x 7, så rabatten er tydelig.`
+        : "- Overvej en ugepris med 8-12 % rabat for at øge længere ophold.",
+    ].join("\n");
+  }
+
+  return [
+    "### Forbedringsforslag",
+    imageCount < 10
+      ? `- Tilføj flere billeder. Der er ${imageCount} nu; sigt efter mindst 10-15 billeder.`
+      : "- Billedegrundlaget er solidt; prioriter hero-billede og rækkefølge.",
+    property?.description && property.description.length >= 100
+      ? "- Skærp de første linjer i beskrivelsen med beliggenhed, stemning og vigtigste fordel."
+      : "- Udbyg beskrivelsen med beliggenhed, stemning, sovefordeling og praktiske detaljer.",
+    amenities.length > 0
+      ? `- Fremhæv de stærkeste faciliteter tidligt: ${amenities.slice(0, 4).join(", ")}.`
+      : "- Tilføj faciliteter, så gæster kan filtrere og forstå værdien hurtigere.",
+    "- Gennemgå husregler og check-in-info, så gæsten kan booke uden ekstra spørgsmål.",
+  ].join("\n");
+}
+
+function fallbackResponse(property: any, type: "pricing" | "improvements", message: string, status = 200) {
+  return new Response(JSON.stringify({
+    recommendation: fallbackRecommendation(property, type),
+    source: "fallback",
+    warning: message,
+  }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let requestProperty: any = null;
+  let requestType: "pricing" | "improvements" | null = null;
+
   try {
     const { property, type } = await req.json();
+    requestProperty = property;
+    if (type !== "pricing" && type !== "improvements") {
+      return new Response(JSON.stringify({ error: "Invalid recommendation type" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    requestType = type;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      return fallbackResponse(property, type, "LOVABLE_API_KEY is not configured");
     }
 
     let systemPrompt = "";
@@ -97,20 +158,14 @@ Giv venligst:
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "For mange forespørgsler. Prøv igen om lidt." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return fallbackResponse(property, type, "For mange forespørgsler. Viser standardanbefalinger.");
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI-tjenesten er midlertidigt utilgængelig." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return fallbackResponse(property, type, "AI-tjenesten er midlertidigt utilgængelig. Viser standardanbefalinger.");
       }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      throw new Error("AI gateway error");
+      return fallbackResponse(property, type, "AI gateway error");
     }
 
     const data = await response.json();
@@ -124,7 +179,13 @@ Giv venligst:
 
   } catch (error) {
     console.error("Error in property-ai-recommendations:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
+    if (requestProperty && requestType) {
+      return fallbackResponse(requestProperty, requestType, error instanceof Error ? error.message : "Unknown error");
+    }
+
+    return new Response(JSON.stringify({
+      error: error instanceof Error ? error.message : "Unknown error",
+    }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

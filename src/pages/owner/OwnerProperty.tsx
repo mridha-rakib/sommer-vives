@@ -7,6 +7,7 @@ import { Building2, MapPin, Users, BedDouble, Bath, Globe, Image } from 'lucide-
 import { useTranslation, type Language } from '@/lib/i18n';
 import { useQuery } from '@tanstack/react-query';
 import { getOwnerPropertyOverview } from '@/lib/owner-property-api';
+import { PropertyAIRecommendations } from '@/components/owner/PropertyAIRecommendations';
 
 const localeCodes: Record<Language, string> = {
   da: 'da-DK',
@@ -268,6 +269,8 @@ export default function OwnerProperty() {
             </div>
           </CardContent>
         </Card>
+
+        <PropertyAIRecommendations property={property} />
       </div>
     </OwnerLayout>
   );

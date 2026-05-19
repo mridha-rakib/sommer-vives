@@ -7,6 +7,15 @@ const corsHeaders = {
 
 function dateToIcal(dateStr: string): string { return dateStr.replace(/-/g, ""); }
 function nowIcal(): string { return new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z"); }
+function tokenFromConfig(config: unknown): string[] {
+  if (!config || typeof config !== "object" || Array.isArray(config)) return [];
+  const values = [
+    (config as Record<string, unknown>).export_token,
+    (config as Record<string, unknown>).ical_export_token,
+    (config as Record<string, unknown>).token,
+  ];
+  return values.filter((value): value is string => typeof value === "string" && value.length > 0);
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -19,11 +28,24 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-  // Validate: use listing owner_id + a simple token check via sync_settings
   const { data: listing } = await supabase
     .from("listings").select("id, name, owner_id").eq("id", listingId).single();
 
   if (!listing) return new Response("Listing not found", { status: 404 });
+
+  const { data: syncSettings } = await supabase
+    .from("sync_settings")
+    .select("id, direction, is_active, config")
+    .eq("listing_id", listingId)
+    .eq("is_active", true);
+
+  const validToken = (syncSettings || []).some((setting) => {
+    const direction = String(setting.direction || "").toLowerCase();
+    if (direction && direction !== "export" && direction !== "both") return false;
+    return token === setting.id || tokenFromConfig(setting.config).includes(token);
+  });
+
+  if (!validToken) return new Response("Invalid export token", { status: 403 });
 
   // Get confirmed bookings
   const { data: bookings } = await supabase

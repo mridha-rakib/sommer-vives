@@ -53,7 +53,7 @@ export function AdminAddOns() {
     if (lRes.data) { setListings(lRes.data); if (!selectedListingId && lRes.data.length > 0) setSelectedListingId(lRes.data[0].id); }
     if (aRes.data) setAddOns(aRes.data as AddOn[]);
     setLoading(false);
-  }, []);
+  }, [selectedListingId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

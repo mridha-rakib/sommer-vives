@@ -59,12 +59,25 @@ export async function getOwnerTaskSignals(ownerId: string): Promise<OwnerTaskSig
   const propertyId = property?.id || null;
   const listingId = listing?.id || null;
 
-  const [blocksRes, guideRes] = await Promise.all([
+  const [propertyBlocksRes, listingBlocksRes, bookingCalendarRes, guideRes] = await Promise.all([
     propertyId
       ? supabase
         .from('availability_blocks')
         .select('id', { count: 'exact', head: true })
         .eq('property_id', propertyId)
+      : Promise.resolve({ count: 0, error: null }),
+    listingId
+      ? supabase
+        .from('listing_blocks')
+        .select('id', { count: 'exact', head: true })
+        .eq('listing_id', listingId)
+      : Promise.resolve({ count: 0, error: null }),
+    propertyId
+      ? supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('property_id', propertyId)
+        .neq('status', 'cancelled')
       : Promise.resolve({ count: 0, error: null }),
     listingId
       ? supabase
@@ -76,7 +89,9 @@ export async function getOwnerTaskSignals(ownerId: string): Promise<OwnerTaskSig
       : Promise.resolve({ data: null, error: null }),
   ]);
 
-  if (blocksRes.error) throw new Error(blocksRes.error.message);
+  if (propertyBlocksRes.error) throw new Error(propertyBlocksRes.error.message);
+  if (listingBlocksRes.error) throw new Error(listingBlocksRes.error.message);
+  if (bookingCalendarRes.error) throw new Error(bookingCalendarRes.error.message);
   if (guideRes.error) throw new Error(guideRes.error.message);
 
   return {
@@ -88,7 +103,7 @@ export async function getOwnerTaskSignals(ownerId: string): Promise<OwnerTaskSig
     listings,
     bank: bankRes.data,
     checkinGuide: guideRes.data,
-    calendarBlockCount: blocksRes.count || 0,
+    calendarBlockCount: (propertyBlocksRes.count || 0) + (listingBlocksRes.count || 0) + (bookingCalendarRes.count || 0),
   };
 }
 
@@ -121,4 +136,3 @@ export function getOwnerTaskCompletion(signals: OwnerTaskSignals): OwnerTaskComp
 export function getOwnerPhotoCount(signals: OwnerTaskSignals) {
   return Math.max(signals.property?.images?.length || 0, signals.listing?.images?.length || 0);
 }
-

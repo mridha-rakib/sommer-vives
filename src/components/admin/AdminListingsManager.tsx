@@ -13,7 +13,7 @@ interface ListingRow {
   is_active: boolean; amenities: string[] | null; house_rules: string | null;
   practical_info: string | null; images: string[] | null; hero_image: string | null;
   currency: string; region: string | null; owner_id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export function AdminListingsManager() {

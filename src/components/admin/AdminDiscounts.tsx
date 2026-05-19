@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, Trash2, Percent, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +12,7 @@ interface DiscountRule {
   id: string; name: string; description: string | null; code: string | null; listing_id: string | null;
   discount_type: string; discount_value: number; min_nights: number;
   max_nights: number | null; is_active: boolean; combinable_with_codes: boolean; sort_order: number;
+  min_days_before_checkin: number | null; max_days_before_checkin: number | null;
 }
 
 export function AdminDiscounts() {
@@ -22,7 +24,7 @@ export function AdminDiscounts() {
 
   const fetchRules = async () => {
     const { data } = await supabase.from('discount_rules').select('*').order('sort_order', { ascending: true });
-    setRules((data as any) || []);
+    setRules((data as DiscountRule[]) || []);
     setLoading(false);
   };
 
@@ -33,6 +35,7 @@ export function AdminDiscounts() {
     const { error } = await supabase.from('discount_rules').insert({
       name: 'Ny rabat', code: null, owner_id: user?.id,
       discount_type: 'percentage', discount_value: 10, min_nights: 4,
+      min_days_before_checkin: null, max_days_before_checkin: null,
       is_active: false, combinable_with_codes: false, sort_order: rules.length,
     });
     if (error) toast({ title: 'Fejl: ' + error.message, variant: 'destructive' });
@@ -42,7 +45,7 @@ export function AdminDiscounts() {
 
   const updateRule = async (id: string, updates: Partial<DiscountRule>) => {
     setSaving(id);
-    const { error } = await supabase.from('discount_rules').update(updates as any).eq('id', id);
+    const { error } = await supabase.from('discount_rules').update(updates as Record<string, unknown>).eq('id', id);
     if (error) toast({ title: 'Fejl: ' + error.message, variant: 'destructive' });
     else { setRules(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r)); toast({ title: 'Gemt' }); }
     setSaving(null);
@@ -55,6 +58,24 @@ export function AdminDiscounts() {
     if (error) toast({ title: 'Fejl: ' + error.message, variant: 'destructive' });
     else { toast({ title: 'Slettet' }); setRules(prev => prev.filter(r => r.id !== id)); }
     setSaving(null);
+  };
+
+  const discountInputValue = (rule: DiscountRule) => (
+    rule.discount_type === 'fixed' ? rule.discount_value / 100 : rule.discount_value
+  );
+
+  const discountValueFromInput = (type: string, value: number) => (
+    type === 'fixed' ? Math.round(value * 100) : value
+  );
+
+  const updateDiscountType = async (rule: DiscountRule, discountType: string) => {
+    const currentInputValue = discountInputValue(rule);
+    const updates = {
+      discount_type: discountType,
+      discount_value: discountValueFromInput(discountType, currentInputValue),
+    };
+    setRules(prev => prev.map(r => r.id === rule.id ? { ...r, ...updates } : r));
+    await updateRule(rule.id, updates);
   };
 
   if (loading) return <div className="flex items-center gap-2 py-8 text-muted-foreground justify-center"><Loader2 className="h-4 w-4 animate-spin" /> Indlæser…</div>;
@@ -98,9 +119,18 @@ export function AdminDiscounts() {
                     onChange={(e) => setRules(prev => prev.map(r => r.id === rule.id ? { ...r, code: e.target.value.toUpperCase() || null } : r))}
                     onBlur={() => updateRule(rule.id, { code: rule.code?.trim() || null })} className="h-8 text-sm mt-1 uppercase" />
                 </div>
-                <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">Rabat (%)</label>
-                  <Input type="number" min={0} max={100} value={rule.discount_value}
-                    onChange={(e) => setRules(prev => prev.map(r => r.id === rule.id ? { ...r, discount_value: Number(e.target.value) } : r))}
+                <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">Type</label>
+                  <Select value={rule.discount_type} onValueChange={(value) => updateDiscountType(rule, value)}>
+                    <SelectTrigger className="h-8 text-sm mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percentage">Procent</SelectItem>
+                      <SelectItem value="fixed">Fast beløb</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">{rule.discount_type === 'fixed' ? 'Rabat (DKK)' : 'Rabat (%)'}</label>
+                  <Input type="number" min={0} max={rule.discount_type === 'fixed' ? undefined : 100} value={discountInputValue(rule)}
+                    onChange={(e) => setRules(prev => prev.map(r => r.id === rule.id ? { ...r, discount_value: discountValueFromInput(rule.discount_type, Number(e.target.value)) } : r))}
                     onBlur={() => updateRule(rule.id, { discount_value: rule.discount_value })} className="h-8 text-sm mt-1" />
                 </div>
                 <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">Min. nætter</label>
@@ -115,6 +145,18 @@ export function AdminDiscounts() {
                 </div>
                 <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">Kombinerbar</label>
                   <div className="mt-2"><Switch checked={rule.combinable_with_codes} onCheckedChange={(checked) => updateRule(rule.id, { combinable_with_codes: checked })} /></div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">Min. dage før check-in</label>
+                  <Input type="number" min={0} value={rule.min_days_before_checkin ?? ''} placeholder="—"
+                    onChange={(e) => setRules(prev => prev.map(r => r.id === rule.id ? { ...r, min_days_before_checkin: e.target.value ? Number(e.target.value) : null } : r))}
+                    onBlur={() => updateRule(rule.id, { min_days_before_checkin: rule.min_days_before_checkin })} className="h-8 text-sm mt-1" />
+                </div>
+                <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">Maks. dage før check-in</label>
+                  <Input type="number" min={0} value={rule.max_days_before_checkin ?? ''} placeholder="—"
+                    onChange={(e) => setRules(prev => prev.map(r => r.id === rule.id ? { ...r, max_days_before_checkin: e.target.value ? Number(e.target.value) : null } : r))}
+                    onBlur={() => updateRule(rule.id, { max_days_before_checkin: rule.max_days_before_checkin })} className="h-8 text-sm mt-1" />
                 </div>
               </div>
               <div><label className="text-[11px] text-muted-foreground uppercase tracking-wider">Beskrivelse</label>

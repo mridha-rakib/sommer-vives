@@ -59,6 +59,7 @@ export function useUserUnreadMessages(userId: string | null | undefined, opts: O
     };
 
     load();
+    const reconcile = () => load();
 
     const channel = supabase
       .channel(`user-unread-${userId}`)
@@ -85,10 +86,19 @@ export function useUserUnreadMessages(userId: string | null | undefined, opts: O
         { event: 'DELETE', schema: 'public', table: 'chat_messages' },
         () => load()
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') reconcile();
+      });
+
+    window.addEventListener('online', reconcile);
+    window.addEventListener('focus', reconcile);
+    document.addEventListener('visibilitychange', reconcile);
 
     return () => {
       cancelled = true;
+      window.removeEventListener('online', reconcile);
+      window.removeEventListener('focus', reconcile);
+      document.removeEventListener('visibilitychange', reconcile);
       supabase.removeChannel(channel);
     };
   }, [userId]);

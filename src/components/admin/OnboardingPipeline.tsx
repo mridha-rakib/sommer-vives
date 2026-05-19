@@ -11,7 +11,7 @@ interface PipelineStage {
 }
 
 interface OnboardingPipelineProps {
-  onboardingCases: any[];
+  onboardingCases: Array<{ status?: string | null }>;
   className?: string;
 }
 

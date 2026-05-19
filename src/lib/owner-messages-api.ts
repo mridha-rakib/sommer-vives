@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
+import type { ChatAttachmentInput } from '@/lib/chatAttachments';
 
 export type OwnerMessage = Database['public']['Tables']['chat_messages']['Row'];
 
@@ -7,6 +8,7 @@ interface SendOwnerMessageInput {
   ownerId: string;
   senderName?: string | null;
   message: string;
+  attachment?: ChatAttachmentInput | null;
 }
 
 interface SubscribeOwnerMessagesHandlers {
@@ -57,15 +59,17 @@ export async function markOwnerMessageRead(messageId: string) {
 }
 
 export async function sendOwnerMessage(input: SendOwnerMessageInput) {
-  const { error } = await supabase.from('chat_messages').insert({
+  const { data, error } = await supabase.from('chat_messages').insert({
     thread_type: 'support',
     sender_id: input.ownerId,
     sender_name: input.senderName || null,
     sender_type: 'owner',
     message: input.message.trim(),
-  });
+    ...(input.attachment || {}),
+  }).select('id').single();
 
   if (error) throw new Error(error.message);
+  return data;
 }
 
 export function subscribeOwnerMessages(ownerId: string, handlers: SubscribeOwnerMessagesHandlers) {
@@ -83,4 +87,3 @@ export function subscribeOwnerMessages(ownerId: string, handlers: SubscribeOwner
     supabase.removeChannel(channel);
   };
 }
-

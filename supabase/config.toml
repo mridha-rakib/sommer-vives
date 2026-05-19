@@ -1,4 +1,37 @@
 project_id = "jasgxsziqjfrewaautcl"
 
+[auth]
+site_url = "https://sommervibes.dk"
+additional_redirect_urls = [
+  "https://sommervibes.dk/auth",
+  "https://sommervibes.dk/auth?mode=updatePassword",
+  "https://www.sommervibes.dk/auth",
+  "https://www.sommervibes.dk/auth?mode=updatePassword",
+  "http://localhost:8080/auth",
+  "http://localhost:8080/auth?mode=updatePassword",
+  "http://127.0.0.1:8080/auth",
+  "http://127.0.0.1:8080/auth?mode=updatePassword",
+  "http://127.0.0.1:4173/auth",
+  "http://127.0.0.1:4173/auth?mode=updatePassword",
+]
+
 [functions.property-ai-recommendations]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.handle-payment-webhook]
+verify_jwt = false
+
+[functions.ical-export]
+verify_jwt = false
+
+[functions.verify-payment]
+verify_jwt = false
+
+[functions.execute-automations]
+verify_jwt = false
+
+[functions.password-reset]
 verify_jwt = false

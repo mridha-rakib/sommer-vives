@@ -1,7 +1,20 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminStats } from '@/types/admin';
-import { addDays, subDays, format } from 'date-fns';
+import { addDays, differenceInCalendarDays, subDays } from 'date-fns';
+
+const ACTIVE_PROPERTY_STATUSES = new Set(['published', 'active']);
+const OCCUPANCY_BOOKING_STATUSES = new Set(['confirmed', 'completed', 'checked_in', 'checked_out']);
+
+function getOverlappingNights(checkIn: string, checkOut: string, rangeStart: Date, rangeEnd: Date) {
+  const start = new Date(checkIn);
+  const end = new Date(checkOut);
+  const overlapStart = start > rangeStart ? start : rangeStart;
+  const overlapEnd = end < rangeEnd ? end : rangeEnd;
+
+  if (overlapEnd <= overlapStart) return 0;
+  return differenceInCalendarDays(overlapEnd, overlapStart);
+}
 
 export function useAdminStats() {
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -37,7 +50,7 @@ export function useAdminStats() {
       const damagePoolEntries = damagePoolRes.data || [];
 
       // Calculate stats
-      const activeProperties = properties.filter(p => p.status === 'published').length;
+      const activeProperties = properties.filter(p => ACTIVE_PROPERTY_STATUSES.has(p.status || '')).length;
       const inactiveProperties = properties.length - activeProperties;
 
       const upcomingBookings = bookings.filter(b => 
@@ -66,6 +79,13 @@ export function useAdminStats() {
         .reduce((sum, b) => sum + (Number(b.platform_earnings) || 0), 0);
 
       const damagePoolTotal = damagePoolEntries.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+      const bookedNightsLast30 = bookings
+        .filter(b => OCCUPANCY_BOOKING_STATUSES.has(b.status || ''))
+        .reduce((sum, b) => sum + getOverlappingNights(b.check_in, b.check_out, thirtyDaysAgo, today), 0);
+      const availableNightsLast30 = activeProperties * 30;
+      const occupancyRate = availableNightsLast30 > 0
+        ? Math.round((bookedNightsLast30 / availableNightsLast30) * 100)
+        : 0;
 
       setStats({
         totalProperties: properties.length,
@@ -80,7 +100,7 @@ export function useAdminStats() {
         totalRevenue,
         platformEarnings,
         damagePoolTotal,
-        occupancyRate: 0 // Calculate later if needed
+        occupancyRate
       });
 
     } catch (err) {
