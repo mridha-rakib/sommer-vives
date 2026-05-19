@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/layout/Header";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { Lock, Mail, Shield } from "lucide-react";
-import { BrandLogo } from "@/components/ui/BrandLogo";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminAuth() {
   const [email, setEmail] = useState("");
