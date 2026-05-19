@@ -159,7 +159,7 @@ export function ListingCalendarPricing({ listingId, ownerId, basePricePerNight, 
       return;
     }
     const results = (data as any)?.results || {};
-    const conflictCount = Object.values(results).reduce((sum: number, r: any) => sum + (r?.skipped || 0), 0);
+    const conflictCount: number = Object.values(results).reduce((sum: number, r: any) => sum + (r?.skipped || 0), 0);
     toast({
       title: conflictCount > 0 ? 'iCal-sync med konflikter' : 'iCal-sync gennemført',
       description: conflictCount > 0 ? `${conflictCount} importer blev sprunget over pga. konflikter.` : undefined,
