@@ -67,13 +67,13 @@ export function AdminEmails() {
         await supabase.from('email_templates').update({
           subject: tmpl.subject, heading: tmpl.heading, body_text: tmpl.body_text,
           cta_label: tmpl.cta_label || null, cta_url: tmpl.cta_url || null, is_active: tmpl.is_active,
-        } as Record<string, unknown>).eq('id', tmpl.id);
+        }).eq('id', tmpl.id);
       } else {
         const { data } = await supabase.from('email_templates').insert({
-          listing_id: selectedListing, owner_id: user?.id, email_type: tmpl.email_type,
+          listing_id: selectedListing, owner_id: user?.id || '', email_type: tmpl.email_type,
           subject: tmpl.subject, heading: tmpl.heading, body_text: tmpl.body_text,
           cta_label: tmpl.cta_label || null, cta_url: tmpl.cta_url || null, is_active: tmpl.is_active,
-        } as Record<string, unknown>).select().single();
+        }).select().single();
         if (data) tmpl.id = (data as { id?: string }).id;
       }
     }

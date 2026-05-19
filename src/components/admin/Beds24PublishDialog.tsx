@@ -11,6 +11,7 @@ import {
 
 interface Beds24PublishListing {
   id: string;
+  name: string;
   images?: string[] | null;
   amenities?: string[] | null;
   base_price_per_night?: number | null;

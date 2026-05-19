@@ -250,6 +250,51 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_executions: {
+        Row: {
+          automation_rule_id: string
+          created_at: string
+          error: string | null
+          event_id: string | null
+          executed_at: string | null
+          id: string
+          payload: Json | null
+          result: Json | null
+          scheduled_for: string | null
+          status: string
+          trigger_event: string | null
+          updated_at: string
+        }
+        Insert: {
+          automation_rule_id: string
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          executed_at?: string | null
+          id?: string
+          payload?: Json | null
+          result?: Json | null
+          scheduled_for?: string | null
+          status?: string
+          trigger_event?: string | null
+          updated_at?: string
+        }
+        Update: {
+          automation_rule_id?: string
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          executed_at?: string | null
+          id?: string
+          payload?: Json | null
+          result?: Json | null
+          scheduled_for?: string | null
+          status?: string
+          trigger_event?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       automation_rules: {
         Row: {
           action_config: Json
@@ -294,59 +339,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      automation_executions: {
-        Row: {
-          automation_rule_id: string
-          created_at: string
-          error: string | null
-          event_id: string | null
-          executed_at: string | null
-          id: string
-          payload: Json
-          result: Json | null
-          scheduled_for: string
-          status: string
-          trigger_event: string
-          updated_at: string
-        }
-        Insert: {
-          automation_rule_id: string
-          created_at?: string
-          error?: string | null
-          event_id?: string | null
-          executed_at?: string | null
-          id?: string
-          payload?: Json
-          result?: Json | null
-          scheduled_for?: string
-          status?: string
-          trigger_event: string
-          updated_at?: string
-        }
-        Update: {
-          automation_rule_id?: string
-          created_at?: string
-          error?: string | null
-          event_id?: string | null
-          executed_at?: string | null
-          id?: string
-          payload?: Json
-          result?: Json | null
-          scheduled_for?: string
-          status?: string
-          trigger_event?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "automation_executions_automation_rule_id_fkey"
-            columns: ["automation_rule_id"]
-            isOneToOne: false
-            referencedRelation: "automation_rules"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       availability_blocks: {
         Row: {
@@ -930,7 +922,6 @@ export type Database = {
           description: string | null
           discount_type: string
           discount_value: number
-          ends_at: string | null
           id: string
           is_active: boolean
           listing_id: string | null
@@ -941,7 +932,6 @@ export type Database = {
           name: string
           owner_id: string
           sort_order: number
-          starts_at: string | null
           updated_at: string
         }
         Insert: {
@@ -951,7 +941,6 @@ export type Database = {
           description?: string | null
           discount_type?: string
           discount_value?: number
-          ends_at?: string | null
           id?: string
           is_active?: boolean
           listing_id?: string | null
@@ -962,7 +951,6 @@ export type Database = {
           name: string
           owner_id: string
           sort_order?: number
-          starts_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -972,7 +960,6 @@ export type Database = {
           description?: string | null
           discount_type?: string
           discount_value?: number
-          ends_at?: string | null
           id?: string
           is_active?: boolean
           listing_id?: string | null
@@ -983,7 +970,6 @@ export type Database = {
           name?: string
           owner_id?: string
           sort_order?: number
-          starts_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1786,14 +1772,10 @@ export type Database = {
           id: string
           is_active: boolean
           listing_id: string
-          metadata: Json
           owner_id: string
           sort_order: number
           thumbnail_url: string | null
           title: string
-          updated_at: string
-          video_type: string
-          video_url: string | null
           youtube_id: string | null
         }
         Insert: {
@@ -1802,14 +1784,10 @@ export type Database = {
           id?: string
           is_active?: boolean
           listing_id: string
-          metadata?: Json
           owner_id: string
           sort_order?: number
           thumbnail_url?: string | null
           title?: string
-          updated_at?: string
-          video_type?: string
-          video_url?: string | null
           youtube_id?: string | null
         }
         Update: {
@@ -1818,14 +1796,10 @@ export type Database = {
           id?: string
           is_active?: boolean
           listing_id?: string
-          metadata?: Json
           owner_id?: string
           sort_order?: number
           thumbnail_url?: string | null
           title?: string
-          updated_at?: string
-          video_type?: string
-          video_url?: string | null
           youtube_id?: string | null
         }
         Relationships: [
@@ -1908,9 +1882,6 @@ export type Database = {
           deposit: number | null
           description: string | null
           draft_content: Json | null
-          beds24_last_channels: string[] | null
-          beds24_last_publish_payload: Json | null
-          beds24_last_response: Json | null
           external_listing_id: string | null
           external_property_id: string | null
           extra_sections: Json
@@ -2065,9 +2036,6 @@ export type Database = {
           deposit?: number | null
           description?: string | null
           draft_content?: Json | null
-          beds24_last_channels?: string[] | null
-          beds24_last_publish_payload?: Json | null
-          beds24_last_response?: Json | null
           external_listing_id?: string | null
           external_property_id?: string | null
           extra_sections?: Json
@@ -2222,9 +2190,6 @@ export type Database = {
           deposit?: number | null
           description?: string | null
           draft_content?: Json | null
-          beds24_last_channels?: string[] | null
-          beds24_last_publish_payload?: Json | null
-          beds24_last_response?: Json | null
           external_listing_id?: string | null
           external_property_id?: string | null
           extra_sections?: Json
@@ -2429,45 +2394,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      push_subscriptions: {
-        Row: {
-          auth: string
-          created_at: string
-          disabled_at: string | null
-          endpoint: string
-          id: string
-          last_used_at: string | null
-          p256dh: string
-          updated_at: string
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          auth: string
-          created_at?: string
-          disabled_at?: string | null
-          endpoint: string
-          id?: string
-          last_used_at?: string | null
-          p256dh: string
-          updated_at?: string
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          auth?: string
-          created_at?: string
-          disabled_at?: string | null
-          endpoint?: string
-          id?: string
-          last_used_at?: string | null
-          p256dh?: string
-          updated_at?: string
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
       }
       notification_preferences: {
         Row: {
@@ -2695,11 +2621,6 @@ export type Database = {
           preferred_currency: string | null
           reg_number: string | null
           swift_bic: string | null
-          stripe_connect_account_id: string | null
-          stripe_connect_charges_enabled: boolean | null
-          stripe_connect_onboarding_url: string | null
-          stripe_connect_payouts_enabled: boolean | null
-          stripe_connect_status: string | null
           tax_id: string | null
           updated_at: string
         }
@@ -2715,11 +2636,6 @@ export type Database = {
           preferred_currency?: string | null
           reg_number?: string | null
           swift_bic?: string | null
-          stripe_connect_account_id?: string | null
-          stripe_connect_charges_enabled?: boolean | null
-          stripe_connect_onboarding_url?: string | null
-          stripe_connect_payouts_enabled?: boolean | null
-          stripe_connect_status?: string | null
           tax_id?: string | null
           updated_at?: string
         }
@@ -2735,11 +2651,6 @@ export type Database = {
           preferred_currency?: string | null
           reg_number?: string | null
           swift_bic?: string | null
-          stripe_connect_account_id?: string | null
-          stripe_connect_charges_enabled?: boolean | null
-          stripe_connect_onboarding_url?: string | null
-          stripe_connect_payouts_enabled?: boolean | null
-          stripe_connect_status?: string | null
           tax_id?: string | null
           updated_at?: string
         }
@@ -2873,13 +2784,10 @@ export type Database = {
           owner_id: string
           paid_at: string | null
           payment_method: string | null
-          refunded_amount: number | null
-          refunded_at: string | null
           status: string
           stripe_checkout_session_id: string | null
           stripe_payment_id: string | null
           stripe_payment_intent_id: string | null
-          stripe_refund_id: string | null
         }
         Insert: {
           amount: number
@@ -2891,13 +2799,10 @@ export type Database = {
           owner_id: string
           paid_at?: string | null
           payment_method?: string | null
-          refunded_amount?: number | null
-          refunded_at?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_id?: string | null
           stripe_payment_intent_id?: string | null
-          stripe_refund_id?: string | null
         }
         Update: {
           amount?: number
@@ -2909,13 +2814,10 @@ export type Database = {
           owner_id?: string
           paid_at?: string | null
           payment_method?: string | null
-          refunded_amount?: number | null
-          refunded_at?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_id?: string | null
           stripe_payment_intent_id?: string | null
-          stripe_refund_id?: string | null
         }
         Relationships: [
           {
@@ -2930,60 +2832,41 @@ export type Database = {
       payouts: {
         Row: {
           amount: number
-          booking_id: string | null
           created_at: string
           currency: string | null
           description: string | null
-          executed_at: string | null
-          failure_reason: string | null
           id: string
           owner_id: string
           payout_date: string | null
           property_id: string | null
           status: string | null
           stripe_payout_id: string | null
-          stripe_transfer_id: string | null
         }
         Insert: {
           amount: number
-          booking_id?: string | null
           created_at?: string
           currency?: string | null
           description?: string | null
-          executed_at?: string | null
-          failure_reason?: string | null
           id?: string
           owner_id: string
           payout_date?: string | null
           property_id?: string | null
           status?: string | null
           stripe_payout_id?: string | null
-          stripe_transfer_id?: string | null
         }
         Update: {
           amount?: number
-          booking_id?: string | null
           created_at?: string
           currency?: string | null
           description?: string | null
-          executed_at?: string | null
-          failure_reason?: string | null
           id?: string
           owner_id?: string
           payout_date?: string | null
           property_id?: string | null
           status?: string | null
           stripe_payout_id?: string | null
-          stripe_transfer_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "payouts_booking_id_fkey"
-            columns: ["booking_id"]
-            isOneToOne: false
-            referencedRelation: "bookings"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "payouts_property_id_fkey"
             columns: ["property_id"]
@@ -3286,6 +3169,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          disabled_at: string | null
+          endpoint: string
+          id: string
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          disabled_at?: string | null
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          disabled_at?: string | null
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       sag_documents: {
         Row: {

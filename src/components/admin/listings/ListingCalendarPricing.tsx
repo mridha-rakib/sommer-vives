@@ -158,7 +158,7 @@ export function ListingCalendarPricing({ listingId, ownerId, basePricePerNight, 
       toast({ title: 'iCal-sync fejlede', description: error.message, variant: 'destructive' });
       return;
     }
-    const results = (data as any)?.results || {};
+    const results: Record<string, any> = (data as any)?.results || {};
     const conflictCount = Object.values(results).reduce((sum: number, r: any) => sum + (r?.skipped || 0), 0);
     toast({
       title: conflictCount > 0 ? 'iCal-sync med konflikter' : 'iCal-sync gennemført',
