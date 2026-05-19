@@ -670,7 +670,7 @@ export default function GetStarted() {
   const location = useLocation();
   const { user } = useAuth();
   const { language } = useTranslation();
-  const copy = language === 'da' ? GET_STARTED_COPY.da : GET_STARTED_COPY.en;
+  const copy = (language === 'da' ? GET_STARTED_COPY.da : GET_STARTED_COPY.en) as GetStartedCopy;
   const leadSource = new URLSearchParams(location.search).get('source') || 'website_onboarding';
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
