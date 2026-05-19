@@ -250,6 +250,51 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_executions: {
+        Row: {
+          automation_rule_id: string
+          created_at: string
+          error: string | null
+          event_id: string | null
+          executed_at: string | null
+          id: string
+          payload: Json | null
+          result: Json | null
+          scheduled_for: string | null
+          status: string
+          trigger_event: string | null
+          updated_at: string
+        }
+        Insert: {
+          automation_rule_id: string
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          executed_at?: string | null
+          id?: string
+          payload?: Json | null
+          result?: Json | null
+          scheduled_for?: string | null
+          status?: string
+          trigger_event?: string | null
+          updated_at?: string
+        }
+        Update: {
+          automation_rule_id?: string
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          executed_at?: string | null
+          id?: string
+          payload?: Json | null
+          result?: Json | null
+          scheduled_for?: string | null
+          status?: string
+          trigger_event?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       automation_rules: {
         Row: {
           action_config: Json
