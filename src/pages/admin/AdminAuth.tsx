@@ -33,14 +33,15 @@ export default function AdminAuth() {
 
       setCheckingAccess(true);
       try {
-        const { data, error } = await supabase.rpc("has_role", {
-          _user_id: user.id,
-          _role: "admin",
-        });
+        const { data: roles, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .in("role", ["admin", "super_admin"]);
 
         if (error) throw error;
 
-        if (data === true) {
+        if (roles && roles.length > 0) {
           navigate("/admin", { replace: true });
           return;
         }
