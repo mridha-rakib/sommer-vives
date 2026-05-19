@@ -195,11 +195,16 @@ function buildListingJsonLd(siteUrl, listing, metadata) {
 }
 
 async function fetchListings(env) {
-  const supabaseUrl = env.VITE_SUPABASE_URL;
-  const supabaseKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY;
+  const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL;
+  const supabaseKey =
+    env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    env.VITE_SUPABASE_ANON_KEY ||
+    env.SUPABASE_PUBLISHABLE_KEY ||
+    env.SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY for SEO generation.');
+    console.warn('[generate-seo] Missing Supabase env vars; skipping listing SEO generation.');
+    return [];
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
