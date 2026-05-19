@@ -106,6 +106,7 @@ interface ListingFull {
   video_button_text: string | null; floorplan_button_text: string | null;
   contact_button_text: string | null; internal_notes: string | null;
   extra_sections: any; facilities: any; bedroom_images: any; image_labels: any;
+  [key: string]: any;
 }
 
 interface Props { listingId: string; onBack: () => void; }
