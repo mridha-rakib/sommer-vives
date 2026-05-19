@@ -554,6 +554,9 @@ export type Database = {
       }
       chat_messages: {
         Row: {
+          attachment_name: string | null
+          attachment_size: number | null
+          attachment_url: string | null
           booking_id: string | null
           created_at: string | null
           id: string
@@ -567,6 +570,9 @@ export type Database = {
           thread_type: string
         }
         Insert: {
+          attachment_name?: string | null
+          attachment_size?: number | null
+          attachment_url?: string | null
           booking_id?: string | null
           created_at?: string | null
           id?: string
@@ -580,6 +586,9 @@ export type Database = {
           thread_type: string
         }
         Update: {
+          attachment_name?: string | null
+          attachment_size?: number | null
+          attachment_url?: string | null
           booking_id?: string | null
           created_at?: string | null
           id?: string
@@ -859,6 +868,7 @@ export type Database = {
       }
       discount_rules: {
         Row: {
+          code: string | null
           combinable_with_codes: boolean
           created_at: string
           description: string | null
@@ -867,7 +877,9 @@ export type Database = {
           id: string
           is_active: boolean
           listing_id: string | null
+          max_days_before_checkin: number | null
           max_nights: number | null
+          min_days_before_checkin: number | null
           min_nights: number
           name: string
           owner_id: string
@@ -875,6 +887,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          code?: string | null
           combinable_with_codes?: boolean
           created_at?: string
           description?: string | null
@@ -883,7 +896,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           listing_id?: string | null
+          max_days_before_checkin?: number | null
           max_nights?: number | null
+          min_days_before_checkin?: number | null
           min_nights?: number
           name: string
           owner_id: string
@@ -891,6 +906,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          code?: string | null
           combinable_with_codes?: boolean
           created_at?: string
           description?: string | null
@@ -899,7 +915,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           listing_id?: string | null
+          max_days_before_checkin?: number | null
           max_nights?: number | null
+          min_days_before_checkin?: number | null
           min_nights?: number
           name?: string
           owner_id?: string
@@ -1053,6 +1071,7 @@ export type Database = {
       fee_rules: {
         Row: {
           amount: number
+          applies_to_channels: string[] | null
           condition_max_nights: number | null
           condition_min_nights: number | null
           created_at: string
@@ -1068,6 +1087,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          applies_to_channels?: string[] | null
           condition_max_nights?: number | null
           condition_min_nights?: number | null
           created_at?: string
@@ -1083,6 +1103,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          applies_to_channels?: string[] | null
           condition_max_nights?: number | null
           condition_min_nights?: number | null
           created_at?: string
@@ -3100,6 +3121,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          disabled_at: string | null
+          endpoint: string
+          id: string
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          disabled_at?: string | null
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          disabled_at?: string | null
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       sag_documents: {
         Row: {
