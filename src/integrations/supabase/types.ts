@@ -556,6 +556,7 @@ export type Database = {
         Row: {
           attachment_name: string | null
           attachment_size: number | null
+          attachment_type: string | null
           attachment_url: string | null
           booking_id: string | null
           created_at: string | null
@@ -572,6 +573,7 @@ export type Database = {
         Insert: {
           attachment_name?: string | null
           attachment_size?: number | null
+          attachment_type?: string | null
           attachment_url?: string | null
           booking_id?: string | null
           created_at?: string | null
@@ -588,6 +590,7 @@ export type Database = {
         Update: {
           attachment_name?: string | null
           attachment_size?: number | null
+          attachment_type?: string | null
           attachment_url?: string | null
           booking_id?: string | null
           created_at?: string | null
