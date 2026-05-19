@@ -76,13 +76,13 @@ export function Header() {
           <div className="shrink-0">
             <BrandLogo
               variant="full"
-              size="sm"
+              size="md"
               tone="light"
             />
           </div>
 
           {/* Desktop Navigation */}
-          <div className={`hidden 2xl:flex items-center gap-0.5 rounded-full px-1 py-0.5 transition-all duration-500 ${
+          <div className={`hidden 2xl:flex items-center gap-1 rounded-full px-1.5 py-1 transition-all duration-500 ${
             transparent
               ? 'bg-foreground/8 backdrop-blur-md border border-foreground/10'
               : 'bg-muted/50 border border-border/50'
@@ -93,7 +93,7 @@ export function Header() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`relative whitespace-nowrap px-3.5 py-1.5 rounded-full text-[12.5px] leading-none font-medium transition-all duration-300 ${
+                  className={`relative whitespace-nowrap px-4 py-2 rounded-full text-[13px] leading-none font-medium transition-all duration-300 ${
                     active
                       ? transparent
                         ? 'text-primary bg-primary/15'
@@ -166,16 +166,6 @@ export function Header() {
               </DropdownMenu>
             ) : (
               <>
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm" className={`rounded-full text-[13px] px-3 gap-1.5 ${
-                    transparent
-                      ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}>
-                    <User className="h-3.5 w-3.5" />
-                    {t('nav.ownerLogin')}
-                  </Button>
-                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -193,6 +183,13 @@ export function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 rounded-xl border-border/50 shadow-elevated">
                     <DropdownMenuItem asChild className="rounded-lg">
+                      <Link to="/auth" className="flex items-center gap-2">
+                        <ChevronRight className="h-3 w-3" />
+                        {t('nav.ownerLogin')}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild className="rounded-lg">
                       <Link to="/guest/auth" className="flex items-center gap-2">
                         <ChevronRight className="h-3 w-3" />
                         {t('nav.guestLogin')}
@@ -208,7 +205,7 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Link to="/beregn-lejeindtaegt">
-                  <Button variant="ghost" size="sm" className={`rounded-full text-[13px] px-4 gap-1.5 ${
+                  <Button variant="ghost" size="sm" className={`rounded-full text-[13px] px-[18px] gap-1.5 whitespace-nowrap ${
                     transparent
                       ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10'
                       : 'text-muted-foreground hover:text-foreground'
@@ -218,12 +215,12 @@ export function Header() {
                   </Button>
                 </Link>
                 <Link to="/book-vurdering">
-                  <Button variant="outline" size="sm" className="rounded-full text-[13px] px-4 border-primary/30 text-primary hover:bg-primary/10">
+                  <Button variant="outline" size="sm" className="rounded-full text-[13px] px-5 border-primary/30 text-primary hover:bg-primary/10 whitespace-nowrap">
                     {t('hero.cta2')}
                   </Button>
                 </Link>
                 <Link to="/kom-i-gang">
-                  <Button variant="gold" size="sm" className="rounded-full text-[13px] px-5 shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]">
+                  <Button variant="gold" size="sm" className="rounded-full text-[13px] px-6 shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)] whitespace-nowrap">
                     {t('nav.getStarted')}
                   </Button>
                 </Link>
