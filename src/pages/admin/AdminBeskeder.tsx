@@ -68,8 +68,8 @@ type RoleRow = {
 };
 
 type ChatRealtimePayload = {
-  new?: Msg;
-  old?: Msg;
+  new?: Record<string, any>;
+  old?: Record<string, any>;
 };
 
 const TAB_CFG: Record<ThreadTab, { label: string; icon: React.ElementType }> = {

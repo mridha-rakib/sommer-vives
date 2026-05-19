@@ -7,13 +7,16 @@ import { formatDKK } from '@/lib/pricing';
 
 interface ListingRow {
   id: string; slug: string; name: string; description: string | null;
-  address: string | null; max_guests: number; bedrooms: number | null; bathrooms: number | null;
+  address: string | null; city: string | null; max_guests: number; bedrooms: number | null; bathrooms: number | null;
   base_price_per_night: number; cleaning_fee: number | null;
+  weekend_price_per_night: number | null;
   check_in_time: string | null; check_out_time: string | null;
   is_active: boolean; amenities: string[] | null; house_rules: string | null;
   practical_info: string | null; images: string[] | null; hero_image: string | null;
   currency: string; region: string | null; owner_id: string;
-  [key: string]: unknown;
+  min_nights: number | null; max_nights: number | null;
+  checkin_info: string | null; checkout_info: string | null;
+  property_type: string | null; tagline: string | null;
 }
 
 export function AdminListingsManager() {
