@@ -12,8 +12,7 @@ import {
   getOwnerMessages,
   isOwnerSupportMessage,
   isUnreadForOwner,
-  markOwnerMessageRead,
-  markOwnerMessagesRead,
+  markOwnerThreadRead,
   sendOwnerMessage,
   subscribeOwnerMessages,
   type OwnerMessage,
@@ -55,7 +54,7 @@ export default function OwnerMessages() {
         setMessages(prev => prev.some(x => x.id === message.id) ? prev : [...prev, message]);
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
         if (isUnreadForOwner(message)) {
-          markOwnerMessageRead(message.id).catch(() => {});
+          markOwnerThreadRead(user.id).catch(() => {});
         }
       },
       onUpdate: (message) => {
@@ -74,7 +73,7 @@ export default function OwnerMessages() {
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
 
       const unreadIds = data.filter(isUnreadForOwner).map((message) => message.id);
-      markOwnerMessagesRead(unreadIds).catch(() => {});
+      if (unreadIds.length > 0) markOwnerThreadRead(user.id).catch(() => {});
     } catch (err: unknown) {
       toast.error(errorMessage(err) || t('owner.messages.toast.loadError'));
     } finally {
@@ -93,6 +92,9 @@ export default function OwnerMessages() {
         message: newMessage,
         attachment,
       });
+      if (data) {
+        setMessages(prev => prev.some(message => message.id === data.id) ? prev : [...prev, data]);
+      }
       notifyChatPush(data?.id);
       setNewMessage('');
       setNewFile(null);

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { QuickCreateButtons } from '@/components/admin/QuickCreateButtons';
 import { GlobalSearch } from '@/components/admin/GlobalSearch';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { cn } from '@/lib/utils';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
@@ -388,6 +389,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             >
               {muted ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
             </button>
+            <LanguageSelector />
             <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground hover:text-foreground gap-1.5 h-9 rounded-xl">
               <Link to="/"><ExternalLink className="w-3 h-3" />Website</Link>
             </Button>

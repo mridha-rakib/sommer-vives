@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Users, Star, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/lib/i18n';
 
 interface ListingCardProps {
   id: string;
@@ -31,10 +32,15 @@ export const ListingCard = ({
   rating,
   reviewCount,
 }: ListingCardProps) => {
+  const { t, language } = useTranslation();
+  const locale = language === 'da' ? 'da-DK' : language === 'de' ? 'de-DE' : language === 'nl' ? 'nl-NL' : 'en-US';
+  const bedroomLabel = bedrooms === 1 ? t('listingCard.bedroom') : t('listingCard.bedrooms');
+  const bathroomLabel = bathrooms === 1 ? t('listingCard.bathroom') : t('listingCard.bathrooms');
+
   return (
     <Link
       to={`/listing/${id}/`}
-      className="rounded-2xl overflow-hidden group block cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/30 border border-border bg-card"
+      className="rounded-2xl overflow-hidden group flex flex-col h-full cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/30 border border-border bg-card"
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -73,47 +79,50 @@ export const ListingCard = ({
       </div>
 
       {/* Content */}
-      <div className="p-4 sm:p-6">
-        <h3 className="font-display text-lg sm:text-xl font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
-          {title}
-        </h3>
-        {teaser && (
-          <p className="text-xs sm:text-sm text-muted-foreground mb-1 leading-relaxed line-clamp-2">{teaser}</p>
-        )}
-        <p className="text-[10px] sm:text-xs text-muted-foreground/60 mb-3 sm:mb-4">{location}</p>
+      <div className="p-4 sm:p-6 flex flex-col flex-1">
+        <div className="flex-1">
+          <h3 className="font-display text-lg sm:text-xl font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+            {title}
+          </h3>
+          {teaser && (
+            <p className="text-xs sm:text-sm text-muted-foreground mb-1 leading-relaxed line-clamp-2">{teaser}</p>
+          )}
+          <p className="text-[10px] sm:text-xs text-muted-foreground/60 mb-3 sm:mb-4">{location}</p>
 
-        <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-5">
-          <div className="flex items-center gap-1">
-            <Users className="h-3.5 w-3.5 text-primary/70" />
-            <span>Op til {capacity}</span>
+          <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-5">
+            <div className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5 text-primary/70" />
+              <span>{t('listingCard.upTo').replace('{count}', String(capacity))}</span>
+            </div>
+            {bedrooms && <span>· {bedrooms} {bedroomLabel}</span>}
+            {bathrooms && <span>· {bathrooms} {bathroomLabel}</span>}
           </div>
-          {bedrooms && <span>· {bedrooms} soveværelser</span>}
-          {bathrooms && <span>· {bathrooms} bad</span>}
         </div>
 
         <div className="h-px bg-gradient-to-r from-primary/20 via-primary/10 to-transparent mb-4 sm:mb-5" />
 
         <div className="flex flex-col gap-3">
           <div>
-            <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">Fra</span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">{t('listingCard.from')}</span>
             <div className="flex items-baseline gap-1">
               <span className="text-xl sm:text-2xl font-display font-bold text-primary">
-                {pricePerNight?.toLocaleString('da-DK') || '—'}
+                {pricePerNight?.toLocaleString(locale) || '—'}
               </span>
-              <span className="text-xs sm:text-sm text-muted-foreground">kr. / nat</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">{t('listingCard.priceSuffix')}</span>
             </div>
           </div>
           <div className="flex gap-2 w-full">
             <Button variant="outline" size="sm" className="border-border hover:border-primary flex-1 text-xs sm:text-sm h-9">
-              Se detaljer
+              {t('listingCard.details')}
             </Button>
             <Button size="sm" className="gap-1 flex-1 text-xs sm:text-sm h-9">
-              Book nu
+              {t('listingCard.book')}
               <ArrowRight className="h-3 w-3" />
             </Button>
           </div>
         </div>
       </div>
     </Link>
+
   );
 };

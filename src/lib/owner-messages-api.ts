@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import type { ChatAttachmentInput } from '@/lib/chatAttachments';
+import { markSupportRepliesRead } from '@/lib/chat-read-api';
 
 export type OwnerMessage = Database['public']['Tables']['chat_messages']['Row'];
 
@@ -38,24 +39,8 @@ export async function getOwnerMessages(ownerId: string): Promise<OwnerMessage[]>
   return data || [];
 }
 
-export async function markOwnerMessagesRead(messageIds: string[]) {
-  if (messageIds.length === 0) return;
-
-  const { error } = await supabase
-    .from('chat_messages')
-    .update({ is_read: true })
-    .in('id', messageIds);
-
-  if (error) throw new Error(error.message);
-}
-
-export async function markOwnerMessageRead(messageId: string) {
-  const { error } = await supabase
-    .from('chat_messages')
-    .update({ is_read: true })
-    .eq('id', messageId);
-
-  if (error) throw new Error(error.message);
+export async function markOwnerThreadRead(ownerId: string) {
+  return markSupportRepliesRead(ownerId);
 }
 
 export async function sendOwnerMessage(input: SendOwnerMessageInput) {
@@ -66,7 +51,7 @@ export async function sendOwnerMessage(input: SendOwnerMessageInput) {
     sender_type: 'owner',
     message: input.message.trim(),
     ...(input.attachment || {}),
-  }).select('id').single();
+  }).select('*').single();
 
   if (error) throw new Error(error.message);
   return data;

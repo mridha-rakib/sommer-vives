@@ -181,6 +181,7 @@ export default function AdminBeskeder() {
     const { data: msgs, count } = await supabase
       .from('chat_messages')
       .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size', { count: 'exact' })
+      .eq('thread_type', 'support')
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE);
 
@@ -205,6 +206,7 @@ export default function AdminBeskeder() {
     const { data: msgs } = await supabase
       .from('chat_messages')
       .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size')
+      .eq('thread_type', 'support')
       .lt('created_at', oldest)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE);
@@ -225,6 +227,7 @@ export default function AdminBeskeder() {
   const applyRealtime = (event: 'INSERT' | 'UPDATE' | 'DELETE', payload: ChatRealtimePayload) => {
     if (event === 'INSERT') {
       const m = payload.new as Msg;
+      if (m.thread_type !== 'support') return;
       rtLog('INSERT', {
         id: m.id,
         thread_id: m.thread_id,
@@ -244,10 +247,12 @@ export default function AdminBeskeder() {
       if (id) resolveIdentities([id]);
     } else if (event === 'UPDATE') {
       const m = payload.new as Msg;
+      if (m.thread_type !== 'support') return;
       rtLog('UPDATE', { id: m.id, is_read: m.is_read });
       setAllMessages(prev => prev.map(x => (x.id === m.id ? { ...x, ...m } : x)));
     } else if (event === 'DELETE') {
       const m = payload.old as Msg;
+      if (m.thread_type !== 'support') return;
       rtLog('DELETE', { id: m.id });
       setAllMessages(prev => prev.filter(x => x.id !== m.id));
       setTotalCount(c => (c == null ? c : Math.max(0, c - 1)));
@@ -258,9 +263,9 @@ export default function AdminBeskeder() {
     loadInitial();
     const channel = supabase
       .channel('admin-beskeder')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, p => applyRealtime('INSERT', p))
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages' }, p => applyRealtime('UPDATE', p))
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chat_messages' }, p => applyRealtime('DELETE', p))
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, p => applyRealtime('INSERT', { new: p.new as Msg }))
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages' }, p => applyRealtime('UPDATE', { new: p.new as Msg }))
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chat_messages' }, p => applyRealtime('DELETE', { old: p.old as Msg }))
       .subscribe();
     return () => { supabase.removeChannel(channel); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -383,7 +388,6 @@ export default function AdminBeskeder() {
         .from('chat_messages')
         .update({ is_read: true })
         .in('id', ids)
-        .eq('is_read', false)
         .select('id');
 
       if (!error) {
@@ -527,15 +531,19 @@ export default function AdminBeskeder() {
     }
     const { data, error } = await supabase.from('chat_messages').insert({
       thread_type: 'support',
+      thread_id: selected.id,
       sender_type: 'admin',
       sender_id: user?.id || null,
       sender_name: 'SommerVibes Support',
       recipient_id: selected.participantId,
       message: reply.trim(),
       ...attachment,
-    }).select('id').single();
+    }).select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size').single();
     setSending(false);
     if (error) { toast.error('Kunne ikke sende svar'); return; }
+    if (data) {
+      setAllMessages(prev => prev.some(message => message.id === data.id) ? prev : [...prev, data as Msg]);
+    }
     setReply('');
     setReplyFile(null);
     notifyChatPush(data?.id);

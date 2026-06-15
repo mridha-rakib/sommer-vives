@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChatAttachment } from '@/components/chat/ChatAttachment';
 import { notifyChatPush, uploadChatAttachment } from '@/lib/chatAttachments';
 import { useChatTyping } from '@/hooks/useChatTyping';
+import { useTranslation } from '@/lib/i18n';
+import { markSupportRepliesRead } from '@/lib/chat-read-api';
 
 interface ChatMessage {
   id: string;
@@ -19,6 +21,7 @@ interface ChatMessage {
   sender_id: string | null;
   recipient_id: string | null;
   thread_id: string | null;
+  thread_type: string | null;
   attachment_url: string | null;
   attachment_name: string | null;
   attachment_type: string | null;
@@ -46,35 +49,49 @@ export function ChatWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+  const { t, language } = useTranslation();
   const sessionId = useRef(getSessionId());
+  const locale = language === 'da' ? 'da-DK' : language === 'de' ? 'de-DE' : language === 'nl' ? 'nl-NL' : 'en-US';
 
   const participantId = user?.id || sessionId.current;
   const typingChannel = messages[0]?.thread_id || `user-${participantId}`;
   const { signalTyping, typingLabel } = useChatTyping({
     channelKey: typingChannel,
     selfKey: participantId,
-    selfName: user?.email?.split('@')[0] || name || 'Gæst',
+    selfName: user?.email?.split('@')[0] || name || t('chat.guestName'),
     selfRole: user ? 'owner' : 'guest',
   });
+
+  const markRepliesRead = useCallback(() => {
+    setUnread(0);
+    setMessages(prev => prev.map(message => (
+      message.sender_type === 'admin' && message.recipient_id === participantId && !message.is_read
+        ? { ...message, is_read: true }
+        : message
+    )));
+    markSupportRepliesRead(participantId).catch(() => {});
+  }, [participantId]);
 
   const loadMessages = useCallback(async () => {
     const { data } = await supabase
       .from('chat_messages')
-      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size')
+      .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size')
       .eq('thread_type', 'support')
       .or(`sender_id.eq.${participantId},recipient_id.eq.${participantId}`)
       .order('created_at', { ascending: true });
     if (data) {
       setMessages(data);
-      if (!open) {
+      if (open) {
+        markRepliesRead();
+      } else {
         setUnread(data.filter(m => m.sender_type === 'admin' && !m.is_read).length);
       }
     }
-  }, [participantId, open]);
+  }, [markRepliesRead, participantId, open]);
 
   useEffect(() => {
-    if (open && nameSet) loadMessages();
-  }, [open, nameSet, loadMessages]);
+    if (nameSet || user) loadMessages();
+  }, [open, nameSet, user, loadMessages]);
 
   // Realtime subscription
   useEffect(() => {
@@ -86,16 +103,29 @@ export function ChatWidget() {
         table: 'chat_messages',
       }, (payload) => {
         const msg = payload.new as ChatMessage;
+        if (msg.thread_type !== 'support') return;
         if (msg.sender_id !== participantId && msg.recipient_id !== participantId) return;
-        setMessages(prev => [...prev, msg]);
-        if (!open && msg.sender_type === 'admin') {
+        setMessages(prev => prev.some(existing => existing.id === msg.id) ? prev : [...prev, msg]);
+        if (open && msg.sender_type === 'admin') {
+          markRepliesRead();
+        } else if (!open && msg.sender_type === 'admin') {
           setUnread(prev => prev + 1);
         }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_messages',
+      }, (payload) => {
+        const msg = payload.new as ChatMessage;
+        if (msg.thread_type !== 'support') return;
+        if (msg.sender_id !== participantId && msg.recipient_id !== participantId) return;
+        setMessages(prev => prev.map(existing => existing.id === msg.id ? { ...existing, ...msg } : existing));
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [participantId, open]);
+  }, [markRepliesRead, participantId, open]);
 
   // Auto-scroll
   useEffect(() => {
@@ -111,14 +141,18 @@ export function ChatWidget() {
     setInput('');
     try {
       const attachment = file ? await uploadChatAttachment(file, `widget-${participantId}`) : {};
-      const { data } = await supabase.from('chat_messages').insert({
+      const { data, error } = await supabase.from('chat_messages').insert({
         thread_type: 'support',
         sender_type: user ? 'owner' : 'guest',
         sender_id: participantId,
         sender_name: user?.email?.split('@')[0] || name,
         message: msg,
         ...attachment,
-      }).select('id').single();
+      }).select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size').single();
+      if (error) throw error;
+      if (data) {
+        setMessages(prev => prev.some(existing => existing.id === data.id) ? prev : [...prev, data]);
+      }
       setFile(null);
       notifyChatPush(data?.id);
     } catch {
@@ -132,12 +166,13 @@ export function ChatWidget() {
     if (name.trim()) {
       localStorage.setItem('sv_chat_name', name.trim());
       setNameSet(true);
+      loadMessages();
     }
   };
 
   const handleOpen = () => {
     setOpen(true);
-    setUnread(0);
+    markRepliesRead();
   };
 
   const isWithinHours = () => {
@@ -189,9 +224,9 @@ export function ChatWidget() {
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
                     {isWithinHours() ? (
-                      <span className="text-accent">Online nu • svar inden for minutter</span>
+                      <span className="text-accent">{t('chat.online')}</span>
                     ) : (
-                      <span>Offline • alle dage 10–20</span>
+                      <span>{t('chat.offline')}</span>
                     )}
                   </div>
                 </div>
@@ -207,20 +242,20 @@ export function ChatWidget() {
                 <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center">
                   <MessageCircle className="w-6 h-6 text-accent" />
                 </div>
-                <h3 className="font-display text-lg font-semibold text-foreground">Hej! 👋</h3>
+                <h3 className="font-display text-lg font-semibold text-foreground">{t('chat.greeting')}</h3>
                 <p className="text-sm text-muted-foreground text-center">
-                  Skriv dit navn, så hjælper vi dig videre.
+                  {t('chat.namePrompt')}
                 </p>
                 <div className="w-full space-y-3">
                   <Input
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder="Dit navn"
+                    placeholder={t('chat.namePlaceholder')}
                     onKeyDown={e => e.key === 'Enter' && handleSetName()}
                     className="bg-background"
                   />
                   <Button onClick={handleSetName} variant="gold" className="w-full" disabled={!name.trim()}>
-                    Start chat
+                    {t('chat.start')}
                   </Button>
                 </div>
               </div>
@@ -230,8 +265,8 @@ export function ChatWidget() {
                 <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
                   {messages.length === 0 && (
                     <div className="text-center text-sm text-muted-foreground py-8">
-                      <p className="mb-1">Velkommen{name ? `, ${name}` : ''}!</p>
-                      <p>Skriv en besked, så vender vi tilbage hurtigst muligt.</p>
+                      <p className="mb-1">{t('chat.welcome').replace('{name}', name ? `, ${name}` : '')}</p>
+                      <p>{t('chat.empty')}</p>
                     </div>
                   )}
                   {messages.map(msg => {
@@ -254,7 +289,7 @@ export function ChatWidget() {
                             isOwn={isMe}
                           />
                           <div className={`text-[10px] mt-1 ${isMe ? 'text-accent-foreground/60' : 'text-muted-foreground'}`}>
-                            {msg.created_at ? new Date(msg.created_at).toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' }) : ''}
+                            {msg.created_at ? new Date(msg.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : ''}
                           </div>
                         </div>
                       </div>
@@ -265,7 +300,7 @@ export function ChatWidget() {
                 {/* Input */}
                 <div className="p-3 border-t border-border bg-background">
                   {typingLabel && (
-                    <p className="text-[11px] text-muted-foreground mb-2">{typingLabel} skriver...</p>
+                    <p className="text-[11px] text-muted-foreground mb-2">{t('chat.typing').replace('{name}', typingLabel)}</p>
                   )}
                   {file && (
                     <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
@@ -297,7 +332,7 @@ export function ChatWidget() {
                     <Input
                       value={input}
                       onChange={e => { setInput(e.target.value); signalTyping(); }}
-                      placeholder="Skriv en besked..."
+                      placeholder={t('chat.messagePlaceholder')}
                       className="bg-card flex-1"
                       disabled={sending}
                     />
