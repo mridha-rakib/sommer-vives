@@ -6,6 +6,7 @@ import { ContactHost } from '@/components/listing/ContactHost';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 interface ListingData {
   id: string;
@@ -25,12 +26,21 @@ interface ListingData {
   property_type: string | null;
 }
 
-const REGIONS = ['Alle', 'Nordsjælland', 'Vestjylland', 'Limfjorden', 'Sydsjælland', 'Fyn', 'Bornholm'];
+const REGIONS = [
+  { value: 'Alle', labelKey: 'listings.region.all' },
+  { value: 'Nordsjælland', labelKey: 'listings.region.northZealand' },
+  { value: 'Vestjylland', labelKey: 'listings.region.westJutland' },
+  { value: 'Limfjorden', labelKey: 'listings.region.limfjord' },
+  { value: 'Sydsjælland', labelKey: 'listings.region.southZealand' },
+  { value: 'Fyn', labelKey: 'listings.region.funen' },
+  { value: 'Bornholm', labelKey: 'listings.region.bornholm' },
+];
 
 const Listings = () => {
   const [listings, setListings] = useState<ListingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeRegion, setActiveRegion] = useState('Alle');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const load = async () => {
@@ -56,10 +66,10 @@ const Listings = () => {
         <div className="pt-24 sm:pt-28 pb-4 container mx-auto px-4 lg:px-8 text-center">
           <span className="text-primary font-display italic text-xs mb-1 block">— SommerVibes</span>
           <h1 className="font-display text-2xl md:text-3xl font-semibold text-foreground mb-1">
-            Vores Sommerhuse
+            {t('listings.title')}
           </h1>
           <p className="text-muted-foreground text-sm max-w-lg mx-auto">
-            Udforsk vores håndplukkede udvalg af eksklusive sommerhuse i hele Danmark
+            {t('listings.subtitle')}
           </p>
         </div>
 
@@ -68,16 +78,16 @@ const Listings = () => {
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 justify-center flex-wrap">
             {REGIONS.map((region) => (
               <button
-                key={region}
-                onClick={() => setActiveRegion(region)}
+                key={region.value}
+                onClick={() => setActiveRegion(region.value)}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
-                  activeRegion === region
+                  activeRegion === region.value
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-foreground'
                 }`}
               >
-                {region !== 'Alle' && <MapPin className="h-3 w-3 inline mr-1.5" />}
-                {region}
+                {region.value !== 'Alle' && <MapPin className="h-3 w-3 inline mr-1.5" />}
+                {t(region.labelKey)}
               </button>
             ))}
           </div>
@@ -107,15 +117,18 @@ const Listings = () => {
             ) : filtered.length === 0 ? (
               <div className="text-center py-20">
                 <p className="text-muted-foreground text-lg">
-                  {activeRegion !== 'Alle' ? `Ingen sommerhuse i ${activeRegion} endnu.` : 'Ingen sommerhuse tilgængelige endnu.'}
+                  {activeRegion !== 'Alle'
+                    ? t('listings.emptyRegion').replace('{region}', t(REGIONS.find(region => region.value === activeRegion)?.labelKey || 'listings.region.all'))
+                    : t('listings.empty')}
                 </p>
-                <p className="text-muted-foreground/60 text-sm mt-2">Kom snart tilbage for nye listings!</p>
+                <p className="text-muted-foreground/60 text-sm mt-2">{t('listings.emptySoon')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {filtered.map((listing, i) => (
                   <motion.div
                     key={listing.id}
+                    className="h-full"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}

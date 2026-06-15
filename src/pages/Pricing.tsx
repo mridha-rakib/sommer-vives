@@ -3,33 +3,26 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Check, ArrowRight, X } from 'lucide-react';
 import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
-
-const pricingFAQs = [
-  { q: 'Er der nogen skjulte gebyrer?', a: 'Nej. Du betaler kun 15 % kommission af gennemførte bookinger. Ingen oprettelsesgebyr, ingen månedlige udgifter, ingen overraskelser.' },
-  { q: 'Betaler jeg noget, før jeg får bookinger?', a: 'Nej — oprettelse og onboarding er helt gratis. Du betaler først, når du tjener penge.' },
-  { q: 'Hvornår udbetales min indtjening?', a: 'Din udbetaling overføres kort efter gæstens check-in. Du kan altid følge med i din ejerportal.' },
-  { q: 'Hvordan fungerer jeres 6 måneders aftale?', a: 'Vi investerer tid i professionelle billeder, listingopsætning og markedsføring fra dag ét. Aftalen sikrer, at vi begge får det bedste ud af samarbejdet. Herefter er du fri til at opsige.' },
-];
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-
-const valuePoints = [
-  'Annoncering på de største portaler',
-  'Fuld gæstekommunikation',
-  'Personlig rådgiver',
-  'Ejeroverblik i din portal',
-];
-
-const comparison = [
-  { feature: 'Kommission', us: '15 %', others: '18–25 %' },
-  { feature: 'Gæstegebyr', us: '5 %', others: '12–18 %' },
-  { feature: 'Binding', us: '6 mdr.', others: '12–24 mdr.' },
-  { feature: 'Oprettelse', us: 'Gratis', others: '0–5.000 kr.' },
-  { feature: 'Personlig rådgiver', us: '✓', others: '✗', usIcon: true, othersIcon: true },
-];
+import { useTranslation } from '@/lib/i18n';
 
 function PricingContent() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
+  const valuePoints = [
+    t('pricing.page.value1'),
+    t('pricing.page.value2'),
+    t('pricing.page.value3'),
+    t('pricing.page.value4'),
+  ];
+  const comparison = [
+    { feature: t('pricing.rowCommission'), us: '15 %', others: '18–25 %' },
+    { feature: t('pricing.rowGuestFee'), us: '5 %', others: '12–18 %' },
+    { feature: t('pricing.rowBinding'), us: t('pricing.valueBindingUs'), others: t('pricing.valueBindingOthers') },
+    { feature: t('pricing.rowSetup'), us: t('pricing.valueSetupUs'), others: t('pricing.valueSetupOthers') },
+    { feature: t('pricing.rowAdvisor'), us: '✓', others: '✗', usIcon: true, othersIcon: true },
+  ];
 
   return (
     <section ref={ref} className="py-20 md:py-28 bg-background">
@@ -48,17 +41,17 @@ function PricingContent() {
                 <span className="font-display text-3xl font-bold text-accent">%</span>
               </div>
               <p className="text-foreground/80 text-lg leading-relaxed">
-                ejerkommission af gennemførte bookinger
+                {t('pricing.commission')}
               </p>
             </div>
 
             <div className="bg-muted/30 rounded-xl px-5 py-4 mb-8 border border-border/40">
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-xl font-semibold text-accent">5 %</span>
-                <span className="text-sm text-muted-foreground">gæsteservicegebyr</span>
+                <span className="text-sm text-muted-foreground">{t('pricing.guestFee')}</span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                betales af gæsten — påvirker ikke din indtjening
+                {t('pricing.guestFeeNote')}
               </p>
             </div>
 
@@ -80,12 +73,12 @@ function PricingContent() {
             </ul>
 
             <p className="text-xs text-muted-foreground mb-6 leading-relaxed">
-              Ingen skjulte gebyrer. Ingen oprettelsesomkostninger.
+              {t('pricing.page.noHidden')}
             </p>
 
             <Link to="/kom-i-gang?source=pricing_get_started">
               <Button variant="gold" size="lg" className="w-full gap-2 group text-base">
-                Kom i gang gratis <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {t('pricing.cta')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </motion.div>
@@ -100,13 +93,13 @@ function PricingContent() {
             {/* Comparison table */}
             <div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-4">
-                Sammenlign med andre bureauer
+                {t('pricing.compareTitle')}
               </h3>
               <div className="rounded-xl border border-border/50 overflow-hidden">
                 <div className="grid grid-cols-3 bg-muted/40 px-5 py-3 text-xs font-medium uppercase tracking-wider">
                   <span className="text-muted-foreground"></span>
-                  <span className="text-accent text-center">SommerVibes</span>
-                  <span className="text-muted-foreground text-center">Andre</span>
+                  <span className="text-accent text-center">{t('pricing.colUs')}</span>
+                  <span className="text-muted-foreground text-center">{t('pricing.colOthers')}</span>
                 </div>
                 {comparison.map((row, i) => (
                   <div
@@ -133,23 +126,23 @@ function PricingContent() {
               className="bg-muted/20 rounded-xl p-6 border border-border/30"
             >
               <h3 className="font-display text-base font-semibold text-foreground mb-4">
-                Eksempel — dit sommerhus omsætter 100.000 kr.
+                {t('pricing.page.payoutExample')}
               </h3>
               <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bruttoomsætning</span>
+                  <span className="text-muted-foreground">{t('pricing.grossRevenue')}</span>
                   <span className="font-medium text-foreground">100.000 kr.</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">SommerVibes kommission (15 %)</span>
+                  <span className="text-muted-foreground">{t('pricing.page.commissionLine')}</span>
                   <span className="text-destructive">−15.000 kr.</span>
                 </div>
                 <div className="border-t border-border/40 pt-3 flex justify-between items-baseline">
-                  <span className="font-semibold text-foreground">Din udbetaling</span>
+                  <span className="font-semibold text-foreground">{t('pricing.yourPayout')}</span>
                   <span className="font-display font-bold text-accent text-xl">85.000 kr.</span>
                 </div>
                 <div className="flex justify-between text-xs pt-1">
-                  <span className="text-muted-foreground">Heraf skattefrit (bundfradrag)</span>
+                  <span className="text-muted-foreground">{t('pricing.page.taxFree')}</span>
                   <span className="text-foreground/70">50.200 kr.</span>
                 </div>
               </div>
@@ -162,12 +155,20 @@ function PricingContent() {
 }
 
 export default function Pricing() {
+  const { t } = useTranslation();
+  const pricingFAQs = [
+    { q: t('pricing.page.faq1.q'), a: t('pricing.page.faq1.a') },
+    { q: t('pricing.page.faq2.q'), a: t('pricing.page.faq2.a') },
+    { q: t('pricing.page.faq3.q'), a: t('pricing.page.faq3.a') },
+    { q: t('pricing.page.faq4.q'), a: t('pricing.page.faq4.a') },
+  ];
+
   return (
     <PublicLayout>
       <section className="pt-32 pb-12 bg-background text-foreground overflow-hidden">
         <div className="container mx-auto px-4 text-center max-w-2xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">Priser</span>
+            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">{t('pricing.eyebrow')}</span>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
@@ -175,8 +176,8 @@ export default function Pricing() {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="font-display text-3xl md:text-5xl font-bold mb-5 leading-tight"
           >
-            En enkel model, hvor du
-            <span className="block text-accent italic font-normal">beholder mere</span>
+            {t('pricing.page.heroTitle')}
+            <span className="block text-accent italic font-normal">{t('pricing.page.heroAccent')}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -184,34 +185,34 @@ export default function Pricing() {
             transition={{ duration: 0.6, delay: 0.35 }}
             className="text-base md:text-lg text-muted-foreground leading-relaxed"
           >
-            Du betaler kun, når du tjener. Ingen skjulte gebyrer.
+            {t('pricing.subtitle')}
           </motion.p>
         </div>
       </section>
       <PricingContent />
       <ContextualFAQ
-        eyebrow="Prisrelaterede spørgsmål"
-        heading="Hvad ejere typisk spørger om"
+        eyebrow={t('pricing.page.faqEyebrow')}
+        heading={t('pricing.page.faqHeading')}
         items={pricingFAQs}
       />
       {/* Dual CTA */}
       <section className="py-20 md:py-28 bg-background">
         <div className="container mx-auto px-4 text-center max-w-xl">
           <h2 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-4">
-            Klar til at høre mere?
+            {t('pricing.page.bottomTitle')}
           </h2>
           <p className="text-muted-foreground mb-8">
-            Kom i gang med det samme — eller book en uforpligtende snak først.
+            {t('pricing.page.bottomSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/kom-i-gang?source=pricing_get_started">
               <Button variant="gold" size="lg" className="gap-2 group">
-                Udlej dit hus <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {t('hero.cta1')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link to="/book-vurdering">
               <Button variant="outline" size="lg" className="border-accent/40 text-accent hover:bg-accent/10">
-                Book gratis udlejningstjek
+                {t('hero.cta2')}
               </Button>
             </Link>
           </div>

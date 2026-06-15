@@ -30,6 +30,7 @@ export function useUnreadMessages() {
         const { data: rows } = await supabase
           .from('chat_messages')
           .select('thread_id')
+          .eq('thread_type', 'support')
           .eq('is_read', false)
           .neq('sender_type', 'admin')
           .not('thread_id', 'is', null)

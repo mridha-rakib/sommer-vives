@@ -5,6 +5,7 @@ import { ArrowRight, Check, Phone, Mail, Clock, RotateCcw, Crown, Sparkles, User
 import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useRef, useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import emilHeadshot from '@/assets/emil-headshot.jpg';
 import kvieSoeDrone from '@/assets/kvie-soe-drone.jpg';
 import {
@@ -31,6 +32,7 @@ const reveal = (isInView: boolean, delay = 0) => ({
    ═══════════════════════════════════════════════════ */
 function HeroSection() {
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <section className="relative min-h-[88vh] flex items-center overflow-hidden">
@@ -53,25 +55,25 @@ function HeroSection() {
           <div className="flex items-center gap-2 sm:gap-6 md:gap-10 lg:gap-16">
             <div className="flex-1 min-w-0 max-w-[620px]">
               <motion.span {...fade(0.05)} className="inline-block text-accent/50 font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-5">
-                Om SommerVibes
+                {t('about.hero.eyebrow')}
               </motion.span>
               <motion.h1 {...fade(0.15)} className="font-display text-[2rem] sm:text-[2.6rem] md:text-[3.2rem] lg:text-[3.8rem] font-bold leading-[1.05] tracking-[-0.02em] mb-6">
-                Vi bygger fremtidens
+                {t('about.hero.title')}
                 <br />
-                <span className="text-accent italic font-normal">sommerhusbureau</span>
+                <span className="text-accent italic font-normal">{t('about.hero.titleAccent')}</span>
               </motion.h1>
               <motion.p {...fade(0.3)} className="text-[15px] md:text-[16px] text-muted-foreground/85 leading-[1.8] mb-9 max-w-[480px]">
-                SommerVibes er et moderne, grundlægger-drevet bureau — mere personligt end de store, mere digitalt, mere gennemsigtigt. Bygget for husejere, der fortjener en bedre oplevelse.
+                {t('about.hero.subtitle')}
               </motion.p>
               <motion.div {...fade(0.45)} className="flex flex-col sm:flex-row gap-3">
                 <Link to="/kom-i-gang">
                   <Button variant="gold" size="lg" className="gap-2.5 group px-8 h-12 text-[13.5px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.3)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.4)] transition-shadow duration-500">
-                    Udlej dit hus <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+                    {t('hero.cta1')} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
                   </Button>
                 </Link>
                 <Link to="/book-vurdering">
                   <Button variant="outline" size="lg" className="border-accent/20 text-accent/80 hover:bg-accent/[0.05] hover:border-accent/30 px-8 h-12 text-[13.5px] font-medium transition-all duration-300">
-                    Book gratis udlejningstjek
+                    {t('hero.cta2')}
                   </Button>
                 </Link>
               </motion.div>
@@ -95,7 +97,7 @@ function HeroSection() {
                 className="hidden sm:block absolute bottom-[12%] left-1/2 -translate-x-1/2 mr-6 sm:mr-8 md:mr-10 lg:mr-16 w-[90%] max-w-[240px]">
                 <div className="bg-background/90 backdrop-blur-xl rounded-2xl px-4 py-2.5 border border-accent/15 shadow-elevated text-center">
                   <p className="font-display font-bold text-foreground text-xs sm:text-sm">Emil W. Klockmann</p>
-                  <p className="text-accent text-[10px] sm:text-xs font-semibold">Udlejningschef</p>
+                  <p className="text-accent text-[10px] sm:text-xs font-semibold">{t('hero.advisorTitle')}</p>
                 </div>
               </motion.div>
             </motion.div>
@@ -112,6 +114,7 @@ function HeroSection() {
 function FounderVideoSection() {
   const { ref, isInView } = useScrollReveal();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { t } = useTranslation();
 
   const replay = () => {
     if (videoRef.current) {
@@ -126,10 +129,10 @@ function FounderVideoSection() {
         <div className="max-w-[820px] mx-auto">
           {/* Header */}
           <motion.div {...reveal(isInView)} className="text-center mb-8">
-            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Vores historie</span>
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">{t('about.video.eyebrow')}</span>
             <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em]">
-              Folkene bag
-              <span className="text-accent italic font-normal ml-2">SommerVibes</span>
+              {t('about.video.title')}
+              <span className="text-accent italic font-normal ml-2">{t('about.video.titleAccent')}</span>
             </h2>
           </motion.div>
 
@@ -151,7 +154,7 @@ function FounderVideoSection() {
                 transition={{ duration: 0.3, delay: 1 }}
                 onClick={replay}
                 className="absolute bottom-4 right-4 w-11 h-11 rounded-full bg-card/80 backdrop-blur-md ring-1 ring-white/[0.08] flex items-center justify-center cursor-pointer hover:scale-105 hover:ring-accent/20 transition-all duration-300 z-10"
-                title="Se igen"
+                title={t('about.video.replay')}
               >
                 <RotateCcw className="w-4 h-4 text-accent/70" />
               </motion.button>
@@ -161,13 +164,13 @@ function FounderVideoSection() {
           {/* Text below video */}
           <motion.div {...reveal(isInView, 0.2)} className="mt-8 max-w-[580px] mx-auto text-center">
             <p className="text-muted-foreground/80 leading-[1.8] mb-5 text-[14.5px]">
-              Vi startede SommerVibes, fordi vi selv oplevede det som mange husejere gør — et bureau, der føltes distanceret, ugennemsigtigt og upersonligt. Så vi byggede det bureau, vi selv savnede.
+              {t('about.video.body')}
             </p>
             <div className="inline-block border-l-[1.5px] border-accent/20 pl-5 py-1 text-left">
               <p className="text-primary/70 font-display text-[0.95rem] italic leading-[1.7]">
-                "Vi ville skabe det bureau, vi selv savnede som husejere."
+                {t('about.video.quote')}
               </p>
-              <p className="text-accent/40 text-[10px] mt-2 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann, Grundlægger</p>
+              <p className="text-accent/40 text-[10px] mt-2 font-medium tracking-[0.15em] uppercase">{t('about.video.attribution')}</p>
             </div>
           </motion.div>
         </div>
@@ -181,6 +184,13 @@ function FounderVideoSection() {
    ═══════════════════════════════════════════════════ */
 function FounderFactsSection() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
+  const points = [
+    t('about.founder.point1'),
+    t('about.founder.point2'),
+    t('about.founder.point3'),
+    t('about.founder.point4'),
+  ];
   return (
     <section ref={ref} className="py-16 md:py-24 bg-card/30 relative">
       <div className="container mx-auto px-5 md:px-10">
@@ -192,18 +202,18 @@ function FounderFactsSection() {
           </motion.div>
 
           <motion.div {...reveal(isInView, 0.12)} className="lg:col-span-7">
-            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">Vores grundlægger</span>
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-4">{t('about.founder.eyebrow')}</span>
             <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-1.5">
               Emil Weng Klockmann
             </h2>
-            <p className="text-accent/55 text-[13px] font-medium tracking-wide mb-6">Grundlægger & Udlejningschef</p>
+            <p className="text-accent/55 text-[13px] font-medium tracking-wide mb-6">{t('about.founder.role')}</p>
 
             <p className="text-muted-foreground/80 leading-[1.8] mb-7 text-[14.5px]">
-              Uddannet ejendomsmægler og selv sommerhus-ejer. Vi grundlagde SommerVibes med én ambition: at give husejere en bedre, mere personlig og mere gennemsigtig oplevelse.
+              {t('about.founder.body')}
             </p>
 
             <div className="space-y-2.5 mb-8">
-              {['Uddannet ejendomsmægler', 'Selv sommerhus-ejer', 'Personlig rådgiver fra dag ét', 'Digital og moderne tilgang'].map((point, i) => (
+              {points.map((point, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="w-[16px] h-[16px] rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
                     <Check className="w-[9px] h-[9px] text-accent/60" />
@@ -216,12 +226,12 @@ function FounderFactsSection() {
             <div className="flex flex-wrap gap-2.5">
               <a href="tel:+4512345678">
                 <Button variant="outline" size="sm" className="gap-2 text-[12.5px] border-border/30 hover:border-accent/20 hover:bg-accent/[0.04] transition-all duration-300">
-                  <Phone className="w-3.5 h-3.5 text-accent/55" /> Ring til os
+                  <Phone className="w-3.5 h-3.5 text-accent/55" /> {t('about.contact.phone')}
                 </Button>
               </a>
               <a href="mailto:emil@sommervibes.dk">
                 <Button variant="outline" size="sm" className="gap-2 text-[12.5px] border-border/30 hover:border-accent/20 hover:bg-accent/[0.04] transition-all duration-300">
-                  <Mail className="w-3.5 h-3.5 text-accent/55" /> Skriv til os
+                  <Mail className="w-3.5 h-3.5 text-accent/55" /> {t('about.contact.email')}
                 </Button>
               </a>
             </div>
@@ -237,6 +247,7 @@ function FounderFactsSection() {
    ═══════════════════════════════════════════════════ */
 function StorySection() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
   return (
     <section ref={ref} className="py-16 md:py-24 bg-background relative">
       <div className="container mx-auto px-5 md:px-10">
@@ -258,31 +269,31 @@ function StorySection() {
             transition={{ duration: 1, delay: 0.1, ease: "easeOut" }}
             className="lg:col-span-7"
           >
-            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-5">Vores tilgang</span>
+            <span className="text-accent/45 font-body text-[10px] font-semibold tracking-[0.4em] uppercase block mb-5">{t('about.story.eyebrow')}</span>
             <h2 className="font-display text-[1.7rem] md:text-[2.2rem] font-semibold text-primary leading-[1.1] tracking-[-0.01em] mb-8">
-              Vi gør udlejning
-              <span className="block text-accent italic font-normal mt-1">enklere og bedre</span>
+              {t('about.story.title')}
+              <span className="block text-accent italic font-normal mt-1">{t('about.story.titleAccent')}</span>
             </h2>
 
             <div className="space-y-5 mb-8">
               <p className="text-muted-foreground/80 leading-[1.8] text-[15px]">
-                Vi tror på, at sommerhusudlejning bør være enkel, gennemsigtig og personlig. At du som husejer fortjener fuldt overblik, en fast kontaktperson og en oplevelse, der matcher dit hus.
+                {t('about.story.p1')}
               </p>
               <p className="text-muted-foreground/80 leading-[1.8] text-[15px]">
-                <strong className="text-primary/85 font-medium">Derfor byggede vi SommerVibes</strong> — et moderne bureau, der kombinerer digital nytænkning med ordentlig, personlig service og en fair aftale.
+                <strong className="text-primary/85 font-medium">{t('about.story.p2Strong')}</strong> {t('about.story.p2')}
               </p>
             </div>
 
             <div className="border-l-[1.5px] border-accent/20 pl-6 py-1 mb-8">
               <p className="text-primary/75 font-display text-[1.05rem] md:text-[1.15rem] italic leading-[1.7]">
-                "Vores ambition er at være det bedste bureau for de ejere, vi samarbejder med — ikke det største."
+                {t('about.story.quote')}
               </p>
               <p className="text-accent/45 text-[11px] mt-3 font-medium tracking-[0.15em] uppercase">Emil W. Klockmann</p>
             </div>
 
             <Link to="/how-it-works">
               <Button variant="outline" size="sm" className="gap-2 group text-[12.5px] border-border/30 hover:border-accent/25 hover:bg-accent/[0.04] transition-all duration-300">
-                Se hvordan det virker <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform duration-300" />
+                {t('about.story.cta')} <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform duration-300" />
               </Button>
             </Link>
           </motion.div>
@@ -297,10 +308,11 @@ function StorySection() {
    ═══════════════════════════════════════════════════ */
 function BrandDNA() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
   const values = [
-    { title: 'Kvalitet over kvantitet', desc: 'Færre ejere, mere opmærksomhed.', icon: Crown },
-    { title: 'Digital nytænkning', desc: 'Moderne værktøjer, fuldt overblik.', icon: Sparkles },
-    { title: 'Personlig rådgivning', desc: 'Én kontaktperson, der kender dit hus.', icon: UserCheck },
+    { title: t('about.dna.value1.title'), desc: t('about.dna.value1.desc'), icon: Crown },
+    { title: t('about.dna.value2.title'), desc: t('about.dna.value2.desc'), icon: Sparkles },
+    { title: t('about.dna.value3.title'), desc: t('about.dna.value3.desc'), icon: UserCheck },
   ];
 
   return (
@@ -308,7 +320,7 @@ function BrandDNA() {
       <div className="container mx-auto px-5 md:px-10 max-w-[860px]">
         <motion.div {...reveal(isInView)} className="flex items-center gap-4 mb-8">
           <div className="w-6 h-px bg-accent/20" />
-          <p className="text-accent/40 font-body text-[10px] font-semibold tracking-[0.3em] uppercase">Vores DNA</p>
+          <p className="text-accent/40 font-body text-[10px] font-semibold tracking-[0.3em] uppercase">{t('about.dna.eyebrow')}</p>
         </motion.div>
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {values.map((v, i) => (
@@ -335,17 +347,18 @@ function BrandDNA() {
    ═══════════════════════════════════════════════════ */
 function ContactCloseSection() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
 
   const faqs = [
-    { q: 'Hvem kommer jeg i kontakt med?', a: 'Du taler direkte med Emil eller en af vores rådgivere. Ingen callcentre, ingen ventetid.' },
-    { q: 'Er det uforpligtende at tage en snak?', a: 'Ja, altid. En første samtale er helt uforpligtende — vi vil bare gerne høre om dit hus.' },
-    { q: 'Kan jeg kontakte jer direkte?', a: 'Ja. Du kan ringe til os i åbningstiden, eller skrive en mail, så vender vi tilbage hurtigt.' },
+    { q: t('about.close.faq1.q'), a: t('about.close.faq1.a') },
+    { q: t('about.close.faq2.q'), a: t('about.close.faq2.a') },
+    { q: t('about.close.faq3.q'), a: t('about.close.faq3.a') },
   ];
 
   const contacts = [
-    { icon: Phone, title: 'Ring til os', detail: '+45 12 34 56 78', href: 'tel:+4512345678' },
-    { icon: Mail, title: 'Skriv til os', detail: 'kontakt@sommervibes.dk', href: 'mailto:kontakt@sommervibes.dk' },
-    { icon: Clock, title: 'Åbningstider', detail: 'Tlf. man–tor 10–16 · Chat alle dage 10–20' },
+    { icon: Phone, title: t('about.contact.phone'), detail: '+45 12 34 56 78', href: 'tel:+4512345678' },
+    { icon: Mail, title: t('about.contact.email'), detail: 'kontakt@sommervibes.dk', href: 'mailto:kontakt@sommervibes.dk' },
+    { icon: Clock, title: t('about.contact.hoursTitle'), detail: t('about.contact.hours') },
   ];
 
   return (
@@ -353,10 +366,10 @@ function ContactCloseSection() {
       <div className="container mx-auto px-5 md:px-10 max-w-[800px]">
         <motion.div {...reveal(isInView)} className="text-center mb-10">
           <h2 className="font-display text-[1.6rem] md:text-[2rem] font-semibold text-primary mb-3 tracking-[-0.01em]">
-            Vi er klar til at <span className="text-accent italic font-normal">hjælpe dig</span>
+            {t('about.close.title')} <span className="text-accent italic font-normal">{t('about.close.titleAccent')}</span>
           </h2>
           <p className="text-muted-foreground/65 max-w-[380px] mx-auto text-[14.5px] leading-[1.7]">
-            Du er altid velkommen til en uforpligtende samtale. Vi svarer typisk inden for få timer.
+            {t('about.close.subtitle')}
           </p>
         </motion.div>
 
@@ -400,21 +413,21 @@ function ContactCloseSection() {
           className="text-center pt-8 border-t border-border/15"
         >
           <h3 className="font-display text-[1.4rem] md:text-[1.7rem] font-bold text-primary leading-[1.15] mb-3 tracking-[-0.01em]">
-            Lad os tage en uforpligtende snak
-            <span className="block text-accent italic font-normal mt-1 text-[0.9em]">om dit sommerhus</span>
+            {t('about.close.ctaTitle')}
+            <span className="block text-accent italic font-normal mt-1 text-[0.9em]">{t('about.close.ctaAccent')}</span>
           </h3>
           <p className="text-muted-foreground/60 text-[14px] leading-[1.7] mb-8 max-w-[380px] mx-auto">
-            Start med et gratis udlejningstjek eller kom direkte i gang.
+            {t('about.close.ctaBody')}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to="/kom-i-gang">
               <Button variant="gold" size="lg" className="gap-2.5 group px-8 h-11 text-[13.5px] font-medium shadow-[0_4px_24px_-6px_hsl(var(--accent)/0.3)] hover:shadow-[0_6px_32px_-4px_hsl(var(--accent)/0.4)] transition-shadow duration-500">
-                Udlej dit hus <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+                {t('hero.cta1')} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
               </Button>
             </Link>
             <Link to="/book-vurdering">
               <Button variant="outline" size="lg" className="border-accent/20 text-accent/80 hover:bg-accent/[0.06] hover:border-accent/30 px-8 h-11 text-[13.5px] font-medium transition-all duration-300">
-                Book gratis udlejningstjek
+                {t('hero.cta2')}
               </Button>
             </Link>
           </div>

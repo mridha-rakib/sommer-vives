@@ -15,6 +15,7 @@ import { ChatAttachment } from '@/components/chat/ChatAttachment';
 import { notifyChatPush, uploadChatAttachment } from '@/lib/chatAttachments';
 import { useChatTyping } from '@/hooks/useChatTyping';
 import type { Database } from '@/integrations/supabase/types';
+import { markSupportRepliesRead } from '@/lib/chat-read-api';
 
 type GuestChatMessage = Database['public']['Tables']['chat_messages']['Row'];
 
@@ -64,11 +65,13 @@ export default function GuestMessages() {
         setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
         // Auto-mark admin replies as read while viewing
         if (m.sender_type !== 'guest' && !m.is_read) {
-          supabase.from('chat_messages').update({ is_read: true }).eq('id', m.id).then(() => {});
+          markSupportRepliesRead(user.id).catch(() => {});
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages' }, (payload) => {
         const m = payload.new as GuestChatMessage;
+        if (m.thread_type !== 'support') return;
+        if (m.sender_id !== user.id && m.recipient_id !== user.id) return;
         setMessages(prev => prev.map(x => (x.id === m.id ? { ...x, ...m } : x)));
       })
       .subscribe();
@@ -91,7 +94,7 @@ export default function GuestMessages() {
       .filter((m) => m.sender_type !== 'guest' && !m.is_read)
       .map((m) => m.id);
     if (unreadIds.length > 0) {
-      supabase.from('chat_messages').update({ is_read: true }).in('id', unreadIds).then(() => {});
+      markSupportRepliesRead(user.id).catch(() => {});
     }
   };
 
@@ -104,12 +107,14 @@ export default function GuestMessages() {
         message: newMsg.trim(), sender_type: 'guest', sender_id: user.id,
         sender_name: user.user_metadata?.full_name || user.email, thread_type: 'support',
         ...attachment,
-      }).select('id').single();
+      }).select('*').single();
       if (error) throw error;
+      if (data) {
+        setMessages(prev => prev.some(message => message.id === data.id) ? prev : [...prev, data]);
+      }
       notifyChatPush(data?.id);
       setNewMsg('');
       setNewFile(null);
-      await loadMessages();
     } catch {
       // Keep the draft intact so the user can retry.
     } finally {

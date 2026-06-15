@@ -6,31 +6,19 @@ import { motion } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import heroHouse from '@/assets/hero-house.jpg';
 import { ContextualFAQ } from '@/components/landing/ContextualFAQ';
-
-const howFAQs = [
-  { q: 'Hvor hurtigt kan mit hus komme live?', a: 'De fleste husejere er klar til første booking inden for 1–2 uger efter oprettelse.' },
-  { q: 'Kommer I fysisk forbi ejendommen?', a: 'Ja, hvis det er relevant. Vi kan arrangere besøg i forbindelse med fotografering eller keybox-opsætning.' },
-  { q: 'Hvad skal jeg selv have klar?', a: 'Meget lidt. Vi hjælper dig hele vejen. Du skal blot have adgang til huset og en god idé om, hvornår det er ledigt.' },
-  { q: 'Hvad sker der efter jeg har oprettet mig?', a: 'En personlig rådgiver tager kontakt inden for 24 timer og guider dig igennem næste skridt — billeder, tekst og publicering.' },
-];
-
-const steps = [
-  { number: '01', icon: ClipboardList, title: 'Opret dit sommerhus', description: 'Udfyld vores simple formular med info om dit sommerhus. Det tager kun 5 minutter.' },
-  { number: '02', icon: Camera, title: 'Vi fotograferer', description: 'Vi vejleder dig i at tage gode billeder og hjælper med redigering. Du kan også bestille professionel fotografering.' },
-  { number: '03', icon: Home, title: 'Vi markedsfører', description: 'Dit sommerhus publiceres på de største portaler og markedsføres via sociale medier og nyhedsbreve.' },
-  { number: '04', icon: Calendar, title: 'Vi håndterer alt', description: 'Booking, gæstekommunikation, rengøring og nøgleoverdragelse. Du skal bare læne dig tilbage.' },
-  { number: '05', icon: Banknote, title: 'Du tjener penge', description: 'Efter hver udlejning får du udbetalt direkte til din konto. Fuldstændig gennemsigtigt.' },
-];
-
-const benefits = [
-  { icon: Star, title: 'Personlig rådgiver', desc: 'Din egen kontaktperson' },
-  { icon: Shield, title: '6 mdr. binding', desc: 'Tryghed for begge parter' },
-  { icon: Zap, title: 'Hurtig opstart', desc: '1-2 uger til første booking' },
-  { icon: Users, title: 'Dansk support', desc: '100% dansk team' },
-];
+import { useTranslation } from '@/lib/i18n';
 
 function StepsSection() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
+  const steps = [
+    { number: '01', icon: ClipboardList, title: t('how.page.step1.title'), description: t('how.page.step1.desc') },
+    { number: '02', icon: Camera, title: t('how.page.step2.title'), description: t('how.page.step2.desc') },
+    { number: '03', icon: Home, title: t('how.page.step3.title'), description: t('how.page.step3.desc') },
+    { number: '04', icon: Calendar, title: t('how.page.step4.title'), description: t('how.page.step4.desc') },
+    { number: '05', icon: Banknote, title: t('how.page.step5.title'), description: t('how.page.step5.desc') },
+  ];
+
   return (
     <section ref={ref} className="py-24 md:py-32 bg-background">
       <div className="container mx-auto px-4 md:px-8">
@@ -40,8 +28,8 @@ function StepsSection() {
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
-          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">Processen</span>
-          <h2 className="font-display text-3xl md:text-5xl font-bold text-primary">5 simple trin</h2>
+          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">{t('how.page.processEyebrow')}</span>
+          <h2 className="font-display text-3xl md:text-5xl font-bold text-primary">{t('how.page.processTitle')}</h2>
         </motion.div>
         <div className="max-w-4xl mx-auto">
           {steps.map((step, i) => (
@@ -78,7 +66,7 @@ function StepsSection() {
         >
           <Link to="/kom-i-gang">
             <Button variant="gold" size="lg" className="gap-2 group">
-              Start din rejse nu <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              {t('how.page.startJourney')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
         </motion.div>
@@ -89,6 +77,15 @@ function StepsSection() {
 
 function WhySection() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
+  const points = [
+    t('why.p1'),
+    t('why.p2'),
+    t('why.p3'),
+    t('why.p4'),
+    t('why.p5'),
+    t('why.p6'),
+  ];
   return (
     <section ref={ref} className="py-24 md:py-32 bg-muted/30">
       <div className="container mx-auto px-4 md:px-8">
@@ -109,7 +106,7 @@ function WhySection() {
               className="absolute -bottom-6 -right-6 bg-accent text-primary px-8 py-4 rounded-xl shadow-lg"
             >
               <span className="font-display font-bold text-2xl">15%</span>
-              <span className="block text-sm">kommission</span>
+              <span className="block text-sm">{t('pricing.rowCommission').toLowerCase()}</span>
             </motion.div>
           </motion.div>
           <motion.div
@@ -117,19 +114,12 @@ function WhySection() {
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">Fordele</span>
+            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">{t('why.eyebrow')}</span>
             <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary mb-6">
-              Hvorfor vælge<br /><span className="text-accent italic font-normal">SommerVibes?</span>
+              {t('why.title')}<br /><span className="text-accent italic font-normal">{t('why.titleAccent')}</span>
             </h2>
             <div className="space-y-4 mb-8">
-              {[
-                'Kun 15% i kommission – langt under markedet',
-                'Personlig rådgiver der kender dit hus',
-                'Annoncering på alle de store portaler',
-                'Professionel foto inkluderet',
-                'Fuld gennemsigtighed og 6 mdr. binding for tryghed',
-                'Adgang til bundfradrag på 50.200 kr.',
-              ].map((item, i) => (
+              {points.map((item, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, x: 20 }}
@@ -146,7 +136,7 @@ function WhySection() {
             </div>
             <Link to="/team">
               <Button variant="outline" className="gap-2 group">
-                Mød teamet bag <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {t('why.cta')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </motion.div>
@@ -157,13 +147,27 @@ function WhySection() {
 }
 
 export default function HowItWorks() {
+  const { t } = useTranslation();
+  const howFAQs = [
+    { q: t('how.page.faq1.q'), a: t('how.page.faq1.a') },
+    { q: t('how.page.faq2.q'), a: t('how.page.faq2.a') },
+    { q: t('how.page.faq3.q'), a: t('how.page.faq3.a') },
+    { q: t('how.page.faq4.q'), a: t('how.page.faq4.a') },
+  ];
+  const benefits = [
+    { icon: Star, title: t('how.page.benefit1.title'), desc: t('how.page.benefit1.desc') },
+    { icon: Shield, title: t('how.page.benefit2.title'), desc: t('how.page.benefit2.desc') },
+    { icon: Zap, title: t('how.page.benefit3.title'), desc: t('how.page.benefit3.desc') },
+    { icon: Users, title: t('how.page.benefit4.title'), desc: t('how.page.benefit4.desc') },
+  ];
+
   return (
     <PublicLayout>
       {/* Hero */}
       <section className="relative pt-32 pb-20 bg-background text-foreground overflow-hidden">
         <div className="container mx-auto px-4 md:px-8 text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">Sådan virker det</span>
+            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">{t('how.eyebrow')}</span>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -171,8 +175,8 @@ export default function HowItWorks() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
           >
-            Fra oprettelse til
-            <span className="block text-accent italic font-normal">indtjening på få dage</span>
+            {t('how.page.heroTitle')}
+            <span className="block text-accent italic font-normal">{t('how.page.heroAccent')}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -180,7 +184,7 @@ export default function HowItWorks() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10"
           >
-            Vi har gjort det så enkelt som muligt at udleje dit sommerhus professionelt.
+            {t('how.page.heroSubtitle')}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -190,12 +194,12 @@ export default function HowItWorks() {
           >
             <Link to="/kom-i-gang">
               <Button variant="gold" size="lg" className="gap-2 group">
-                Kom i gang nu <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {t('nav.getStarted')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link to="/beregn-lejeindtaegt">
               <Button variant="outline" size="lg" className="border-accent/40 text-accent hover:bg-accent/10">
-                Se din potentielle indtjening
+                {t('how.page.seeEarnings')}
               </Button>
             </Link>
           </motion.div>
@@ -229,8 +233,8 @@ export default function HowItWorks() {
 
       <StepsSection />
       <ContextualFAQ
-        eyebrow="Har du spørgsmål?"
-        heading="Det, husejere typisk undrer sig over"
+        eyebrow={t('how.page.faqEyebrow')}
+        heading={t('how.page.faqHeading')}
         items={howFAQs}
       />
       <WhySection />
@@ -239,19 +243,19 @@ export default function HowItWorks() {
       <section className="py-24 bg-background text-foreground">
         <div className="container mx-auto px-4 md:px-8 text-center">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-            <h2 className="font-display text-3xl md:text-5xl font-bold mb-6">Klar til at komme i gang?</h2>
+            <h2 className="font-display text-3xl md:text-5xl font-bold mb-6">{t('how.page.bottomTitle')}</h2>
             <p className="text-muted-foreground text-lg mb-10 max-w-2xl mx-auto">
-              Det tager kun 5 minutter at oprette dit sommerhus.
+              {t('how.page.bottomSubtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/kom-i-gang">
                 <Button variant="gold" size="lg" className="gap-2 group">
-                  Udlej dit hus <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  {t('hero.cta1')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link to="/book-vurdering">
                 <Button variant="outline" size="lg" className="border-accent/40 text-accent hover:bg-accent/10">
-                  Book gratis udlejningstjek
+                  {t('hero.cta2')}
                 </Button>
               </Link>
             </div>

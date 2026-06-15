@@ -22,8 +22,13 @@ interface ChatMsg {
   id: string;
   message: string;
   sender_type: string;
+  sender_id: string | null;
   sender_name: string | null;
+  recipient_id: string | null;
+  thread_id: string | null;
+  thread_type: string | null;
   created_at: string | null;
+  is_read: boolean | null;
   attachment_url: string | null;
   attachment_name: string | null;
   attachment_size: number | null;
@@ -95,6 +100,11 @@ export function AdminChatPanel() {
         schema: 'public',
         table: 'chat_messages',
       }, () => { loadThreads(); })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_messages',
+      }, () => { loadThreads(); })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -107,11 +117,19 @@ export function AdminChatPanel() {
     const load = async () => {
       const { data } = await supabase
         .from('chat_messages')
-        .select('id, message, sender_type, sender_name, created_at, attachment_url, attachment_name, attachment_size')
+        .select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, created_at, is_read, attachment_url, attachment_name, attachment_size')
         .eq('thread_type', 'support')
         .eq('thread_id', activeThread)
         .order('created_at', { ascending: true });
-      if (data) setMessages(data);
+      if (data) {
+        setMessages(data);
+        const unreadIds = data
+          .filter(message => message.sender_type !== 'admin' && !message.is_read)
+          .map(message => message.id);
+        if (unreadIds.length > 0) {
+          supabase.from('chat_messages').update({ is_read: true }).in('id', unreadIds).then(() => {});
+        }
+      }
     };
     load();
 
@@ -123,7 +141,20 @@ export function AdminChatPanel() {
         table: 'chat_messages',
         filter: `thread_id=eq.${activeThread}`,
       }, (payload) => {
-        setMessages(prev => [...prev, payload.new as ChatMsg]);
+        const message = payload.new as ChatMsg;
+        setMessages(prev => prev.some(existing => existing.id === message.id) ? prev : [...prev, message]);
+        if (message.sender_type !== 'admin' && !message.is_read) {
+          supabase.from('chat_messages').update({ is_read: true }).eq('id', message.id).then(() => {});
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_messages',
+        filter: `thread_id=eq.${activeThread}`,
+      }, (payload) => {
+        const message = payload.new as ChatMsg;
+        setMessages(prev => prev.map(existing => existing.id === message.id ? { ...existing, ...message } : existing));
       })
       .subscribe();
 
@@ -141,13 +172,17 @@ export function AdminChatPanel() {
       const attachment = file ? await uploadChatAttachment(file, activeThread) : {};
       const { data } = await supabase.from('chat_messages').insert({
         thread_type: 'support',
+        thread_id: activeThread,
         sender_type: 'admin',
         sender_id: user?.id || null,
         sender_name: 'SommerVibes Support',
         recipient_id: active?.participant_id || null,
         message: input.trim(),
         ...attachment,
-      }).select('id').single();
+      }).select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, created_at, is_read, attachment_url, attachment_name, attachment_size').single();
+      if (data) {
+        setMessages(prev => prev.some(message => message.id === data.id) ? prev : [...prev, data]);
+      }
       setInput('');
       setFile(null);
       notifyChatPush(data?.id);
