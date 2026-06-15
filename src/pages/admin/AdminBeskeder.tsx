@@ -20,6 +20,7 @@ import { devLog } from '@/lib/devLog';
 import { ChatAttachment } from '@/components/chat/ChatAttachment';
 import { notifyChatPush, uploadChatAttachment } from '@/lib/chatAttachments';
 import { useChatTyping } from '@/hooks/useChatTyping';
+import { useTranslation } from '@/lib/i18n';
 
 const rtLog = devLog('chat:realtime');
 const arLog = devLog('chat:auto-read');
@@ -72,16 +73,10 @@ type ChatRealtimePayload = {
   old?: Record<string, any>;
 };
 
-const TAB_CFG: Record<ThreadTab, { label: string; icon: React.ElementType }> = {
-  all:   { label: 'Alle',   icon: MessageSquare },
-  owner: { label: 'Ejere',  icon: UserCheck },
-  guest: { label: 'Gæster', icon: User },
-};
-
-function roleVisuals(role: ParticipantRole) {
-  if (role === 'owner') return { Icon: UserCheck, color: 'text-primary', bg: 'bg-primary/10', label: 'Ejer' };
-  if (role === 'guest') return { Icon: User, color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'Gæst' };
-  return { Icon: Bot, color: 'text-muted-foreground', bg: 'bg-muted/30', label: 'Ukendt' };
+function getRoleVisuals(role: ParticipantRole, t: (k: string) => string) {
+  if (role === 'owner') return { Icon: UserCheck, color: 'text-primary', bg: 'bg-primary/10', label: t('admin.beskeder.role.owner') };
+  if (role === 'guest') return { Icon: User, color: 'text-amber-400', bg: 'bg-amber-500/10', label: t('admin.beskeder.role.guest') };
+  return { Icon: Bot, color: 'text-muted-foreground', bg: 'bg-muted/30', label: t('admin.beskeder.role.unknown') };
 }
 
 function escapeRegExp(s: string) {
@@ -110,6 +105,7 @@ const PAGE_SIZE = 200;
 
 export default function AdminBeskeder() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [allMessages, setAllMessages] = useState<Msg[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, ProfileInfo>>({});
   const [roleMap, setRoleMap] = useState<Record<string, ParticipantRole>>({});
@@ -287,7 +283,7 @@ export default function AdminBeskeder() {
         buckets.set(key, {
           id: key,
           participantId,
-          participantName: profile?.full_name || profile?.email || m.sender_name || 'Ukendt',
+          participantName: profile?.full_name || profile?.email || m.sender_name || t('admin.beskeder.role.unknown'),
           participantEmail: profile?.email || null,
           role,
           messages: [m],
@@ -310,10 +306,10 @@ export default function AdminBeskeder() {
       }
     });
     // Ensure messages are chronological inside each thread
-    buckets.forEach(t => t.messages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+    buckets.forEach(thread => thread.messages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
     return Array.from(buckets.values())
       .sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
-  }, [allMessages, profilesMap, roleMap]);
+  }, [allMessages, profilesMap, roleMap, t]);
 
 
   // Normalize search query (case + accent insensitive)
@@ -324,28 +320,28 @@ export default function AdminBeskeder() {
 
   const matches = (text: string | null | undefined) => {
     if (!text) return false;
-    const t = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return t.includes(normalizedQuery);
+    const normalized = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return normalized.includes(normalizedQuery);
   };
 
   type FilteredThread = Thread & { matchedMessage?: Msg };
 
   const filtered = useMemo<FilteredThread[]>(() => {
-    return threads.reduce<FilteredThread[]>((acc, t) => {
-      if (tab !== 'all' && t.role !== tab) return acc;
+    return threads.reduce<FilteredThread[]>((acc, thread) => {
+      if (tab !== 'all' && thread.role !== tab) return acc;
 
       if (!normalizedQuery) {
-        acc.push(t);
+        acc.push(thread);
         return acc;
       }
 
       // Header-level match (name / email)
-      const headerHit = matches(t.participantName) || matches(t.participantEmail);
+      const headerHit = matches(thread.participantName) || matches(thread.participantEmail);
       // Message-level match (text or per-message sender_name)
-      const matchedMessage = t.messages.find(m => matches(m.message) || matches(m.sender_name) || matches(m.attachment_name));
+      const matchedMessage = thread.messages.find(m => matches(m.message) || matches(m.sender_name) || matches(m.attachment_name));
 
       if (headerHit || matchedMessage) {
-        acc.push({ ...t, matchedMessage: matchedMessage || undefined });
+        acc.push({ ...thread, matchedMessage: matchedMessage || undefined });
       }
       return acc;
     }, []);
@@ -353,12 +349,12 @@ export default function AdminBeskeder() {
 
   const counts = useMemo(() => ({
     total: threads.length,
-    unread: threads.filter(t => t.unread > 0).length,
-    owner: threads.filter(t => t.role === 'owner').length,
-    guest: threads.filter(t => t.role === 'guest').length,
+    unread: threads.filter(thread => thread.unread > 0).length,
+    owner: threads.filter(thread => thread.role === 'owner').length,
+    guest: threads.filter(thread => thread.role === 'guest').length,
   }), [threads]);
 
-  const selected = useMemo(() => threads.find(t => t.id === selectedId) || null, [threads, selectedId]);
+  const selected = useMemo(() => threads.find(thread => thread.id === selectedId) || null, [threads, selectedId]);
   const { signalTyping, typingLabel } = useChatTyping({
     channelKey: selected?.id,
     selfKey: user?.id,
@@ -420,7 +416,7 @@ export default function AdminBeskeder() {
             markReadAttemptsRef.current.set(blockedKey, tries);
             if (tries >= MAX_MARK_READ_RETRIES) {
               console.warn('[AdminBeskeder] RLS blocked mark-as-read for', invisible);
-              toast.error('Kunne ikke markere alle beskeder som læst (manglende rettigheder)');
+              toast.error(t('admin.beskeder.toast.markReadRlsError'));
               setAllMessages(prev => prev.map(m =>
                 invisible.includes(m.id) ? { ...m, is_read: prevSnapshot.get(m.id) ?? false } : m
               ));
@@ -438,7 +434,7 @@ export default function AdminBeskeder() {
     }
 
     console.error('[AdminBeskeder] mark-as-read failed after retries', lastError);
-    toast.error('Kunne ikke opdatere læsestatus — prøver igen senere');
+    toast.error(t('admin.beskeder.toast.markReadFailed'));
     setAllMessages(prev => prev.map(m =>
       ids.includes(m.id) ? { ...m, is_read: prevSnapshot.get(m.id) ?? false } : m
     ));
@@ -455,7 +451,7 @@ export default function AdminBeskeder() {
     if (unreadIds.length === 0) {
       arLog('noop — nothing unread', { threadId, trigger });
       if (!opts.silentIfNoop) {
-        toast('Ingen ulæste beskeder i denne tråd', { duration: 1800 });
+        toast(t('admin.beskeder.toast.noUnreadInThread'), { duration: 1800 });
       }
       return;
     }
@@ -470,8 +466,8 @@ export default function AdminBeskeder() {
     arLog('success', { threadId, trigger, count: unreadIds.length, durationMs: dt });
     toast.success(
       unreadIds.length === 1
-        ? '1 besked markeret som læst'
-        : `${unreadIds.length} beskeder markeret som læst`,
+        ? t('admin.beskeder.toast.markedReadOne')
+        : t('admin.beskeder.toast.markedReadMany').replace('{count}', String(unreadIds.length)),
       { duration: 2000 }
     );
     setAllReadFlash({ threadId, count: unreadIds.length });
@@ -517,7 +513,7 @@ export default function AdminBeskeder() {
   const sendReply = async () => {
     if (!selected || (!reply.trim() && !replyFile) || sending) return;
     if (!selected.participantId) {
-      toast.error('Kan ikke svare — afsender mangler en bruger-id');
+      toast.error(t('admin.beskeder.toast.noSenderId'));
       return;
     }
     setSending(true);
@@ -526,7 +522,7 @@ export default function AdminBeskeder() {
       if (replyFile) attachment = await uploadChatAttachment(replyFile, selected.id);
     } catch (err: unknown) {
       setSending(false);
-      toast.error(err instanceof Error ? err.message : 'Kunne ikke uploade fil');
+      toast.error(err instanceof Error ? err.message : t('admin.beskeder.toast.uploadError'));
       return;
     }
     const { data, error } = await supabase.from('chat_messages').insert({
@@ -540,7 +536,7 @@ export default function AdminBeskeder() {
       ...attachment,
     }).select('id, message, sender_type, sender_id, sender_name, recipient_id, thread_id, thread_type, booking_id, created_at, is_read, attachment_url, attachment_name, attachment_type, attachment_size').single();
     setSending(false);
-    if (error) { toast.error('Kunne ikke sende svar'); return; }
+    if (error) { toast.error(t('admin.beskeder.toast.sendError')); return; }
     if (data) {
       setAllMessages(prev => prev.some(message => message.id === data.id) ? prev : [...prev, data as Msg]);
     }
@@ -554,12 +550,12 @@ export default function AdminBeskeder() {
     <AdminLayout>
       <div className="space-y-6">
         <AdminPageHeader
-          title="Beskeder"
-          subtitle="Direkte dialog med ejere og gæster"
+          title={t('admin.beskeder.title')}
+          subtitle={t('admin.beskeder.subtitle')}
           actions={
             counts.unread > 0 ? (
               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-1">
-                {counts.unread} ulæste
+                {t('admin.beskeder.badge.unread').replace('{count}', String(counts.unread))}
               </Badge>
             ) : null
           }
@@ -568,10 +564,10 @@ export default function AdminBeskeder() {
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: 'Alle samtaler', value: counts.total, icon: MessageSquare },
-            { label: 'Ulæste', value: counts.unread, icon: Mail },
-            { label: 'Ejere', value: counts.owner, icon: UserCheck },
-            { label: 'Gæster', value: counts.guest, icon: User },
+            { label: t('admin.beskeder.kpi.allConversations'), value: counts.total, icon: MessageSquare },
+            { label: t('admin.beskeder.kpi.unread'), value: counts.unread, icon: Mail },
+            { label: t('admin.beskeder.kpi.owners'), value: counts.owner, icon: UserCheck },
+            { label: t('admin.beskeder.kpi.guests'), value: counts.guest, icon: User },
           ].map(kpi => (
             <div key={kpi.label} className="rounded-xl border border-border/40 bg-card/60 p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -589,7 +585,7 @@ export default function AdminBeskeder() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <Input
               ref={searchRef}
-              placeholder="Søg navn, email, afsender eller indhold... (tryk /)"
+              placeholder={t('admin.beskeder.search.placeholder')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-9 pr-20 h-9 bg-muted/20 border-border/40 rounded-xl text-sm"
@@ -599,7 +595,7 @@ export default function AdminBeskeder() {
                 type="button"
                 onClick={() => { setSearch(''); searchRef.current?.focus(); }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-muted/40 text-muted-foreground hover:text-foreground"
-                aria-label="Ryd søgning"
+                aria-label={t('admin.beskeder.search.clearAriaLabel')}
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -609,16 +605,22 @@ export default function AdminBeskeder() {
           </div>
           <Tabs value={tab} onValueChange={v => setTab(v as ThreadTab)} className="w-auto">
             <TabsList className="h-9 bg-muted/20 border border-border/30 rounded-xl p-0.5">
-              {Object.entries(TAB_CFG).map(([key, cfg]) => (
-                <TabsTrigger key={key} value={key} className="text-xs rounded-lg px-3 h-7 gap-1.5">
-                  <cfg.icon className="w-3 h-3" /> {cfg.label}
+              {[
+                { key: 'all'   as ThreadTab, label: t('admin.beskeder.tab.all'),   Icon: MessageSquare },
+                { key: 'owner' as ThreadTab, label: t('admin.beskeder.tab.owner'), Icon: UserCheck },
+                { key: 'guest' as ThreadTab, label: t('admin.beskeder.tab.guest'), Icon: User },
+              ].map(cfg => (
+                <TabsTrigger key={cfg.key} value={cfg.key} className="text-xs rounded-lg px-3 h-7 gap-1.5">
+                  <cfg.Icon className="w-3 h-3" /> {cfg.label}
                 </TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
           {normalizedQuery && (
             <span className="text-[11px] text-muted-foreground">
-              {filtered.length} {filtered.length === 1 ? 'tråd' : 'tråde'} matcher
+              {filtered.length === 1
+                ? t('admin.beskeder.search.resultsOne').replace('{count}', String(filtered.length))
+                : t('admin.beskeder.search.resultsMany').replace('{count}', String(filtered.length))}
             </span>
           )}
         </div>
@@ -629,55 +631,59 @@ export default function AdminBeskeder() {
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-border/40 bg-card/40 p-16 text-center">
             <MessageSquare className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Ingen beskeder fundet</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Du er helt ajour</p>
+            <p className="text-sm text-muted-foreground">{t('admin.beskeder.empty.title')}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">{t('admin.beskeder.empty.subtitle')}</p>
           </div>
         ) : (
           <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/30 overflow-hidden">
-            {filtered.map(t => {
-              const lastMsg = t.messages[t.messages.length - 1];
+            {filtered.map(thread => {
+              const lastMsg = thread.messages[thread.messages.length - 1];
               // When searching: prefer the matched message as preview snippet
-              const previewMsg = t.matchedMessage || lastMsg;
-              const v = roleVisuals(t.role);
+              const previewMsg = thread.matchedMessage || lastMsg;
+              const v = getRoleVisuals(thread.role, t);
+              const msgCount = thread.messages.length;
+              const msgCountLabel = msgCount === 1
+                ? t('admin.beskeder.messageCountOne').replace('{count}', String(msgCount))
+                : t('admin.beskeder.messageCountMany').replace('{count}', String(msgCount));
               return (
                 <button
-                  key={t.id}
-                  onClick={() => setSelectedId(t.id)}
+                  key={thread.id}
+                  onClick={() => setSelectedId(thread.id)}
                   className={`w-full flex items-center gap-4 px-4 py-3.5 text-left transition-colors group ${
-                    t.unread > 0 ? 'bg-primary/[0.03] hover:bg-primary/[0.06]' : 'hover:bg-muted/15'
+                    thread.unread > 0 ? 'bg-primary/[0.03] hover:bg-primary/[0.06]' : 'hover:bg-muted/15'
                   }`}
                 >
                   <div className="w-2 shrink-0">
-                    {t.unread > 0 && <Circle className="w-2 h-2 fill-primary text-primary" />}
+                    {thread.unread > 0 && <Circle className="w-2 h-2 fill-primary text-primary" />}
                   </div>
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${v.bg}`}>
                     <v.Icon className={`w-4 h-4 ${v.color}`} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className={`text-sm truncate ${t.unread > 0 ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}>
-                        <HighlightText text={t.participantName} query={normalizedQuery} />
+                      <p className={`text-sm truncate ${thread.unread > 0 ? 'font-semibold text-foreground' : 'font-medium text-foreground'}`}>
+                        <HighlightText text={thread.participantName} query={normalizedQuery} />
                       </p>
                       <Badge variant="outline" className="text-[10px] h-4 px-1.5 border-border/40 text-muted-foreground">{v.label}</Badge>
-                      {t.unread > 0 && (
+                      {thread.unread > 0 && (
                         <span className="text-[10px] font-bold bg-primary text-primary-foreground rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
-                          {t.unread}
+                          {thread.unread}
                         </span>
                       )}
                     </div>
-                    <p className={`text-[11px] truncate mt-0.5 ${t.unread > 0 ? 'text-foreground/70' : 'text-muted-foreground'}`}>
-                      {previewMsg.sender_type === 'admin' && <span className="font-medium">Du: </span>}
-                      {!!t.matchedMessage && previewMsg.sender_type !== 'admin' && previewMsg.sender_name && (
+                    <p className={`text-[11px] truncate mt-0.5 ${thread.unread > 0 ? 'text-foreground/70' : 'text-muted-foreground'}`}>
+                      {previewMsg.sender_type === 'admin' && <span className="font-medium">{t('admin.beskeder.preview.you')}</span>}
+                      {!!thread.matchedMessage && previewMsg.sender_type !== 'admin' && previewMsg.sender_name && (
                         <span className="font-medium">{previewMsg.sender_name}: </span>
                       )}
-                      <HighlightText text={previewMsg.message || previewMsg.attachment_name || 'Vedhæftet fil'} query={normalizedQuery} />
+                      <HighlightText text={previewMsg.message || previewMsg.attachment_name || t('admin.beskeder.preview.attachment')} query={normalizedQuery} />
                     </p>
                   </div>
                   <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
                     <span className="text-[11px] text-muted-foreground">
-                      {new Date(t.lastMessageAt).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}
+                      {new Date(thread.lastMessageAt).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}
                     </span>
-                    <StatusChip label={`${t.messages.length} besked${t.messages.length !== 1 ? 'er' : ''}`} variant="muted" size="sm" />
+                    <StatusChip label={msgCountLabel} variant="muted" size="sm" />
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors shrink-0" />
                 </button>
@@ -691,8 +697,13 @@ export default function AdminBeskeder() {
           <div className="flex items-center justify-between gap-3 px-1">
             <p className="text-[11px] text-muted-foreground">
               {totalCount != null
-                ? `Viser ${allMessages.length} af ${totalCount} beskeder · ${threads.length} tråde`
-                : `Viser ${allMessages.length} beskeder · ${threads.length} tråde`}
+                ? t('admin.beskeder.pagination.showing')
+                    .replace('{loaded}', String(allMessages.length))
+                    .replace('{total}', String(totalCount))
+                    .replace('{threads}', String(threads.length))
+                : t('admin.beskeder.pagination.showingNoTotal')
+                    .replace('{loaded}', String(allMessages.length))
+                    .replace('{threads}', String(threads.length))}
             </p>
             {hasMore ? (
               <Button
@@ -703,13 +714,13 @@ export default function AdminBeskeder() {
                 className="rounded-xl h-8 text-xs"
               >
                 {loadingMore ? (
-                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Indlæser…</>
+                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> {t('admin.beskeder.pagination.loading')}</>
                 ) : (
-                  <>Indlæs ældre beskeder</>
+                  <>{t('admin.beskeder.pagination.loadMore')}</>
                 )}
               </Button>
             ) : allMessages.length > 0 && (
-              <span className="text-[11px] text-muted-foreground/60">Alle beskeder indlæst</span>
+              <span className="text-[11px] text-muted-foreground/60">{t('admin.beskeder.pagination.allLoaded')}</span>
             )}
           </div>
         )}
@@ -719,10 +730,19 @@ export default function AdminBeskeder() {
       <Sheet open={!!selected} onOpenChange={open => !open && setSelectedId(null)}>
         <SheetContent className="sm:max-w-lg bg-card border-border/50 flex flex-col p-0">
           {selected && (() => {
-            const v = roleVisuals(selected.role);
+            const v = getRoleVisuals(selected.role, t);
             const unreadInThread = selected.messages.filter(
               m => m.sender_type !== 'admin' && !m.is_read
             ).length;
+            const drawerMsgCount = selected.messages.length;
+            const drawerMsgCountLabel = drawerMsgCount === 1
+              ? t('admin.beskeder.messageCountOne').replace('{count}', String(drawerMsgCount))
+              : t('admin.beskeder.messageCountMany').replace('{count}', String(drawerMsgCount));
+            const markReadTitle = unreadInThread === 0
+              ? t('admin.beskeder.drawer.noUnread')
+              : (unreadInThread === 1
+                  ? t('admin.beskeder.drawer.markReadTitle').replace('{count}', String(unreadInThread))
+                  : t('admin.beskeder.drawer.markReadTitleMany').replace('{count}', String(unreadInThread)));
             return (
               <>
                 <div className="px-6 pt-6 pb-4 border-b border-border/30 shrink-0">
@@ -740,12 +760,12 @@ export default function AdminBeskeder() {
                               aria-live="polite"
                             >
                               <CheckCheck className="w-3 h-3" />
-                              Alle læst
+                              {t('admin.beskeder.drawer.allRead')}
                             </span>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                          {v.label}{selected.participantEmail ? ` · ${selected.participantEmail}` : ''} · {selected.messages.length} beskeder
+                          {v.label}{selected.participantEmail ? ` · ${selected.participantEmail}` : ''} · {drawerMsgCountLabel}
                         </p>
                       </div>
                       <Button
@@ -754,7 +774,7 @@ export default function AdminBeskeder() {
                         className="h-8 px-3 rounded-lg shrink-0 gap-1.5"
                         onClick={handleManualMarkRead}
                         disabled={markingRead || unreadInThread === 0}
-                        title={unreadInThread === 0 ? 'Ingen ulæste beskeder' : `Markér ${unreadInThread} besked${unreadInThread === 1 ? '' : 'er'} som læst`}
+                        title={markReadTitle}
                       >
                         {markingRead ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -762,7 +782,9 @@ export default function AdminBeskeder() {
                           <CheckCheck className="w-3.5 h-3.5" />
                         )}
                         <span className="text-xs">
-                          Markér som læst{unreadInThread > 0 ? ` (${unreadInThread})` : ''}
+                          {unreadInThread > 0
+                            ? t('admin.beskeder.drawer.markReadWithCount').replace('{count}', String(unreadInThread))
+                            : t('admin.beskeder.drawer.markRead')}
                         </span>
                       </Button>
                     </div>
@@ -781,7 +803,7 @@ export default function AdminBeskeder() {
                         }`}>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-[10px] font-semibold text-muted-foreground">
-                              {isAdmin ? 'Du' : (m.sender_name || selected.participantName)}
+                              {isAdmin ? t('admin.beskeder.drawer.senderYou') : (m.sender_name || selected.participantName)}
                             </span>
                             <span className="text-[10px] text-muted-foreground/50">
                               {new Date(m.created_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
@@ -802,7 +824,7 @@ export default function AdminBeskeder() {
 
                 <div className="px-6 py-4 border-t border-border/30 shrink-0">
                   {typingLabel && (
-                    <p className="text-[11px] text-muted-foreground mb-2">{typingLabel} skriver...</p>
+                    <p className="text-[11px] text-muted-foreground mb-2">{t('admin.chat.typing').replace('{name}', typingLabel)}</p>
                   )}
                   {replyFile && (
                     <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
@@ -830,7 +852,7 @@ export default function AdminBeskeder() {
                       <Paperclip className="w-4 h-4" />
                     </Button>
                     <Textarea
-                      placeholder={selected.participantId ? 'Skriv et svar...' : 'Kan ikke svare anonyme afsendere'}
+                      placeholder={selected.participantId ? t('admin.beskeder.drawer.replyPlaceholder') : t('admin.beskeder.drawer.noReplyAnon')}
                       value={reply}
                       disabled={!selected.participantId || sending}
                       onChange={e => { setReply(e.target.value); signalTyping(); }}

@@ -5,6 +5,7 @@ import { Activity, User, Home, Calendar, DollarSign, Settings } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { AuditLog } from '@/types/admin';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useTranslation } from '@/lib/i18n';
 
 interface ActivityLogProps { limit?: number; }
 
@@ -12,12 +13,13 @@ const entityIcons: Record<string, typeof Activity> = {
   booking: Calendar, property: Home, guest: User, owner: User, payout: DollarSign, settings: Settings,
 };
 
-const actionLabels: Record<string, string> = {
-  create: 'oprettede', update: 'opdaterede', delete: 'slettede',
-  status_change: 'ændrede status på', approve: 'godkendte', reject: 'afviste',
+const ACTION_KEYS: Record<string, string> = {
+  create: 'admin.activity.create', update: 'admin.activity.update', delete: 'admin.activity.delete',
+  status_change: 'admin.activity.statusChange', approve: 'admin.activity.approve', reject: 'admin.activity.reject',
 };
 
 export function ActivityLog({ limit = 10 }: ActivityLogProps) {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,7 +50,7 @@ export function ActivityLog({ limit = 10 }: ActivityLogProps) {
         <div className="w-12 h-12 rounded-2xl bg-muted/40 flex items-center justify-center mb-3">
           <Activity className="h-5 w-5 text-muted-foreground/50" />
         </div>
-        <p className="text-sm font-medium text-muted-foreground">Ingen aktivitet endnu</p>
+        <p className="text-sm font-medium text-muted-foreground">{t('admin.activity.noActivity')}</p>
       </div>
     );
   }
@@ -67,7 +69,7 @@ export function ActivityLog({ limit = 10 }: ActivityLogProps) {
                 <p className="text-sm">
                   <span className="font-medium text-foreground">{log.actor_email || 'System'}</span>
                   {' '}
-                  <span className="text-muted-foreground">{actionLabels[log.action] || log.action}</span>
+                  <span className="text-muted-foreground">{ACTION_KEYS[log.action] ? t(ACTION_KEYS[log.action]) : log.action}</span>
                   {' '}
                   <span className="font-medium text-foreground">{log.entity_type}</span>
                   {log.entity_case_number && (
