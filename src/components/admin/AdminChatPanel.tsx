@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { ChatAttachment } from '@/components/chat/ChatAttachment';
 import { notifyChatPush, uploadChatAttachment } from '@/lib/chatAttachments';
 import { useChatTyping } from '@/hooks/useChatTyping';
+import { useTranslation } from '@/lib/i18n';
 
 interface Thread {
   id: string;
@@ -44,7 +45,8 @@ export function AdminChatPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
-  const active = threads.find(t => t.id === activeThread) || null;
+  const { t } = useTranslation();
+  const active = threads.find(thread => thread.id === activeThread) || null;
   const { signalTyping, typingLabel } = useChatTyping({
     channelKey: activeThread,
     selfKey: user?.id,
@@ -198,12 +200,12 @@ export function AdminChatPanel() {
         <div className="p-4 border-b border-border">
           <h3 className="font-display text-lg font-semibold text-foreground flex items-center gap-2">
             <MessageCircle className="w-5 h-5 text-accent" />
-            Support chats
+            {t('admin.chat.title')}
           </h3>
         </div>
         <div className="flex-1 overflow-y-auto">
           {threads.length === 0 && (
-            <div className="p-4 text-sm text-muted-foreground text-center">Ingen aktive chats</div>
+            <div className="p-4 text-sm text-muted-foreground text-center">{t('admin.chat.noActiveChats')}</div>
           )}
           {threads.map(t => (
             <button
@@ -239,7 +241,7 @@ export function AdminChatPanel() {
           <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
             <div className="text-center">
               <MessageCircle className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
-              <p>Vælg en chat for at svare</p>
+              <p>{t('admin.chat.selectChat')}</p>
             </div>
           </div>
         ) : (
@@ -269,7 +271,7 @@ export function AdminChatPanel() {
             </div>
 
             <div className="p-3 border-t border-border bg-background">
-              {typingLabel && <p className="text-[11px] text-muted-foreground mb-2">{typingLabel} skriver...</p>}
+              {typingLabel && <p className="text-[11px] text-muted-foreground mb-2">{t('admin.chat.typing').replace('{name}', typingLabel)}</p>}
               {file && (
                 <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
                   <span className="truncate">{file.name}</span>
@@ -284,7 +286,7 @@ export function AdminChatPanel() {
                 <Input
                   value={input}
                   onChange={e => { setInput(e.target.value); signalTyping(); }}
-                  placeholder="Skriv svar..."
+                  placeholder={t('admin.chat.replyPlaceholder')}
                   className="bg-card flex-1"
                   disabled={sending}
                 />

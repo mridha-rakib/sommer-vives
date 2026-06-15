@@ -3,6 +3,7 @@ import { ProfilePopover } from '@/components/admin/ProfilePopover';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { Eye, MoreHorizontal, MessageSquare, Edit, XCircle } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 import { Link } from 'react-router-dom';
 import { Booking } from '@/types/admin';
 import {
@@ -36,36 +37,37 @@ const statusColors: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-800 border-red-200',
 };
 
-const statusLabels: Record<string, string> = {
-  pending: 'Afventer',
-  confirmed: 'Bekræftet',
-  checked_in: 'Checked-in',
-  completed: 'Afsluttet',
-  cancelled: 'Annulleret',
+const statusKeys: Record<string, string> = {
+  pending: 'admin.bookings.status.pending',
+  confirmed: 'admin.bookings.status.confirmed',
+  checked_in: 'admin.bookings.status.checked_in',
+  completed: 'admin.bookings.status.completed',
+  cancelled: 'admin.bookings.status.cancelled',
 };
 
-const channelLabels: Record<string, string> = {
-  direct: 'Direkte',
-  airbnb: 'Airbnb',
-  booking_com: 'Booking.com',
-  vrbo: 'VRBO',
-  other: 'Anden',
+const channelKeys: Record<string, string> = {
+  direct: 'admin.bookings.channel.direct',
+  airbnb: 'admin.bookings.channel.airbnb',
+  booking_com: 'admin.bookings.channel.booking_com',
+  vrbo: 'admin.bookings.channel.vrbo',
+  other: 'admin.bookings.channel.other',
 };
 
 export function BookingsTable({ bookings, compact = false, onStatusChange }: BookingsTableProps) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-border overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead className="font-semibold">Sagsnr.</TableHead>
-            <TableHead className="font-semibold">Ankomst</TableHead>
-            <TableHead className="font-semibold">Afrejse</TableHead>
-            {!compact && <TableHead className="font-semibold">Bolig</TableHead>}
-            <TableHead className="font-semibold">Gæst</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
-            {!compact && <TableHead className="font-semibold">Kanal</TableHead>}
-            <TableHead className="font-semibold text-right">Total</TableHead>
+            <TableHead className="font-semibold">{t('admin.bookings.caseNo')}</TableHead>
+            <TableHead className="font-semibold">{t('admin.bookings.arrival')}</TableHead>
+            <TableHead className="font-semibold">{t('admin.bookings.departure')}</TableHead>
+            {!compact && <TableHead className="font-semibold">{t('admin.bookings.property')}</TableHead>}
+            <TableHead className="font-semibold">{t('admin.bookings.guest')}</TableHead>
+            <TableHead className="font-semibold">{t('admin.common.status')}</TableHead>
+            {!compact && <TableHead className="font-semibold">{t('admin.bookings.channel')}</TableHead>}
+            <TableHead className="font-semibold text-right">{t('admin.common.total')}</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -73,7 +75,7 @@ export function BookingsTable({ bookings, compact = false, onStatusChange }: Boo
           {bookings.length === 0 ? (
             <TableRow>
               <TableCell colSpan={compact ? 7 : 9} className="text-center py-8 text-muted-foreground">
-                Ingen bookinger fundet
+                {t('admin.bookings.noFound')}
               </TableCell>
             </TableRow>
           ) : (
@@ -100,13 +102,13 @@ export function BookingsTable({ bookings, compact = false, onStatusChange }: Boo
                 </TableCell>
                 <TableCell>
                   <Badge className={statusColors[booking.status]} variant="outline">
-                    {statusLabels[booking.status]}
+                    {t(statusKeys[booking.status] || booking.status)}
                   </Badge>
                 </TableCell>
                 {!compact && (
                   <TableCell>
                     <Badge variant="secondary" className="font-normal">
-                      {channelLabels[booking.source_channel]}
+                      {t(channelKeys[booking.source_channel] || booking.source_channel)}
                     </Badge>
                   </TableCell>
                 )}
@@ -124,24 +126,24 @@ export function BookingsTable({ bookings, compact = false, onStatusChange }: Boo
                       <DropdownMenuItem asChild>
                         <Link to={`/admin/bookings/${booking.id}`}>
                           <Eye className="h-4 w-4 mr-2" />
-                          Se detaljer
+                          {t('admin.bookings.seeDetails')}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <Edit className="h-4 w-4 mr-2" />
-                        Rediger
+                        {t('admin.common.edit')}
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <MessageSquare className="h-4 w-4 mr-2" />
-                        Send besked
+                        {t('admin.bookings.sendMessage')}
                       </DropdownMenuItem>
                       {booking.status !== 'cancelled' && (
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => onStatusChange?.(booking.id, 'cancelled')}
                         >
                           <XCircle className="h-4 w-4 mr-2" />
-                          Annuller
+                          {t('admin.bookings.cancel')}
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>

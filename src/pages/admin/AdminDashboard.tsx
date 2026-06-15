@@ -20,17 +20,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useTranslation } from '@/lib/i18n';
 
-const LEAD_STATUS_LABELS: Record<string, string> = {
-  new: 'Modtaget', contacted: 'Kontaktet', meeting_booked: 'Møde booket',
-  qualified: 'Kvalificeret', waiting: 'Afventer svar', won: 'Vundet', lost: 'Tabt',
+const LEAD_STATUS_KEYS: Record<string, string> = {
+  new: 'admin.lead.status.new', contacted: 'admin.lead.status.contacted',
+  meeting_booked: 'admin.lead.status.meeting_booked', qualified: 'admin.lead.status.qualified',
+  waiting: 'admin.lead.status.waiting', won: 'admin.lead.status.won', lost: 'admin.lead.status.lost',
 };
 
-const TASK_STATUS: Record<string, { label: string; variant: 'muted' | 'info' | 'warning' | 'success' | 'danger' }> = {
-  not_started: { label: 'Ikke startet', variant: 'muted' },
-  in_progress: { label: 'I gang', variant: 'info' },
-  waiting: { label: 'Afventer', variant: 'warning' },
-  done: { label: 'Færdig', variant: 'success' },
+const TASK_STATUS_KEYS: Record<string, { key: string; variant: 'muted' | 'info' | 'warning' | 'success' | 'danger' }> = {
+  not_started: { key: 'admin.task.status.not_started', variant: 'muted' },
+  in_progress: { key: 'admin.task.status.in_progress', variant: 'info' },
+  waiting: { key: 'admin.task.status.waiting', variant: 'warning' },
+  done: { key: 'admin.task.status.done', variant: 'success' },
 };
 
 function getPercentTrend(rows: any[], dateField: string, today: Date) {
@@ -94,6 +96,7 @@ function ListRow({ title, subtitle, chip, onClick }: {
 }
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const { stats, loading: statsLoading } = useAdminStats();
   const [leads, setLeads] = useState<any[]>([]);
   const [allLeads, setAllLeads] = useState<any[]>([]);
@@ -152,10 +155,10 @@ export default function AdminDashboard() {
   const onboardingTrend = getPercentTrend(onboarding, 'created_at', today);
 
   const quickActions = [
-    { label: 'Opret lead', href: '/admin/leads', icon: Target },
-    { label: 'Opret sag', href: '/admin/sager', icon: FolderOpen },
-    { label: 'Opret opgave', href: '/admin/opgaver', icon: ListChecks },
-    { label: 'Tilføj møde', href: '/admin/kalender', icon: CalendarPlus },
+    { label: t('admin.quickAction.createLead'), href: '/admin/leads', icon: Target },
+    { label: t('admin.quickAction.createCase'), href: '/admin/sager', icon: FolderOpen },
+    { label: t('admin.quickAction.createTask'), href: '/admin/opgaver', icon: ListChecks },
+    { label: t('admin.quickAction.addMeeting'), href: '/admin/kalender', icon: CalendarPlus },
   ];
 
   const SkeletonBlock = () => <Skeleton className="h-28 w-full rounded-xl" />;
@@ -166,7 +169,7 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Overblik</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('admin.dashboard.title')}</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {format(today, "EEEE 'd.' d. MMMM yyyy", { locale: da })}
             </p>
@@ -194,34 +197,34 @@ export default function AdminDashboard() {
             ))
           ) : (
             <>
-              <KPICard title="Nye leads" value={activeLeadCount} icon={Target} variant="gold" subtitle="30 dage" trend={leadTrend} />
-              <KPICard title="Aktive opgaver" value={allTasks.length} icon={ListChecks} variant={allTasks.length > 0 ? 'warning' : 'default'} subtitle="30 dage" trend={taskTrend} />
-              <KPICard title="Haster" value={urgentTaskCount} icon={Calendar} variant={urgentTaskCount > 0 ? 'warning' : 'default'} />
-              <KPICard title="Nye beskeder" value={unreadCount} icon={MessageSquare} variant={unreadCount > 0 ? 'warning' : 'default'} />
-              <KPICard title="Nye aftaler" value={allAgreements.length} icon={FileSignature} variant="success" subtitle="30 dage" trend={agreementTrend} />
-              <KPICard title="Under klargøring" value={onboarding.length} icon={FolderOpen} variant="gold" subtitle="30 dage" trend={onboardingTrend} />
+              <KPICard title={t('admin.dashboard.kpi.newLeads')} value={activeLeadCount} icon={Target} variant="gold" subtitle={t('admin.common.30days')} trend={leadTrend} />
+              <KPICard title={t('admin.dashboard.kpi.activeTasks')} value={allTasks.length} icon={ListChecks} variant={allTasks.length > 0 ? 'warning' : 'default'} subtitle={t('admin.common.30days')} trend={taskTrend} />
+              <KPICard title={t('admin.dashboard.kpi.urgent')} value={urgentTaskCount} icon={Calendar} variant={urgentTaskCount > 0 ? 'warning' : 'default'} />
+              <KPICard title={t('admin.dashboard.kpi.newMessages')} value={unreadCount} icon={MessageSquare} variant={unreadCount > 0 ? 'warning' : 'default'} />
+              <KPICard title={t('admin.dashboard.kpi.newAgreements')} value={allAgreements.length} icon={FileSignature} variant="success" subtitle={t('admin.common.30days')} trend={agreementTrend} />
+              <KPICard title={t('admin.dashboard.kpi.inPrep')} value={onboarding.length} icon={FolderOpen} variant="gold" subtitle={t('admin.common.30days')} trend={onboardingTrend} />
             </>
           )}
         </div>
 
         {/* ───── ZONE 1: I dag ───── */}
         <div>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-4">I dag</h2>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-4">{t('admin.dashboard.section.today')}</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Today's tasks */}
-            <SectionCard title="Opgaver i dag" icon={ListChecks} linkTo="/admin/opgaver">
+            <SectionCard title={t('admin.dashboard.todayTasks')} icon={ListChecks} linkTo="/admin/opgaver">
               {loading ? <SkeletonBlock /> : tasks.length === 0 ? (
-                <EmptyState icon={CheckCircle} title="Ingen opgaver i dag" description="Alt er under kontrol" className="py-8" />
+                <EmptyState icon={CheckCircle} title={t('admin.dashboard.noTasksToday')} description={t('admin.dashboard.allUnderControl')} className="py-8" />
               ) : (
                 <div className="space-y-0.5">
-                  {tasks.map(t => {
-                    const st = TASK_STATUS[t.status] || TASK_STATUS.not_started;
+                  {tasks.map(task => {
+                    const st = TASK_STATUS_KEYS[task.status] || TASK_STATUS_KEYS.not_started;
                     return (
                       <ListRow
-                        key={t.id}
-                        title={t.title}
-                        subtitle={t.linked_name || t.description?.slice(0, 50) || undefined}
-                        chip={<StatusChip label={st.label} variant={st.variant} dot />}
+                        key={task.id}
+                        title={task.title}
+                        subtitle={task.linked_name || task.description?.slice(0, 50) || undefined}
+                        chip={<StatusChip label={t(st.key)} variant={st.variant} dot />}
                       />
                     );
                   })}
@@ -230,17 +233,17 @@ export default function AdminDashboard() {
             </SectionCard>
 
             {/* Urgent / follow-ups — leads waiting for reply */}
-            <SectionCard title="Opfølgninger" icon={Clock} linkTo="/admin/leads">
+            <SectionCard title={t('admin.dashboard.followUps')} icon={Clock} linkTo="/admin/leads">
               {loading ? <SkeletonBlock /> : leads.length === 0 ? (
-                <EmptyState icon={Target} title="Ingen ventende opfølgninger" className="py-8" />
+                <EmptyState icon={Target} title={t('admin.dashboard.noPendingFollowUps')} className="py-8" />
               ) : (
                 <div className="space-y-0.5">
                   {leads.map(l => (
                     <ListRow
                       key={l.id}
                       title={l.name}
-                      subtitle={`${l.source} · ${l.region || 'Ukendt område'}`}
-                      chip={<StatusChip label={LEAD_STATUS_LABELS[l.status] || l.status} variant="info" dot />}
+                      subtitle={`${l.source} · ${l.region || t('admin.dashboard.unknownArea')}`}
+                      chip={<StatusChip label={t(LEAD_STATUS_KEYS[l.status] || l.status)} variant="info" dot />}
                     />
                   ))}
                 </div>
@@ -251,26 +254,26 @@ export default function AdminDashboard() {
 
         {/* ───── ZONE 2: Pipeline ───── */}
         <div>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-4">Pipeline</h2>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-4">{t('admin.dashboard.section.pipeline')}</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Leads by stage */}
-            <SectionCard title="Leads pr. stadie" icon={Target} linkTo="/admin/leads">
+            <SectionCard title={t('admin.dashboard.leadsByStage')} icon={Target} linkTo="/admin/leads">
               {loading ? <SkeletonBlock /> : allLeads.length === 0 ? (
-                <EmptyState icon={Target} title="Ingen leads endnu" className="py-8" />
+                <EmptyState icon={Target} title={t('admin.dashboard.noLeadsYet')} className="py-8" />
               ) : (
                 <div className="space-y-2">
-                  {Object.entries(LEAD_STATUS_LABELS).map(([key, label]) => {
+                  {Object.entries(LEAD_STATUS_KEYS).map(([key, tKey]) => {
                     const count = leadsByStatus[key] || 0;
                     if (count === 0) return null;
                     return (
                       <div key={key} className="flex items-center justify-between py-1.5">
-                        <span className="text-sm text-foreground">{label}</span>
+                        <span className="text-sm text-foreground">{t(tKey)}</span>
                         <span className="text-sm font-semibold text-foreground tabular-nums">{count}</span>
                       </div>
                     );
                   })}
                   <div className="pt-2 border-t border-border/30 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground font-medium">Total</span>
+                    <span className="text-xs text-muted-foreground font-medium">{t('admin.common.total')}</span>
                     <span className="text-sm font-bold text-foreground tabular-nums">{allLeads.length}</span>
                   </div>
                 </div>
@@ -278,21 +281,21 @@ export default function AdminDashboard() {
             </SectionCard>
 
             {/* Active cases */}
-            <SectionCard title="Sager under klargøring" icon={FolderOpen} linkTo="/admin/sager">
+            <SectionCard title={t('admin.dashboard.casesInPrep')} icon={FolderOpen} linkTo="/admin/sager">
               {loading ? <SkeletonBlock /> : (stats?.activeProperties || 0) === 0 && onboarding.length === 0 ? (
-                <EmptyState icon={FolderOpen} title="Ingen aktive sager" className="py-8" />
+                <EmptyState icon={FolderOpen} title={t('admin.dashboard.noActiveCases')} className="py-8" />
               ) : (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-sm text-foreground">Publicerede</span>
+                    <span className="text-sm text-foreground">{t('admin.dashboard.published')}</span>
                     <span className="text-sm font-semibold text-foreground tabular-nums">{stats?.activeProperties || 0}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-sm text-foreground">Under klargøring</span>
+                    <span className="text-sm text-foreground">{t('admin.dashboard.inPrep')}</span>
                     <span className="text-sm font-semibold text-foreground tabular-nums">{onboarding.length}</span>
                   </div>
                   <div className="flex items-center justify-between py-1.5">
-                    <span className="text-sm text-foreground">Total ejendomme</span>
+                    <span className="text-sm text-foreground">{t('admin.dashboard.totalProperties')}</span>
                     <span className="text-sm font-semibold text-foreground tabular-nums">{stats?.totalProperties || 0}</span>
                   </div>
                 </div>
@@ -300,21 +303,21 @@ export default function AdminDashboard() {
             </SectionCard>
 
             {/* Onboarding status */}
-            <SectionCard title="Ejer-onboarding" icon={UserCheck} linkTo="/admin/crm/udlejere">
+            <SectionCard title={t('admin.dashboard.ownerOnboarding')} icon={UserCheck} linkTo="/admin/crm/udlejere">
               {loading ? <SkeletonBlock /> : onboarding.length === 0 ? (
-                <EmptyState icon={UserCheck} title="Ingen aktiv onboarding" className="py-8" />
+                <EmptyState icon={UserCheck} title={t('admin.dashboard.noActiveOnboarding')} className="py-8" />
               ) : (
                 <div className="space-y-0.5">
                   {onboarding.slice(0, 5).map(o => (
                     <ListRow
                       key={o.id}
-                      title={o.current_step || 'Startfase'}
+                      title={o.current_step || t('admin.dashboard.startPhase')}
                       subtitle={`Status: ${o.status}`}
                       chip={<StatusChip label={o.status} variant={o.status === 'active' ? 'success' : 'muted'} dot />}
                     />
                   ))}
                   {onboarding.length > 5 && (
-                    <p className="text-[11px] text-muted-foreground pt-2 pl-2">+{onboarding.length - 5} mere</p>
+                    <p className="text-[11px] text-muted-foreground pt-2 pl-2">{t('admin.dashboard.moreItems').replace('{count}', String(onboarding.length - 5))}</p>
                   )}
                 </div>
               )}
@@ -324,12 +327,12 @@ export default function AdminDashboard() {
 
         {/* ───── ZONE 3: Inbox / Recent ───── */}
         <div>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-4">Seneste</h2>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-4">{t('admin.dashboard.section.recent')}</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Recent messages */}
-            <SectionCard title="Nye beskeder" icon={MessageSquare} linkTo="/admin/beskeder">
+            <SectionCard title={t('admin.dashboard.newMessages')} icon={MessageSquare} linkTo="/admin/beskeder">
               {loading ? <SkeletonBlock /> : messages.length === 0 ? (
-                <EmptyState icon={MessageSquare} title="Ingen nye beskeder" description="Du er helt ajour" className="py-8" />
+                <EmptyState icon={MessageSquare} title={t('admin.dashboard.noNewMessages')} description={t('admin.dashboard.upToDate')} className="py-8" />
               ) : (
                 <div className="space-y-0.5">
                   {messages.map(m => (
@@ -349,17 +352,17 @@ export default function AdminDashboard() {
             </SectionCard>
 
             {/* Signed agreements + latest documents */}
-            <SectionCard title="Nye aftaler & dokumenter" icon={FileSignature} linkTo="/admin/modtagelse">
+            <SectionCard title={t('admin.dashboard.newAgreementsAndDocs')} icon={FileSignature} linkTo="/admin/modtagelse">
               {loading ? <SkeletonBlock /> : agreements.length === 0 && documents.length === 0 ? (
-                <EmptyState icon={FileText} title="Intet nyt" className="py-8" />
+                <EmptyState icon={FileText} title={t('admin.dashboard.nothingNew')} className="py-8" />
               ) : (
                 <div className="space-y-0.5">
                   {agreements.slice(0, 3).map(a => (
                     <ListRow
                       key={a.id}
-                      title={a.owner_name || 'Ukendt ejer'}
+                      title={a.owner_name || t('admin.common.unknown')}
                       subtitle={a.property_title || 'Formidlingsaftale'}
-                      chip={<StatusChip label="Underskrevet" variant="success" dot size="sm" />}
+                      chip={<StatusChip label={t('admin.dashboard.signed')} variant="success" dot size="sm" />}
                     />
                   ))}
                   {documents.slice(0, 2).map(d => (
@@ -379,7 +382,7 @@ export default function AdminDashboard() {
             </SectionCard>
 
             {/* Activity timeline */}
-            <SectionCard title="Aktivitetslog" icon={Activity} linkTo="/admin/indstillinger">
+            <SectionCard title={t('admin.dashboard.activityLog')} icon={Activity} linkTo="/admin/indstillinger">
               <ActivityLog limit={6} />
             </SectionCard>
           </div>

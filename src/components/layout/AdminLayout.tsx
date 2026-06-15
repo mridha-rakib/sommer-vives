@@ -18,6 +18,7 @@ import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useChatNotifications } from '@/lib/chatNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n';
 
 interface AdminLayoutProps { children: ReactNode; }
 
@@ -29,60 +30,63 @@ interface NavItem {
   children?: { name: string; href: string; icon: React.ElementType }[];
 }
 
-const navSections: { label?: string; items: NavItem[] }[] = [
-  {
-    items: [
-      { name: 'Overblik', href: '/admin', icon: LayoutDashboard },
-    ],
-  },
-  {
-    label: 'Daglig drift',
-    items: [
-      { name: 'Kalender', href: '/admin/kalender', icon: Calendar },
-      { name: 'Alle opgaver', href: '/admin/opgaver', icon: ListChecks },
-      { name: 'Beskeder', href: '/admin/beskeder', icon: MessageSquare },
-    ],
-  },
-  {
-    label: 'Pipeline',
-    items: [
-      { name: 'Leads', href: '/admin/leads', icon: Target },
-      { name: 'Sager', href: '/admin/sager', icon: FolderOpen },
-      {
-        name: 'CRM', href: '/admin/crm', icon: Users,
-        children: [
-          { name: 'Udlejere', href: '/admin/crm/udlejere', icon: UserCheck },
-          { name: 'Gæster', href: '/admin/crm/gaester', icon: User },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'Administration',
-    items: [
-      { name: 'Modtagelse', href: '/admin/modtagelse', icon: Inbox },
-      { name: 'Dokumenter', href: '/admin/dokumenter', icon: FileText },
-      { name: 'Økonomi', href: '/admin/oekonomi', icon: Wallet },
-      { name: 'Team', href: '/admin/team', icon: Users },
-    ],
-  },
-  {
-    items: [
-      { name: 'Indstillinger', href: '/admin/indstillinger', icon: Settings },
-    ],
-  },
-];
-
-const allItems = navSections.flatMap(s => s.items);
+function buildNavSections(t: (key: string) => string): { label?: string; items: NavItem[] }[] {
+  return [
+    {
+      items: [
+        { name: t('admin.nav.overview'), href: '/admin', icon: LayoutDashboard },
+      ],
+    },
+    {
+      label: t('admin.nav.section.dailyOps'),
+      items: [
+        { name: t('admin.nav.calendar'), href: '/admin/kalender', icon: Calendar },
+        { name: t('admin.nav.tasks'), href: '/admin/opgaver', icon: ListChecks },
+        { name: t('admin.nav.messages'), href: '/admin/beskeder', icon: MessageSquare },
+      ],
+    },
+    {
+      label: t('admin.nav.section.pipeline'),
+      items: [
+        { name: t('admin.nav.leads'), href: '/admin/leads', icon: Target },
+        { name: t('admin.nav.cases'), href: '/admin/sager', icon: FolderOpen },
+        {
+          name: t('admin.nav.crm'), href: '/admin/crm', icon: Users,
+          children: [
+            { name: t('admin.nav.owners'), href: '/admin/crm/udlejere', icon: UserCheck },
+            { name: t('admin.nav.guests'), href: '/admin/crm/gaester', icon: User },
+          ],
+        },
+      ],
+    },
+    {
+      label: t('admin.nav.section.administration'),
+      items: [
+        { name: t('admin.nav.reception'), href: '/admin/modtagelse', icon: Inbox },
+        { name: t('admin.nav.documents'), href: '/admin/dokumenter', icon: FileText },
+        { name: t('admin.nav.economy'), href: '/admin/oekonomi', icon: Wallet },
+        { name: t('admin.nav.team'), href: '/admin/team', icon: Users },
+      ],
+    },
+    {
+      items: [
+        { name: t('admin.nav.settings'), href: '/admin/indstillinger', icon: Settings },
+      ],
+    },
+  ];
+}
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('admin-sidebar-collapsed') === 'true');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const unreadMessages = useUnreadMessages();
   const { notify, muted, setMuted } = useChatNotifications(user?.id);
+  const navSections = buildNavSections(t);
+  const allItems = navSections.flatMap(s => s.items);
 
   // Global admin chat notification listener: ping + toast on any new
   // owner/guest support message, regardless of which admin page we are on.
@@ -106,11 +110,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           });
           if (!onBeskederPage) {
             toast.message(
-              m.sender_type === 'owner' ? 'Ny besked fra ejer' : 'Ny besked fra gæst',
+              m.sender_type === 'owner' ? t('admin.nav.newOwnerMessage') : t('admin.nav.newGuestMessage'),
               {
                 description: (m.sender_name ? `${m.sender_name}: ` : '') +
                   (m.message.length > 80 ? m.message.slice(0, 80) + '…' : m.message),
-                action: { label: 'Åbn', onClick: () => { window.location.href = '/admin/beskeder'; } },
+                action: { label: t('admin.nav.open'), onClick: () => { window.location.href = '/admin/beskeder'; } },
                 duration: 5000,
               }
             );
@@ -143,11 +147,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     return item.children?.some(c => isActive(c.href)) ?? false;
   };
 
-  const toggleGroup = (name: string) =>
-    setExpandedGroups(prev => ({ ...prev, [name]: !prev[name] }));
+  const toggleGroup = (href: string) =>
+    setExpandedGroups(prev => ({ ...prev, [href]: !prev[href] }));
 
   const isExpanded = (item: NavItem) =>
-    expandedGroups[item.name] ?? isGroupActive(item);
+    expandedGroups[item.href] ?? isGroupActive(item);
 
   // Find current page title
   const findCurrent = (): string => {
@@ -197,7 +201,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <Link
             to={item.href}
             onClick={() => setSidebarOpen(false)}
-            title={item.badge && item.badge > 0 ? `${item.name} (${item.badge} ulæste)` : item.name}
+            title={item.badge && item.badge > 0 ? `${item.name} (${item.badge} ${t('admin.nav.unread')})` : item.name}
             className={cn(
               'relative flex items-center justify-center w-9 h-9 mx-auto rounded-xl transition-all duration-200',
               active
@@ -220,7 +224,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       <div key={item.name}>
         {hasChildren ? (
           <button
-            onClick={() => toggleGroup(item.name)}
+            onClick={() => toggleGroup(item.href)}
             className={cn(
               'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] transition-all duration-200',
               groupActive
@@ -338,7 +342,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <button
             onClick={() => setCollapsed(c => !c)}
             className="p-1.5 rounded-lg hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors"
-            title={collapsed ? 'Udvid menu' : 'Minimer menu'}
+            title={collapsed ? t('admin.nav.expandMenu') : t('admin.nav.minimizeMenu')}
           >
             <ChevronLeft className={cn('w-4 h-4 transition-transform duration-300', collapsed && 'rotate-180')} />
           </button>
@@ -384,14 +388,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </div>
             <button
               onClick={() => setMuted(!muted)}
-              title={muted ? 'Slå besked-lyd til' : 'Slå besked-lyd fra'}
+              title={muted ? t('admin.nav.unmuteSound') : t('admin.nav.muteSound')}
               className="w-9 h-9 rounded-xl hover:bg-muted/30 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
               {muted ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
             </button>
             <LanguageSelector />
             <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground hover:text-foreground gap-1.5 h-9 rounded-xl">
-              <Link to="/"><ExternalLink className="w-3 h-3" />Website</Link>
+              <Link to="/"><ExternalLink className="w-3 h-3" />{t('admin.nav.website')}</Link>
             </Button>
           </div>
         </header>
