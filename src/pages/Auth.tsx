@@ -11,8 +11,31 @@ import { Header } from '@/components/layout/Header';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { useTranslation } from '@/lib/i18n';
 import { getPasswordRecoveryParams, isPasswordRecoveryUrl } from '@/lib/passwordRecovery';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
-type AuthMode = 'login' | 'signup' | 'reset' | 'updatePassword';
+type AuthMode = 'login' | 'signup' | 'reset' | 'verifyReset' | 'updatePassword';
+
+type PasswordResetAction = 'request' | 'verify' | 'complete';
+type PasswordResetResponse = { success?: boolean; error?: string; resetToken?: string };
+
+async function callPasswordReset(body: Record<string, unknown> & { action: PasswordResetAction }) {
+  const { data, error } = await supabase.functions.invoke<PasswordResetResponse>('password-reset', { body });
+  if (error) {
+    let message = data?.error || error.message || 'Request failed';
+    const context = (error as Error & { context?: { json?: () => Promise<PasswordResetResponse> } }).context;
+    if (context?.json) {
+      try {
+        const payload = await context.json();
+        message = payload?.error || message;
+      } catch {
+        // ignore
+      }
+    }
+    throw new Error(message);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
 
 const authCopy = {
   da: {
