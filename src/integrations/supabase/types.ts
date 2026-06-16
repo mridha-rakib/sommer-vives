@@ -2806,6 +2806,48 @@ export type Database = {
           },
         ]
       }
+      password_reset_codes: {
+        Row: {
+          attempts: number
+          code_hash: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          reset_token_expires_at: string | null
+          reset_token_hash: string | null
+          used_at: string | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          reset_token_expires_at?: string | null
+          reset_token_hash?: string | null
+          used_at?: string | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          reset_token_expires_at?: string | null
+          reset_token_hash?: string | null
+          used_at?: string | null
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
