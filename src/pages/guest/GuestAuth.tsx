@@ -20,7 +20,18 @@ type GuestRegistrationResponse = { success?: boolean; error?: string };
 
 async function callGuestRegistration(body: Record<string, unknown> & { action: GuestRegistrationAction }) {
   const { data, error } = await supabase.functions.invoke<GuestRegistrationResponse>('guest-registration', { body });
-  if (error) throw new Error(data?.error || error.message || 'Verification request failed');
+  if (error) {
+    const context = (error as Error & { context?: { json?: () => Promise<GuestRegistrationResponse> } }).context;
+    if (context?.json) {
+      try {
+        const payload = await context.json();
+        throw new Error(payload?.error || error.message || 'Verification request failed');
+      } catch (payloadError) {
+        if (payloadError instanceof Error) throw payloadError;
+      }
+    }
+    throw new Error(data?.error || error.message || 'Verification request failed');
+  }
   if (data?.error) throw new Error(data.error);
   return data;
 }
