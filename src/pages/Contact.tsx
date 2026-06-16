@@ -129,8 +129,8 @@ export default function Contact() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="font-display text-4xl md:text-5xl font-bold mb-4"
           >
-            {t('contact.title')}
-            <span className="block text-accent italic font-normal">{t('contact.titleAccent')}</span>
+            {t('contactPage.title')}
+            <span className="block text-accent italic font-normal">{t('contactPage.titleAccent')}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -138,7 +138,7 @@ export default function Contact() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-lg text-muted-foreground max-w-xl mx-auto"
           >
-            {t('contact.subtitle')}
+            {t('contactPage.subtitle')}
           </motion.p>
         </div>
       </section>
