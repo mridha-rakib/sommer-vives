@@ -61,51 +61,54 @@ export function GuestLayout({ children, onLogout, guestEmail }: GuestLayoutProps
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Clean premium header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/40">
-        <div className="max-w-4xl mx-auto flex items-center justify-between h-14 px-4">
+      {/* Premium header with refined navigation */}
+      <header className="sticky top-0 z-50 bg-background/85 backdrop-blur-xl border-b border-border/40 shadow-[0_1px_20px_-12px_rgba(0,0,0,0.4)]">
+        <div className="max-w-5xl mx-auto flex items-center justify-between h-16 px-4 md:px-6">
           <BrandLogo to="/" tone="light" tagline="Gæsteportal" />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {guestEmail && (
-              <span className="text-[11px] text-muted-foreground hidden md:block">{guestEmail}</span>
+              <span className="text-[11px] text-muted-foreground hidden md:block px-2 py-1 rounded-full bg-muted/30 border border-border/40">
+                {guestEmail}
+              </span>
             )}
             <button
               onClick={() => setMuted(!muted)}
               title={muted ? 'Slå besked-lyd til' : 'Slå besked-lyd fra'}
-              className="w-8 h-8 rounded-full hover:bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              className="w-9 h-9 rounded-full hover:bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-[hsl(var(--gold))] transition-all"
             >
               {muted ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
             </button>
             {onLogout && (
-              <Button variant="ghost" size="sm" onClick={onLogout} className="text-xs text-muted-foreground gap-1.5">
-                <LogOut className="w-3 h-3" />
+              <Button variant="ghost" size="sm" onClick={onLogout} className="text-xs text-muted-foreground hover:text-foreground gap-1.5 rounded-full">
+                <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Log ud</span>
               </Button>
             )}
           </div>
         </div>
 
-        {/* Desktop nav – minimal pill tabs */}
+        {/* Desktop nav – elegant pill tabs with gold underline */}
         <div className="hidden md:block border-t border-border/30">
-          <div className="max-w-4xl mx-auto px-4">
-            <nav className="flex items-center gap-1 py-1.5">
+          <div className="max-w-5xl mx-auto px-4 md:px-6">
+            <nav className="flex items-center gap-1 py-2">
               {desktopNavItems.map(item => {
                 const showBadge = item.badgeKey === 'messages' && unread > 0;
+                const active = isActive(item.href);
                 return (
                   <Link
                     key={item.href}
                     to={item.href}
                     className={cn(
-                      'relative flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap',
-                      isActive(item.href)
-                        ? 'bg-[hsl(var(--gold))]/10 text-[hsl(var(--gold))]'
+                      'relative flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-medium transition-all whitespace-nowrap group',
+                      active
+                        ? 'bg-[hsl(var(--gold))]/12 text-[hsl(var(--gold))] shadow-[inset_0_0_0_1px_hsl(var(--gold)/0.25)]'
                         : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
                     )}
                   >
-                    <item.icon className="w-3.5 h-3.5" />
+                    <item.icon className={cn('w-4 h-4 transition-transform', active && 'scale-110')} />
                     {item.name}
                     {showBadge && (
-                      <span className="ml-1 inline-flex items-center justify-center min-w-[18px] h-4 px-1 rounded-full bg-[hsl(var(--gold))] text-background text-[9px] font-bold">
+                      <span className="ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[hsl(var(--gold))] text-background text-[10px] font-bold">
                         {unread > 9 ? '9+' : unread}
                       </span>
                     )}
@@ -116,6 +119,7 @@ export function GuestLayout({ children, onLogout, guestEmail }: GuestLayoutProps
           </div>
         </div>
       </header>
+
 
       <main className="max-w-4xl mx-auto px-4 py-6 md:py-8 pb-24 md:pb-8">
         {children}
