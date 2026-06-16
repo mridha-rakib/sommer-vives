@@ -464,7 +464,7 @@ export default function Auth() {
               </div>
             )}
 
-            {mode !== 'updatePassword' && (
+            {mode !== 'updatePassword' && mode !== 'verifyReset' && (
               <div>
               <Label htmlFor="email">{copy.email}</Label>
               <div className="relative mt-1">
@@ -482,7 +482,35 @@ export default function Auth() {
               </div>
             )}
 
-            {mode !== 'reset' && (
+            {mode === 'verifyReset' && (
+              <div className="space-y-3">
+                <div className="text-sm text-muted-foreground text-center">{email}</div>
+                <div className="flex justify-center">
+                  <InputOTP maxLength={6} value={code} onChange={setCode}>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={resending}
+                    className="text-sm text-accent hover:underline disabled:opacity-50"
+                  >
+                    {resending ? copy.loading : copy.resendCode}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {mode !== 'reset' && mode !== 'verifyReset' && (
               <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">{mode === 'updatePassword' ? copy.newPassword : copy.password}</Label>
