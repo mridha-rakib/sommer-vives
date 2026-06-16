@@ -4,11 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { GuestLayout } from '@/components/layout/GuestLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   CalendarDays, MapPin, Users, ChevronRight, DoorOpen, ShoppingBag,
   MessageCircle, Sparkles, CreditCard, Copy, Crown, Star, Wifi, Key,
   BedDouble, Bath, UserCircle, Mail, Phone, Map, LayoutGrid, ChevronLeft,
-  Play, LifeBuoy, AlertTriangle
+  Play, LifeBuoy, AlertTriangle, Link2, ArrowRight
 } from 'lucide-react';
 import { format, differenceInDays, differenceInHours, isFuture, isPast } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -114,32 +116,13 @@ export default function GuestDashboard() {
   if (!booking) {
     return (
       <GuestLayout guestEmail={user?.email} onLogout={signOut}>
-        <div className="flex flex-col items-center justify-center py-16 md:py-24">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center max-w-md mx-auto">
-            <div className="w-20 h-20 rounded-full bg-[hsl(var(--gold))]/10 border border-[hsl(var(--gold))]/15 flex items-center justify-center mx-auto mb-6">
-              <Crown className="w-8 h-8 text-[hsl(var(--gold))]/60" />
-            </div>
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">Velkommen til SommerVibes</h2>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-8">
-              Vi fandt ingen aktiv booking tilknyttet <span className="text-foreground font-medium">{user?.email}</span>. Når din reservation er bekræftet, får du adgang til alt.
-            </p>
-            <div className="grid grid-cols-3 gap-3 mb-8">
-              {[
-                { icon: DoorOpen, label: 'Ankomstguide' },
-                { icon: Key, label: 'Adgangskoder' },
-                { icon: MessageCircle, label: 'Direkte chat' },
-              ].map(f => (
-                <div key={f.label} className="rounded-2xl border border-border/30 bg-card/60 p-4 text-center">
-                  <f.icon className="w-5 h-5 text-[hsl(var(--gold))]/60 mx-auto mb-2" />
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{f.label}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground/60">
-              Kontakt os på <a href="mailto:support@sommervibes.dk" className="text-[hsl(var(--gold))] hover:underline">support@sommervibes.dk</a>
-            </p>
-          </motion.div>
-        </div>
+        <NoBookingState
+          email={user?.email}
+          onLinked={() => {
+            setLoading(true);
+            loadStay();
+          }}
+        />
       </GuestLayout>
     );
   }
@@ -488,5 +471,134 @@ function QuickAction({ href, icon: Icon, label, desc, accent }: { href: string; 
         </div>
       </div>
     </Link>
+  );
+}
+
+function NoBookingState({ email, onLinked }: { email?: string; onLinked: () => void }) {
+  const [reference, setReference] = useState('');
+  const [bookingEmail, setBookingEmail] = useState(email || '');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reference.trim() || !bookingEmail.trim()) {
+      toast.error('Indtast reference og email');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke<{ success?: boolean; error?: string }>(
+        'guest-link-booking',
+        { body: { reference: reference.trim(), booking_email: bookingEmail.trim() } }
+      );
+      let errorMessage = data?.error || error?.message;
+      if (error) {
+        const ctx = (error as Error & { context?: { json?: () => Promise<{ error?: string }> } }).context;
+        if (ctx?.json) {
+          try {
+            const payload = await ctx.json();
+            errorMessage = payload?.error || errorMessage;
+          } catch { /* ignore */ }
+        }
+      }
+      if (error || data?.error) {
+        toast.error(errorMessage || 'Vi kunne ikke finde din booking');
+        return;
+      }
+      toast.success('Booking tilknyttet din konto');
+      onLinked();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Noget gik galt');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center py-12 md:py-16">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="text-center max-w-md mx-auto w-full"
+      >
+        <div className="w-20 h-20 rounded-full bg-[hsl(var(--gold))]/10 border border-[hsl(var(--gold))]/15 flex items-center justify-center mx-auto mb-6">
+          <Crown className="w-8 h-8 text-[hsl(var(--gold))]/60" />
+        </div>
+        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
+          Velkommen til SommerVibes
+        </h2>
+        <p className="text-muted-foreground text-sm leading-relaxed mb-8">
+          Vi fandt ingen aktiv booking tilknyttet{' '}
+          <span className="text-foreground font-medium">{email}</span>. Tilknyt din booking herunder, eller kontakt os.
+        </p>
+
+        <Card className="border-[hsl(var(--gold))]/15 bg-card/60 rounded-2xl text-left mb-6">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-[hsl(var(--gold))]/10 flex items-center justify-center">
+                <Link2 className="w-4 h-4 text-[hsl(var(--gold))]" />
+              </div>
+              <div>
+                <div className="font-display text-sm font-semibold text-foreground">Tilknyt din booking</div>
+                <div className="text-[11px] text-muted-foreground">Brug referencen fra din bekræftelsesmail</div>
+              </div>
+            </div>
+            <form onSubmit={handleLink} className="space-y-3">
+              <div>
+                <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Booking reference</Label>
+                <Input
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  placeholder="BKG-2026-000123"
+                  className="font-mono mt-1"
+                  required
+                />
+              </div>
+              <div>
+                <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Email brugt ved booking</Label>
+                <Input
+                  type="email"
+                  value={bookingEmail}
+                  onChange={(e) => setBookingEmail(e.target.value)}
+                  placeholder="email@eksempel.dk"
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <Button type="submit" variant="gold" className="w-full rounded-xl" disabled={submitting}>
+                {submitting ? 'Tilknytter...' : 'Tilknyt booking'}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {[
+            { icon: DoorOpen, label: 'Ankomstguide' },
+            { icon: Key, label: 'Adgangskoder' },
+            { icon: MessageCircle, label: 'Direkte chat' },
+          ].map((f) => (
+            <div
+              key={f.label}
+              className="rounded-2xl border border-border/30 bg-card/60 p-4 text-center"
+            >
+              <f.icon className="w-5 h-5 text-[hsl(var(--gold))]/60 mx-auto mb-2" />
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                {f.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-xs text-muted-foreground/60">
+          Brug for hjælp? Kontakt os på{' '}
+          <a href="mailto:support@sommervibes.dk" className="text-[hsl(var(--gold))] hover:underline">
+            support@sommervibes.dk
+          </a>
+        </p>
+      </motion.div>
+    </div>
   );
 }
