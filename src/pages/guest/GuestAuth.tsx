@@ -4,17 +4,47 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Mail, Lock, UserPlus } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
 import { BrandLogo } from '@/components/ui/BrandLogo';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from '@/components/ui/input-otp';
+
+type Mode = 'login' | 'signup' | 'verify';
+type GuestRegistrationAction = 'request_signup' | 'resend' | 'verify';
+type GuestRegistrationResponse = { success?: boolean; error?: string };
+
+async function callGuestRegistration(body: Record<string, unknown> & { action: GuestRegistrationAction }) {
+  const { data, error } = await supabase.functions.invoke<GuestRegistrationResponse>('guest-registration', { body });
+  if (error) {
+    let message = data?.error || error.message || 'Verification request failed';
+    const context = (error as Error & { context?: { json?: () => Promise<GuestRegistrationResponse> } }).context;
+    if (context?.json) {
+      try {
+        const payload = await context.json();
+        message = payload?.error || message;
+      } catch {
+        // Keep the original function error message if the response body is not JSON.
+      }
+    }
+    throw new Error(message);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
 
 export default function GuestAuth() {
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -22,7 +52,12 @@ export default function GuestAuth() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      toast.error('Forkert e-mail eller adgangskode');
+      if (error.message.toLowerCase().includes('email not confirmed')) {
+        toast.error('Email not verified yet. Enter the code we sent you.');
+        setMode('verify');
+      } else {
+        toast.error('Incorrect email or password');
+      }
     } else {
       navigate('/guest');
     }
@@ -32,82 +67,164 @@ export default function GuestAuth() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/guest`, data: { full_name: name, account_type: 'guest' } },
-    });
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Bekræft din e-mail for at logge ind');
+    try {
+      await callGuestRegistration({ action: 'request_signup', email, password, full_name: name });
+      toast.success('We sent a 6-digit verification code to your email');
+      setCode('');
+      setMode('verify');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to create account');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) {
+      toast.error('Enter the 6-digit code from your email');
+      return;
+    }
+    setLoading(true);
+    try {
+      await callGuestRegistration({ action: 'verify', email, code });
+      const { error: signInError } = password
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : { error: new Error('Password required') };
+      if (signInError) {
+        toast.success('Email verified. Please log in.');
+        setMode('login');
+      } else {
+        toast.success('Email verified');
+        navigate('/guest');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Invalid or expired code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!email) {
+      toast.error('Enter your email first');
+      return;
+    }
+    setResending(true);
+    try {
+      await callGuestRegistration({ action: 'resend', email });
+      toast.success('New code sent');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to resend code');
+    } finally {
+      setResending(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="border-b border-border">
         <div className="max-w-5xl mx-auto flex items-center justify-between h-14 px-4">
           <BrandLogo variant="full" tone="light" size="sm" />
-
           <Link to="/auth" className="text-xs text-muted-foreground hover:text-accent transition-colors">
-            Ejer-login →
+            Owner login →
           </Link>
         </div>
       </header>
 
-      {/* Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <h1 className="font-display text-2xl font-bold text-foreground">
-              {mode === 'login' ? 'Gæsteportal' : 'Opret gæstekonto'}
+              {mode === 'login' && 'Guest portal'}
+              {mode === 'signup' && 'Create guest account'}
+              {mode === 'verify' && 'Verify your email'}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {mode === 'login' ? 'Log ind for at se dit ophold' : 'Opret en konto for at tilgå dit ophold'}
+              {mode === 'login' && 'Log in to see your stay'}
+              {mode === 'signup' && 'Create an account to access your stay'}
+              {mode === 'verify' && `Enter the 6-digit code we sent to ${email}`}
             </p>
           </div>
 
           <Card>
             <CardContent className="p-6">
-              <form onSubmit={mode === 'login' ? handleLogin : handleSignup} className="space-y-4">
-                {mode === 'signup' && (
-                  <div>
-                    <Label className="text-xs">Fulde navn</Label>
-                    <Input value={name} onChange={e => setName(e.target.value)} placeholder="Dit navn" required />
+              {mode === 'verify' ? (
+                <form onSubmit={handleVerify} className="space-y-4">
+                  <div className="flex justify-center">
+                    <InputOTP maxLength={6} value={code} onChange={setCode}>
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
                   </div>
-                )}
-                <div>
-                  <Label className="text-xs">E-mail</Label>
-                  <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="din@email.dk" required />
-                </div>
-                <div>
-                  <Label className="text-xs">Adgangskode</Label>
-                  <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
-                </div>
-                <Button type="submit" variant="gold" className="w-full" disabled={loading}>
-                  {loading ? 'Vent...' : mode === 'login' ? 'Log ind' : 'Opret konto'}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </form>
+                  <Button type="submit" variant="gold" className="w-full" disabled={loading || code.length !== 6}>
+                    {loading ? 'Verifying...' : 'Verify email'}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                  <div className="flex items-center justify-between text-xs">
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={resending}
+                      className="text-accent hover:underline disabled:opacity-50"
+                    >
+                      {resending ? 'Sending...' : 'Resend code'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode('login')}
+                      className="text-muted-foreground hover:underline"
+                    >
+                      Back to login
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <form onSubmit={mode === 'login' ? handleLogin : handleSignup} className="space-y-4">
+                  {mode === 'signup' && (
+                    <div>
+                      <Label className="text-xs">Full name</Label>
+                      <Input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" required />
+                    </div>
+                  )}
+                  <div>
+                    <Label className="text-xs">Email</Label>
+                    <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" required />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Password</Label>
+                    <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+                  </div>
+                  <Button type="submit" variant="gold" className="w-full" disabled={loading}>
+                    {loading ? 'Please wait...' : mode === 'login' ? 'Log in' : 'Create account'}
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </form>
+              )}
 
-              <div className="mt-4 text-center">
-                <button
-                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                  className="text-xs text-accent hover:underline"
-                >
-                  {mode === 'login' ? 'Har du ikke en konto? Opret her' : 'Har du allerede en konto? Log ind'}
-                </button>
-              </div>
+              {mode !== 'verify' && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                    className="text-xs text-accent hover:underline"
+                  >
+                    {mode === 'login' ? "Don't have an account? Create one" : 'Already have an account? Log in'}
+                  </button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           <p className="text-[11px] text-center text-muted-foreground/60">
-            Ved at logge ind accepterer du vores{' '}
-            <Link to="/terms" className="underline">vilkår</Link> og{' '}
-            <Link to="/privacy" className="underline">privatlivspolitik</Link>
+            By logging in you agree to our{' '}
+            <Link to="/terms" className="underline">terms</Link> and{' '}
+            <Link to="/privacy" className="underline">privacy policy</Link>
           </p>
         </div>
       </div>

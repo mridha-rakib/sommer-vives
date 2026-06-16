@@ -11,8 +11,31 @@ import { Header } from '@/components/layout/Header';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { useTranslation } from '@/lib/i18n';
 import { getPasswordRecoveryParams, isPasswordRecoveryUrl } from '@/lib/passwordRecovery';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
-type AuthMode = 'login' | 'signup' | 'reset' | 'updatePassword';
+type AuthMode = 'login' | 'signup' | 'reset' | 'verifyReset' | 'updatePassword';
+
+type PasswordResetAction = 'request' | 'verify' | 'complete';
+type PasswordResetResponse = { success?: boolean; error?: string; resetToken?: string };
+
+async function callPasswordReset(body: Record<string, unknown> & { action: PasswordResetAction }) {
+  const { data, error } = await supabase.functions.invoke<PasswordResetResponse>('password-reset', { body });
+  if (error) {
+    let message = data?.error || error.message || 'Request failed';
+    const context = (error as Error & { context?: { json?: () => Promise<PasswordResetResponse> } }).context;
+    if (context?.json) {
+      try {
+        const payload = await context.json();
+        message = payload?.error || message;
+      } catch {
+        // ignore
+      }
+    }
+    throw new Error(message);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
 
 const authCopy = {
   da: {
@@ -31,8 +54,12 @@ const authCopy = {
     confirmPassword: 'Bekræft adgangskode',
     forgotPassword: 'Glemt adgangskode?',
     resetTitle: 'Nulstil adgangskode',
-    resetSubtitle: 'Indtast din e-mail, så sender vi et link til at nulstille din adgangskode.',
-    sendResetLink: 'Send nulstillingslink',
+    resetSubtitle: 'Indtast din e-mail, så sender vi en 6-cifret kode til at nulstille din adgangskode.',
+    sendResetLink: 'Send kode',
+    verifyTitle: 'Indtast bekræftelseskode',
+    verifySubtitle: 'Indtast den 6-cifrede kode, vi sendte til din e-mail.',
+    verifyCode: 'Bekræft kode',
+    resendCode: 'Send koden igen',
     backToLogin: 'Tilbage til login',
     updatePasswordTitle: 'Vælg ny adgangskode',
     updatePasswordSubtitle: 'Indtast en ny adgangskode til din ejerkonto.',
@@ -48,9 +75,9 @@ const authCopy = {
     loginSuccessTitle: 'Velkommen tilbage!',
     successDescription: 'Du er nu logget ind.',
     resetEmailSentTitle: 'Tjek din e-mail',
-    resetEmailSentDescription: 'Hvis kontoen findes, har vi sendt et link til at nulstille adgangskoden.',
-    resetLinkExpiredTitle: 'Linket er udløbet',
-    resetLinkExpiredDescription: 'Nulstillingslinket er ugyldigt eller udløbet. Indtast din e-mail for at få et nyt link.',
+    resetEmailSentDescription: 'Hvis kontoen findes, har vi sendt en 6-cifret kode til at nulstille adgangskoden.',
+    resetLinkExpiredTitle: 'Koden er udløbet',
+    resetLinkExpiredDescription: 'Koden er ugyldig eller udløbet. Indtast din e-mail for at få en ny kode.',
     passwordMismatchTitle: 'Adgangskoderne matcher ikke',
     passwordMismatchDescription: 'Indtast den samme adgangskode i begge felter.',
     passwordUpdatedTitle: 'Adgangskoden er opdateret',
@@ -74,8 +101,12 @@ const authCopy = {
     confirmPassword: 'Confirm password',
     forgotPassword: 'Forgot password?',
     resetTitle: 'Reset password',
-    resetSubtitle: 'Enter your email and we’ll send you a link to reset your password.',
-    sendResetLink: 'Send reset link',
+    resetSubtitle: 'Enter your email and we’ll send you a 6-digit code to reset your password.',
+    sendResetLink: 'Send code',
+    verifyTitle: 'Enter verification code',
+    verifySubtitle: 'Enter the 6-digit code we sent to your email.',
+    verifyCode: 'Verify code',
+    resendCode: 'Resend code',
     backToLogin: 'Back to login',
     updatePasswordTitle: 'Choose a new password',
     updatePasswordSubtitle: 'Enter a new password for your owner account.',
@@ -91,9 +122,9 @@ const authCopy = {
     loginSuccessTitle: 'Welcome back!',
     successDescription: 'You are now logged in.',
     resetEmailSentTitle: 'Check your email',
-    resetEmailSentDescription: 'If an account exists, we sent a password reset link.',
-    resetLinkExpiredTitle: 'Reset link expired',
-    resetLinkExpiredDescription: 'The reset link is invalid or expired. Enter your email to get a new link.',
+    resetEmailSentDescription: 'If an account exists, we sent a 6-digit code to reset your password.',
+    resetLinkExpiredTitle: 'Code expired',
+    resetLinkExpiredDescription: 'The code is invalid or expired. Enter your email to get a new code.',
     passwordMismatchTitle: 'Passwords do not match',
     passwordMismatchDescription: 'Enter the same password in both fields.',
     passwordUpdatedTitle: 'Password updated',
@@ -130,6 +161,9 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [code, setCode] = useState('');
+  const [resetToken, setResetToken] = useState<string | null>(null);
   const [recoveryReady, setRecoveryReady] = useState(!isPasswordRecoveryUrl() || initialRecovery.isExpired);
   const { signUp, signInWithPassword, user, rolesLoaded, isAdmin, isOwner, isGuest } = useAuth();
   const navigate = useNavigate();
@@ -246,23 +280,50 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const redirectTo = `${window.location.origin}/auth?mode=updatePassword`;
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
-      });
-      if (error) throw error;
+      await callPasswordReset({ action: 'request', email });
       toast({
         title: copy.resetEmailSentTitle,
         description: copy.resetEmailSentDescription,
       });
-      setMode('login');
+      setCode('');
+      setResetToken(null);
+      setMode('verifyReset');
     } catch (error) {
       const message = getErrorMessage(error, copy.fallbackError);
-      toast({
-        title: copy.errorTitle,
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: copy.errorTitle, description: message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!email) return;
+    setResending(true);
+    try {
+      await callPasswordReset({ action: 'request', email });
+      toast({ title: copy.resetEmailSentTitle, description: copy.resetEmailSentDescription });
+    } catch (error) {
+      const message = getErrorMessage(error, copy.fallbackError);
+      toast({ title: copy.errorTitle, description: message, variant: 'destructive' });
+    } finally {
+      setResending(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) return;
+    setLoading(true);
+    try {
+      const data = await callPasswordReset({ action: 'verify', email, code });
+      if (!data?.resetToken) throw new Error(copy.fallbackError);
+      setResetToken(data.resetToken);
+      setPassword('');
+      setConfirmPassword('');
+      setMode('updatePassword');
+    } catch (error) {
+      const message = getErrorMessage(error, copy.fallbackError);
+      toast({ title: copy.errorTitle, description: message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -283,14 +344,20 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      if (resetToken) {
+        await callPasswordReset({ action: 'complete', email, resetToken, newPassword: password });
+      } else {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+      }
       toast({
         title: copy.passwordUpdatedTitle,
         description: copy.passwordUpdatedDescription,
       });
       setPassword('');
       setConfirmPassword('');
+      setResetToken(null);
+      setCode('');
       setMode('login');
     } catch (error) {
       const message = getErrorMessage(error, copy.fallbackError);
@@ -304,39 +371,49 @@ export default function Auth() {
     }
   };
 
+
   const formSubmitHandler =
     mode === 'reset'
       ? handleResetRequest
-      : mode === 'updatePassword'
-        ? handlePasswordUpdate
-        : handleSubmit;
+      : mode === 'verifyReset'
+        ? handleVerifyCode
+        : mode === 'updatePassword'
+          ? handlePasswordUpdate
+          : handleSubmit;
 
   const title =
     mode === 'signup'
       ? copy.signupTitle
       : mode === 'reset'
         ? copy.resetTitle
-        : mode === 'updatePassword'
-          ? copy.updatePasswordTitle
-          : copy.loginTitle;
+        : mode === 'verifyReset'
+          ? copy.verifyTitle
+          : mode === 'updatePassword'
+            ? copy.updatePasswordTitle
+            : copy.loginTitle;
 
   const subtitle =
     mode === 'signup'
       ? copy.signupSubtitle
       : mode === 'reset'
         ? copy.resetSubtitle
-        : mode === 'updatePassword'
-          ? copy.updatePasswordSubtitle
-          : copy.loginSubtitle;
+        : mode === 'verifyReset'
+          ? copy.verifySubtitle
+          : mode === 'updatePassword'
+            ? copy.updatePasswordSubtitle
+            : copy.loginSubtitle;
 
   const submitText =
     mode === 'signup'
       ? copy.createAccount
       : mode === 'reset'
         ? copy.sendResetLink
-        : mode === 'updatePassword'
-          ? copy.updatePassword
-          : copy.login;
+        : mode === 'verifyReset'
+          ? copy.verifyCode
+          : mode === 'updatePassword'
+            ? copy.updatePassword
+            : copy.login;
+
 
   return (
     <>
@@ -387,7 +464,7 @@ export default function Auth() {
               </div>
             )}
 
-            {mode !== 'updatePassword' && (
+            {mode !== 'updatePassword' && mode !== 'verifyReset' && (
               <div>
               <Label htmlFor="email">{copy.email}</Label>
               <div className="relative mt-1">
@@ -405,7 +482,35 @@ export default function Auth() {
               </div>
             )}
 
-            {mode !== 'reset' && (
+            {mode === 'verifyReset' && (
+              <div className="space-y-3">
+                <div className="text-sm text-muted-foreground text-center">{email}</div>
+                <div className="flex justify-center">
+                  <InputOTP maxLength={6} value={code} onChange={setCode}>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={resending}
+                    className="text-sm text-accent hover:underline disabled:opacity-50"
+                  >
+                    {resending ? copy.loading : copy.resendCode}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {mode !== 'reset' && mode !== 'verifyReset' && (
               <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">{mode === 'updatePassword' ? copy.newPassword : copy.password}</Label>
@@ -492,7 +597,7 @@ export default function Auth() {
                 </button>
               </>
             )}
-            {mode === 'reset' && (
+            {(mode === 'reset' || mode === 'verifyReset') && (
               <button
                 onClick={() => setMode('login')}
                 className="text-accent hover:underline font-medium"
