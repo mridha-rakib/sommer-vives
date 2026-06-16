@@ -4,93 +4,69 @@ import { Input } from '@/components/ui/input';
 import { Gift, Users, Home, CheckCircle, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-const steps = [
-  {
-    icon: Users,
-    title: 'Inviter en sommerhusejer',
-    description: 'Del dit unikke henvisningslink med venner, familie eller bekendte, der ejer et sommerhus.',
-  },
-  {
-    icon: Home,
-    title: 'De opretter sig og går live',
-    description: 'Din henviste ejer opretter en profil, tilføjer deres sommerhus og går live på vores platform.',
-  },
-  {
-    icon: Gift,
-    title: 'I får begge 500 kr.',
-    description: 'Når ejeren har sin første booking på mindst 5.000 kr., får I begge 500 kr. udbetalt.',
-  },
-];
-
-const benefits = [
-  'Ingen grænse for hvor mange du kan henvise',
-  'Udbetaling sker automatisk efter kvalificeret booking',
-  'Din ven får også 500 kr. – det er win-win',
-  'Trackbar henvisning via dit personlige link',
-];
+import { useTranslation } from '@/lib/i18n';
 
 export default function ReferAHost() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useTranslation();
+
+  const stepIcons = [Users, Home, Gift];
+  const steps = stepIcons.map((icon, i) => ({
+    icon,
+    title: t(`refer.s${i + 1}.title`),
+    description: t(`refer.s${i + 1}.desc`),
+  }));
+  const benefits = [t('refer.b1'), t('refer.b2'), t('refer.b3'), t('refer.b4')];
+  const terms = [t('refer.t1'), t('refer.t2'), t('refer.t3'), t('refer.t4'), t('refer.t5')];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
     setIsSubmitting(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast.success('Tak! Vi sender dig dit personlige henvisningslink.');
+
+    toast.success(t('refer.toast'));
     setEmail('');
     setIsSubmitting(false);
   };
 
   return (
     <PublicLayout>
-      {/* Hero Section */}
       <section className="pt-32 pb-16 md:pb-24 bg-gradient-to-b from-accent/10 to-background relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 left-10 w-72 h-72 bg-accent rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary rounded-full blur-3xl" />
         </div>
-        
+
         <div className="container mx-auto px-4 md:px-8 relative">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-accent/20 text-accent px-4 py-2 rounded-full mb-6">
               <Gift className="h-5 w-5" />
-              <span className="font-medium">Member Get Member</span>
+              <span className="font-medium">{t('refer.member')}</span>
             </div>
-            
+
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold text-primary mb-6">
-              Tjen <span className="text-accent">500 kr.</span> for hver sommerhusejer du henviser
+              {t('refer.titlePre')} <span className="text-accent">{t('refer.titleAmount')}</span> {t('refer.titlePost')}
             </h1>
-            
+
             <p className="text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
-              Kender du nogen med et sommerhus? Hjælp dem med at komme i gang hos SommerVibes – 
-              og få 500 kr. når de får deres første booking.
+              {t('refer.subtitle')}
             </p>
 
-            {/* Email signup form */}
             <form onSubmit={handleSubmit} className="max-w-md mx-auto">
               <div className="flex gap-3">
                 <Input
                   type="email"
-                  placeholder="Din e-mail"
+                  placeholder={t('refer.emailPh')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="flex-1 h-12"
                   required
                 />
-                <Button 
-                  type="submit" 
-                  variant="gold" 
-                  size="lg"
-                  disabled={isSubmitting}
-                  className="h-12 px-6"
-                >
-                  {isSubmitting ? 'Sender...' : 'Få mit link'}
+                <Button type="submit" variant="gold" size="lg" disabled={isSubmitting} className="h-12 px-6">
+                  {isSubmitting ? t('refer.sending') : t('refer.send')}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
@@ -99,36 +75,35 @@ export default function ReferAHost() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
             <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary mb-4">
-              Sådan fungerer det
+              {t('refer.how.title')}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Tre enkle trin til at tjene penge ved at hjælpe andre med sommerhusudlejning
+              {t('refer.how.subtitle')}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {steps.map((step, index) => (
-              <div 
+              <div
                 key={step.title}
                 className="relative text-center p-8 rounded-2xl bg-muted/30 hover:bg-muted/50 transition-colors"
               >
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-accent text-primary rounded-full flex items-center justify-center font-bold text-sm">
                   {index + 1}
                 </div>
-                
+
                 <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <step.icon className="h-8 w-8 text-accent" />
                 </div>
-                
+
                 <h3 className="font-display text-xl font-semibold text-primary mb-3">
                   {step.title}
                 </h3>
-                
+
                 <p className="text-muted-foreground leading-relaxed">
                   {step.description}
                 </p>
@@ -138,20 +113,18 @@ export default function ReferAHost() {
         </div>
       </section>
 
-      {/* Benefits */}
       <section className="py-16 md:py-24 bg-background text-foreground">
         <div className="container mx-auto px-4 md:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div>
                 <h2 className="font-display text-3xl md:text-4xl font-semibold mb-6">
-                  Hvorfor henvise til <span className="text-accent">SommerVibes</span>?
+                  {t('refer.why.title')} <span className="text-accent">{t('refer.why.titleAccent')}</span>{t('refer.why.q')}
                 </h2>
                 <p className="text-muted-foreground text-lg mb-8">
-                  Vi tror på, at de bedste anbefalinger kommer fra tilfredse kunder. 
-                  Derfor belønner vi dig, når du hjælper os med at vokse.
+                  {t('refer.why.desc')}
                 </p>
-                
+
                 <ul className="space-y-4">
                   {benefits.map((benefit) => (
                     <li key={benefit} className="flex items-start gap-3">
@@ -164,13 +137,13 @@ export default function ReferAHost() {
 
               <div className="bg-background/10 rounded-3xl p-8 md:p-12 text-center">
                 <div className="text-6xl md:text-7xl font-display font-bold text-accent mb-4">
-                  500 kr.
+                  {t('refer.titleAmount')}
                 </div>
                 <p className="text-background/70 text-lg mb-6">
-                  For hver kvalificeret henvisning
+                  {t('refer.amountSub')}
                 </p>
                 <p className="text-sm text-background/50">
-                  Ingen øvre grænse – jo flere du henviser, jo mere tjener du
+                  {t('refer.amountNote')}
                 </p>
               </div>
             </div>
@@ -178,71 +151,48 @@ export default function ReferAHost() {
         </div>
       </section>
 
-      {/* Terms */}
       <section className="py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-4 md:px-8">
           <div className="max-w-3xl mx-auto">
             <h2 className="font-display text-2xl md:text-3xl font-semibold text-primary mb-8 text-center">
-              Betingelser for henvisningsprogrammet
+              {t('refer.terms.title')}
             </h2>
-            
+
             <div className="bg-background rounded-2xl p-8 shadow-sm">
               <ul className="space-y-4 text-muted-foreground">
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  <span>Den henviste ejer skal oprette sig via dit personlige link</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  <span>Sommerhuset skal godkendes og gå live på platformen</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  <span>Den første gennemførte booking skal være på minimum 5.000 kr.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  <span>Udbetaling sker inden for 14 dage efter bookingen er gennemført</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  <span>Du kan ikke henvise dig selv eller eksisterende SommerVibes-ejere</span>
-                </li>
+                {terms.map((term, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0" />
+                    <span>{term}</span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
       <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto px-4 md:px-8 text-center">
           <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary mb-6">
-            Klar til at tjene penge?
+            {t('refer.cta.title')}
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-            Tilmeld dig i dag og få dit personlige henvisningslink. 
-            Del det med alle, du kender – der er ingen grænse for, hvor meget du kan tjene.
+            {t('refer.cta.desc')}
           </p>
-          
+
           <form onSubmit={handleSubmit} className="max-w-md mx-auto">
             <div className="flex gap-3">
               <Input
                 type="email"
-                placeholder="Din e-mail"
+                placeholder={t('refer.emailPh')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 h-12"
                 required
               />
-              <Button 
-                type="submit" 
-                variant="gold" 
-                size="lg"
-                disabled={isSubmitting}
-                className="h-12 px-6"
-              >
-                {isSubmitting ? 'Sender...' : 'Start nu'}
+              <Button type="submit" variant="gold" size="lg" disabled={isSubmitting} className="h-12 px-6">
+                {isSubmitting ? t('refer.sending') : t('refer.start')}
               </Button>
             </div>
           </form>

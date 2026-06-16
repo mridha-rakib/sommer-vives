@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/lib/i18n';
 
 type ReturnKind = 'success' | 'cancelled';
 type VerifyState = 'idle' | 'checking' | 'confirmed' | 'pending' | 'failed';
@@ -14,6 +15,7 @@ export default function BookingReturn({ kind }: { kind: ReturnKind }) {
   const [verifyState, setVerifyState] = useState<VerifyState>(kind === 'success' ? 'checking' : 'idle');
   const sessionId = params.get('session_id');
   const bookingId = params.get('booking_id');
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (kind !== 'success' || !sessionId || !bookingId) {
@@ -48,27 +50,27 @@ export default function BookingReturn({ kind }: { kind: ReturnKind }) {
     if (kind === 'cancelled') {
       return {
         icon: <AlertCircle className="h-10 w-10 text-amber-400" />,
-        title: 'Betalingen blev ikke gennemført',
-        body: 'Din booking er endnu ikke bekræftet. Du kan prøve igen eller kontakte os, hvis du har spørgsmål.',
+        title: t('bookingReturn.cancelled.title'),
+        body: t('bookingReturn.cancelled.body'),
       };
     }
 
     if (verifyState === 'checking') {
       return {
         icon: <Loader2 className="h-10 w-10 text-accent animate-spin" />,
-        title: 'Vi kontrollerer betalingen',
-        body: 'Vent et øjeblik mens vi bekræfter din booking.',
+        title: t('bookingReturn.checking.title'),
+        body: t('bookingReturn.checking.body'),
       };
     }
 
     return {
       icon: <CheckCircle2 className="h-10 w-10 text-emerald-400" />,
-      title: 'Tak for din booking',
+      title: t('bookingReturn.success.title'),
       body: verifyState === 'confirmed'
-        ? 'Betalingen er registreret, og din booking er bekræftet.'
-        : 'Betalingen er modtaget hos Stripe. Din booking bliver opdateret automatisk, så snart bekræftelsen er færdigbehandlet.',
+        ? t('bookingReturn.success.confirmed')
+        : t('bookingReturn.success.pending'),
     };
-  }, [kind, verifyState]);
+  }, [kind, verifyState, t]);
 
   return (
     <>
@@ -82,11 +84,11 @@ export default function BookingReturn({ kind }: { kind: ReturnKind }) {
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               {kind === 'cancelled' && (
                 <Button asChild variant="gold">
-                  <Link to="/listings">Find et ophold</Link>
+                  <Link to="/listings">{t('bookingReturn.findStay')}</Link>
                 </Button>
               )}
               <Button asChild variant={kind === 'cancelled' ? 'outline' : 'gold'}>
-                <Link to="/">Til forsiden</Link>
+                <Link to="/">{t('bookingReturn.home')}</Link>
               </Button>
             </div>
           </CardContent>

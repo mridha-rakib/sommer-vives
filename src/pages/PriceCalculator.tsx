@@ -4,63 +4,56 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
-import { 
-  Home, Check, ChevronLeft, ChevronRight, MapPin, 
+import {
+  Home, Check, ChevronLeft, ChevronRight,
   Wifi, Flame, PawPrint, Waves, TreePine, Car, Sparkles,
   Phone, Mail, Calculator
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
-const STEPS = [
-  { id: 1, title: 'Fortæl os om din feriebolig' },
-  { id: 2, title: 'Hvor ligger din bolig?' },
-  { id: 3, title: 'Hvad tilbyder din bolig?' },
-  { id: 4, title: 'Hvornår kan boligen lejes ud?' },
-  { id: 5, title: 'Din kontaktinformation' },
-  { id: 6, title: 'Dit resultat' },
+const propertyTypeValues = [
+  { value: 'sommerhus', labelKey: 'calc.types.sommerhus' },
+  { value: 'feriebolig', labelKey: 'calc.types.feriebolig' },
+  { value: 'lejlighed', labelKey: 'calc.types.lejlighed' },
+  { value: 'villa', labelKey: 'calc.types.villa' },
+  { value: 'bondegård', labelKey: 'calc.types.bondegaard' },
 ];
 
-const propertyTypes = [
-  { value: 'sommerhus', label: 'Sommerhus' },
-  { value: 'feriebolig', label: 'Feriebolig' },
-  { value: 'lejlighed', label: 'Lejlighed' },
-  { value: 'villa', label: 'Villa' },
-  { value: 'bondegård', label: 'Bondegård' },
+const regionValues = [
+  { value: 'nordjylland', labelKey: 'calc.regions.nordjylland', multiplier: 1.1 },
+  { value: 'midtjylland', labelKey: 'calc.regions.midtjylland', multiplier: 1.0 },
+  { value: 'syddanmark', labelKey: 'calc.regions.syddanmark', multiplier: 1.05 },
+  { value: 'sjaelland', labelKey: 'calc.regions.sjaelland', multiplier: 1.15 },
+  { value: 'hovedstaden', labelKey: 'calc.regions.hovedstaden', multiplier: 1.2 },
+  { value: 'bornholm', labelKey: 'calc.regions.bornholm', multiplier: 1.25 },
 ];
 
-const regions = [
-  { value: 'nordjylland', label: 'Nordjylland', multiplier: 1.1 },
-  { value: 'midtjylland', label: 'Midtjylland', multiplier: 1.0 },
-  { value: 'syddanmark', label: 'Syddanmark', multiplier: 1.05 },
-  { value: 'sjaelland', label: 'Sjælland', multiplier: 1.15 },
-  { value: 'hovedstaden', label: 'Hovedstaden', multiplier: 1.2 },
-  { value: 'bornholm', label: 'Bornholm', multiplier: 1.25 },
+const amenityValues = [
+  { id: 'wifi', labelKey: 'calc.am.wifi', icon: Wifi },
+  { id: 'fireplace', labelKey: 'calc.am.fireplace', icon: Flame },
+  { id: 'pets', labelKey: 'calc.am.pets', icon: PawPrint },
+  { id: 'pool', labelKey: 'calc.am.pool', icon: Waves },
+  { id: 'nature', labelKey: 'calc.am.nature', icon: TreePine },
+  { id: 'parking', labelKey: 'calc.am.parking', icon: Car },
+  { id: 'luxury', labelKey: 'calc.am.luxury', icon: Sparkles },
 ];
 
-const amenities = [
-  { id: 'wifi', label: 'WiFi', icon: Wifi },
-  { id: 'fireplace', label: 'Brændeovn', icon: Flame },
-  { id: 'pets', label: 'Kæledyr tilladt', icon: PawPrint },
-  { id: 'pool', label: 'Pool', icon: Waves },
-  { id: 'nature', label: 'Naturskønt område', icon: TreePine },
-  { id: 'parking', label: 'P-plads', icon: Car },
-  { id: 'luxury', label: 'Luksuriøst indrettet', icon: Sparkles },
-];
-
-const availabilityOptions = [
-  { value: 'full', label: 'Hele året', weeks: 52 },
-  { value: 'summer', label: 'Kun sommersæson (maj-sep)', weeks: 20 },
-  { value: 'partial', label: 'Udvalgte uger', weeks: 12 },
-  { value: 'offseason', label: 'Primært lavsæson', weeks: 30 },
+const availabilityValues = [
+  { value: 'full', labelKey: 'calc.avail.full', weeks: 52 },
+  { value: 'summer', labelKey: 'calc.avail.summer', weeks: 20 },
+  { value: 'partial', labelKey: 'calc.avail.partial', weeks: 12 },
+  { value: 'offseason', labelKey: 'calc.avail.offseason', weeks: 30 },
 ];
 
 export default function PriceCalculator() {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     propertyType: 'sommerhus',
@@ -78,6 +71,15 @@ export default function PriceCalculator() {
     acceptTerms: false,
   });
 
+  const STEPS = [
+    { id: 1, title: t('calc.step1') },
+    { id: 2, title: t('calc.step2') },
+    { id: 3, title: t('calc.step3') },
+    { id: 4, title: t('calc.step4') },
+    { id: 5, title: t('calc.step5') },
+    { id: 6, title: t('calc.step6') },
+  ];
+
   const updateFormData = (key: string, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
@@ -92,33 +94,23 @@ export default function PriceCalculator() {
   };
 
   const calculateIncome = () => {
-    // Base price per night based on size and sleeping places
     let basePrice = 800 + (formData.size * 8) + (formData.sleepingPlaces * 100);
-    
-    // Region multiplier
-    const region = regions.find(r => r.value === formData.region);
+    const region = regionValues.find(r => r.value === formData.region);
     if (region) basePrice *= region.multiplier;
-    
-    // Amenities bonus
     const amenityBonus = formData.amenities.length * 0.05;
     basePrice *= (1 + amenityBonus);
-    
-    // Beach proximity bonus
     if (formData.distanceToBeach === 'under500') basePrice *= 1.15;
     else if (formData.distanceToBeach === '500to1000') basePrice *= 1.08;
-    
-    // Calculate annual income
-    const availability = availabilityOptions.find(a => a.value === formData.availability);
+
+    const availability = availabilityValues.find(a => a.value === formData.availability);
     const weeks = availability ? availability.weeks : formData.weeksPerYear;
-    const occupancyRate = 0.65; // 65% average occupancy
-    
+    const occupancyRate = 0.65;
+
     const grossIncome = Math.round(basePrice * 7 * weeks * occupancyRate);
     const taxFreeAmount = 50200;
     const commission = 0.15;
     const netIncome = Math.round(grossIncome * (1 - commission));
-    const taxableIncome = Math.max(0, netIncome - taxFreeAmount);
-    const taxSavings = Math.round(taxableIncome * 0.4); // 40% of remaining is also tax-free
-    
+
     return {
       grossIncome,
       netIncome,
@@ -139,23 +131,13 @@ export default function PriceCalculator() {
     }
   };
 
-  const nextStep = () => {
-    if (canProceed() && step < STEPS.length) {
-      setStep(step + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
-  };
+  const nextStep = () => { if (canProceed() && step < STEPS.length) setStep(step + 1); };
+  const prevStep = () => { if (step > 1) setStep(step - 1); };
 
   const income = calculateIncome();
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <Link to="/" className="flex items-center gap-2">
@@ -169,62 +151,43 @@ export default function PriceCalculator() {
         </div>
       </header>
 
-      {/* Trust Bar */}
       <div className="bg-muted/50 py-3 border-b border-border">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 text-sm">
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-accent" />
-              <span className="text-muted-foreground">50.200 kr. skattefrit og kun 15% i kommission</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-accent" />
-              <span className="text-muted-foreground">Udlej på de største portaler</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-accent" />
-              <span className="text-muted-foreground">Ingen binding og besvær</span>
-            </div>
+            {[t('calc.trust1'), t('calc.trust2'), t('calc.trust3')].map((txt, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-accent" />
+                <span className="text-muted-foreground">{txt}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="relative">
         <div className="grid lg:grid-cols-2 min-h-[calc(100vh-140px)]">
-          {/* Form Side */}
           <div className="flex items-center justify-center p-6 lg:p-12">
             <div className="w-full max-w-md bg-card rounded-2xl shadow-elevated p-8">
               <h2 className="font-display text-2xl font-bold text-primary mb-6">
                 {STEPS[step - 1]?.title}
               </h2>
 
-              {/* Step 1: Property Details */}
               {step === 1 && (
                 <div className="space-y-5">
                   <div>
-                    <Label>Boligtype</Label>
-                    <Select
-                      value={formData.propertyType}
-                      onValueChange={(v) => updateFormData('propertyType', v)}
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue />
-                      </SelectTrigger>
+                    <Label>{t('calc.propType')}</Label>
+                    <Select value={formData.propertyType} onValueChange={(v) => updateFormData('propertyType', v)}>
+                      <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {propertyTypes.map(type => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
+                        {propertyTypeValues.map(type => (
+                          <SelectItem key={type.value} value={type.value}>{t(type.labelKey)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label>
-                      Størrelse i m² <span className="text-destructive">*</span>
-                    </Label>
+                    <Label>{t('calc.size')} <span className="text-destructive">*</span></Label>
                     <Input
                       type="number"
                       value={formData.size}
@@ -236,96 +199,62 @@ export default function PriceCalculator() {
                   </div>
 
                   <div>
-                    <Label>
-                      Sovepladser <span className="text-destructive">*</span>
-                    </Label>
+                    <Label>{t('calc.sleep')} <span className="text-destructive">*</span></Label>
                     <div className="flex items-center gap-4 mt-1.5">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => updateFormData('sleepingPlaces', Math.max(1, formData.sleepingPlaces - 1))}
-                      >
-                        −
-                      </Button>
+                      <Button type="button" variant="outline" size="icon" onClick={() => updateFormData('sleepingPlaces', Math.max(1, formData.sleepingPlaces - 1))}>−</Button>
                       <span className="text-xl font-semibold w-12 text-center">{formData.sleepingPlaces}</span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => updateFormData('sleepingPlaces', Math.min(20, formData.sleepingPlaces + 1))}
-                      >
-                        +
-                      </Button>
+                      <Button type="button" variant="outline" size="icon" onClick={() => updateFormData('sleepingPlaces', Math.min(20, formData.sleepingPlaces + 1))}>+</Button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Step 2: Location */}
               {step === 2 && (
                 <div className="space-y-5">
                   <div>
-                    <Label>
-                      Region <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.region}
-                      onValueChange={(v) => updateFormData('region', v)}
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Vælg region" />
-                      </SelectTrigger>
+                    <Label>{t('calc.region')} <span className="text-destructive">*</span></Label>
+                    <Select value={formData.region} onValueChange={(v) => updateFormData('region', v)}>
+                      <SelectTrigger className="mt-1.5"><SelectValue placeholder={t('calc.regionPh')} /></SelectTrigger>
                       <SelectContent>
-                        {regions.map(region => (
-                          <SelectItem key={region.value} value={region.value}>
-                            {region.label}
-                          </SelectItem>
+                        {regionValues.map(region => (
+                          <SelectItem key={region.value} value={region.value}>{t(region.labelKey)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label>Postnummer</Label>
+                    <Label>{t('calc.postal')}</Label>
                     <Input
                       type="text"
                       value={formData.postalCode}
                       onChange={(e) => updateFormData('postalCode', e.target.value)}
-                      placeholder="f.eks. 9480"
+                      placeholder={t('calc.postalPh')}
                       className="mt-1.5"
                       maxLength={4}
                     />
                   </div>
 
                   <div>
-                    <Label>Afstand til strand</Label>
-                    <Select
-                      value={formData.distanceToBeach}
-                      onValueChange={(v) => updateFormData('distanceToBeach', v)}
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Vælg afstand" />
-                      </SelectTrigger>
+                    <Label>{t('calc.beach')}</Label>
+                    <Select value={formData.distanceToBeach} onValueChange={(v) => updateFormData('distanceToBeach', v)}>
+                      <SelectTrigger className="mt-1.5"><SelectValue placeholder={t('calc.beachPh')} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="under500">Under 500 m</SelectItem>
-                        <SelectItem value="500to1000">500-1000 m</SelectItem>
-                        <SelectItem value="1to3km">1-3 km</SelectItem>
-                        <SelectItem value="over3km">Over 3 km</SelectItem>
+                        <SelectItem value="under500">{t('calc.beach.under500')}</SelectItem>
+                        <SelectItem value="500to1000">{t('calc.beach.500to1000')}</SelectItem>
+                        <SelectItem value="1to3km">{t('calc.beach.1to3km')}</SelectItem>
+                        <SelectItem value="over3km">{t('calc.beach.over3km')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
               )}
 
-              {/* Step 3: Amenities */}
               {step === 3 && (
                 <div className="space-y-4">
-                  <p className="text-muted-foreground text-sm mb-4">
-                    Vælg de faciliteter din bolig har (valgfrit)
-                  </p>
+                  <p className="text-muted-foreground text-sm mb-4">{t('calc.amSubtitle')}</p>
                   <div className="grid grid-cols-2 gap-3">
-                    {amenities.map(amenity => {
+                    {amenityValues.map(amenity => {
                       const Icon = amenity.icon;
                       const isSelected = formData.amenities.includes(amenity.id);
                       return (
@@ -334,13 +263,11 @@ export default function PriceCalculator() {
                           type="button"
                           onClick={() => toggleAmenity(amenity.id)}
                           className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
-                            isSelected 
-                              ? 'border-accent bg-accent/10 text-primary' 
-                              : 'border-border bg-background hover:border-accent/50'
+                            isSelected ? 'border-accent bg-accent/10 text-primary' : 'border-border bg-background hover:border-accent/50'
                           }`}
                         >
                           <Icon className={`w-5 h-5 ${isSelected ? 'text-accent' : 'text-muted-foreground'}`} />
-                          <span className="text-sm font-medium">{amenity.label}</span>
+                          <span className="text-sm font-medium">{t(amenity.labelKey)}</span>
                         </button>
                       );
                     })}
@@ -348,91 +275,58 @@ export default function PriceCalculator() {
                 </div>
               )}
 
-              {/* Step 4: Availability */}
               {step === 4 && (
                 <div className="space-y-4">
-                  <p className="text-muted-foreground text-sm mb-4">
-                    Hvornår ønsker du at udleje din bolig?
-                  </p>
+                  <p className="text-muted-foreground text-sm mb-4">{t('calc.availSubtitle')}</p>
                   <div className="space-y-3">
-                    {availabilityOptions.map(option => (
+                    {availabilityValues.map(option => (
                       <button
                         key={option.value}
                         type="button"
                         onClick={() => updateFormData('availability', option.value)}
                         className={`w-full flex items-center justify-between p-4 rounded-lg border transition-all ${
-                          formData.availability === option.value
-                            ? 'border-accent bg-accent/10'
-                            : 'border-border bg-background hover:border-accent/50'
+                          formData.availability === option.value ? 'border-accent bg-accent/10' : 'border-border bg-background hover:border-accent/50'
                         }`}
                       >
-                        <span className="font-medium">{option.label}</span>
-                        <span className="text-sm text-muted-foreground">~{option.weeks} uger</span>
+                        <span className="font-medium">{t(option.labelKey)}</span>
+                        <span className="text-sm text-muted-foreground">{t('calc.avail.weeks').replace('{n}', String(option.weeks))}</span>
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Step 5: Contact */}
               {step === 5 && (
                 <div className="space-y-5">
                   <div>
-                    <Label>
-                      Fulde navn <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => updateFormData('name', e.target.value)}
-                      placeholder="Dit navn"
-                      className="mt-1.5"
-                    />
+                    <Label>{t('calc.contact.name')} <span className="text-destructive">*</span></Label>
+                    <Input type="text" value={formData.name} onChange={(e) => updateFormData('name', e.target.value)} placeholder={t('calc.contact.namePh')} className="mt-1.5" />
                   </div>
 
                   <div>
-                    <Label>
-                      E-mail <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => updateFormData('email', e.target.value)}
-                      placeholder="din@email.dk"
-                      className="mt-1.5"
-                    />
+                    <Label>{t('calc.contact.email')} <span className="text-destructive">*</span></Label>
+                    <Input type="email" value={formData.email} onChange={(e) => updateFormData('email', e.target.value)} placeholder={t('calc.contact.emailPh')} className="mt-1.5" />
                   </div>
 
                   <div>
-                    <Label>Telefonnr.</Label>
-                    <Input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => updateFormData('phone', e.target.value)}
-                      placeholder="+45 12 34 56 78"
-                      className="mt-1.5"
-                    />
+                    <Label>{t('calc.contact.phone')}</Label>
+                    <Input type="tel" value={formData.phone} onChange={(e) => updateFormData('phone', e.target.value)} placeholder="+45 12 34 56 78" className="mt-1.5" />
                   </div>
 
                   <div className="flex items-start gap-3 pt-2">
-                    <Checkbox
-                      id="terms"
-                      checked={formData.acceptTerms}
-                      onCheckedChange={(checked) => updateFormData('acceptTerms', checked)}
-                    />
+                    <Checkbox id="terms" checked={formData.acceptTerms} onCheckedChange={(checked) => updateFormData('acceptTerms', checked)} />
                     <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                      Jeg accepterer at modtage information om udlejning og giver samtykke til behandling af mine data.
+                      {t('calc.contact.terms')}
                     </label>
                   </div>
                 </div>
               )}
 
-              {/* Step 6: Results */}
               {step === 6 && (
                 <div className="space-y-6">
                   <div className="text-center py-4">
                     <Calculator className="w-12 h-12 text-accent mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-2">Din estimerede årlige indtægt</p>
+                    <p className="text-muted-foreground mb-2">{t('calc.res.label')}</p>
                     <p className="text-5xl font-bold text-primary">
                       {income.netIncome.toLocaleString('da-DK')} kr.
                     </p>
@@ -440,65 +334,58 @@ export default function PriceCalculator() {
 
                   <div className="space-y-3 bg-muted/50 rounded-xl p-5">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Pris pr. nat (estimeret)</span>
+                      <span className="text-muted-foreground">{t('calc.res.perNight')}</span>
                       <span className="font-semibold">{income.pricePerNight.toLocaleString('da-DK')} kr.</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Forventet udlejede uger</span>
-                      <span className="font-semibold">{income.weeksRented} uger</span>
+                      <span className="text-muted-foreground">{t('calc.res.weeksRented')}</span>
+                      <span className="font-semibold">{t('calc.res.weeks').replace('{n}', String(income.weeksRented))}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Bruttoindtægt</span>
+                      <span className="text-muted-foreground">{t('calc.res.gross')}</span>
                       <span className="font-semibold">{income.grossIncome.toLocaleString('da-DK')} kr.</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Kommission (20%)</span>
+                      <span className="text-muted-foreground">{t('calc.res.commission')}</span>
                       <span className="font-semibold text-destructive">-{Math.round(income.grossIncome * 0.2).toLocaleString('da-DK')} kr.</span>
                     </div>
                     <div className="pt-3 border-t border-border">
                       <div className="flex justify-between">
-                        <span className="font-semibold text-primary">Netto til dig</span>
+                        <span className="font-semibold text-primary">{t('calc.res.net')}</span>
                         <span className="font-bold text-xl text-accent">{income.netIncome.toLocaleString('da-DK')} kr.</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-accent/10 rounded-xl p-5 border border-accent/20">
-                    <p className="text-sm text-primary mb-2 font-medium">🎉 Skattefri bonus!</p>
+                    <p className="text-sm text-primary mb-2 font-medium">🎉 {t('calc.res.bonus')}</p>
                     <p className="text-muted-foreground text-sm">
-                      De første <span className="font-semibold text-accent">47.900 kr.</span> af din lejeindtægt er helt skattefri. 
-                      Og 40% af resten er også skattefri!
+                      {t('calc.res.bonus.desc.pre')} <span className="font-semibold text-accent">{t('calc.res.bonus.amount')}</span> {t('calc.res.bonus.desc.post')}
                     </p>
                   </div>
 
                   <Button variant="gold" size="lg" className="w-full" asChild>
                     <Link to="/contact">
-                      Kom i gang med udlejning
+                      {t('calc.res.cta')}
                     </Link>
                   </Button>
                 </div>
               )}
 
-              {/* Navigation */}
               {step < 6 && (
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
                   <span className="text-sm text-muted-foreground">
-                    Trin {step} af {STEPS.length}
+                    {t('calc.nav.stepOf').replace('{n}', String(step)).replace('{total}', String(STEPS.length))}
                   </span>
                   <div className="flex gap-3">
                     {step > 1 && (
                       <Button type="button" variant="ghost" onClick={prevStep}>
                         <ChevronLeft className="w-4 h-4 mr-1" />
-                        Tilbage
+                        {t('calc.nav.back')}
                       </Button>
                     )}
-                    <Button 
-                      type="button" 
-                      variant="gold" 
-                      onClick={nextStep}
-                      disabled={!canProceed()}
-                    >
-                      {step === 5 ? 'Se resultat' : 'Næste'}
+                    <Button type="button" variant="gold" onClick={nextStep} disabled={!canProceed()}>
+                      {step === 5 ? t('calc.nav.seeResult') : t('calc.nav.next')}
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
@@ -507,11 +394,10 @@ export default function PriceCalculator() {
             </div>
           </div>
 
-          {/* Image Side */}
           <div className="hidden lg:block relative">
             <img
               src="https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=1200"
-              alt="Smukt sommerhus"
+              alt=""
               className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-background/20 to-transparent" />
@@ -519,23 +405,18 @@ export default function PriceCalculator() {
         </div>
       </main>
 
-      {/* Contact Footer */}
       <footer className="bg-card border-t border-border py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-center gap-8">
             <div className="flex -space-x-3">
               {[1,2,3,4].map(i => (
                 <div key={i} className="w-12 h-12 rounded-full border-2 border-card bg-muted overflow-hidden">
-                  <img
-                    src={`https://i.pravatar.cc/100?img=${i + 10}`}
-                    alt="Team member"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="" className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>
             <div className="text-center md:text-left">
-              <p className="font-semibold text-primary mb-1">Ring eller skriv til os</p>
+              <p className="font-semibold text-primary mb-1">{t('calc.footer.title')}</p>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm">
                 <a href="tel:+4512345678" className="flex items-center gap-1 text-accent hover:underline">
                   <Phone className="w-4 h-4" />
@@ -546,7 +427,7 @@ export default function PriceCalculator() {
                   kontakt@sommervibes.dk
                 </a>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Telefon: mandag–torsdag 10–16</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('calc.footer.hours')}</p>
             </div>
           </div>
         </div>
