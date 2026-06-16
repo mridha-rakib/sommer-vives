@@ -280,23 +280,50 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const redirectTo = `${window.location.origin}/auth?mode=updatePassword`;
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
-      });
-      if (error) throw error;
+      await callPasswordReset({ action: 'request', email });
       toast({
         title: copy.resetEmailSentTitle,
         description: copy.resetEmailSentDescription,
       });
-      setMode('login');
+      setCode('');
+      setResetToken(null);
+      setMode('verifyReset');
     } catch (error) {
       const message = getErrorMessage(error, copy.fallbackError);
-      toast({
-        title: copy.errorTitle,
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: copy.errorTitle, description: message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!email) return;
+    setResending(true);
+    try {
+      await callPasswordReset({ action: 'request', email });
+      toast({ title: copy.resetEmailSentTitle, description: copy.resetEmailSentDescription });
+    } catch (error) {
+      const message = getErrorMessage(error, copy.fallbackError);
+      toast({ title: copy.errorTitle, description: message, variant: 'destructive' });
+    } finally {
+      setResending(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) return;
+    setLoading(true);
+    try {
+      const data = await callPasswordReset({ action: 'verify', email, code });
+      if (!data?.resetToken) throw new Error(copy.fallbackError);
+      setResetToken(data.resetToken);
+      setPassword('');
+      setConfirmPassword('');
+      setMode('updatePassword');
+    } catch (error) {
+      const message = getErrorMessage(error, copy.fallbackError);
+      toast({ title: copy.errorTitle, description: message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -317,14 +344,20 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      if (resetToken) {
+        await callPasswordReset({ action: 'complete', email, resetToken, newPassword: password });
+      } else {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+      }
       toast({
         title: copy.passwordUpdatedTitle,
         description: copy.passwordUpdatedDescription,
       });
       setPassword('');
       setConfirmPassword('');
+      setResetToken(null);
+      setCode('');
       setMode('login');
     } catch (error) {
       const message = getErrorMessage(error, copy.fallbackError);
@@ -337,6 +370,7 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
 
   const formSubmitHandler =
     mode === 'reset'
