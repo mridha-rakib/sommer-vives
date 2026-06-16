@@ -15,6 +15,15 @@ import {
 } from '@/components/ui/input-otp';
 
 type Mode = 'login' | 'signup' | 'verify';
+type GuestRegistrationAction = 'request_signup' | 'resend' | 'verify';
+type GuestRegistrationResponse = { success?: boolean; error?: string };
+
+async function callGuestRegistration(body: Record<string, unknown> & { action: GuestRegistrationAction }) {
+  const { data, error } = await supabase.functions.invoke<GuestRegistrationResponse>('guest-registration', { body });
+  if (error) throw new Error(data?.error || error.message || 'Verification request failed');
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
 
 export default function GuestAuth() {
   const [mode, setMode] = useState<Mode>('login');
@@ -46,21 +55,16 @@ export default function GuestAuth() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // emailRedirectTo intentionally omitted so Supabase sends the OTP token
-    // (the magic link still works but we ask the user for the 6-digit code).
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: name, account_type: 'guest' } },
-    });
-    if (error) {
-      toast.error(error.message);
-    } else {
+    try {
+      await callGuestRegistration({ action: 'request_signup', email, password, full_name: name });
       toast.success('We sent a 6-digit verification code to your email');
       setCode('');
       setMode('verify');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to create account');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleVerify = async (e: React.FormEvent) => {
@@ -70,18 +74,23 @@ export default function GuestAuth() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: 'email',
-    });
-    if (error) {
-      toast.error(error.message || 'Invalid or expired code');
-    } else {
-      toast.success('Email verified');
-      navigate('/guest');
+    try {
+      await callGuestRegistration({ action: 'verify', email, code });
+      const { error: signInError } = password
+        ? await supabase.auth.signInWithPassword({ email, password })
+        : { error: new Error('Password required') };
+      if (signInError) {
+        toast.success('Email verified. Please log in.');
+        setMode('login');
+      } else {
+        toast.success('Email verified');
+        navigate('/guest');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Invalid or expired code');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleResend = async () => {
@@ -90,13 +99,14 @@ export default function GuestAuth() {
       return;
     }
     setResending(true);
-    const { error } = await supabase.auth.resend({ type: 'signup', email });
-    if (error) {
-      toast.error(error.message);
-    } else {
+    try {
+      await callGuestRegistration({ action: 'resend', email });
       toast.success('New code sent');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to resend code');
+    } finally {
+      setResending(false);
     }
-    setResending(false);
   };
 
   return (
