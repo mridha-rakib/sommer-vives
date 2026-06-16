@@ -32,6 +32,7 @@ const statusBadge = (status: string, label: string) => {
 
 export default function OwnerDocuments() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { t, language } = useTranslation();
   const [agreements, setAgreements] = useState<OwnerAgreementDocument[]>([]);
   const [documents, setDocuments] = useState<OwnerUploadedDocument[]>([]);
