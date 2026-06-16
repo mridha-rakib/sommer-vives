@@ -7,28 +7,16 @@ import { useScrollReveal } from '@/hooks/useScrollReveal';
 import teamEmil from '@/assets/team-emil.jpg';
 import teamErik from '@/assets/team-erik.webp';
 import heroHouse from '@/assets/hero-house.jpg';
-
-const teamMembers = [
-  {
-    name: 'Emil Weng Klockmann',
-    role: 'Salgschef',
-    image: teamEmil,
-    email: 'emil@sommervibes.dk',
-    phone: '+45 12 34 56 78',
-    tagline: 'Din personlige udlejningsrådgiver',
-  },
-  {
-    name: 'Erik Bendstrup',
-    role: 'Marketingchef',
-    image: teamErik,
-    email: 'erik@sommervibes.dk',
-    phone: '+45 12 34 56 79',
-    tagline: 'Din personlige synlighedsrådgiver',
-  },
-];
+import { useTranslation } from '@/lib/i18n';
 
 function ValuesSection() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
+  const items = [
+    { icon: Target, title: t('team.v1.title'), desc: t('team.v1.desc') },
+    { icon: Zap, title: t('team.v2.title'), desc: t('team.v2.desc') },
+    { icon: Heart, title: t('team.v3.title'), desc: t('team.v3.desc') },
+  ];
   return (
     <section ref={ref} className="py-24 bg-background text-foreground">
       <div className="container mx-auto px-4 md:px-8 max-w-4xl">
@@ -38,15 +26,11 @@ function ValuesSection() {
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
-          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">Vores DNA</span>
-          <h2 className="font-display text-3xl md:text-5xl font-semibold">Vi gør tingene anderledes</h2>
+          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">{t('team.values.eyebrow')}</span>
+          <h2 className="font-display text-3xl md:text-5xl font-semibold">{t('team.values.title')}</h2>
         </motion.div>
         <div className="grid md:grid-cols-3 gap-8">
-          {[
-            { icon: Target, title: 'Kvalitet over kvantitet', desc: 'Vi vælger samarbejder med omhu og giver 100% til hver ejer.' },
-            { icon: Zap, title: 'Digital nytænkning', desc: 'Vi bruger de nyeste værktøjer til at maksimere din synlighed.' },
-            { icon: Heart, title: 'Ægte passion', desc: 'Vi elsker sommerhuse og kender branchen indefra.' },
-          ].map((item, i) => (
+          {items.map((item, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
@@ -69,6 +53,7 @@ function ValuesSection() {
 
 function StorySection() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
   return (
     <section ref={ref} className="py-24 md:py-32 bg-muted/30">
       <div className="container mx-auto px-4 md:px-8">
@@ -80,7 +65,7 @@ function StorySection() {
             className="relative"
           >
             <div className="rounded-2xl overflow-hidden shadow-2xl">
-              <img src={heroHouse} alt="Sommerhus" className="w-full h-[400px] object-cover" loading="lazy" />
+              <img src={heroHouse} alt={t('team.story.imgAlt')} className="w-full h-[400px] object-cover" loading="lazy" />
             </div>
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -88,8 +73,8 @@ function StorySection() {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="absolute -bottom-6 -right-6 bg-accent text-primary px-8 py-4 rounded-xl shadow-lg"
             >
-              <span className="font-display font-bold text-lg">4+ års passion</span>
-              <span className="block text-sm opacity-80">for boliger & sommerhuse</span>
+              <span className="font-display font-bold text-lg">{t('team.story.badge')}</span>
+              <span className="block text-sm opacity-80">{t('team.story.badgeSub')}</span>
             </motion.div>
           </motion.div>
           <motion.div
@@ -97,25 +82,22 @@ function StorySection() {
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">Vores historie</span>
+            <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">{t('team.story.eyebrow')}</span>
             <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary mb-6">
-              Fra passion til<br /><span className="text-accent italic font-normal">SommerVibes</span>
+              {t('team.story.title1')}<br /><span className="text-accent italic font-normal">{t('team.story.title2')}</span>
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-6">
-              Det startede med en passion for boliger og et ønske om at gøre tingene anderledes.
-              Emil har arbejdet i ejendomsbranchen som uddannet mægler – og ejer selv sommerhuse.
+              {t('team.story.p1')}
             </p>
             <p className="text-muted-foreground leading-relaxed mb-6">
-              <strong className="text-primary">SommerVibes er svaret på det vi selv savnede:</strong> Et
-              moderne, digitalt bureau med personlig service og kun 15% kommission.
+              <strong className="text-primary">{t('team.story.p2.bold')}</strong>{t('team.story.p2.post')}
             </p>
             <p className="text-muted-foreground leading-relaxed mb-8">
-              Sammen med Erik, der bringer digital marketing-ekspertise, har vi skabt
-              fremtidens sommerhusbreau.
+              {t('team.story.p3')}
             </p>
             <Link to="/how-it-works">
               <Button variant="outline" className="gap-2 group">
-                Se hvordan det virker <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                {t('team.story.cta')} <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
           </motion.div>
@@ -127,6 +109,13 @@ function StorySection() {
 
 function ExpertiseSection() {
   const { ref, isInView } = useScrollReveal();
+  const { t } = useTranslation();
+  const people = [
+    { img: teamEmil, name: 'Emil Weng Klockmann', role: t('team.exp.p1.role'),
+      items: [t('team.exp.p1.i1'), t('team.exp.p1.i2'), t('team.exp.p1.i3'), t('team.exp.p1.i4')] },
+    { img: teamErik, name: 'Erik Bendstrup', role: t('team.exp.p2.role'),
+      items: [t('team.exp.p2.i1'), t('team.exp.p2.i2'), t('team.exp.p2.i3'), t('team.exp.p2.i4')] },
+  ];
   return (
     <section ref={ref} className="py-24 md:py-32 bg-background">
       <div className="container mx-auto px-4 md:px-8 max-w-6xl">
@@ -136,14 +125,11 @@ function ExpertiseSection() {
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
-          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">Ekspertise</span>
-          <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary">To baggrunde, ét fælles mål</h2>
+          <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-4">{t('team.exp.eyebrow')}</span>
+          <h2 className="font-display text-3xl md:text-4xl font-semibold text-primary">{t('team.exp.title')}</h2>
         </motion.div>
         <div className="grid md:grid-cols-2 gap-8">
-          {[
-            { img: teamEmil, name: 'Emil Weng Klockmann', role: 'Ejendomsekspertise', items: ['Uddannet ejendomsmægler', 'Erfaren køber- og salgsrådgiver', 'Dyb indsigt i boligmarkedet', 'Selv ejer af sommerhuse'] },
-            { img: teamErik, name: 'Erik Bendstrup', role: 'Digital synlighed', items: ['Digital marketing specialist', 'Performance marketing ekspert', 'Multi-kanal strategi', 'Data-drevet optimering'] },
-          ].map((person, pi) => (
+          {people.map((person, pi) => (
             <motion.div
               key={pi}
               initial={{ opacity: 0, y: 30 }}
@@ -178,7 +164,7 @@ function ExpertiseSection() {
         >
           <Link to="/pricing">
             <Button variant="gold" size="lg" className="gap-2 group">
-              Se vores priser <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              {t('team.exp.cta')} <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
         </motion.div>
@@ -188,14 +174,33 @@ function ExpertiseSection() {
 }
 
 export default function Team() {
+  const { t } = useTranslation();
+  const teamMembers = [
+    {
+      name: 'Emil Weng Klockmann',
+      role: t('team.m1.role'),
+      image: teamEmil,
+      email: 'emil@sommervibes.dk',
+      phone: '+45 12 34 56 78',
+      tagline: t('team.m1.tagline'),
+    },
+    {
+      name: 'Erik Bendstrup',
+      role: t('team.m2.role'),
+      image: teamErik,
+      email: 'erik@sommervibes.dk',
+      phone: '+45 12 34 56 79',
+      tagline: t('team.m2.tagline'),
+    },
+  ];
+
   return (
     <PublicLayout>
-      {/* Hero */}
       <section className="pt-32 pb-20 bg-background overflow-hidden">
         <div className="container mx-auto px-4 md:px-8">
           <div className="max-w-4xl mx-auto text-center mb-16">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">Teamet</span>
+              <span className="text-accent font-body text-sm font-semibold tracking-[0.3em] uppercase block mb-6">{t('team.eyebrow')}</span>
             </motion.div>
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
@@ -203,8 +208,8 @@ export default function Team() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold text-primary mb-6"
             >
-              Et stærkt partnerskab
-              <span className="block text-accent italic font-normal">bygget på passion</span>
+              {t('team.title1')}
+              <span className="block text-accent italic font-normal">{t('team.title2')}</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
@@ -212,8 +217,7 @@ export default function Team() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="text-lg text-muted-foreground max-w-2xl mx-auto"
             >
-              Vi kombinerer ejendomsekspertise med digital nytænkning. Kvalitet over kvantitet –
-              det er vores filosofi.
+              {t('team.subtitle')}
             </motion.p>
           </div>
           <div className="flex flex-col md:flex-row justify-center items-start gap-16 md:gap-28 max-w-3xl mx-auto">
@@ -251,25 +255,24 @@ export default function Team() {
       <StorySection />
       <ExpertiseSection />
 
-      {/* CTA */}
       <section className="py-24 bg-background text-foreground">
         <div className="container mx-auto px-4 text-center max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
             <h2 className="font-display text-3xl md:text-5xl font-semibold mb-6">
-              Du får en fast personlig rådgiver
+              {t('team.cta.title')}
             </h2>
             <p className="text-muted-foreground text-lg mb-12 max-w-2xl mx-auto">
-              Du er ikke bare et nummer i rækken. Du får en dedikeret kontaktperson der kender dit hus og dine mål.
+              {t('team.cta.desc')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/contact">
                 <Button variant="gold" size="lg" className="gap-2 group">
-                  Kontakt os <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  {t('team.cta.contact')} <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link to="/kom-i-gang">
                 <Button variant="outline" size="lg" className="border-accent/40 text-accent hover:bg-accent/10">
-                  Kom i gang
+                  {t('team.cta.start')}
                 </Button>
               </Link>
             </div>
