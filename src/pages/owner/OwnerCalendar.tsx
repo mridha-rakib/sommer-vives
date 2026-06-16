@@ -272,7 +272,7 @@ export default function OwnerCalendar() {
           {[
             { color: 'bg-emerald-400/20 border-emerald-400/40', label: t('owner.calendar.booking') },
             { color: 'bg-[hsl(var(--gold)/0.2)] border-[hsl(var(--gold)/0.4)]', label: t('owner.calendar.personalUse') },
-            { color: 'bg-destructive/10 border-destructive/30', label: t('owner.calendar.blocked') },
+            { color: 'bg-red-500/30 border-red-500/60', label: t('owner.calendar.blocked') },
           ].map(l => (
             <div key={l.label} className="flex items-center gap-2">
               <div className={`w-3.5 h-3.5 rounded border ${l.color}`} />
