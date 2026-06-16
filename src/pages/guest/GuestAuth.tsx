@@ -21,16 +21,17 @@ type GuestRegistrationResponse = { success?: boolean; error?: string };
 async function callGuestRegistration(body: Record<string, unknown> & { action: GuestRegistrationAction }) {
   const { data, error } = await supabase.functions.invoke<GuestRegistrationResponse>('guest-registration', { body });
   if (error) {
+    let message = data?.error || error.message || 'Verification request failed';
     const context = (error as Error & { context?: { json?: () => Promise<GuestRegistrationResponse> } }).context;
     if (context?.json) {
       try {
         const payload = await context.json();
-        if (payload?.error) throw new Error(payload.error);
-      } catch (payloadError) {
-        if (payloadError instanceof Error && payloadError.message !== 'Failed to parse JSON') throw payloadError;
+        message = payload?.error || message;
+      } catch {
+        // Keep the original function error message if the response body is not JSON.
       }
     }
-    throw new Error(data?.error || error.message || 'Verification request failed');
+    throw new Error(message);
   }
   if (data?.error) throw new Error(data.error);
   return data;
