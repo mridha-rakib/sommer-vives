@@ -3,7 +3,7 @@ import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Building2, MapPin, Users, BedDouble, Bath, Globe, Image } from 'lucide-react';
+import { AlertCircle, Building2, MapPin, Users, BedDouble, Bath, Globe, Image, RefreshCw } from 'lucide-react';
 import { useTranslation, type Language } from '@/lib/i18n';
 import { useQuery } from '@tanstack/react-query';
 import { getOwnerPropertyOverview } from '@/lib/owner-property-api';
@@ -50,7 +50,14 @@ const amenityKeys: Record<string, string> = {
 export default function OwnerProperty() {
   const { user } = useAuth();
   const { t, language } = useTranslation();
-  const { data, isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: ['owner-property-overview', user?.id],
     queryFn: () => getOwnerPropertyOverview(user!.id),
     enabled: !!user?.id,
@@ -81,6 +88,30 @@ export default function OwnerProperty() {
           <Button variant="gold" asChild>
             <a href="/kom-i-gang">{t('owner.property.noPropertyCta')}</a>
           </Button>
+        </div>
+      </OwnerLayout>
+    );
+  }
+
+  if (isError) {
+    return (
+      <OwnerLayout>
+        <div className="space-y-8 max-w-4xl mx-auto">
+          <Card>
+            <CardContent className="p-10 text-center max-w-md mx-auto">
+              <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-6 h-6 text-destructive/70" />
+              </div>
+              <h1 className="font-display text-xl font-semibold text-foreground mb-2">{t('owner.property.errorTitle')}</h1>
+              <p className="text-sm text-muted-foreground mb-5">
+                {error instanceof Error ? error.message : t('owner.property.errorDescription')}
+              </p>
+              <Button variant="outline" size="sm" className="gap-2 rounded-xl" onClick={() => refetch()} disabled={isFetching}>
+                <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+                {t('owner.property.retry')}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </OwnerLayout>
     );
@@ -126,7 +157,7 @@ export default function OwnerProperty() {
     return `${displayValue} ${label}`;
   };
   const formatMoney = (value: number | null | undefined) => {
-    if (!value) return '—';
+    if (value == null || Number(value) <= 0) return '—';
     const formatted = Number(value).toLocaleString(localeCodes[language]);
     return language === 'da' ? `${formatted} kr` : `DKK ${formatted}`;
   };

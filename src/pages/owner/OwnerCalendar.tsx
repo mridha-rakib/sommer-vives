@@ -79,6 +79,7 @@ export default function OwnerCalendar() {
     queryFn: () => getOwnerCalendarBookings(selectedProperty),
     enabled: !!selectedProperty,
   });
+  const selectedCalendarProperty = properties.find(property => property.id === selectedProperty);
 
   const createBlock = useMutation({
     mutationFn: async () => {
@@ -118,24 +119,51 @@ export default function OwnerCalendar() {
   useEffect(() => {
     if (!selectedProperty) return undefined;
 
-    const channel = supabase
-      .channel(`owner-calendar-${selectedProperty}`)
-      .on(
+    const listingId = selectedCalendarProperty?.listingId || (!selectedCalendarProperty ? selectedProperty : null);
+    const propertyId = selectedCalendarProperty?.propertyId || null;
+    const bookingIds = Array.from(new Set([listingId, propertyId, selectedProperty].filter((id): id is string => !!id)));
+    const invalidateBlocks = () => queryClient.invalidateQueries({ queryKey: ['availability-blocks', selectedProperty] });
+    const invalidateBookings = () => queryClient.invalidateQueries({ queryKey: ['property-calendar-bookings', selectedProperty] });
+    let channel = supabase.channel(`owner-calendar-${selectedProperty}`);
+
+    if (listingId) {
+      channel = channel.on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'listing_blocks', filter: `listing_id=eq.${selectedProperty}` },
-        () => queryClient.invalidateQueries({ queryKey: ['availability-blocks', selectedProperty] }),
-      )
-      .on(
+        { event: '*', schema: 'public', table: 'listing_blocks', filter: `listing_id=eq.${listingId}` },
+        invalidateBlocks,
+      );
+    }
+
+    if (propertyId) {
+      channel = channel.on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'bookings', filter: `property_id=eq.${selectedProperty}` },
-        () => queryClient.invalidateQueries({ queryKey: ['property-calendar-bookings', selectedProperty] }),
-      )
-      .subscribe();
+        { event: '*', schema: 'public', table: 'availability_blocks', filter: `property_id=eq.${propertyId}` },
+        invalidateBlocks,
+      );
+    }
+
+    bookingIds.forEach((bookingId) => {
+      channel = channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'bookings', filter: `property_id=eq.${bookingId}` },
+        invalidateBookings,
+      );
+    });
+
+    if (user?.id) {
+      channel = channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'bookings', filter: `owner_id=eq.${user.id}` },
+        invalidateBookings,
+      );
+    }
+
+    channel.subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, selectedProperty]);
+  }, [queryClient, selectedCalendarProperty, selectedProperty, user?.id]);
 
   const days = eachDayOfInterval({ start: startOfMonth(currentMonth), end: endOfMonth(currentMonth) });
   const firstDay = startOfMonth(currentMonth).getDay();

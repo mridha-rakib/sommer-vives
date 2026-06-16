@@ -10,8 +10,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ArrowRight, ArrowLeft, Check, Camera, Video, Sparkles, Home, MapPin, Settings, CreditCard, Brush } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
+import { createOwnerOnboardingProperty } from '@/lib/owner-onboarding-api';
 import { toast } from 'sonner';
 
 interface OnboardingData {
@@ -114,8 +114,8 @@ export function OnboardingWizard() {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('properties').insert({
-        owner_id: user.id,
+      await createOwnerOnboardingProperty({
+        ownerId: user.id,
         title: data.title,
         address: data.address,
         region: data.region,
@@ -124,11 +124,10 @@ export function OnboardingWizard() {
         bathrooms: data.bathrooms,
         description: data.description,
         amenities: data.amenities,
-        house_rules: data.houseRules,
-        status: 'draft',
+        houseRules: data.houseRules,
+        cleaningPreference: data.cleaningPreference,
+        addons: data.addons,
       });
-
-      if (error) throw error;
 
       toast.success('Dit sommerhus er oprettet!');
       setShowAppPrompt(true);

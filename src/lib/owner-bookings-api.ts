@@ -1,14 +1,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
+import { getOwnerAssetIds, getOwnerAssets, type OwnerAsset } from '@/lib/owner-assets-api';
 
 export type OwnerBookingFilter = 'upcoming' | 'past' | 'all';
 export type OwnerBookingSource = 'booking' | 'inquiry';
 
 type BookingRow = Database['public']['Tables']['bookings']['Row'];
 type InquiryRow = Database['public']['Tables']['inquiries']['Row'];
-type PropertyRow = Database['public']['Tables']['properties']['Row'];
 
-export type OwnerBookingProperty = Pick<PropertyRow, 'id' | 'title' | 'address' | 'region'>;
+export interface OwnerBookingProperty {
+  id: string;
+  title: string;
+  address: string | null;
+  region: string | null;
+}
 
 export interface OwnerBooking {
   id: string;
@@ -51,29 +56,34 @@ const ownerBookingFields = `
   total_amount,
   owner_payout,
   payment_status,
-  created_at,
-  property:properties (
-    id,
-    title,
-    address,
-    region
-  )
+  created_at
 `;
 
 const dateKey = (date: Date) => date.toISOString().split('T')[0];
 
-async function getOwnerBookingProperties(ownerId: string): Promise<OwnerBookingProperty[]> {
-  const { data, error } = await supabase
-    .from('properties')
-    .select('id, title, address, region')
-    .eq('owner_id', ownerId)
-    .order('created_at', { ascending: true });
+const toBookingProperty = (asset: OwnerAsset): OwnerBookingProperty => ({
+  id: asset.propertyId || asset.listingId || asset.id,
+  title: asset.title,
+  address: asset.address,
+  region: asset.region,
+});
 
-  if (error) throw new Error(error.message);
-  return data || [];
-}
+const buildPropertyMap = (assets: OwnerAsset[]) => {
+  const propertyById = new Map<string, OwnerBookingProperty>();
 
-const normalizeBooking = (booking: BookingRow & { property?: OwnerBookingProperty | null }): OwnerBooking => ({
+  assets.forEach((asset) => {
+    const property = toBookingProperty(asset);
+    getOwnerAssetIds(asset).forEach((id) => propertyById.set(id, property));
+    propertyById.set(asset.id, property);
+  });
+
+  return propertyById;
+};
+
+const normalizeBooking = (
+  booking: BookingRow,
+  property: OwnerBookingProperty | undefined,
+): OwnerBooking => ({
   id: booking.id,
   source: 'booking',
   case_number: booking.case_number,
@@ -93,7 +103,7 @@ const normalizeBooking = (booking: BookingRow & { property?: OwnerBookingPropert
   owner_payout: booking.owner_payout,
   payment_status: booking.payment_status,
   created_at: booking.created_at,
-  property: booking.property,
+  property: property || null,
 });
 
 const normalizeInquiry = (
@@ -123,11 +133,12 @@ const normalizeInquiry = (
 });
 
 export async function getOwnerBookings(ownerId: string): Promise<OwnerBooking[]> {
-  const properties = await getOwnerBookingProperties(ownerId);
-  const propertyIds = properties.map((property) => property.id);
-  const propertyById = new Map(properties.map((property) => [property.id, property]));
-  const bookingFilter = propertyIds.length > 0
-    ? `owner_id.eq.${ownerId},property_id.in.(${propertyIds.join(',')})`
+  const assets = await getOwnerAssets(ownerId);
+  const assetIds = Array.from(new Set(assets.flatMap(getOwnerAssetIds)));
+  const propertyById = buildPropertyMap(assets);
+  const fallbackProperty = assets.length === 1 ? toBookingProperty(assets[0]) : undefined;
+  const bookingFilter = assetIds.length > 0
+    ? `owner_id.eq.${ownerId},property_id.in.(${assetIds.join(',')})`
     : `owner_id.eq.${ownerId}`;
 
   const bookingsQuery = supabase
@@ -136,11 +147,11 @@ export async function getOwnerBookings(ownerId: string): Promise<OwnerBooking[]>
     .or(bookingFilter)
     .order('check_in', { ascending: true });
 
-  const inquiriesQuery = propertyIds.length > 0
+  const inquiriesQuery = assetIds.length > 0
     ? supabase
       .from('inquiries')
       .select('id, property_id, check_in, check_out, guests, guest_name, guest_email, guest_phone, status, created_at, message, updated_at')
-      .in('property_id', propertyIds)
+      .in('property_id', assetIds)
       .in('status', ['new', 'confirmed'])
       .order('check_in', { ascending: true })
     : Promise.resolve({ data: [], error: null });
@@ -150,10 +161,10 @@ export async function getOwnerBookings(ownerId: string): Promise<OwnerBooking[]>
   if (bookingsResult.error) throw new Error(bookingsResult.error.message);
   if (inquiriesResult.error) throw new Error(inquiriesResult.error.message);
 
-  const normalizedBookings = ((bookingsResult.data || []) as Array<BookingRow & { property?: OwnerBookingProperty | null }>)
-    .map(normalizeBooking);
+  const normalizedBookings = ((bookingsResult.data || []) as BookingRow[])
+    .map((booking) => normalizeBooking(booking, propertyById.get(booking.property_id) || fallbackProperty));
   const normalizedInquiries = ((inquiriesResult.data || []) as InquiryRow[])
-    .map((inquiry) => normalizeInquiry(inquiry, propertyById.get(inquiry.property_id)));
+    .map((inquiry) => normalizeInquiry(inquiry, propertyById.get(inquiry.property_id) || fallbackProperty));
 
   const bookingKeys = new Set(
     normalizedBookings.map((booking) => `${booking.property_id}:${booking.check_in}:${booking.check_out}:${booking.guest_email || booking.guest_name || ''}`),

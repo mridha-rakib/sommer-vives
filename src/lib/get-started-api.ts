@@ -47,6 +47,18 @@ const cleanSource = (source: string) => {
   return value || 'website_onboarding';
 };
 
+const isCompleteGetStartedResult = (value: unknown): value is CompleteGetStartedResult => {
+  if (!value || typeof value !== 'object') return false;
+  const result = value as Partial<Record<keyof CompleteGetStartedResult, unknown>>;
+  return (
+    typeof result.owner_id === 'string' &&
+    typeof result.property_id === 'string' &&
+    typeof result.agreement_id === 'string' &&
+    typeof result.onboarding_id === 'string' &&
+    typeof result.lead_id === 'string'
+  );
+};
+
 export async function completeGetStartedOnboarding(
   input: CompleteGetStartedInput,
   currentUser: SupabaseUser | null,
@@ -77,7 +89,7 @@ export async function completeGetStartedOnboarding(
     throw new Error('Unable to identify the owner account.');
   }
 
-  const { data, error } = await (supabase.rpc as any)('complete_get_started_onboarding', {
+  const { data, error } = await supabase.rpc('complete_get_started_onboarding', {
     p_owner_name: input.ownerName,
     p_owner_email: ownerEmail,
     p_owner_phone: input.ownerPhone,
@@ -110,5 +122,9 @@ export async function completeGetStartedOnboarding(
   });
 
   if (error) throw new Error(error.message);
-  return data as CompleteGetStartedResult;
+  if (!isCompleteGetStartedResult(data)) {
+    throw new Error('Onboarding completed, but the response was incomplete.');
+  }
+
+  return data;
 }
