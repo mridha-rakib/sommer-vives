@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { OwnerLayout } from '@/components/layout/OwnerLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, FileSignature, Receipt, Download, FolderOpen } from 'lucide-react';
+import { FileText, FileSignature, Receipt, Download, FolderOpen, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { da, de, enUS, nl } from 'date-fns/locale';
 import {
