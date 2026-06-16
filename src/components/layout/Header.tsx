@@ -16,7 +16,7 @@ import {
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 
 export function Header() {
-  const { user, signOut, isAdmin, isOwner } = useAuth();
+  const { user, signOut, isAdmin, isOwner, isGuest } = useAuth();
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -146,6 +146,14 @@ export function Header() {
                       <Link to="/owner" className="flex items-center gap-2">
                         <ChevronRight className="h-3 w-3" />
                         {t('nav.ownerPortal')}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {isGuest && (
+                    <DropdownMenuItem asChild className="rounded-lg">
+                      <Link to="/guest" className="flex items-center gap-2">
+                        <ChevronRight className="h-3 w-3" />
+                        Gæsteportal
                       </Link>
                     </DropdownMenuItem>
                   )}
