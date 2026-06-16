@@ -597,7 +597,7 @@ export default function Auth() {
                 </button>
               </>
             )}
-            {mode === 'reset' && (
+            {(mode === 'reset' || mode === 'verifyReset') && (
               <button
                 onClick={() => setMode('login')}
                 className="text-accent hover:underline font-medium"
