@@ -294,6 +294,11 @@ export function Header() {
                           <Button variant="outline" className="w-full rounded-xl">{t('nav.ownerPortal')}</Button>
                         </Link>
                       )}
+                      {isGuest && (
+                        <Link to="/guest" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="outline" className="w-full rounded-xl">Gæsteportal</Button>
+                        </Link>
+                      )}
                       {isAdmin && (
                         <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
                           <Button variant="outline" className="w-full rounded-xl">Admin</Button>
