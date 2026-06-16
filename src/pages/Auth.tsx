@@ -375,36 +375,45 @@ export default function Auth() {
   const formSubmitHandler =
     mode === 'reset'
       ? handleResetRequest
-      : mode === 'updatePassword'
-        ? handlePasswordUpdate
-        : handleSubmit;
+      : mode === 'verifyReset'
+        ? handleVerifyCode
+        : mode === 'updatePassword'
+          ? handlePasswordUpdate
+          : handleSubmit;
 
   const title =
     mode === 'signup'
       ? copy.signupTitle
       : mode === 'reset'
         ? copy.resetTitle
-        : mode === 'updatePassword'
-          ? copy.updatePasswordTitle
-          : copy.loginTitle;
+        : mode === 'verifyReset'
+          ? copy.verifyTitle
+          : mode === 'updatePassword'
+            ? copy.updatePasswordTitle
+            : copy.loginTitle;
 
   const subtitle =
     mode === 'signup'
       ? copy.signupSubtitle
       : mode === 'reset'
         ? copy.resetSubtitle
-        : mode === 'updatePassword'
-          ? copy.updatePasswordSubtitle
-          : copy.loginSubtitle;
+        : mode === 'verifyReset'
+          ? copy.verifySubtitle
+          : mode === 'updatePassword'
+            ? copy.updatePasswordSubtitle
+            : copy.loginSubtitle;
 
   const submitText =
     mode === 'signup'
       ? copy.createAccount
       : mode === 'reset'
         ? copy.sendResetLink
-        : mode === 'updatePassword'
-          ? copy.updatePassword
-          : copy.login;
+        : mode === 'verifyReset'
+          ? copy.verifyCode
+          : mode === 'updatePassword'
+            ? copy.updatePassword
+            : copy.login;
+
 
   return (
     <>
