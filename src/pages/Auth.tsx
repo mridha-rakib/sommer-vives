@@ -161,6 +161,9 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [code, setCode] = useState('');
+  const [resetToken, setResetToken] = useState<string | null>(null);
   const [recoveryReady, setRecoveryReady] = useState(!isPasswordRecoveryUrl() || initialRecovery.isExpired);
   const { signUp, signInWithPassword, user, rolesLoaded, isAdmin, isOwner, isGuest } = useAuth();
   const navigate = useNavigate();
