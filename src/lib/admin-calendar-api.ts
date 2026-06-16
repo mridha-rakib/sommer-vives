@@ -42,7 +42,7 @@ export async function getAdminCalendarEvents(
     .order('event_time', { ascending: true, nullsFirst: true });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as AdminCalendarEvent[];
+  return (data ?? []) as unknown as AdminCalendarEvent[];
 }
 
 export async function createAdminCalendarEvent(
@@ -67,7 +67,7 @@ export async function createAdminCalendarEvent(
     .single();
 
   if (error) throw new Error(error.message);
-  return data as AdminCalendarEvent;
+  return data as unknown as AdminCalendarEvent;
 }
 
 export async function deleteAdminCalendarEvent(id: string): Promise<void> {
