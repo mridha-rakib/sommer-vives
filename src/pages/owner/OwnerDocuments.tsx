@@ -114,8 +114,17 @@ export default function OwnerDocuments() {
           <div className="space-y-2">
             {filtered.map(doc => {
               const Icon = getIcon(doc.type);
+              const handleOpen = () => {
+                if (doc.type === 'agreement') navigate('/owner/agreement');
+                else if (doc.url) window.open(doc.url, '_blank', 'noopener');
+              };
+              const canOpen = doc.type === 'agreement' || !!doc.url;
               return (
-                <Card key={doc.id} className="group hover:border-[hsl(var(--gold)/0.2)] transition-all">
+                <Card
+                  key={doc.id}
+                  className={`group hover:border-[hsl(var(--gold)/0.2)] transition-all ${canOpen ? 'cursor-pointer' : ''}`}
+                  onClick={canOpen ? handleOpen : undefined}
+                >
                   <CardContent className="p-4 flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center shrink-0">
                       <Icon className="w-4.5 h-4.5 text-[hsl(var(--gold-light))]" />
@@ -127,11 +136,22 @@ export default function OwnerDocuments() {
                         {doc.extra && ` · ${doc.extra}`}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                       {statusBadge(doc.status, getStatusLabel(doc.status))}
+                      {canOpen && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-lg"
+                          onClick={handleOpen}
+                          title={t('owner.documents.view') === 'owner.documents.view' ? 'View' : t('owner.documents.view')}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      )}
                       {doc.url && (
                         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" asChild>
-                          <a href={doc.url} target="_blank" rel="noopener"><Download className="w-4 h-4" /></a>
+                          <a href={doc.url} target="_blank" rel="noopener" onClick={(e) => e.stopPropagation()}><Download className="w-4 h-4" /></a>
                         </Button>
                       )}
                     </div>
