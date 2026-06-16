@@ -272,7 +272,7 @@ export default function OwnerCalendar() {
           {[
             { color: 'bg-emerald-400/20 border-emerald-400/40', label: t('owner.calendar.booking') },
             { color: 'bg-[hsl(var(--gold)/0.2)] border-[hsl(var(--gold)/0.4)]', label: t('owner.calendar.personalUse') },
-            { color: 'bg-destructive/10 border-destructive/30', label: t('owner.calendar.blocked') },
+            { color: 'bg-red-500/30 border-red-500/60', label: t('owner.calendar.blocked') },
           ].map(l => (
             <div key={l.label} className="flex items-center gap-2">
               <div className={`w-3.5 h-3.5 rounded border ${l.color}`} />
@@ -310,7 +310,9 @@ export default function OwnerCalendar() {
                 const block = getBlockForDay(day);
                 const booking = getBookingForDay(day);
                 let bg = 'bg-card hover:bg-muted/30';
-                if (block) bg = block.block_type === 'personal' ? 'bg-[hsl(var(--gold)/0.12)] hover:bg-[hsl(var(--gold)/0.18)]' : 'bg-destructive/8 hover:bg-destructive/15';
+                if (block) bg = block.block_type === 'personal'
+                  ? 'bg-[hsl(var(--gold)/0.12)] hover:bg-[hsl(var(--gold)/0.18)] border-[hsl(var(--gold)/0.3)]'
+                  : 'bg-red-500/25 hover:bg-red-500/35 border-red-500/50';
                 else if (booking) bg = 'bg-emerald-400/10 hover:bg-emerald-400/15';
 
                 return (
@@ -321,13 +323,13 @@ export default function OwnerCalendar() {
                       </span>
                       {block && (
                         <button onClick={e => { e.stopPropagation(); deleteBlock.mutate(block.id); }} className="p-0.5 rounded hover:bg-card">
-                          <X className="w-2.5 h-2.5 text-muted-foreground" />
+                          <X className={`w-2.5 h-2.5 ${block.block_type === 'personal' ? 'text-muted-foreground' : 'text-red-300'}`} />
                         </button>
                       )}
                     </div>
                     {block && (
                       <div className="mt-0.5">
-                        <span className="text-[9px] text-muted-foreground">{blockTypeLabel(block.block_type)}</span>
+                        <span className={`text-[9px] font-semibold ${block.block_type === 'personal' ? 'text-[hsl(var(--gold-light))]' : 'text-red-300'}`}>{blockTypeLabel(block.block_type)}</span>
                       </div>
                     )}
                     {booking && (
