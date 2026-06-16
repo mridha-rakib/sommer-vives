@@ -25,7 +25,7 @@ async function callGuestRegistration(body: Record<string, unknown> & { action: G
     if (context?.json) {
       try {
         const payload = await context.json();
-        throw new Error(payload?.error || error.message || 'Verification request failed');
+        if (payload?.error) throw new Error(payload.error);
       } catch (payloadError) {
         if (payloadError instanceof Error) throw payloadError;
       }
