@@ -3759,6 +3759,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_get_started_onboarding: {
+        Args: {
+          p_accept_marketing: boolean
+          p_accept_privacy: boolean
+          p_accept_terms: boolean
+          p_bathrooms: number
+          p_bedrooms: number
+          p_capacity: number
+          p_existing_link: string
+          p_facilities: string[]
+          p_has_cleaning: string
+          p_has_experience: string
+          p_has_keybox: string
+          p_help_level: string
+          p_lead_source: string
+          p_owner_address: string
+          p_owner_city: string
+          p_owner_email: string
+          p_owner_name: string
+          p_owner_phone: string
+          p_owner_postal: string
+          p_preferred_contact: string
+          p_property_address: string
+          p_property_ready: string
+          p_property_type: string
+          p_region: string
+          p_relevant_services: string[]
+          p_self_manage: string[]
+          p_signature_date: string
+          p_signature_name: string
+          p_start_time: string
+        }
+        Returns: Json
+      }
       compute_chat_thread_id: {
         Args: {
           p_booking_id: string
