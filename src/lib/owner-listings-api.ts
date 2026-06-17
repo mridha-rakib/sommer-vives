@@ -35,6 +35,8 @@ export type OwnerListing = Pick<
   | 'house_rules'
   | 'published_at'
   | 'sort_order'
+  | 'latitude'
+  | 'longitude'
 >;
 
 export interface OwnerListingFormValues {
@@ -53,7 +55,10 @@ export interface OwnerListingFormValues {
   images: string[];
   amenities: string[];
   house_rules: string;
+  latitude: number | null;
+  longitude: number | null;
 }
+
 
 const ownerListingFields = `
   id,
