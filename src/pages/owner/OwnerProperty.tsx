@@ -59,6 +59,8 @@ import {
   type OwnerListingFormValues,
 } from '@/lib/owner-listings-api';
 import { useTranslation, type Language } from '@/lib/i18n';
+import { LocationPicker } from '@/components/owner/LocationPicker';
+
 
 const localeCodes: Record<Language, string> = {
   da: 'da-DK',
@@ -83,7 +85,10 @@ const emptyForm: OwnerListingFormValues = {
   images: [],
   amenities: [],
   house_rules: '',
+  latitude: null,
+  longitude: null,
 };
+
 
 const fromListing = (listing: OwnerListing): OwnerListingFormValues => ({
   name: listing.name || '',
@@ -101,7 +106,10 @@ const fromListing = (listing: OwnerListing): OwnerListingFormValues => ({
   images: listing.images || [],
   amenities: listing.amenities || [],
   house_rules: listing.house_rules || '',
+  latitude: (listing as { latitude?: number | null }).latitude ?? null,
+  longitude: (listing as { longitude?: number | null }).longitude ?? null,
 });
+
 
 const splitList = (value: string) =>
   value
@@ -430,7 +438,10 @@ function HomeDialog({
       images: splitList(String(data.get('images') || '')),
       amenities: splitList(String(data.get('amenities') || '')),
       house_rules: String(data.get('house_rules') || ''),
+      latitude: form.latitude,
+      longitude: form.longitude,
     };
+
 
     if (!values.name) {
       toast.error('Name is required');
@@ -496,6 +507,13 @@ function HomeDialog({
               <Label htmlFor="description">Description</Label>
               <Textarea id="description" name="description" rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
+            <LocationPicker
+              latitude={form.latitude}
+              longitude={form.longitude}
+              address={[form.address, form.region].filter(Boolean).join(', ')}
+              onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
+            />
+
             <input type="hidden" name="hero_image" value={form.hero_image} />
             <input type="hidden" name="images" value={form.images.join('\n')} />
             <ImageManager ownerId={ownerId} listing={listing} form={form} onChange={setForm} />

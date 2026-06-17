@@ -3,11 +3,13 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { ListingCard } from '@/components/listing/ListingCard';
 import { BrandDivider } from '@/components/listing/BrandDivider';
 import { ContactHost } from '@/components/listing/ContactHost';
+import { ListingsMap } from '@/components/listing/ListingsMap';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
+import { LayoutGrid, Map as MapIcon, MapPin } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useBooking } from '@/components/booking/BookingContext';
+
 
 interface ListingData {
   id: string;
@@ -25,7 +27,10 @@ interface ListingData {
   images: string[] | null;
   amenities: string[] | null;
   property_type: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
+
 
 const REGIONS = [
   { value: 'Alle', labelKey: 'listings.region.all' },
@@ -41,6 +46,7 @@ const Listings = () => {
   const [listings, setListings] = useState<ListingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeRegion, setActiveRegion] = useState('Alle');
+  const [view, setView] = useState<'grid' | 'map'>('grid');
   const { t } = useTranslation();
   const { open: openBooking } = useBooking();
 
@@ -48,7 +54,7 @@ const Listings = () => {
     const load = async () => {
       const { data } = await supabase
         .from('listings')
-        .select('id, slug, name, description, tagline, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, hero_image, images, amenities, property_type')
+        .select('id, slug, name, description, tagline, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, hero_image, images, amenities, property_type, latitude, longitude')
         .eq('is_active', true)
         .order('sort_order');
       setListings((data as unknown as ListingData[]) || []);
@@ -56,6 +62,7 @@ const Listings = () => {
     };
     load();
   }, []);
+
 
   const filtered = activeRegion === 'Alle'
     ? listings
@@ -95,7 +102,29 @@ const Listings = () => {
           </div>
         </div>
 
-        {/* Listings Grid */}
+        {/* View toggle */}
+        <div className="container mx-auto px-4 lg:px-8 mb-4 flex justify-center">
+          <div className="inline-flex rounded-full border border-border bg-card p-1">
+            <button
+              onClick={() => setView('grid')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                view === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" /> List
+            </button>
+            <button
+              onClick={() => setView('map')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                view === 'map' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <MapIcon className="h-3.5 w-3.5" /> Map
+            </button>
+          </div>
+        </div>
+
+        {/* Listings */}
         <section className="py-4 sm:py-8">
           <div className="container mx-auto px-4 lg:px-8">
             {loading ? (
@@ -125,7 +154,10 @@ const Listings = () => {
                 </p>
                 <p className="text-muted-foreground/60 text-sm mt-2">{t('listings.emptySoon')}</p>
               </div>
+            ) : view === 'map' ? (
+              <ListingsMap listings={filtered} />
             ) : (
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {filtered.map((listing, i) => (
                   <motion.div
