@@ -16,6 +16,7 @@ interface ListingCardProps {
   tags?: string[];
   rating?: number;
   reviewCount?: number;
+  onBook?: () => void;
 }
 
 export const ListingCard = ({
@@ -31,6 +32,7 @@ export const ListingCard = ({
   tags = [],
   rating,
   reviewCount,
+  onBook,
 }: ListingCardProps) => {
   const { t, language } = useTranslation();
   const locale = language === 'da' ? 'da-DK' : language === 'de' ? 'de-DE' : language === 'nl' ? 'nl-NL' : 'en-US';
@@ -115,7 +117,11 @@ export const ListingCard = ({
             <Button variant="outline" size="sm" className="border-border hover:border-primary flex-1 text-xs sm:text-sm h-9">
               {t('listingCard.details')}
             </Button>
-            <Button size="sm" className="gap-1 flex-1 text-xs sm:text-sm h-9">
+            <Button
+              size="sm"
+              className="gap-1 flex-1 text-xs sm:text-sm h-9"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBook?.(); }}
+            >
               {t('listingCard.book')}
               <ArrowRight className="h-3 w-3" />
             </Button>

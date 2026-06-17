@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
   }
 
   const body = await req.json();
-  const { listing_id, start_date, end_date, guest_name, guest_email, guest_phone, guest_message, guests, pets, selected_addon_ids, discount_code, source, source_channel, channel, payment_option, deposit_amount } = body;
+  const { listing_id, start_date, end_date, guest_name, guest_email, guest_phone, guest_message, guests, pets, selected_addon_ids, discount_code, source, source_channel, channel, payment_option, deposit_amount, use_payment_intent } = body;
   const bookingSource = source || "direct";
   const bookingChannel = normalizeSourceChannel(source_channel || channel || bookingSource);
   const requestedDiscountCode = normalizeCode(discount_code);
@@ -358,7 +358,6 @@ Deno.serve(async (req) => {
       guest_name, guest_email, guest_phone: guest_phone || null,
       notes: guest_message || null,
       guests_count: guestCount,
-      nights,
       base_price: nightTotal,
       cleaning_fee: 0,
       service_fee: feeTotal,
@@ -459,7 +458,7 @@ Deno.serve(async (req) => {
     booking_id: booking.id, released: false, session_id: holdToken,
   });
 
-  // Create Stripe Checkout Session
+  // Create Stripe payment (PaymentIntent or Checkout Session)
   try {
     const stripe = new Stripe(stripeKey!, { apiVersion: "2025-08-27.basil" });
     const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || Deno.env.get("VITE_SITE_URL") || "https://sommervibes.dk";
@@ -468,46 +467,63 @@ Deno.serve(async (req) => {
       ? Math.min(totalPrice, Math.max(1, requestedDeposit || Math.round(totalPrice * 0.3)))
       : totalPrice;
 
+    const paymentMeta = {
+      booking_id: booking.id,
+      listing_id,
+      source: "direct_booking",
+      hold_token: holdToken,
+      discount_code: requestedDiscountCode || "",
+      payment_kind: checkoutAmount < totalPrice ? "deposit" : "full",
+      outstanding_after_checkout: String(Math.max(0, totalPrice - checkoutAmount)),
+    };
+
+    // ── PaymentIntent mode (embedded Stripe Elements) ──
+    if (use_payment_intent) {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: checkoutAmount,
+        currency: "dkk",
+        receipt_email: guest_email,
+        metadata: paymentMeta,
+        automatic_payment_methods: { enabled: true },
+      });
+
+      await supabase.from("bookings").update({ stripe_session_id: paymentIntent.id }).eq("id", booking.id);
+      await triggerAutomationEvent("booking_created", `booking_created:${booking.id}`, {
+        ...automationPayload,
+        stripe_payment_intent_id: paymentIntent.id,
+        checkout_amount: checkoutAmount,
+        payment_status: "pending",
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        booking,
+        client_secret: paymentIntent.client_secret,
+        payment_required: true,
+        total_price: totalPrice,
+        checkout_amount: checkoutAmount,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ── Hosted Checkout Session mode (fallback) ──
     const stripeLineItems: StripeCheckoutLineItem[] = [];
     if (checkoutAmount < totalPrice) {
       stripeLineItems.push({
-        price_data: {
-          currency: "dkk",
-          product_data: {
-            name: `${listing.name} — depositum`,
-            description: `${start_date} → ${end_date} · restbeløb betales senere`,
-          },
-          unit_amount: checkoutAmount,
-        },
+        price_data: { currency: "dkk", product_data: { name: `${listing.name} — depositum`, description: `${start_date} → ${end_date} · restbeløb betales senere` }, unit_amount: checkoutAmount },
         quantity: 1,
       });
     } else if (discountTotal > 0) {
       stripeLineItems.push({
-        price_data: {
-          currency: "dkk",
-          product_data: {
-            name: `${listing.name} — samlet booking`,
-            description: `${start_date} → ${end_date} · ${guestCount} gæster · inkl. rabat`,
-          },
-          unit_amount: totalPrice,
-        },
+        price_data: { currency: "dkk", product_data: { name: `${listing.name} — samlet booking`, description: `${start_date} → ${end_date} · ${guestCount} gæster · inkl. rabat` }, unit_amount: totalPrice },
         quantity: 1,
       });
     } else {
       stripeLineItems.push({
-        price_data: {
-          currency: "dkk",
-          product_data: { name: `${listing.name} — ${nights} nætter`, description: `${start_date} → ${end_date} · ${guestCount} gæster` },
-          unit_amount: nightTotal,
-        },
+        price_data: { currency: "dkk", product_data: { name: `${listing.name} — ${nights} nætter`, description: `${start_date} → ${end_date} · ${guestCount} gæster` }, unit_amount: nightTotal },
         quantity: 1,
       });
-      for (const fi of feeItems) {
-        stripeLineItems.push({ price_data: { currency: "dkk", product_data: { name: fi.name }, unit_amount: fi.amount }, quantity: 1 });
-      }
-      for (const ai of addonItems) {
-        stripeLineItems.push({ price_data: { currency: "dkk", product_data: { name: ai.name }, unit_amount: ai.unit_price }, quantity: ai.quantity });
-      }
+      for (const fi of feeItems) stripeLineItems.push({ price_data: { currency: "dkk", product_data: { name: fi.name }, unit_amount: fi.amount }, quantity: 1 });
+      for (const ai of addonItems) stripeLineItems.push({ price_data: { currency: "dkk", product_data: { name: ai.name }, unit_amount: ai.unit_price }, quantity: ai.quantity });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -518,20 +534,10 @@ Deno.serve(async (req) => {
       expires_at: Math.floor(Date.now() / 1000) + HOLD_MINUTES * 60,
       success_url: `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}`,
       cancel_url: `${origin}/booking-cancelled?booking_id=${booking.id}`,
-      metadata: {
-        booking_id: booking.id,
-        listing_id,
-        source: "direct_booking",
-        hold_token: holdToken,
-        discount_code: requestedDiscountCode || "",
-        payment_kind: checkoutAmount < totalPrice ? "deposit" : "full",
-        outstanding_after_checkout: String(Math.max(0, totalPrice - checkoutAmount)),
-      },
+      metadata: paymentMeta,
     });
 
-    if (!session.url) {
-      throw new Error("Stripe did not return a checkout URL");
-    }
+    if (!session.url) throw new Error("Stripe did not return a checkout URL");
 
     await supabase.from("bookings").update({ stripe_session_id: session.id }).eq("id", booking.id);
     await triggerAutomationEvent("booking_created", `booking_created:${booking.id}`, {

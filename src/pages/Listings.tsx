@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { useBooking } from '@/components/booking/BookingContext';
 
 interface ListingData {
   id: string;
@@ -41,6 +42,7 @@ const Listings = () => {
   const [loading, setLoading] = useState(true);
   const [activeRegion, setActiveRegion] = useState('Alle');
   const { t } = useTranslation();
+  const { open: openBooking } = useBooking();
 
   useEffect(() => {
     const load = async () => {
@@ -145,6 +147,12 @@ const Listings = () => {
                       pricePerNight={listing.base_price_per_night / 100}
                       teaser={listing.tagline || listing.description?.substring(0, 120) || undefined}
                       tags={listing.amenities?.slice(0, 2) || []}
+                      onBook={() => openBooking({
+                        id: listing.id,
+                        title: listing.name,
+                        image: listing.hero_image || listing.images?.[0] || undefined,
+                        maxGuests: listing.max_guests,
+                      })}
                     />
                   </motion.div>
                 ))}

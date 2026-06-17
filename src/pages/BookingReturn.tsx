@@ -14,11 +14,12 @@ export default function BookingReturn({ kind }: { kind: ReturnKind }) {
   const [params] = useSearchParams();
   const [verifyState, setVerifyState] = useState<VerifyState>(kind === 'success' ? 'checking' : 'idle');
   const sessionId = params.get('session_id');
+  const paymentIntentId = params.get('payment_intent');
   const bookingId = params.get('booking_id');
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (kind !== 'success' || !sessionId || !bookingId) {
+    if (kind !== 'success' || !bookingId || (!sessionId && !paymentIntentId)) {
       setVerifyState(kind === 'success' ? 'pending' : 'idle');
       return;
     }
@@ -26,9 +27,11 @@ export default function BookingReturn({ kind }: { kind: ReturnKind }) {
     let cancelled = false;
 
     const verify = async () => {
-      const { data, error } = await supabase.functions.invoke('verify-payment', {
-        body: { bookingId, sessionId },
-      });
+      const body = paymentIntentId
+        ? { bookingId, paymentIntentId }
+        : { bookingId, sessionId };
+
+      const { data, error } = await supabase.functions.invoke('verify-payment', { body });
 
       if (cancelled) return;
       if (error) {
@@ -44,7 +47,7 @@ export default function BookingReturn({ kind }: { kind: ReturnKind }) {
     return () => {
       cancelled = true;
     };
-  }, [bookingId, kind, sessionId]);
+  }, [bookingId, kind, sessionId, paymentIntentId]);
 
   const content = useMemo(() => {
     if (kind === 'cancelled') {

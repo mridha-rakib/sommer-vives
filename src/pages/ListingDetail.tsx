@@ -28,6 +28,7 @@ import { da, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { DateRange } from 'react-day-picker';
 import { useTranslation } from '@/lib/i18n';
+import { useBooking } from '@/components/booking/BookingContext';
 
 // ─── Types ──────────────────────────────────────────────
 interface BedroomImage { url: string; label: string; description?: string; }
@@ -298,6 +299,26 @@ const ListingDetail = () => {
   const [mapOpen, setMapOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [guests, setGuests] = useState(2);
+  const { open: openBooking } = useBooking();
+
+  const handleBookNow = () => {
+    if (!listing) return;
+    openBooking(
+      {
+        id: listing.id,
+        title: listing.name,
+        image: listing.hero_image || listing.images?.[0] || undefined,
+        maxGuests: listing.max_guests,
+        checkInTime: listing.check_in_time || undefined,
+        checkOutTime: listing.check_out_time || undefined,
+      },
+      {
+        checkIn: dateRange?.from,
+        checkOut: dateRange?.to,
+        guests,
+      },
+    );
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -419,19 +440,21 @@ const ListingDetail = () => {
     );
   }
 
-  const images = listing.images?.length ? listing.images : ['/placeholder.svg'];
+  const images = Array.isArray(listing.images) && listing.images.length ? listing.images : ['/placeholder.svg'];
   const priceFrom = listing.base_price_per_night / 100;
   const cleaningFee = (listing.cleaning_fee || 0) / 100;
   const nights = dateRange?.from && dateRange?.to ? differenceInDays(dateRange.to, dateRange.from) : 0;
   const serviceFee = Math.round(nights * priceFrom * 0.05);
   const total = nights * priceFrom + cleaningFee + serviceFee;
-  const bedroomImages = (listing.bedroom_images as BedroomImage[]) || [];
-  const facilities = (listing.facilities as FacilityCategory[]) || [];
-  const contentSections: ContentSection[] = (listing.extra_sections || [])
-    .filter((s) => s.title && s.body)
-    .map((s, i) => ({ title: s.title, body: s.body, image: s.image || images[Math.min(i + 1, images.length - 1)] }));
-  const floorPlanImages = listing.floor_plan_images?.length ? listing.floor_plan_images : [];
-  const imageLabels = (listing.image_labels || []) as { url: string; label: string }[];
+  const bedroomImages: BedroomImage[] = Array.isArray(listing.bedroom_images) ? listing.bedroom_images as BedroomImage[] : [];
+  const facilities: FacilityCategory[] = Array.isArray(listing.facilities) ? listing.facilities as FacilityCategory[] : [];
+  const contentSections: ContentSection[] = Array.isArray(listing.extra_sections)
+    ? listing.extra_sections
+        .filter((s) => s.title && s.body)
+        .map((s, i) => ({ title: s.title, body: s.body, image: s.image || images[Math.min(i + 1, images.length - 1)] }))
+    : [];
+  const floorPlanImages = Array.isArray(listing.floor_plan_images) && listing.floor_plan_images.length ? listing.floor_plan_images : [];
+  const imageLabels: { url: string; label: string }[] = Array.isArray(listing.image_labels) ? listing.image_labels as { url: string; label: string }[] : [];
   const getImageLabel = (url: string) => imageLabels.find(l => l.url === url)?.label || '';
 
   const nextImage = () => setCurrentImage((prev) => (prev + 1) % images.length);
@@ -721,7 +744,7 @@ const ListingDetail = () => {
                   </div>
                 )}
 
-                <Button size="lg" className="w-full h-12 text-base gap-2">
+                <Button size="lg" className="w-full h-12 text-base gap-2" onClick={handleBookNow}>
                   <CalendarIcon className="h-4 w-4" />
                   {nights > 0 ? copy.bookNow : copy.selectDates}
                 </Button>
@@ -839,7 +862,7 @@ const ListingDetail = () => {
         )}
 
         {/* Sticky Bottom Booking Bar */}
-        <StickyBookingBar priceFrom={priceFrom} copy={copy} moneyLocale={moneyLocale} />
+        <StickyBookingBar priceFrom={priceFrom} copy={copy} moneyLocale={moneyLocale} onBook={handleBookNow} />
 
         <div className="container mx-auto px-4 lg:px-8">
           <BrandDivider />
@@ -1083,10 +1106,12 @@ function StickyBookingBar({
   priceFrom,
   copy,
   moneyLocale,
+  onBook,
 }: {
   priceFrom: number;
   copy: typeof listingCopy.da;
   moneyLocale: string;
+  onBook: () => void;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -1112,7 +1137,7 @@ function StickyBookingBar({
                 <span className="text-xs text-muted-foreground">{copy.perNight}</span>
               </div>
             </div>
-            <Button size="lg" className="px-8">
+            <Button size="lg" className="px-8" onClick={onBook}>
               <CalendarIcon className="h-4 w-4 mr-2" />
               {copy.bookNow}
             </Button>

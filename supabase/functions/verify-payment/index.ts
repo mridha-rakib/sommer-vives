@@ -177,9 +177,9 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST required" }, 405);
 
   try {
-    const { orderId, sessionId, bookingId } = await req.json();
-    if (!orderId && !sessionId && !bookingId) {
-      return json({ error: "Missing orderId, bookingId, or sessionId" }, 400);
+    const { orderId, sessionId, bookingId, paymentIntentId } = await req.json();
+    if (!orderId && !sessionId && !bookingId && !paymentIntentId) {
+      return json({ error: "Missing orderId, bookingId, sessionId, or paymentIntentId" }, 400);
     }
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -190,6 +190,10 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    if (bookingId && paymentIntentId) {
+      return await verifyBookingPaymentIntent(supabase, stripe, bookingId, paymentIntentId);
+    }
 
     if (bookingId) {
       return await verifyBookingPayment(supabase, stripe, bookingId, sessionId);
@@ -506,4 +510,97 @@ async function ensurePendingOwnerPayout(
     status: "pending",
     description: `Booking ${booking.case_number || bookingId.slice(0, 8)}`,
   });
+}
+
+async function verifyBookingPaymentIntent(
+  supabase: SupabaseServiceClient,
+  stripe: Stripe,
+  bookingId: string,
+  paymentIntentId: string,
+) {
+  const { data: booking } = await supabase.from("bookings").select("*").eq("id", bookingId).single();
+  if (!booking) return json({ error: "Booking not found", status: "unknown" }, 404);
+
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  if (paymentIntent.metadata?.booking_id && paymentIntent.metadata.booking_id !== bookingId) {
+    return json({ error: "PaymentIntent does not belong to this booking" }, 403);
+  }
+
+  if (paymentIntent.status !== "succeeded") {
+    return json({ status: paymentIntent.status, bookingStatus: booking.status, bookingId });
+  }
+
+  const { data: existingPayment } = await supabase
+    .from("payments").select("*").eq("stripe_payment_intent_id", paymentIntentId).maybeSingle();
+
+  if (existingPayment?.status === "completed") {
+    return json({ status: "paid", bookingStatus: booking.status, bookingId });
+  }
+
+  const amountPaid = paymentIntent.amount_received || paymentIntent.amount;
+  const totalAmount = Number(booking.total_amount || 0);
+  const previousPaid = Number(booking.amount_paid || 0);
+  const nextPaid = Math.min(totalAmount || previousPaid + amountPaid, previousPaid + amountPaid);
+  const nextRemaining = Math.max(0, totalAmount - nextPaid);
+  const paymentStatus = nextRemaining > 0 ? "partially_paid" : "paid";
+
+  await supabase.from("bookings").update({
+    status: "confirmed",
+    payment_status: paymentStatus,
+    stripe_session_id: paymentIntentId,
+    amount_paid: nextPaid,
+    amount_remaining: nextRemaining,
+  }).eq("id", bookingId);
+
+  await supabase.from("availability_holds").update({ released: true }).eq("booking_id", bookingId);
+
+  const paymentPayload = {
+    booking_id: bookingId,
+    owner_id: booking.owner_id,
+    amount: amountPaid,
+    currency: (paymentIntent.currency || "dkk").toUpperCase(),
+    status: "completed",
+    payment_method: "stripe",
+    stripe_payment_intent_id: paymentIntentId,
+    paid_at: new Date().toISOString(),
+    note: "Stripe PaymentIntent verification",
+  };
+
+  if (existingPayment?.id) {
+    await supabase.from("payments").update(paymentPayload).eq("id", existingPayment.id);
+  } else {
+    await supabase.from("payments").insert(paymentPayload);
+  }
+
+  await ensureListingBlock(supabase, booking as BookingPaymentRecord);
+
+  if (nextRemaining === 0) {
+    await ensurePendingOwnerPayout(supabase, { ...booking, amount_paid: nextPaid, amount_remaining: nextRemaining } as BookingPaymentRecord, bookingId);
+    await sendBookingConfirmationEmail(supabase, bookingId);
+  }
+
+  const automationPayload = {
+    linked_type: "booking",
+    linked_id: bookingId,
+    booking_id: bookingId,
+    listing_id: booking.property_id,
+    property_id: booking.property_id,
+    owner_id: booking.owner_id,
+    guest_name: booking.guest_name,
+    guest_email: booking.guest_email,
+    check_in: booking.check_in,
+    check_out: booking.check_out,
+    start_date: booking.check_in,
+    end_date: booking.check_out,
+    total_amount: totalAmount,
+    amount_paid: nextPaid,
+    payment_status: paymentStatus,
+    stripe_payment_intent_id: paymentIntentId,
+    link: `/admin/sager/${booking.property_id}`,
+  };
+
+  await triggerAutomationEvent("payment_received", `booking_payment:${bookingId}:${paymentIntentId}`, automationPayload);
+  await triggerAutomationEvent("booking_confirmed", `booking_confirmed:${bookingId}`, automationPayload);
+
+  return json({ status: paymentStatus, bookingStatus: "confirmed", bookingId });
 }

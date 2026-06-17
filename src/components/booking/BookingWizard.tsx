@@ -7,13 +7,50 @@ import { StepAddons } from './StepAddons';
 import { StepDetails } from './StepDetails';
 import { StepConfirm } from './StepConfirm';
 import { Button } from '@/components/ui/button';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect } from 'react';
+import { X, ChevronLeft, ChevronRight, AlertCircle, RefreshCw } from 'lucide-react';
+import { useEffect, Component } from 'react';
+import type { ReactNode, ErrorInfo } from 'react';
+
+class StepErrorBoundary extends Component<
+  { children: ReactNode; onRetry: () => void },
+  { hasError: boolean; message: string }
+> {
+  constructor(props: { children: ReactNode; onRetry: () => void }) {
+    super(props);
+    this.state = { hasError: false, message: '' };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, message: error?.message || 'Ukendt fejl' };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[BookingStep]', error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+          <AlertCircle className="h-10 w-10 text-destructive" />
+          <p className="text-foreground font-medium">Der opstod en fejl i dette trin</p>
+          <p className="text-sm text-muted-foreground max-w-xs">{this.state.message}</p>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => { this.setState({ hasError: false, message: '' }); this.props.onRetry(); }}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Prøv igen
+          </Button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const stepComponents = [StepDates, StepGuests, StepAddons, StepDetails, StepConfirm];
 
 export const BookingWizard = () => {
-  const { isOpen, close, step, setStep, state, reset, quoteValid, fetchError } = useBooking();
+  const { isOpen, close, step, setStep, state, reset, quoteValid, fetchError, clientSecret, bookingResult } = useBooking();
 
   useEffect(() => {
     if (isOpen) {
@@ -37,9 +74,10 @@ export const BookingWizard = () => {
   };
 
   const StepComponent = stepComponents[step - 1];
+  const stepKey = step;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background flex flex-col animate-fade-in">
+    <div className="fixed inset-0 z-[100] bg-background flex flex-col animate-fade-in" translate="no">
       {/* Top bar */}
       <div className="border-b border-border bg-card px-4 py-4 shrink-0">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
@@ -60,7 +98,9 @@ export const BookingWizard = () => {
         <div className="max-w-6xl mx-auto px-4 py-8 lg:py-12">
           <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-12">
             <div className="min-w-0">
-              <StepComponent />
+              <StepErrorBoundary key={stepKey} onRetry={() => setStep(step)}>
+                <StepComponent />
+              </StepErrorBoundary>
             </div>
             <div className="hidden lg:block">
               <BookingSummary />
@@ -72,8 +112,8 @@ export const BookingWizard = () => {
         </div>
       </div>
 
-      {/* Bottom navigation */}
-      {step < 5 && (
+      {/* Bottom navigation — steps 1-4 always, step 5 only in review mode (no payment yet, no result yet) */}
+      {(step < 5 || (step === 5 && !clientSecret && !bookingResult)) && (
         <div className="border-t border-border bg-card px-4 py-4 shrink-0">
           <div className="flex items-center justify-between max-w-6xl mx-auto">
             <Button
@@ -86,15 +126,17 @@ export const BookingWizard = () => {
               <ChevronLeft className="h-5 w-5" />
               Tilbage
             </Button>
-            <Button
-              size="lg"
-              onClick={() => setStep(step + 1)}
-              disabled={!canNext()}
-              className="gap-2 h-12 px-8"
-            >
-              Næste
-              <ChevronRight className="h-5 w-5" />
-            </Button>
+            {step < 5 && (
+              <Button
+                size="lg"
+                onClick={() => setStep(step + 1)}
+                disabled={!canNext()}
+                className="gap-2 h-12 px-8"
+              >
+                Næste
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         </div>
       )}

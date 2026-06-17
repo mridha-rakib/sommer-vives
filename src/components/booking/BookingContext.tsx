@@ -117,6 +117,10 @@ interface BookingContextValue {
   submitError: string | null;
   bookingResult: BookingSubmitResult | null;
   submitBooking: () => Promise<BookingSubmitResult | null>;
+  // Stripe Payment Element
+  clientSecret: string | null;
+  pendingBookingId: string | null;
+  clearPaymentState: () => void;
 }
 
 const BookingContext = createContext<BookingContextValue | null>(null);
@@ -147,6 +151,7 @@ interface CalculatePriceResponse {
 interface CreateBookingResponse {
   booking?: { id?: string };
   checkout_url?: string;
+  client_secret?: string;
   payment_required?: boolean;
 }
 
@@ -163,6 +168,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [bookingResult, setBookingResult] = useState<BookingSubmitResult | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [pendingBookingId, setPendingBookingId] = useState<string | null>(null);
 
   // Server pricing
   const [lineItems, setLineItems] = useState<PriceLineItem[]>([]);
@@ -238,6 +245,15 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setNightBreakdown([]);
     setQuoteMinNights(2);
     setFetchError(null);
+    setBookingResult(null);
+    setClientSecret(null);
+    setPendingBookingId(null);
+  }, []);
+
+  const clearPaymentState = useCallback(() => {
+    setClientSecret(null);
+    setPendingBookingId(null);
+    setSubmitError(null);
     setBookingResult(null);
   }, []);
 
@@ -319,19 +335,26 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         discount_code: state.discountCode || null,
         payment_option: state.paymentOption,
         deposit_amount: state.paymentOption === 'deposit' ? Math.round(totalPrice * 0.3) : null,
+        use_payment_intent: true,
       }, { timeoutMs: 20000, retries: 1 });
 
-      const result: BookingSubmitResult = {
-        bookingId: data.booking?.id,
-        checkoutUrl: data.checkout_url,
-        paymentRequired: data.payment_required !== false && !!data.checkout_url,
-      };
-
-      if (data.checkout_url) {
-        window.location.href = data.checkout_url;
+      // Embedded Stripe Payment Element flow
+      if (data.client_secret) {
+        setClientSecret(data.client_secret);
+        setPendingBookingId(data.booking?.id || null);
+        const result: BookingSubmitResult = {
+          bookingId: data.booking?.id,
+          paymentRequired: true,
+        };
+        setBookingResult(result);
         return result;
       }
 
+      // Free / comped booking (no payment required)
+      const result: BookingSubmitResult = {
+        bookingId: data.booking?.id,
+        paymentRequired: false,
+      };
       setBookingResult(result);
       return result;
     } catch (error) {
@@ -349,6 +372,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       quoteValid, validationErrors, appliedRules, nightBreakdown,
       quoteMinNights, fetchError,
       submitting, submitError, bookingResult, submitBooking,
+      clientSecret, pendingBookingId, clearPaymentState,
     }}>
       {children}
     </BookingContext.Provider>

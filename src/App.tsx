@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,42 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { ComingSoonGate } from "@/components/ComingSoonGate";
 import { DEV_BYPASS_AUTH } from "@/lib/devBypass";
 import { isPasswordRecoveryUrl } from "@/lib/passwordRecovery";
+import { BookingProvider } from "@/components/booking/BookingContext";
+import { BookingWizard } from "@/components/booking/BookingWizard";
+
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: unknown, info: React.ErrorInfo) {
+    console.error('[ErrorBoundary]', error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center px-4">
+            <p className="text-foreground font-display text-xl mb-4">Noget gik galt</p>
+            <button
+              className="text-primary underline text-sm"
+              onClick={() => { this.setState({ hasError: false }); window.location.href = '/'; }}
+            >
+              Gå til forsiden
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Public pages
 import Index from "./pages/Index";
@@ -172,7 +209,10 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ErrorBoundary>
+          <BookingProvider>
           <ScrollToTop />
+          <BookingWizard />
           <Routes>
             {/* ─── Public Website ─── */}
             <Route path="/" element={isPasswordRecoveryUrl() ? <Auth /> : <Index />} />
@@ -297,6 +337,8 @@ const App = () => (
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </BookingProvider>
+          </ErrorBoundary>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
