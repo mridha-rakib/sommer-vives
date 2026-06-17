@@ -436,7 +436,10 @@ function HomeDialog({
       images: splitList(String(data.get('images') || '')),
       amenities: splitList(String(data.get('amenities') || '')),
       house_rules: String(data.get('house_rules') || ''),
+      latitude: form.latitude,
+      longitude: form.longitude,
     };
+
 
     if (!values.name) {
       toast.error('Name is required');
