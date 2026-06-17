@@ -6,11 +6,29 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CreditCard, Loader2, AlertCircle, Shield, Home, Tag, CheckCircle2, ArrowRight, Lock } from 'lucide-react';
 import { formatDKK } from '@/lib/pricing';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+// Lazily fetch the Stripe publishable key from the backend so it works
+// in production without requiring a build-time env var. Cached for the
+// lifetime of the page.
+let stripePromise: Promise<Stripe | null> | null = null;
+const getStripe = (): Promise<Stripe | null> => {
+  if (stripePromise) return stripePromise;
+  stripePromise = (async () => {
+    const buildTimeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+    if (buildTimeKey) return loadStripe(buildTimeKey);
+    const { data, error } = await supabase.functions.invoke('stripe-config');
+    if (error || !data?.publishableKey) {
+      console.error('Failed to load Stripe config', error);
+      return null;
+    }
+    return loadStripe(data.publishableKey);
+  })();
+  return stripePromise;
+};
 
 // ─── Inner payment form (must be inside <Elements>) ─────────────────────────
 function StripePaymentForm({
@@ -196,7 +214,7 @@ export const StepConfirm = () => {
           )}
         </div>
 
-        <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
+        <Elements stripe={getStripe()} options={{ clientSecret, appearance }}>
           <StripePaymentForm
             bookingId={pendingBookingId}
             totalDisplay={formatDKK(payAmount)}
