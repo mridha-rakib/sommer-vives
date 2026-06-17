@@ -10,10 +10,8 @@ import { loadStripe, type Stripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/lib/i18n';
 
-// Lazily fetch the Stripe publishable key from the backend so it works
-// in production without requiring a build-time env var. Cached for the
-// lifetime of the page.
 let stripePromise: Promise<Stripe | null> | null = null;
 const getStripe = (): Promise<Stripe | null> => {
   if (stripePromise) return stripePromise;
@@ -30,6 +28,8 @@ const getStripe = (): Promise<Stripe | null> => {
   return stripePromise;
 };
 
+const STRIPE_LOCALE_MAP: Record<string, 'da' | 'en' | 'de' | 'nl'> = { da: 'da', en: 'en', de: 'de', nl: 'nl' };
+
 // ─── Inner payment form (must be inside <Elements>) ─────────────────────────
 function StripePaymentForm({
   bookingId,
@@ -43,7 +43,8 @@ function StripePaymentForm({
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
-  const { close, reset, clearPaymentState } = useBooking();
+  const { close, reset } = useBooking();
+  const { t } = useTranslation();
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
