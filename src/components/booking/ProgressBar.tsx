@@ -1,13 +1,21 @@
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
-
-const STEP_LABELS = ['Datoer', 'Gæster', 'Tilkøb', 'Dine oplysninger', 'Bekræft'];
+import { useTranslation } from '@/lib/i18n';
 
 interface ProgressBarProps {
   currentStep: number;
 }
 
 export const ProgressBar = ({ currentStep }: ProgressBarProps) => {
+  const { t } = useTranslation();
+  const STEP_LABELS = [
+    t('booking.step.dates'),
+    t('booking.step.guests'),
+    t('booking.step.addons'),
+    t('booking.step.details'),
+    t('booking.step.confirm'),
+  ];
+
   return (
     <div className="w-full max-w-2xl mx-auto px-4">
       <div className="flex items-center justify-between">

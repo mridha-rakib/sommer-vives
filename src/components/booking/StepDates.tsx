@@ -2,14 +2,19 @@ import { useBooking } from './BookingContext';
 import type { ValidationError } from './BookingContext';
 import { Calendar } from '@/components/ui/calendar';
 import { differenceInDays, addMonths } from 'date-fns';
-import { da } from 'date-fns/locale';
+import { da, enUS, de, nl } from 'date-fns/locale';
 import type { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
+
+const LOCALE_MAP = { da, en: enUS, de, nl } as const;
 
 export const StepDates = () => {
   const { state, update, fetchPricing, validationErrors, quoteValid, fetchError, pricingLoading } = useBooking();
+  const { t, language } = useTranslation();
+  const dateLocale = LOCALE_MAP[language] ?? da;
   const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
 
@@ -67,20 +72,20 @@ export const StepDates = () => {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-1">Vælg datoer</h2>
-        <p className="text-muted-foreground text-sm">Vælg check-in og check-ud dato</p>
+        <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-1">{t('booking.dates.title')}</h2>
+        <p className="text-muted-foreground text-sm">{t('booking.dates.subtitle')}</p>
       </div>
 
       <div className="flex justify-center">
         {loading ? (
           <div className="flex items-center gap-3 py-16 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Henter tilgængelighed...</span>
+            <span>{t('booking.dates.loading')}</span>
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl p-3 md:p-4 inline-block">
             <Calendar mode="range" selected={range} onSelect={handleSelect}
-              numberOfMonths={2} locale={da} disabled={isDateBlocked} fromDate={today}
+              numberOfMonths={2} locale={dateLocale} disabled={isDateBlocked} fromDate={today}
               className={cn("p-2 pointer-events-auto")}
               modifiers={{ blocked: (date: Date) => blockedDates.has(date.toISOString().split('T')[0]) }}
               modifiersClassNames={{ blocked: 'line-through opacity-30' }}
@@ -107,13 +112,13 @@ export const StepDates = () => {
       {pricingLoading && state.checkIn && state.checkOut && (
         <div className="max-w-md mx-auto flex items-center justify-center gap-2 py-2 text-muted-foreground animate-fade-in">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="text-sm">Beregner pris...</span>
+          <span className="text-sm">{t('booking.dates.calculatingPrice')}</span>
         </div>
       )}
 
       {state.nights > 0 && quoteValid && !fetchError && !pricingLoading && (
         <div className="max-w-md mx-auto text-center animate-fade-in">
-          <span className="text-sm text-muted-foreground">{state.nights} {state.nights === 1 ? 'nat' : 'nætter'}</span>
+          <span className="text-sm text-muted-foreground">{state.nights} {state.nights === 1 ? t('booking.dates.night') : t('booking.dates.nights')}</span>
         </div>
       )}
     </div>
