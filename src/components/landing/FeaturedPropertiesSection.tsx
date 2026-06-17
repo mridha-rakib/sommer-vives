@@ -1,74 +1,50 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import { Heart, MapPin, Users, Bed, ChevronLeft, ChevronRight, ArrowRight, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Heart, MapPin, Users, Bed, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 
-const featuredProperties = [
-  {
-    id: '1',
-    title: 'Historisk fiskerhus med nyt twist i Klitmøller',
-    location: 'Thisted, Danmark',
-    image: 'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-    images: [
-      'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-      'https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=800',
-    ],
-    price: 2098,
-    capacity: 11,
-    bedrooms: 3,
-    discount: 9,
-    highlight: 'Oplev den unikke kombination af gamle og nye møbler',
-    host: 'Martin',
-  },
-  {
-    id: '2',
-    title: 'Lys ferielejlighed i et stråtækt hus på diget',
-    location: 'Schleswig-Holstein, Tyskland',
-    image: 'https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=800',
-    images: [
-      'https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=800',
-    ],
-    price: 1996,
-    capacity: 6,
-    bedrooms: 3,
-    discount: 12,
-    highlight: 'Nyd roen på det smukke dige',
-    host: 'Anna',
-  },
-  {
-    id: '3',
-    title: 'Gult strandhus med udsigt over Løkken',
-    location: 'Løkken, Danmark',
-    image: 'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-    images: [
-      'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-    ],
-    price: 1281,
-    capacity: 8,
-    bedrooms: 4,
-    discount: 12,
-    highlight: 'Våg op til lyden af bølgerne',
-    host: 'Lars',
-  },
-  {
-    id: '4',
-    title: 'ForestCabin | Søvej 28',
-    location: 'Ansager, Syddanmark',
-    image: 'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-    images: [
-      'https://l.icdbcdn.com/oh/9f4b9fab-b84c-4dd2-8f6b-8a2ceb7ee434.png?w=800',
-      'https://l.icdbcdn.com/oh/648b6185-5c10-4bc9-8113-631bacd6b83e.jpg?w=800',
-    ],
-    price: 1400,
-    capacity: 6,
-    bedrooms: 3,
-    highlight: 'Egen lille skov med total ro',
-    host: 'Peter',
-  },
-];
+interface FeaturedProperty {
+  id: string;
+  slug: string;
+  title: string;
+  location: string;
+  images: string[];
+  price: number;
+  capacity: number;
+  bedrooms: number | null;
+  discount?: number | null;
+  highlight?: string | null;
+}
 
 export function FeaturedPropertiesSection() {
   const [likedProperties, setLikedProperties] = useState<string[]>([]);
+  const [featuredProperties, setFeaturedProperties] = useState<FeaturedProperty[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from('listings')
+        .select('id, slug, name, address, region, hero_image, images, base_price_per_night, max_guests, bedrooms, tagline, teaser')
+        .eq('is_active', true)
+        .order('sort_order')
+        .limit(8);
+
+      setFeaturedProperties((data || []).map((listing) => ({
+        id: listing.id,
+        slug: listing.slug,
+        title: listing.name,
+        location: [listing.address, listing.region].filter(Boolean).join(', '),
+        images: [listing.hero_image, ...((listing.images || []) as string[])].filter(Boolean) as string[],
+        price: Math.round((listing.base_price_per_night || 0) / 100),
+        capacity: listing.max_guests,
+        bedrooms: listing.bedrooms,
+        highlight: listing.tagline || listing.teaser,
+      })));
+    };
+
+    load();
+  }, []);
 
   const toggleLike = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -78,28 +54,29 @@ export function FeaturedPropertiesSection() {
     );
   };
 
-  const PropertyCard = ({ property }: { property: typeof featuredProperties[0] }) => {
+  const PropertyCard = ({ property }: { property: FeaturedProperty }) => {
     const [currentImage, setCurrentImage] = useState(0);
+    const images = property.images.length > 0 ? property.images : ['/placeholder.svg'];
 
     return (
-      <Link to={`/property/${property.id}`} className="group block flex-shrink-0 w-72 snap-start">
+      <Link to={`/listing/${property.slug}`} className="group block flex-shrink-0 w-72 snap-start">
         <div className="bg-card rounded-xl overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300">
           {/* Image */}
           <div className="relative aspect-square overflow-hidden">
             <img
-              src={property.images[currentImage]}
+              src={images[currentImage]}
               alt={property.title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             
             {/* Navigation */}
-            {property.images.length > 1 && (
+            {images.length > 1 && (
               <>
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setCurrentImage(prev => (prev - 1 + property.images.length) % property.images.length);
+                    setCurrentImage(prev => (prev - 1 + images.length) % images.length);
                   }}
                   className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
@@ -109,14 +86,14 @@ export function FeaturedPropertiesSection() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    setCurrentImage(prev => (prev + 1) % property.images.length);
+                    setCurrentImage(prev => (prev + 1) % images.length);
                   }}
                   className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-card/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
-                  {property.images.map((_, idx) => (
+                  {images.map((_, idx) => (
                     <div
                       key={idx}
                       className={`w-1.5 h-1.5 rounded-full ${idx === currentImage ? 'bg-white' : 'bg-white/50'}`}
@@ -148,7 +125,7 @@ export function FeaturedPropertiesSection() {
                   "{property.highlight}"
                 </p>
                 <p className="text-xs text-foreground/70 mt-1">
-                  Highlight fra værten {property.host}
+                  Highlight fra værten
                 </p>
               </div>
             )}
@@ -182,6 +159,8 @@ export function FeaturedPropertiesSection() {
       </Link>
     );
   };
+
+  if (featuredProperties.length === 0) return null;
 
   return (
     <section className="py-16 bg-muted/30">
