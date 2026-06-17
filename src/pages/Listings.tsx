@@ -102,7 +102,29 @@ const Listings = () => {
           </div>
         </div>
 
-        {/* Listings Grid */}
+        {/* View toggle */}
+        <div className="container mx-auto px-4 lg:px-8 mb-4 flex justify-center">
+          <div className="inline-flex rounded-full border border-border bg-card p-1">
+            <button
+              onClick={() => setView('grid')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                view === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" /> List
+            </button>
+            <button
+              onClick={() => setView('map')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                view === 'map' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <MapIcon className="h-3.5 w-3.5" /> Map
+            </button>
+          </div>
+        </div>
+
+        {/* Listings */}
         <section className="py-4 sm:py-8">
           <div className="container mx-auto px-4 lg:px-8">
             {loading ? (
@@ -132,7 +154,10 @@ const Listings = () => {
                 </p>
                 <p className="text-muted-foreground/60 text-sm mt-2">{t('listings.emptySoon')}</p>
               </div>
+            ) : view === 'map' ? (
+              <ListingsMap listings={filtered} />
             ) : (
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {filtered.map((listing, i) => (
                   <motion.div
