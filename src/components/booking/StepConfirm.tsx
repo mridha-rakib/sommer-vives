@@ -63,7 +63,7 @@ function StripePaymentForm({
     });
 
     if (error) {
-      setPayError(error.message || 'Betalingen mislykkedes. Prøv igen.');
+      setPayError(error.message || t('booking.confirm.payFailed'));
       setPaying(false);
       return;
     }
@@ -75,7 +75,6 @@ function StripePaymentForm({
       return;
     }
 
-    // For payment intents that require further action, Stripe handles redirect
     setPaying(false);
   };
 
@@ -83,7 +82,7 @@ function StripePaymentForm({
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-2">
         <Lock className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium text-foreground">Sikker kortbetaling via Stripe</span>
+        <span className="text-sm font-medium text-foreground">{t('booking.confirm.secureCard')}</span>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-5">
@@ -105,7 +104,7 @@ function StripePaymentForm({
 
       <div className="flex gap-3">
         <Button variant="outline" onClick={onBack} disabled={paying} className="flex-1 h-12">
-          Tilbage
+          {t('booking.back')}
         </Button>
         <Button
           onClick={handlePay}
@@ -114,15 +113,15 @@ function StripePaymentForm({
           className="flex-1 h-12 text-base gap-2"
         >
           {paying ? (
-            <><Loader2 className="h-5 w-5 animate-spin" /> Behandler...</>
+            <><Loader2 className="h-5 w-5 animate-spin" /> {t('booking.confirm.processing')}</>
           ) : (
-            <><CreditCard className="h-5 w-5" /> Betal {totalDisplay}</>
+            <><CreditCard className="h-5 w-5" /> {t('booking.confirm.payButton').replace('{amount}', totalDisplay)}</>
           )}
         </Button>
       </div>
 
       <p className="text-center text-xs text-muted-foreground">
-        Du betaler sikkert via Stripe. Dine kortoplysninger gemmes aldrig hos os.
+        {t('booking.confirm.payDisclaimer')}
       </p>
     </div>
   );
