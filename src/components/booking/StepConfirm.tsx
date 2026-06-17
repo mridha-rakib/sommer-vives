@@ -214,7 +214,7 @@ export const StepConfirm = () => {
           )}
         </div>
 
-        <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
+        <Elements stripe={getStripe()} options={{ clientSecret, appearance }}>
           <StripePaymentForm
             bookingId={pendingBookingId}
             totalDisplay={formatDKK(payAmount)}
