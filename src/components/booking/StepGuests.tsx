@@ -2,6 +2,7 @@ import { useBooking } from './BookingContext';
 import { Users, PawPrint, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 const CounterRow = ({
   label, sublabel, value, min, max, onChange, icon: Icon,
@@ -33,6 +34,7 @@ const CounterRow = ({
 
 export const StepGuests = () => {
   const { state, update, fetchPricing } = useBooking();
+  const { t } = useTranslation();
   const maxGuests = state.listing?.maxGuests || 10;
 
   useEffect(() => {
@@ -42,19 +44,19 @@ export const StepGuests = () => {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-2">Antal gæster</h2>
-        <p className="text-muted-foreground">Vælg mindst 1 gæst</p>
+        <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-2">{t('booking.guests.title')}</h2>
+        <p className="text-muted-foreground">{t('booking.guests.subtitle')}</p>
       </div>
 
       <div className="max-w-md mx-auto animate-fade-in">
         <div className="bg-card border border-border rounded-2xl px-6 divide-y divide-border">
-          <CounterRow icon={Users} label="Gæster" sublabel={`Op til ${maxGuests} gæster`}
+          <CounterRow icon={Users} label={t('booking.guests.guestsLabel')} sublabel={t('booking.guests.upTo').replace('{n}', String(maxGuests))}
             value={state.guests} min={1} max={maxGuests} onChange={(v) => update({ guests: v })} />
-          <CounterRow icon={PawPrint} label="Kæledyr" sublabel="Gebyr kan tillægges"
+          <CounterRow icon={PawPrint} label={t('booking.guests.petsLabel')} sublabel={t('booking.guests.petsHint')}
             value={state.pets} min={0} max={4} onChange={(v) => update({ pets: v })} />
         </div>
         {state.guests === 0 && (
-          <p className="text-sm text-destructive text-center mt-3">Mindst 1 gæst påkrævet</p>
+          <p className="text-sm text-destructive text-center mt-3">{t('booking.guests.required')}</p>
         )}
       </div>
     </div>

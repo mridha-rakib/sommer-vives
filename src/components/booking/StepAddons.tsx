@@ -3,9 +3,11 @@ import { cn } from '@/lib/utils';
 import { Check, ShoppingBag, Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { formatDKK } from '@/lib/pricing';
+import { useTranslation } from '@/lib/i18n';
 
 export const StepAddons = () => {
   const { state, update, availableAddons, fetchPricing, pricingLoading } = useBooking();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (state.checkIn && state.checkOut) fetchPricing();
@@ -20,9 +22,9 @@ export const StepAddons = () => {
   const priceLabel = (addon: { price: number; price_type: string }) => {
     const formatted = formatDKK(addon.price);
     switch (addon.price_type) {
-      case 'per_guest': return `${formatted} / gæst`;
-      case 'per_night': return `${formatted} / nat`;
-      case 'per_stay': return `${formatted} / ophold`;
+      case 'per_guest': return `${formatted} ${t('booking.addons.perGuest')}`;
+      case 'per_night': return `${formatted} ${t('booking.addons.perNight')}`;
+      case 'per_stay': return `${formatted} ${t('booking.addons.perStay')}`;
       default: return formatted;
     }
   };
@@ -30,7 +32,7 @@ export const StepAddons = () => {
   if (pricingLoading && availableAddons.length === 0) {
     return (
       <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-        <Loader2 className="h-5 w-5 animate-spin" /> Henter tilkøb...
+        <Loader2 className="h-5 w-5 animate-spin" /> {t('booking.addons.loading')}
       </div>
     );
   }
@@ -38,13 +40,13 @@ export const StepAddons = () => {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-2">Tilkøb</h2>
-        <p className="text-muted-foreground">Tilføj ekstra oplevelser til dit ophold</p>
+        <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-2">{t('booking.addons.title')}</h2>
+        <p className="text-muted-foreground">{t('booking.addons.subtitle')}</p>
       </div>
 
       {availableAddons.length === 0 ? (
         <div className="max-w-md mx-auto text-center py-8">
-          <p className="text-muted-foreground">Ingen tilkøb tilgængelige for dette sommerhus.</p>
+          <p className="text-muted-foreground">{t('booking.addons.none')}</p>
         </div>
       ) : (
         <div className="max-w-2xl mx-auto space-y-4">
@@ -71,7 +73,7 @@ export const StepAddons = () => {
         </div>
       )}
 
-      <p className="text-center text-sm text-muted-foreground max-w-md mx-auto">Du kan altid springe dette trin over</p>
+      <p className="text-center text-sm text-muted-foreground max-w-md mx-auto">{t('booking.addons.skip')}</p>
     </div>
   );
 };
