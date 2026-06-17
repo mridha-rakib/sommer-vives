@@ -88,7 +88,10 @@ const ownerListingFields = `
   property_type,
   house_rules,
   published_at,
-  sort_order
+  sort_order,
+  latitude,
+  longitude
+
 `;
 
 const slugify = (value: string) => {
