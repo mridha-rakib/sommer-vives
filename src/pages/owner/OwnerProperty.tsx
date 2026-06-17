@@ -83,7 +83,10 @@ const emptyForm: OwnerListingFormValues = {
   images: [],
   amenities: [],
   house_rules: '',
+  latitude: null,
+  longitude: null,
 };
+
 
 const fromListing = (listing: OwnerListing): OwnerListingFormValues => ({
   name: listing.name || '',
