@@ -85,9 +85,19 @@ function StripePaymentForm({
         <span className="text-sm font-medium text-foreground">{t('booking.confirm.secureCard')}</span>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="rounded-2xl border border-border bg-card p-5 min-h-[280px] relative">
+        {!ready && !payError && (
+          <div className="absolute inset-0 flex items-center justify-center gap-2 text-muted-foreground text-sm pointer-events-none">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading payment form…</span>
+          </div>
+        )}
         <PaymentElement
           onReady={() => setReady(true)}
+          onLoadError={(e: any) => {
+            console.error('Stripe PaymentElement load error', e);
+            setPayError(e?.error?.message || 'Failed to load payment form. Please refresh and try again.');
+          }}
           options={{
             layout: 'tabs',
             fields: { billingDetails: { email: 'never' } },
