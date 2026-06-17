@@ -1,14 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { Loader2, MapPin, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
-// Fix default marker icons in Vite bundles
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -25,6 +22,12 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const DENMARK: [number, number] = [56.0, 10.5];
+
+interface Suggestion {
+  display_name: string;
+  lat: string;
+  lon: string;
+}
 
 function ClickToSet({ onPick }: { onPick: (lat: number, lng: number) => void }) {
   useMapEvents({
@@ -51,34 +54,90 @@ interface Props {
 }
 
 export function LocationPicker({ latitude, longitude, address, onChange }: Props) {
+  const [query, setQuery] = useState(address || '');
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [searching, setSearching] = useState(false);
+  const [open, setOpen] = useState(false);
+  const debounceRef = useRef<number | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
   const hasPoint = latitude != null && longitude != null;
   const center = useMemo<[number, number]>(
     () => (hasPoint ? [latitude as number, longitude as number] : DENMARK),
     [hasPoint, latitude, longitude],
   );
 
-  const geocode = async () => {
-    const q = (address || '').trim();
-    if (!q) {
-      toast.error('Add an address first or click on the map');
+  // Sync external address prop into the search field when user hasn't typed yet
+  useEffect(() => {
+    if (!query && address) setQuery(address);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // Debounced autocomplete via Nominatim
+  useEffect(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    const q = query.trim();
+    if (q.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    debounceRef.current = window.setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=0&limit=5&q=${encodeURIComponent(q)}`,
+          { headers: { Accept: 'application/json' } },
+        );
+        const data = (await res.json()) as Suggestion[];
+        setSuggestions(Array.isArray(data) ? data : []);
+        setOpen(true);
+      } catch {
+        // silent
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+  const pick = (s: Suggestion) => {
+    onChange(parseFloat(s.lat), parseFloat(s.lon));
+    setQuery(s.display_name);
+    setOpen(false);
+    setSuggestions([]);
+  };
+
+  const submitSearch = async () => {
+    const q = query.trim();
+    if (!q) return;
+    if (suggestions[0]) {
+      pick(suggestions[0]);
       return;
     }
     setSearching(true);
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
-        { headers: { Accept: 'application/json' } },
       );
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        onChange(parseFloat(data[0].lat), parseFloat(data[0].lon));
-        toast.success('Location found from address');
+        pick(data[0]);
       } else {
-        toast.error('Address not found — click the map to set the pin manually');
+        toast.error('Address not found — try a different search or click the map');
       }
-    } catch {
-      toast.error('Could not look up address');
     } finally {
       setSearching(false);
     }
@@ -86,19 +145,51 @@ export function LocationPicker({ latitude, longitude, address, onChange }: Props
 
   return (
     <div className="md:col-span-2 space-y-3 rounded-xl border border-border/60 bg-muted/10 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 text-primary" /> Location on map
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Click anywhere on the map, drag the pin, or look up the address.
-          </p>
+      <div>
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+          <MapPin className="h-4 w-4 text-primary" /> Location on map
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Search your address, pick a suggestion, or click on the map to set the pin.
+        </p>
+      </div>
+
+      <div ref={wrapperRef} className="relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {searching && (
+            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+          )}
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => suggestions.length && setOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                submitSearch();
+              }
+            }}
+            placeholder="Search address, city, postal code…"
+            className="pl-9 pr-9"
+          />
         </div>
-        <Button type="button" size="sm" variant="outline" onClick={geocode} disabled={searching} className="gap-1.5">
-          {searching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
-          Find from address
-        </Button>
+        {open && suggestions.length > 0 && (
+          <ul className="absolute z-[1000] mt-1 max-h-64 w-full overflow-auto rounded-lg border border-border bg-popover shadow-lg">
+            {suggestions.map((s, i) => (
+              <li key={`${s.lat}-${s.lon}-${i}`}>
+                <button
+                  type="button"
+                  onClick={() => pick(s)}
+                  className="flex w-full items-start gap-2 px-3 py-2 text-left text-sm hover:bg-muted/50"
+                >
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                  <span className="line-clamp-2">{s.display_name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="h-64 w-full overflow-hidden rounded-lg border border-border">
@@ -110,7 +201,7 @@ export function LocationPicker({ latitude, longitude, address, onChange }: Props
           <ClickToSet onPick={(lat, lng) => onChange(lat, lng)} />
           {hasPoint && (
             <>
-              <Recenter center={center} />
+              <Recenter center={center} zoom={13} />
               <Marker
                 position={center}
                 draggable
@@ -126,36 +217,11 @@ export function LocationPicker({ latitude, longitude, address, onChange }: Props
         </MapContainer>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label htmlFor="latitude" className="text-xs">Latitude</Label>
-          <Input
-            id="latitude"
-            name="latitude"
-            type="number"
-            step="any"
-            value={latitude ?? ''}
-            onChange={(e) => {
-              const v = e.target.value === '' ? null : parseFloat(e.target.value);
-              onChange(Number.isFinite(v as number) ? (v as number) : null, longitude);
-            }}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="longitude" className="text-xs">Longitude</Label>
-          <Input
-            id="longitude"
-            name="longitude"
-            type="number"
-            step="any"
-            value={longitude ?? ''}
-            onChange={(e) => {
-              const v = e.target.value === '' ? null : parseFloat(e.target.value);
-              onChange(latitude, Number.isFinite(v as number) ? (v as number) : null);
-            }}
-          />
-        </div>
-      </div>
+      {hasPoint && (
+        <p className="text-xs text-muted-foreground">
+          Pin set at {(latitude as number).toFixed(5)}, {(longitude as number).toFixed(5)}. Drag the marker to fine-tune.
+        </p>
+      )}
     </div>
   );
 }
