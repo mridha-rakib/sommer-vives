@@ -104,7 +104,10 @@ const fromListing = (listing: OwnerListing): OwnerListingFormValues => ({
   images: listing.images || [],
   amenities: listing.amenities || [],
   house_rules: listing.house_rules || '',
+  latitude: (listing as { latitude?: number | null }).latitude ?? null,
+  longitude: (listing as { longitude?: number | null }).longitude ?? null,
 });
+
 
 const splitList = (value: string) =>
   value
