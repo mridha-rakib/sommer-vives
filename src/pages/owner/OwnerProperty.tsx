@@ -507,6 +507,13 @@ function HomeDialog({
               <Label htmlFor="description">Description</Label>
               <Textarea id="description" name="description" rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
+            <LocationPicker
+              latitude={form.latitude}
+              longitude={form.longitude}
+              address={[form.address, form.region].filter(Boolean).join(', ')}
+              onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
+            />
+
             <input type="hidden" name="hero_image" value={form.hero_image} />
             <input type="hidden" name="images" value={form.images.join('\n')} />
             <ImageManager ownerId={ownerId} listing={listing} form={form} onChange={setForm} />
