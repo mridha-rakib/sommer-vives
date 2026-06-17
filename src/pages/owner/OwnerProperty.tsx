@@ -59,6 +59,8 @@ import {
   type OwnerListingFormValues,
 } from '@/lib/owner-listings-api';
 import { useTranslation, type Language } from '@/lib/i18n';
+import { LocationPicker } from '@/components/owner/LocationPicker';
+
 
 const localeCodes: Record<Language, string> = {
   da: 'da-DK',
