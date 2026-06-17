@@ -162,9 +162,12 @@ function toPayload(values: OwnerListingFormValues): Omit<ListingUpdate, 'owner_i
     images,
     amenities: cleanList(values.amenities),
     house_rules: trimToNull(values.house_rules),
+    latitude: values.latitude != null && Number.isFinite(values.latitude) ? values.latitude : null,
+    longitude: values.longitude != null && Number.isFinite(values.longitude) ? values.longitude : null,
     readiness_score: 100,
   };
 }
+
 
 export async function getOwnerListings(ownerId: string): Promise<OwnerListing[]> {
   const { data, error } = await supabase
