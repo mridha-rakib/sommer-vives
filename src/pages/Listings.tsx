@@ -27,7 +27,10 @@ interface ListingData {
   images: string[] | null;
   amenities: string[] | null;
   property_type: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
+
 
 const REGIONS = [
   { value: 'Alle', labelKey: 'listings.region.all' },
