@@ -46,6 +46,7 @@ const Listings = () => {
   const [listings, setListings] = useState<ListingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeRegion, setActiveRegion] = useState('Alle');
+  const [view, setView] = useState<'grid' | 'map'>('grid');
   const { t } = useTranslation();
   const { open: openBooking } = useBooking();
 
@@ -53,7 +54,7 @@ const Listings = () => {
     const load = async () => {
       const { data } = await supabase
         .from('listings')
-        .select('id, slug, name, description, tagline, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, hero_image, images, amenities, property_type')
+        .select('id, slug, name, description, tagline, address, region, max_guests, bedrooms, bathrooms, base_price_per_night, hero_image, images, amenities, property_type, latitude, longitude')
         .eq('is_active', true)
         .order('sort_order');
       setListings((data as unknown as ListingData[]) || []);
@@ -61,6 +62,7 @@ const Listings = () => {
     };
     load();
   }, []);
+
 
   const filtered = activeRegion === 'Alle'
     ? listings
