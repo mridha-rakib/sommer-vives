@@ -3,11 +3,13 @@ import { PublicLayout } from '@/components/layout/PublicLayout';
 import { ListingCard } from '@/components/listing/ListingCard';
 import { BrandDivider } from '@/components/listing/BrandDivider';
 import { ContactHost } from '@/components/listing/ContactHost';
+import { ListingsMap } from '@/components/listing/ListingsMap';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
+import { LayoutGrid, Map as MapIcon, MapPin } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useBooking } from '@/components/booking/BookingContext';
+
 
 interface ListingData {
   id: string;
