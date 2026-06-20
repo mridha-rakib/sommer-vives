@@ -247,12 +247,12 @@ export default function AdminModtagelse() {
     <AdminLayout>
       <div className="space-y-6">
         <AdminPageHeader
-          title="Modtagelsescenter"
-          subtitle="Indgående aftaler, dokumenter og onboarding-materiale"
+          title={t('modtagelse.title')}
+          subtitle={t('modtagelse.subtitle')}
           actions={
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs font-semibold px-2.5 py-1">
-                {counts.ny} nye
+                {counts.ny} {t('modtagelse.new')}
               </Badge>
             </div>
           }
@@ -261,10 +261,10 @@ export default function AdminModtagelse() {
         {/* ── KPI row ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {([
-            { label: 'I alt modtaget', value: counts.all, icon: Inbox, color: 'text-foreground' },
-            { label: 'Nye / ubehandlede', value: counts.ny, icon: AlertCircle, color: 'text-blue-400' },
-            { label: 'Under behandling', value: counts.under_behandling, icon: Clock, color: 'text-amber-400' },
-            { label: 'Klar til arkivering', value: counts.klar_til_arkivering, icon: CheckCircle2, color: 'text-emerald-400' },
+            { label: t('modtagelse.totalReceived'), value: counts.all, icon: Inbox, color: 'text-foreground' },
+            { label: t('modtagelse.newUntreated'), value: counts.ny, icon: AlertCircle, color: 'text-blue-400' },
+            { label: t('modtagelse.underTreatment'), value: counts.under_behandling, icon: Clock, color: 'text-amber-400' },
+            { label: t('modtagelse.readyArchiving'), value: counts.klar_til_arkivering, icon: CheckCircle2, color: 'text-emerald-400' },
           ] as const).map(kpi => (
             <div key={kpi.label} className="rounded-xl border border-border/40 bg-card/60 p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -281,7 +281,7 @@ export default function AdminModtagelse() {
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Søg i modtagelser..."
+              placeholder={t('modtagelse.search')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-9 h-9 bg-muted/20 border-border/40 rounded-xl text-sm"
@@ -290,10 +290,10 @@ export default function AdminModtagelse() {
 
           <Tabs value={statusFilter} onValueChange={v => setStatusFilter(v as any)} className="w-auto">
             <TabsList className="h-9 bg-muted/20 border border-border/30 rounded-xl p-0.5">
-              <TabsTrigger value="all" className="text-xs rounded-lg px-3 h-7">Alle</TabsTrigger>
-              <TabsTrigger value="ny" className="text-xs rounded-lg px-3 h-7">Nye</TabsTrigger>
-              <TabsTrigger value="under_behandling" className="text-xs rounded-lg px-3 h-7">Behandles</TabsTrigger>
-              <TabsTrigger value="klar_til_arkivering" className="text-xs rounded-lg px-3 h-7">Klar</TabsTrigger>
+              <TabsTrigger value="all" className="text-xs rounded-lg px-3 h-7">{t('modtagelse.filter.all')}</TabsTrigger>
+              <TabsTrigger value="ny" className="text-xs rounded-lg px-3 h-7">{t('modtagelse.filter.new')}</TabsTrigger>
+              <TabsTrigger value="under_behandling" className="text-xs rounded-lg px-3 h-7">{t('modtagelse.filter.processing')}</TabsTrigger>
+              <TabsTrigger value="klar_til_arkivering" className="text-xs rounded-lg px-3 h-7">{t('modtagelse.filter.ready')}</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -301,18 +301,21 @@ export default function AdminModtagelse() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-9 rounded-xl border-border/40 text-xs gap-1.5">
                 <Filter className="w-3.5 h-3.5" />
-                {typeFilter === 'all' ? 'Alle typer' : TYPE_CFG[typeFilter].label}
+                {typeFilter === 'all' ? t('modtagelse.allTypes') : t(`modtagelse.type.${typeFilter === 'agreement' ? 'agreement' : typeFilter === 'document' ? 'document' : typeFilter === 'onboarding' ? 'onboarding' : 'personal'}`)}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => setTypeFilter('all')}>Alle typer</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTypeFilter('all')}>{t('modtagelse.allTypes')}</DropdownMenuItem>
               <DropdownMenuSeparator />
-              {(Object.entries(TYPE_CFG) as [IntakeType, typeof TYPE_CFG[IntakeType]][]).map(([key, cfg]) => (
-                <DropdownMenuItem key={key} onClick={() => setTypeFilter(key)}>
-                  <cfg.icon className={`w-3.5 h-3.5 mr-2 ${cfg.color}`} />
-                  {cfg.label}
-                </DropdownMenuItem>
-              ))}
+              {(Object.entries(TYPE_CFG) as [IntakeType, typeof TYPE_CFG[IntakeType]][]).map(([key, cfg]) => {
+                const tKey = key === 'agreement' ? 'agreement' : key === 'document' ? 'document' : key === 'onboarding' ? 'onboarding' : 'personal';
+                return (
+                  <DropdownMenuItem key={key} onClick={() => setTypeFilter(key)}>
+                    <cfg.icon className={`w-3.5 h-3.5 mr-2 ${cfg.color}`} />
+                    {t(`modtagelse.type.${tKey}`)}
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -323,7 +326,8 @@ export default function AdminModtagelse() {
             {[0,1,2,3,4].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon={Inbox} title="Ingen modtagelser" className="py-16" />
+          <EmptyState icon={Inbox} title={t('modtagelse.empty')} className="py-16" />
+
         ) : (
           <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/30 overflow-hidden">
             {filtered.map(item => {
