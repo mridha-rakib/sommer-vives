@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n';
 
 /* ── Config ── */
 type DocType = 'formidlingsaftale' | 'owner_upload' | 'invoice' | 'statement' | 'id_personal' | 'internal' | 'other';
