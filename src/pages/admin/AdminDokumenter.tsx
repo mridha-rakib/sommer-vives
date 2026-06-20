@@ -88,6 +88,7 @@ function getMimeColor(mime: string | null) {
 type PageTab = 'documents' | 'templates';
 
 export default function AdminDokumenter() {
+  const { t: tr } = useTranslation();
   const navigate = useNavigate();
   const [documents, setDocuments] = useState<any[]>([]);
   const [agreements, setAgreements] = useState<any[]>([]);
