@@ -508,8 +508,8 @@ export default function AdminDokumenter() {
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-border/40 bg-card/40 p-16 text-center">
             <FolderOpen className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm font-medium text-muted-foreground">Ingen dokumenter fundet</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Tilpas dine filtre eller upload et nyt dokument</p>
+            <p className="text-sm font-medium text-muted-foreground">{tr('dokumenter.empty')}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">{tr('dokumenter.emptySub')}</p>
           </div>
         ) : viewMode === 'grid' ? (
           /* ── Grid view ── */
