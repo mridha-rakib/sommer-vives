@@ -373,27 +373,28 @@ export default function AdminDokumenter() {
 
       <div className="space-y-6">
         <AdminPageHeader
-          title="Dokumenter"
-          subtitle="Dokumentbibliotek, aftaler og skabeloner"
+          title={tr('dokumenter.title')}
+          subtitle={tr('dokumenter.subtitle')}
           actions={
             <div className="flex items-center gap-2">
               <div className="flex items-center rounded-xl border border-border/40 overflow-hidden">
                 <button onClick={() => setPageTab('documents')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all', pageTab === 'documents' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
-                  <FileText className="h-3.5 w-3.5" />Dokumenter
+                  <FileText className="h-3.5 w-3.5" />{tr('dokumenter.tab.documents')}
                 </button>
                 <button onClick={() => setPageTab('templates')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all border-l border-border/40', pageTab === 'templates' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
-                  <Copy className="h-3.5 w-3.5" />Skabeloner
+                  <Copy className="h-3.5 w-3.5" />{tr('dokumenter.tab.templates')}
                 </button>
               </div>
               <Button variant="outline" size="sm" className="gap-1.5 rounded-xl text-xs" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                <Upload className="h-3.5 w-3.5" />{uploading ? 'Uploader...' : 'Upload fil'}
+                <Upload className="h-3.5 w-3.5" />{uploading ? '...' : tr('dokumenter.upload')}
               </Button>
               <Button size="sm" className="gap-1.5 rounded-xl text-xs" onClick={openNewDoc}>
-                <FilePlus className="h-3.5 w-3.5" />Nyt dokument
+                <FilePlus className="h-3.5 w-3.5" />{tr('dokumenter.new')}
               </Button>
             </div>
           }
         />
+
 
         {/* ── Pending agreements alert ── */}
         {pendingAgreements.length > 0 && pageTab === 'documents' && (
