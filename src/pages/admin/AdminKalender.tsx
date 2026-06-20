@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/i18n';
 import {
   ChevronLeft, ChevronRight, Calendar as CalIcon,
-  Eye, MapPin, Clock, Plus, Video, Phone, ClipboardCheck,
+  Eye, MapPin, Clock, Plus, Video, ClipboardCheck,
   Bell, Target, UserCheck, Bed, Trash2
 } from 'lucide-react';
 
