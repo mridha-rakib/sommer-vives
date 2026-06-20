@@ -52,7 +52,7 @@ export function Header() {
   const navigation = [
     { name: t('nav.howItWorks'), href: '/#saadan-virker-det' },
     { name: t('nav.listings'), href: '/listings' },
-    { name: t('nav.pricing'), href: '/#priser' },
+    { name: t('nav.pricing'), href: '/pricing' },
     { name: t('nav.faq'), href: '/#faq' },
     { name: t('nav.about'), href: '/about' },
   ];
