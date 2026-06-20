@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslation } from '@/lib/i18n';
 
 /* ── Types ── */
 type IntakeStatus = 'ny' | 'under_behandling' | 'klar_til_arkivering' | 'arkiveret';
