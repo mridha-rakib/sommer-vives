@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ProfilePopover } from '@/components/admin/ProfilePopover';
 import { da } from 'date-fns/locale';
