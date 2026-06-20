@@ -224,13 +224,13 @@ export default function AdminOekonomi() {
     <AdminLayout>
       <div className="space-y-6">
         <AdminPageHeader
-          title="Økonomi"
-          subtitle="Betalinger, udbetalinger og økonomisk overblik"
+          title={tr("oekonomi.title")}
+          subtitle={tr("oekonomi.subtitle")}
           actions={
             <div className="relative w-56">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
-                placeholder="Søg betalinger…"
+                placeholder={tr("oekonomi.search")}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="pl-9 h-9 text-xs bg-card/60 border-border/40"
@@ -249,11 +249,11 @@ export default function AdminOekonomi() {
             ))
           ) : (
             <>
-              <KPICard title="Betalinger modtaget" value={formatDKK(totalPaid)} icon={CreditCard} variant="success" />
-              <KPICard title="Udbetalinger" value={formatDKK(totalPayouts)} icon={ArrowUpRight} variant="gold" />
-              <KPICard title="Tilkøbs-omsætning" value={formatDKK(addonRevenue)} icon={ShoppingBag} variant="default" />
-              <KPICard title="Afventer" value={pendingPayments.length} icon={Clock} variant="warning" subtitle={pendingPayments.length > 0 ? `${formatDKK(pendingPayments.reduce((s: number, p: any) => s + (p.amount || 0), 0))} total` : undefined} />
-              <KPICard title="Transaktioner" value={payments.length + payouts.length + orders.length} icon={TrendingUp} />
+              <KPICard title={tr("oekonomi.kpi.received")} value={formatDKK(totalPaid)} icon={CreditCard} variant="success" />
+              <KPICard title={tr("oekonomi.kpi.payouts")} value={formatDKK(totalPayouts)} icon={ArrowUpRight} variant="gold" />
+              <KPICard title={tr("oekonomi.kpi.acquisition")} value={formatDKK(addonRevenue)} icon={ShoppingBag} variant="default" />
+              <KPICard title={tr("oekonomi.kpi.awaiting")} value={pendingPayments.length} icon={Clock} variant="warning" subtitle={pendingPayments.length > 0 ? `${formatDKK(pendingPayments.reduce((s: number, p: any) => s + (p.amount || 0), 0))} total` : undefined} />
+              <KPICard title={tr("oekonomi.kpi.transactions")} value={payments.length + payouts.length + orders.length} icon={TrendingUp} />
             </>
           )}
         </div>
@@ -284,13 +284,13 @@ export default function AdminOekonomi() {
             <Card className="border-border/40 bg-card/60">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold">Seneste betalinger</CardTitle>
-                  <button onClick={() => setTab('payments')} className="text-[11px] text-primary hover:underline flex items-center gap-0.5">Se alle <ChevronRight className="h-3 w-3" /></button>
+                  <CardTitle className="text-sm font-semibold">{tr("oekonomi.recent")}</CardTitle>
+                  <button onClick={() => setTab('payments')} className="text-[11px] text-primary hover:underline flex items-center gap-0.5">{tr("oekonomi.seeAll")} <ChevronRight className="h-3 w-3" /></button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-0.5">
                 {payments.length === 0 ? (
-                  <EmptyState icon={CreditCard} title="Ingen betalinger endnu" className="py-8" />
+                  <EmptyState icon={CreditCard} title={tr("oekonomi.noPayments")} className="py-8" />
                 ) : payments.slice(0, 6).map((p: any) => {
                   const s = PAY_STATUS[p.status] || PAY_STATUS.pending;
                   return (
@@ -309,13 +309,13 @@ export default function AdminOekonomi() {
             <Card className="border-border/40 bg-card/60">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold">Seneste udbetalinger</CardTitle>
-                  <button onClick={() => setTab('payouts')} className="text-[11px] text-primary hover:underline flex items-center gap-0.5">Se alle <ChevronRight className="h-3 w-3" /></button>
+                  <CardTitle className="text-sm font-semibold">{tr("oekonomi.latest")}</CardTitle>
+                  <button onClick={() => setTab('payouts')} className="text-[11px] text-primary hover:underline flex items-center gap-0.5">{tr("oekonomi.seeAll")} <ChevronRight className="h-3 w-3" /></button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-0.5">
                 {payouts.length === 0 ? (
-                  <EmptyState icon={ArrowUpRight} title="Ingen udbetalinger endnu" className="py-8" />
+                  <EmptyState icon={ArrowUpRight} title={tr("oekonomi.noPayouts")} className="py-8" />
                 ) : payouts.slice(0, 6).map((p: any) => {
                   const s = PAY_STATUS[p.status] || PAY_STATUS.pending;
                   return (
@@ -335,13 +335,13 @@ export default function AdminOekonomi() {
             <Card className="border-border/40 bg-card/60 lg:col-span-2">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold">Seneste tilkøbsordrer</CardTitle>
-                  <button onClick={() => setTab('addons')} className="text-[11px] text-primary hover:underline flex items-center gap-0.5">Se alle <ChevronRight className="h-3 w-3" /></button>
+                  <CardTitle className="text-sm font-semibold">{tr("oekonomi.latestOrders")}</CardTitle>
+                  <button onClick={() => setTab('addons')} className="text-[11px] text-primary hover:underline flex items-center gap-0.5">{tr("oekonomi.seeAll")} <ChevronRight className="h-3 w-3" /></button>
                 </div>
               </CardHeader>
               <CardContent>
                 {orders.length === 0 ? (
-                  <EmptyState icon={ShoppingBag} title="Ingen tilkøbsordrer endnu" className="py-8" />
+                  <EmptyState icon={ShoppingBag} title={tr("oekonomi.noOrders")} className="py-8" />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {orders.slice(0, 4).map((o: any) => {
@@ -430,7 +430,7 @@ export default function AdminOekonomi() {
         {tab === 'addons' && (
           <div className="space-y-2">
             {orders.length === 0 ? (
-              <EmptyState icon={ShoppingBag} title="Ingen tilkøbsordrer endnu" className="py-12" />
+              <EmptyState icon={ShoppingBag} title={tr("oekonomi.noOrders")} className="py-12" />
             ) : orders.map((o: any) => {
               const s = PAY_STATUS[o.payment_status] || PAY_STATUS.pending;
               return (
