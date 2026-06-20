@@ -74,6 +74,7 @@ function agreementStatusToDb(s: IntakeStatus): string {
 }
 
 export default function AdminModtagelse() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [items, setItems] = useState<IntakeItem[]>([]);
   const [loading, setLoading] = useState(true);
