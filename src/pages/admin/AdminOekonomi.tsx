@@ -25,14 +25,6 @@ import {
 
 type Tab = 'overview' | 'payments' | 'payouts' | 'addons' | 'outstanding';
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'overview', label: 'Overblik' },
-  { key: 'payments', label: 'Betalinger' },
-  { key: 'payouts', label: 'Udbetalinger' },
-  { key: 'addons', label: 'Tilkøb' },
-  { key: 'outstanding', label: 'Udestående' },
-];
-
 const PAY_STATUS: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'muted' }> = {
   paid: { label: 'Betalt', variant: 'success' },
   partially_paid: { label: 'Delvist betalt', variant: 'warning' },
