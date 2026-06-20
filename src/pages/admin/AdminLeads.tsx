@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { format } from 'date-fns';
 import { ProfilePopover } from '@/components/admin/ProfilePopover';
 import { da } from 'date-fns/locale';
@@ -6,7 +6,7 @@ import {
   Search, Plus, Target, Phone, Mail, MapPin, CalendarDays,
   MoreHorizontal, ArrowRight, LayoutGrid, List, X,
   PhoneCall, Send, ListChecks, CalendarPlus, UserCheck, Ban,
-  Clock, MessageSquare, FileText, ChevronRight
+  ChevronRight
 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
@@ -28,40 +28,30 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n';
 
-// ─── Constants ───
 type SVariant = 'info' | 'warning' | 'success' | 'muted' | 'danger';
 
 const PIPELINE_STATUSES = ['new', 'contacted', 'waiting', 'won', 'lost'] as const;
 
-const STATUS_MAP: Record<string, { label: string; variant: SVariant; color: string }> = {
-  new:       { label: 'Modtaget',          variant: 'info',    color: 'border-t-blue-500/60' },
-  contacted: { label: 'Under behandling',  variant: 'warning', color: 'border-t-amber-500/60' },
-  waiting:   { label: 'Afventer svar',     variant: 'muted',   color: 'border-t-slate-400/40' },
-  won:       { label: 'Vundet',            variant: 'success', color: 'border-t-emerald-500/60' },
-  lost:      { label: 'Tabt',             variant: 'danger',  color: 'border-t-red-500/40' },
+const STATUS_META: Record<string, { variant: SVariant; color: string }> = {
+  new:       { variant: 'info',    color: 'border-t-blue-500/60' },
+  contacted: { variant: 'warning', color: 'border-t-amber-500/60' },
+  waiting:   { variant: 'muted',   color: 'border-t-slate-400/40' },
+  won:       { variant: 'success', color: 'border-t-emerald-500/60' },
+  lost:      { variant: 'danger',  color: 'border-t-red-500/40' },
 };
 
-const SOURCE_MAP: Record<string, string> = {
-  beregn_lejeindtaegt: 'Beregn lejeindtægt',
-  udlejningstjek: 'Book udlejningstjek',
-  vil_udleje: 'Vil udleje',
-  pricing_get_started: 'Kom i gang - priser',
-  website_onboarding: 'Kom i gang',
-  contact: 'Kontaktformular',
-  website: 'Hjemmeside',
-  referral: 'Anbefaling',
-  social: 'SoMe',
-  phone: 'Telefon',
-  partner: 'Partner',
-  other: 'Andet',
-};
+const SOURCE_KEYS = [
+  'beregn_lejeindtaegt', 'udlejningstjek', 'vil_udleje', 'pricing_get_started',
+  'website_onboarding', 'contact', 'website', 'referral', 'social', 'phone', 'partner', 'other',
+];
 
 const defaultForm = { name: '', email: '', phone: '', source: 'contact', region: '', property_type: '', notes: '', assigned_to: '', next_step: '', status: 'new' };
 
-// ─── Component ───
 export default function AdminLeads() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -73,7 +63,9 @@ export default function AdminLeads() {
   const [drawerLead, setDrawerLead] = useState<any | null>(null);
   const [dragStatus, setDragStatus] = useState<string | null>(null);
 
-  // ─── Data loading ───
+  const statusLabel = (s: string) => t(`admin.leads.status.${s}`);
+  const sourceLabel = (s: string) => t(`admin.leads.source.${s}`);
+
   const load = useCallback(async () => {
     setLoading(true);
     let q = supabase.from('leads').select('*').order('created_at', { ascending: false });
@@ -85,9 +77,8 @@ export default function AdminLeads() {
   }, [search, sourceFilter]);
 
   useEffect(() => { load(); }, [sourceFilter]);
-  useEffect(() => { const t = setTimeout(load, 300); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { const tm = setTimeout(load, 300); return () => clearTimeout(tm); }, [search]);
 
-  // ─── CRUD ───
   const openNew = () => { setEditing(null); setForm(defaultForm); setDialogOpen(true); };
   const openEdit = (lead: any) => {
     setEditing(lead);
@@ -96,13 +87,15 @@ export default function AdminLeads() {
   };
 
   const save = async () => {
-    if (!form.name.trim()) { toast.error('Navn er påkrævet'); return; }
+    if (!form.name.trim()) { toast.error(t('admin.leads.toast.nameRequired')); return; }
     if (editing) {
-      await supabase.from('leads').update(form).eq('id', editing.id);
-      toast.success('Lead opdateret');
+      const { error } = await supabase.from('leads').update(form).eq('id', editing.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success(t('admin.leads.toast.updated'));
     } else {
-      await supabase.from('leads').insert(form);
-      toast.success('Lead oprettet');
+      const { error } = await supabase.from('leads').insert(form);
+      if (error) { toast.error(error.message); return; }
+      toast.success(t('admin.leads.toast.created'));
     }
     setDialogOpen(false);
     load();
@@ -110,22 +103,21 @@ export default function AdminLeads() {
 
   const updateStatus = async (id: string, status: string) => {
     await supabase.from('leads').update({ status }).eq('id', id);
-    toast.success(`Status ændret til ${STATUS_MAP[status]?.label || status}`);
+    toast.success(`${t('admin.leads.toast.statusChanged')} ${statusLabel(status)}`);
     if (drawerLead?.id === id) setDrawerLead((prev: any) => prev ? { ...prev, status } : null);
     load();
   };
 
   const convertToOwner = async (lead: any) => {
-    if (!lead.email) { toast.error('Lead mangler email — kan ikke oprette ejer'); return; }
+    if (!lead.email) { toast.error(t('admin.leads.convert.missingEmail')); return; }
 
-    const toastId = toast.loading(`Konverterer ${lead.name} til sag…`);
+    const toastId = toast.loading(`${t('admin.leads.convert.converting')} ${lead.name} ${t('admin.leads.convert.toCase')}…`);
 
     try {
-      // Create property stub
       const { data: property, error: propErr } = await supabase.from('properties').insert({
-        title: `${lead.name} — Ny ejendom`,
-        address: lead.region || 'Ikke angivet',
-        region: lead.region || 'Ikke angivet',
+        title: `${lead.name} — ${t('admin.leads.convert.newProperty')}`,
+        address: lead.region || t('admin.leads.convert.notSpecified'),
+        region: lead.region || t('admin.leads.convert.notSpecified'),
         owner_id: '00000000-0000-0000-0000-000000000000',
         status: 'draft',
         setup_status: 'new',
@@ -133,10 +125,9 @@ export default function AdminLeads() {
 
       if (propErr) throw propErr;
 
-      // Create listing (sag) so it appears in Sager pipeline
       const slug = `${lead.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '')}-${Date.now()}`;
       const { error: listErr } = await supabase.from('listings').insert({
-        name: `${lead.name} — Ny ejendom`,
+        name: `${lead.name} — ${t('admin.leads.convert.newProperty')}`,
         slug,
         owner_id: '00000000-0000-0000-0000-000000000000',
         internal_status: 'udlejningstjek',
@@ -144,31 +135,29 @@ export default function AdminLeads() {
         address: lead.region || null,
         region: lead.region || null,
         property_type: lead.property_type || null,
-        internal_notes: `Lead: ${lead.name}\nEmail: ${lead.email}\nTlf: ${lead.phone || '—'}\nKilde: ${lead.source}\n\n${lead.notes || ''}`,
+        internal_notes: `Lead: ${lead.name}\nEmail: ${lead.email}\nPhone: ${lead.phone || '—'}\nSource: ${lead.source}\n\n${lead.notes || ''}`,
       });
 
       if (listErr) throw listErr;
 
-      // Update lead as won
       await supabase.from('leads').update({
         status: 'won',
         notes: [
           lead.notes,
-          `\n--- Konverteret ${new Date().toLocaleDateString('da-DK')} ---`,
-          `Sag oprettet: ${property.case_number || property.id}`,
+          `\n--- ${t('admin.leads.convert.convertedOn')} ${new Date().toLocaleDateString()} ---`,
+          `${t('admin.leads.convert.caseCreated')}: ${property.case_number || property.id}`,
         ].filter(Boolean).join('\n'),
       }).eq('id', lead.id);
 
-      toast.success(`${lead.name} konverteret til sag`, { id: toastId });
+      toast.success(`${lead.name} ${t('admin.leads.convert.converted')}`, { id: toastId });
       setDrawerLead(null);
       load();
     } catch (err: any) {
       console.error('Convert error:', err);
-      toast.error(`Fejl ved konvertering: ${err.message}`, { id: toastId });
+      toast.error(`${t('admin.leads.convert.error')}: ${err.message}`, { id: toastId });
     }
   };
 
-  // ─── Drag & drop helpers ───
   const onDragStart = (e: React.DragEvent, leadId: string) => {
     e.dataTransfer.setData('leadId', leadId);
     e.dataTransfer.effectAllowed = 'move';
@@ -185,13 +174,11 @@ export default function AdminLeads() {
     if (leadId) await updateStatus(leadId, status);
   };
 
-  // ─── Derived ───
   const activePipelineLeads = leads.filter(l => PIPELINE_STATUSES.includes(l.status as any));
   const leadsForColumn = (status: string) => activePipelineLeads.filter(l => l.status === status);
 
-  // ─── Render helpers ───
   const LeadPipelineCard = ({ lead }: { lead: any }) => {
-    const st = STATUS_MAP[lead.status];
+    const st = STATUS_META[lead.status];
     return (
       <div
         draggable
@@ -214,22 +201,22 @@ export default function AdminLeads() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEdit(lead); }}>Rediger</DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEdit(lead); }}>{t('admin.leads.action.edit')}</DropdownMenuItem>
               <DropdownMenuSeparator />
               {PIPELINE_STATUSES.filter(s => s !== lead.status).map(s => (
                 <DropdownMenuItem key={s} onClick={(e) => { e.stopPropagation(); updateStatus(lead.id, s); }}>
-                  <ArrowRight className="h-3 w-3 mr-2" />{STATUS_MAP[s].label}
+                  <ArrowRight className="h-3 w-3 mr-2" />{statusLabel(s)}
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={async (e) => {
                 e.stopPropagation();
-                if (!confirm(`Slet lead "${lead.name}"?`)) return;
+                if (!confirm(`${t('admin.leads.confirm.delete')} "${lead.name}"?`)) return;
                 await supabase.from('leads').delete().eq('id', lead.id);
-                toast.success('Lead slettet');
+                toast.success(t('admin.leads.toast.deleted'));
                 load();
               }}>
-                <X className="h-3 w-3 mr-2" />Slet
+                <X className="h-3 w-3 mr-2" />{t('admin.leads.action.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -241,7 +228,7 @@ export default function AdminLeads() {
           </div>
         )}
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1.5">
-          <Target className="h-3 w-3 shrink-0" />{SOURCE_MAP[lead.source] || lead.source}
+          <Target className="h-3 w-3 shrink-0" />{sourceLabel(lead.source)}
         </div>
         {lead.phone && (
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mb-1.5">
@@ -263,45 +250,42 @@ export default function AdminLeads() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        {/* Header */}
         <AdminPageHeader
-          title="Leads"
-          subtitle={`${leads.length} potentielle ejere i pipeline`}
+          title={t('admin.leads.title')}
+          subtitle={`${leads.length} ${t('admin.leads.subtitle')}`}
           actions={
             <div className="flex items-center gap-2">
               <div className="flex items-center rounded-xl border border-border/40 overflow-hidden">
                 <button onClick={() => setView('board')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all', view === 'board' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
-                  <LayoutGrid className="h-3.5 w-3.5" />Pipeline
+                  <LayoutGrid className="h-3.5 w-3.5" />{t('admin.leads.view.pipeline')}
                 </button>
                 <button onClick={() => setView('list')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all border-l border-border/40', view === 'list' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
-                  <List className="h-3.5 w-3.5" />Liste
+                  <List className="h-3.5 w-3.5" />{t('admin.leads.view.list')}
                 </button>
               </div>
               <Button onClick={openNew} size="sm" className="gap-1.5 rounded-xl">
-                <Plus className="h-3.5 w-3.5" />Nyt lead
+                <Plus className="h-3.5 w-3.5" />{t('admin.leads.new')}
               </Button>
             </div>
           }
         />
 
-        {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Søg på navn, email, telefon, region..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 rounded-xl bg-card/60 border-border/40" />
+            <Input placeholder={t('admin.leads.search.placeholder')} value={search} onChange={e => setSearch(e.target.value)} className="pl-9 rounded-xl bg-card/60 border-border/40" />
           </div>
           <Select value={sourceFilter} onValueChange={setSourceFilter}>
             <SelectTrigger className="w-48 rounded-xl bg-card/60 border-border/40 text-xs">
-              <SelectValue placeholder="Alle kilder" />
+              <SelectValue placeholder={t('admin.leads.filter.allSources')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Alle kilder</SelectItem>
-              {Object.entries(SOURCE_MAP).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+              <SelectItem value="all">{t('admin.leads.filter.allSources')}</SelectItem>
+              {SOURCE_KEYS.map(k => <SelectItem key={k} value={k}>{sourceLabel(k)}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Loading */}
         {loading ? (
           <div className="grid grid-cols-5 gap-4">
             {[...Array(5)].map((_, i) => (
@@ -312,10 +296,9 @@ export default function AdminLeads() {
             ))}
           </div>
         ) : view === 'board' ? (
-          /* ═══════ BOARD VIEW ═══════ */
           <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 items-start">
             {PIPELINE_STATUSES.map(status => {
-              const st = STATUS_MAP[status];
+              const st = STATUS_META[status];
               const columnLeads = leadsForColumn(status);
               return (
                 <div
@@ -328,21 +311,19 @@ export default function AdminLeads() {
                     dragStatus === status && 'border-primary/40 bg-primary/5 shadow-lg shadow-primary/5'
                   )}
                 >
-                  {/* Column header */}
                   <div className="px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <StatusChip label={st.label} variant={st.variant} dot size="md" />
+                      <StatusChip label={statusLabel(status)} variant={st.variant} dot size="md" />
                     </div>
                     <span className="text-xs font-bold text-muted-foreground tabular-nums bg-muted/40 px-2 py-0.5 rounded-md">
                       {columnLeads.length}
                     </span>
                   </div>
 
-                  {/* Cards */}
                   <div className="px-2 pb-3 space-y-2">
                     {columnLeads.length === 0 ? (
                       <div className="py-8 text-center">
-                        <p className="text-[11px] text-muted-foreground/50">Ingen leads</p>
+                        <p className="text-[11px] text-muted-foreground/50">{t('admin.leads.column.empty')}</p>
                       </div>
                     ) : columnLeads.map(lead => (
                       <LeadPipelineCard key={lead.id} lead={lead} />
@@ -353,24 +334,23 @@ export default function AdminLeads() {
             })}
           </div>
         ) : (
-          /* ═══════ LIST VIEW ═══════ */
           <Card className="border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden">
             <CardContent className="p-0">
               {leads.length === 0 ? (
-                <EmptyState icon={Target} title="Ingen leads fundet" description="Tilpas dine filtre eller opret et nyt lead" />
+                <EmptyState icon={Target} title={t('admin.leads.empty.title')} description={t('admin.leads.empty.subtitle')} />
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border/40">
-                        {['Navn', 'Kontakt', 'Kilde', 'Region', 'Status', 'Næste skridt', 'Dato', ''].map(h => (
-                          <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{h}</th>
+                        {[t('admin.leads.table.name'), t('admin.leads.table.contact'), t('admin.leads.table.source'), t('admin.leads.table.region'), t('admin.leads.table.status'), t('admin.leads.table.nextStep'), t('admin.leads.table.date'), ''].map((h, i) => (
+                          <th key={i} className="px-4 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {leads.map(l => {
-                        const st = STATUS_MAP[l.status];
+                        const st = STATUS_META[l.status];
                         return (
                           <tr key={l.id} className="border-b border-border/20 hover:bg-muted/15 transition-colors cursor-pointer" onClick={() => setDrawerLead(l)}>
                             <td className="px-4 py-3">
@@ -384,9 +364,9 @@ export default function AdminLeads() {
                                 {l.phone && <div className="flex items-center gap-1 text-[11px] text-muted-foreground"><Phone className="w-3 h-3" />{l.phone}</div>}
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-xs text-muted-foreground">{SOURCE_MAP[l.source] || l.source}</td>
+                            <td className="px-4 py-3 text-xs text-muted-foreground">{sourceLabel(l.source)}</td>
                             <td className="px-4 py-3 text-xs text-muted-foreground">{l.region || '—'}</td>
-                            <td className="px-4 py-3"><StatusChip label={st?.label || l.status} variant={st?.variant || 'muted'} dot /></td>
+                            <td className="px-4 py-3"><StatusChip label={statusLabel(l.status)} variant={st?.variant || 'muted'} dot /></td>
                             <td className="px-4 py-3 text-xs text-muted-foreground max-w-[120px] truncate">{l.next_step || '—'}</td>
                             <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{format(new Date(l.created_at), 'd. MMM', { locale: da })}</td>
                             <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
@@ -395,22 +375,22 @@ export default function AdminLeads() {
                                   <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg"><MoreHorizontal className="h-4 w-4" /></Button>
                                 </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end" className="w-44">
-                                    <DropdownMenuItem onClick={() => openEdit(l)}>Rediger</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setDrawerLead(l)}>Detaljer</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openEdit(l)}>{t('admin.leads.action.edit')}</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => setDrawerLead(l)}>{t('admin.leads.action.details')}</DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     {PIPELINE_STATUSES.filter(s => s !== l.status).map(s => (
                                       <DropdownMenuItem key={s} onClick={() => updateStatus(l.id, s)}>
-                                        <ArrowRight className="h-3 w-3 mr-2" />{STATUS_MAP[s].label}
+                                        <ArrowRight className="h-3 w-3 mr-2" />{statusLabel(s)}
                                       </DropdownMenuItem>
                                     ))}
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={async () => {
-                                      if (!confirm(`Slet lead "${l.name}"?`)) return;
+                                      if (!confirm(`${t('admin.leads.confirm.delete')} "${l.name}"?`)) return;
                                       await supabase.from('leads').delete().eq('id', l.id);
-                                      toast.success('Lead slettet');
+                                      toast.success(t('admin.leads.toast.deleted'));
                                       load();
                                     }}>
-                                      <X className="h-3 w-3 mr-2" />Slet
+                                      <X className="h-3 w-3 mr-2" />{t('admin.leads.action.delete')}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                               </DropdownMenu>
@@ -427,23 +407,21 @@ export default function AdminLeads() {
         )}
       </div>
 
-      {/* ═══════ DETAIL DRAWER ═══════ */}
       <Sheet open={!!drawerLead} onOpenChange={(open) => { if (!open) setDrawerLead(null); }}>
         <SheetContent className="w-full sm:max-w-lg p-0 border-l border-border/40 bg-background">
           {drawerLead && (() => {
-            const st = STATUS_MAP[drawerLead.status];
+            const st = STATUS_META[drawerLead.status];
             return (
               <div className="flex flex-col h-full">
-                {/* Drawer header */}
                 <div className="px-6 pt-6 pb-4 border-b border-border/30">
                   <SheetHeader className="mb-0">
                     <div className="flex items-start justify-between">
                       <div>
                         <SheetTitle className="text-lg font-bold text-foreground">{drawerLead.name}</SheetTitle>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <StatusChip label={st?.label || drawerLead.status} variant={st?.variant || 'muted'} dot size="md" />
+                          <StatusChip label={statusLabel(drawerLead.status)} variant={st?.variant || 'muted'} dot size="md" />
                           <span className="text-[11px] text-muted-foreground">·</span>
-                          <span className="text-[11px] text-muted-foreground">{SOURCE_MAP[drawerLead.source] || drawerLead.source}</span>
+                          <span className="text-[11px] text-muted-foreground">{sourceLabel(drawerLead.source)}</span>
                         </div>
                       </div>
                     </div>
@@ -452,40 +430,39 @@ export default function AdminLeads() {
 
                 <ScrollArea className="flex-1">
                   <div className="px-6 py-5 space-y-6">
-                    {/* Quick actions */}
                     <div>
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">Handlinger</p>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">{t('admin.leads.section.actions')}</p>
                       <div className="grid grid-cols-3 gap-2">
                         {drawerLead.phone && (
                           <a href={`tel:${drawerLead.phone}`} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border/40 bg-card/60 hover:bg-muted/30 transition-all cursor-pointer text-center">
                             <PhoneCall className="h-4 w-4 text-primary" />
-                            <span className="text-[11px] font-medium text-foreground">Ring op</span>
+                            <span className="text-[11px] font-medium text-foreground">{t('admin.leads.action.call')}</span>
                           </a>
                         )}
                         {drawerLead.email && (
                           <a href={`mailto:${drawerLead.email}`} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border/40 bg-card/60 hover:bg-muted/30 transition-all cursor-pointer text-center">
                             <Send className="h-4 w-4 text-primary" />
-                            <span className="text-[11px] font-medium text-foreground">Send mail</span>
+                            <span className="text-[11px] font-medium text-foreground">{t('admin.leads.action.sendMail')}</span>
                           </a>
                         )}
                         <button className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border/40 bg-card/60 hover:bg-muted/30 transition-all cursor-pointer text-center">
                           <ListChecks className="h-4 w-4 text-primary" />
-                          <span className="text-[11px] font-medium text-foreground">Opgave</span>
+                          <span className="text-[11px] font-medium text-foreground">{t('admin.leads.action.task')}</span>
                         </button>
                         <button className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border/40 bg-card/60 hover:bg-muted/30 transition-all cursor-pointer text-center">
                           <CalendarPlus className="h-4 w-4 text-primary" />
-                          <span className="text-[11px] font-medium text-foreground">Book møde</span>
+                          <span className="text-[11px] font-medium text-foreground">{t('admin.leads.action.bookMeeting')}</span>
                         </button>
                         {drawerLead.status !== 'won' && (
                           <button onClick={() => convertToOwner(drawerLead)} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all cursor-pointer text-center">
                             <UserCheck className="h-4 w-4 text-emerald-400" />
-                            <span className="text-[11px] font-medium text-emerald-400">Konverter</span>
+                            <span className="text-[11px] font-medium text-emerald-400">{t('admin.leads.action.convert')}</span>
                           </button>
                         )}
                         {drawerLead.status !== 'lost' && (
                           <button onClick={() => updateStatus(drawerLead.id, 'lost')} className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-all cursor-pointer text-center">
                             <Ban className="h-4 w-4 text-red-400" />
-                            <span className="text-[11px] font-medium text-red-400">Tabt</span>
+                            <span className="text-[11px] font-medium text-red-400">{t('admin.leads.action.markLost')}</span>
                           </button>
                         )}
                       </div>
@@ -493,44 +470,42 @@ export default function AdminLeads() {
 
                     <Separator className="bg-border/30" />
 
-                    {/* Contact info */}
                     <div>
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">Kontaktoplysninger</p>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">{t('admin.leads.section.contact')}</p>
                       <div className="space-y-2.5">
                         {drawerLead.email && (
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0"><Mail className="h-3.5 w-3.5 text-muted-foreground" /></div>
-                            <div><p className="text-xs text-muted-foreground">Email</p><p className="text-sm font-medium text-foreground">{drawerLead.email}</p></div>
+                            <div><p className="text-xs text-muted-foreground">{t('admin.leads.field.email')}</p><p className="text-sm font-medium text-foreground">{drawerLead.email}</p></div>
                           </div>
                         )}
                         {drawerLead.phone && (
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0"><Phone className="h-3.5 w-3.5 text-muted-foreground" /></div>
-                            <div><p className="text-xs text-muted-foreground">Telefon</p><p className="text-sm font-medium text-foreground">{drawerLead.phone}</p></div>
+                            <div><p className="text-xs text-muted-foreground">{t('admin.leads.field.phone')}</p><p className="text-sm font-medium text-foreground">{drawerLead.phone}</p></div>
                           </div>
                         )}
                         {drawerLead.region && (
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /></div>
-                            <div><p className="text-xs text-muted-foreground">Region</p><p className="text-sm font-medium text-foreground">{drawerLead.region}</p></div>
+                            <div><p className="text-xs text-muted-foreground">{t('admin.leads.field.region')}</p><p className="text-sm font-medium text-foreground">{drawerLead.region}</p></div>
                           </div>
                         )}
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0"><Target className="h-3.5 w-3.5 text-muted-foreground" /></div>
-                          <div><p className="text-xs text-muted-foreground">Kilde</p><p className="text-sm font-medium text-foreground">{SOURCE_MAP[drawerLead.source] || drawerLead.source}</p></div>
+                          <div><p className="text-xs text-muted-foreground">{t('admin.leads.field.source')}</p><p className="text-sm font-medium text-foreground">{sourceLabel(drawerLead.source)}</p></div>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center shrink-0"><CalendarDays className="h-3.5 w-3.5 text-muted-foreground" /></div>
-                          <div><p className="text-xs text-muted-foreground">Oprettet</p><p className="text-sm font-medium text-foreground">{format(new Date(drawerLead.created_at), "d. MMMM yyyy 'kl.' HH:mm", { locale: da })}</p></div>
+                          <div><p className="text-xs text-muted-foreground">{t('admin.leads.field.created')}</p><p className="text-sm font-medium text-foreground">{format(new Date(drawerLead.created_at), 'd MMM yyyy, HH:mm')}</p></div>
                         </div>
                       </div>
                     </div>
 
                     <Separator className="bg-border/30" />
 
-                    {/* Next step */}
                     <div>
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">Næste skridt</p>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">{t('admin.leads.section.nextStep')}</p>
                       {drawerLead.next_step ? (
                         <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5">
                           <div className="flex items-center gap-2">
@@ -539,37 +514,34 @@ export default function AdminLeads() {
                           </div>
                           {drawerLead.next_step_date && (
                             <p className="text-[11px] text-muted-foreground mt-1.5 ml-6">
-                              {format(new Date(drawerLead.next_step_date), 'd. MMMM yyyy', { locale: da })}
+                              {format(new Date(drawerLead.next_step_date), 'd MMMM yyyy')}
                             </p>
                           )}
                         </div>
                       ) : (
-                        <p className="text-xs text-muted-foreground/60 italic">Intet næste skridt defineret</p>
+                        <p className="text-xs text-muted-foreground/60 italic">{t('admin.leads.empty.noNextStep')}</p>
                       )}
                     </div>
 
                     <Separator className="bg-border/30" />
 
-                    {/* Notes */}
                     <div>
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">Noter</p>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">{t('admin.leads.section.notes')}</p>
                       {drawerLead.notes ? (
                         <div className="rounded-xl bg-muted/15 border border-border/30 p-3.5">
                           <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{drawerLead.notes}</p>
                         </div>
                       ) : (
-                        <p className="text-xs text-muted-foreground/60 italic">Ingen noter endnu</p>
+                        <p className="text-xs text-muted-foreground/60 italic">{t('admin.leads.empty.noNotes')}</p>
                       )}
                     </div>
 
                     <Separator className="bg-border/30" />
 
-                    {/* Status pipeline */}
                     <div>
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">Flyt status</p>
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] mb-3">{t('admin.leads.section.moveStatus')}</p>
                       <div className="flex flex-wrap gap-2">
                         {PIPELINE_STATUSES.map(s => {
-                          const sInfo = STATUS_MAP[s];
                           const isCurrent = drawerLead.status === s;
                           return (
                             <button
@@ -583,31 +555,29 @@ export default function AdminLeads() {
                                   : 'text-muted-foreground border-border/30 hover:bg-muted/20 hover:text-foreground'
                               )}
                             >
-                              {sInfo.label}
+                              {statusLabel(s)}
                             </button>
                           );
                         })}
                       </div>
                     </div>
 
-                    {/* Meta */}
                     <div className="pt-2">
                       <div className="flex items-center gap-4 text-[11px] text-muted-foreground/50">
-                        {drawerLead.assigned_to && <span>Ansvarlig: {drawerLead.assigned_to}</span>}
-                        {drawerLead.property_type && <span>Type: {drawerLead.property_type}</span>}
+                        {drawerLead.assigned_to && <span>{t('admin.leads.meta.assigned')}: {drawerLead.assigned_to}</span>}
+                        {drawerLead.property_type && <span>{t('admin.leads.meta.type')}: {drawerLead.property_type}</span>}
                       </div>
                     </div>
                   </div>
                 </ScrollArea>
 
-                {/* Drawer footer */}
                 <div className="px-6 py-4 border-t border-border/30 space-y-2">
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="rounded-xl flex-1" onClick={() => { setDrawerLead(null); openEdit(drawerLead); }}>
-                      Rediger
+                      {t('admin.leads.action.edit')}
                     </Button>
                     <Button size="sm" className="rounded-xl flex-1" onClick={() => setDrawerLead(null)}>
-                      Luk
+                      {t('admin.leads.footer.close')}
                     </Button>
                   </div>
                   <Button
@@ -615,15 +585,15 @@ export default function AdminLeads() {
                     size="sm"
                     className="rounded-xl w-full text-red-400 border-red-500/20 hover:bg-red-500/5 gap-1.5"
                     onClick={async () => {
-                      if (!confirm(`Slet lead "${drawerLead.name}"?`)) return;
+                      if (!confirm(`${t('admin.leads.confirm.delete')} "${drawerLead.name}"?`)) return;
                       const { error } = await supabase.from('leads').delete().eq('id', drawerLead.id);
-                      if (error) { toast.error('Kunne ikke slette lead'); return; }
-                      toast.success('Lead slettet');
+                      if (error) { toast.error(t('admin.leads.toast.deleteFailed')); return; }
+                      toast.success(t('admin.leads.toast.deleted'));
                       setDrawerLead(null);
                       load();
                     }}
                   >
-                    <X className="h-3.5 w-3.5" />Slet lead
+                    <X className="h-3.5 w-3.5" />{t('admin.leads.footer.deleteLead')}
                   </Button>
                 </div>
               </div>
@@ -632,42 +602,41 @@ export default function AdminLeads() {
         </SheetContent>
       </Sheet>
 
-      {/* ═══════ CREATE / EDIT DIALOG ═══════ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{editing ? 'Rediger lead' : 'Nyt lead'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? t('admin.leads.edit') : t('admin.leads.new')}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
-              <div><Label className="text-xs">Navn *</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="mt-1 rounded-xl" /></div>
-              <div><Label className="text-xs">Telefon</Label><Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="mt-1 rounded-xl" /></div>
+              <div><Label className="text-xs">{t('admin.leads.form.name')}</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="mt-1 rounded-xl" /></div>
+              <div><Label className="text-xs">{t('admin.leads.form.phone')}</Label><Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="mt-1 rounded-xl" /></div>
             </div>
-            <div><Label className="text-xs">Email</Label><Input value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className="mt-1 rounded-xl" /></div>
+            <div><Label className="text-xs">{t('admin.leads.form.email')}</Label><Input value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className="mt-1 rounded-xl" /></div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs">Kilde</Label>
+                <Label className="text-xs">{t('admin.leads.form.source')}</Label>
                 <Select value={form.source} onValueChange={v => setForm(p => ({ ...p, source: v }))}>
                   <SelectTrigger className="mt-1 rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>{Object.entries(SOURCE_MAP).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+                  <SelectContent>{SOURCE_KEYS.map(k => <SelectItem key={k} value={k}>{sourceLabel(k)}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div><Label className="text-xs">Region</Label><Input value={form.region} onChange={e => setForm(p => ({ ...p, region: e.target.value }))} className="mt-1 rounded-xl" placeholder="Fx Nordsjælland" /></div>
+              <div><Label className="text-xs">{t('admin.leads.form.region')}</Label><Input value={form.region} onChange={e => setForm(p => ({ ...p, region: e.target.value }))} className="mt-1 rounded-xl" placeholder={t('admin.leads.form.regionPlaceholder')} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-xs">Status</Label>
+                <Label className="text-xs">{t('admin.leads.form.status')}</Label>
                 <Select value={form.status} onValueChange={v => setForm(p => ({ ...p, status: v }))}>
                   <SelectTrigger className="mt-1 rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>{Object.entries(STATUS_MAP).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
+                  <SelectContent>{PIPELINE_STATUSES.map(k => <SelectItem key={k} value={k}>{statusLabel(k)}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div><Label className="text-xs">Ansvarlig</Label><Input value={form.assigned_to} onChange={e => setForm(p => ({ ...p, assigned_to: e.target.value }))} className="mt-1 rounded-xl" /></div>
+              <div><Label className="text-xs">{t('admin.leads.form.assigned')}</Label><Input value={form.assigned_to} onChange={e => setForm(p => ({ ...p, assigned_to: e.target.value }))} className="mt-1 rounded-xl" /></div>
             </div>
-            <div><Label className="text-xs">Næste skridt</Label><Input value={form.next_step} onChange={e => setForm(p => ({ ...p, next_step: e.target.value }))} className="mt-1 rounded-xl" /></div>
-            <div><Label className="text-xs">Noter</Label><Textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="mt-1 rounded-xl" rows={3} /></div>
+            <div><Label className="text-xs">{t('admin.leads.form.nextStep')}</Label><Input value={form.next_step} onChange={e => setForm(p => ({ ...p, next_step: e.target.value }))} className="mt-1 rounded-xl" /></div>
+            <div><Label className="text-xs">{t('admin.leads.form.notes')}</Label><Textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="mt-1 rounded-xl" rows={3} /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} className="rounded-xl">Annuller</Button>
-            <Button onClick={save} className="rounded-xl">{editing ? 'Opdater' : 'Opret'}</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="rounded-xl">{t('admin.leads.form.cancel')}</Button>
+            <Button onClick={save} className="rounded-xl">{editing ? t('admin.leads.form.update') : t('admin.leads.form.create')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
