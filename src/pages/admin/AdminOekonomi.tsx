@@ -41,6 +41,14 @@ function fmtDate(d: string) {
 }
 
 export default function AdminOekonomi() {
+  const { t: tr } = useTranslation();
+  const TABS: { key: Tab; label: string }[] = [
+    { key: 'overview', label: tr('oekonomi.tab.overview') },
+    { key: 'payments', label: tr('oekonomi.tab.payments') },
+    { key: 'payouts', label: tr('oekonomi.tab.payouts') },
+    { key: 'addons', label: tr('oekonomi.tab.additional') },
+    { key: 'outstanding', label: tr('oekonomi.tab.outstanding') },
+  ];
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('overview');
   const [search, setSearch] = useState('');
