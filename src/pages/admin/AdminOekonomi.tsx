@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from '@/lib/i18n';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AdminPageHeader } from '@/components/admin/ui/AdminPageHeader';
 import { KPICard } from '@/components/admin/ui/KPICard';
