@@ -10,18 +10,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Plus, Users, Mail, Phone, Shield, UserCheck, Copy, Eye, EyeOff } from 'lucide-react';
+import { Plus, Mail, Phone, Copy, Eye, EyeOff } from 'lucide-react';
 import { format } from 'date-fns';
-import { da } from 'date-fns/locale';
-
-const TEAM_ROLES = [
-  { value: 'udlejningsraadgiver', label: 'Udlejningsrådgiver' },
-  { value: 'sagsbehandler', label: 'Sagsbehandler' },
-  { value: 'udlejningschef', label: 'Udlejningschef' },
-  { value: 'administrator', label: 'Administrator' },
-];
+import { da, enUS, de, nl } from 'date-fns/locale';
+import { useTranslation } from '@/lib/i18n';
 
 export default function AdminTeam() {
+  const { t, language } = useTranslation();
+  const dateLocale = language === 'en' ? enUS : language === 'de' ? de : language === 'nl' ? nl : da;
+
+  const TEAM_ROLES = [
+    { value: 'udlejningsraadgiver', label: t('adminTeam.role.advisor') },
+    { value: 'sagsbehandler', label: t('adminTeam.role.caseworker') },
+    { value: 'udlejningschef', label: t('adminTeam.role.manager') },
+    { value: 'administrator', label: t('adminTeam.role.admin') },
+  ];
+
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -32,14 +36,12 @@ export default function AdminTeam() {
     full_name: '',
     email: '',
     phone: '',
-    job_title: 'Udlejningsrådgiver',
+    job_title: t('adminTeam.role.advisor'),
     team_role: 'udlejningsraadgiver',
     password: '',
   });
 
-  useEffect(() => {
-    loadMembers();
-  }, []);
+  useEffect(() => { loadMembers(); }, []);
 
   const loadMembers = async () => {
     const { data } = await supabase.from('team_members').select('*').order('created_at');
@@ -49,23 +51,20 @@ export default function AdminTeam() {
 
   const handleInvite = async () => {
     if (!form.full_name || !form.email) {
-      toast.error('Navn og email er påkrævet');
+      toast.error(t('adminTeam.nameReq'));
       return;
     }
     setInviting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('invite-team-member', {
-        body: form,
-      });
+      const { data, error } = await supabase.functions.invoke('invite-team-member', { body: form });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
       setCreatedCredentials({ email: form.email, password: data.temp_password });
-      toast.success(`${form.full_name} er tilføjet til teamet`);
-      setForm({ full_name: '', email: '', phone: '', job_title: 'Udlejningsrådgiver', team_role: 'udlejningsraadgiver', password: '' });
+      toast.success(`${form.full_name} ${t('adminTeam.added')}`);
+      setForm({ full_name: '', email: '', phone: '', job_title: t('adminTeam.role.advisor'), team_role: 'udlejningsraadgiver', password: '' });
       loadMembers();
     } catch (e: any) {
-      toast.error(`Fejl: ${e.message}`);
+      toast.error(`${e.message}`);
     } finally {
       setInviting(false);
     }
@@ -74,12 +73,12 @@ export default function AdminTeam() {
   const toggleActive = async (member: any) => {
     await supabase.from('team_members').update({ is_active: !member.is_active } as any).eq('id', member.id);
     setMembers(prev => prev.map(m => m.id === member.id ? { ...m, is_active: !m.is_active } : m));
-    toast.success(member.is_active ? 'Bruger deaktiveret' : 'Bruger aktiveret');
+    toast.success(member.is_active ? t('adminTeam.userDeactivated') : t('adminTeam.userActivated'));
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Kopieret til udklipsholder');
+    toast.success(t('adminTeam.copied'));
   };
 
   const roleLabel = (role: string) => TEAM_ROLES.find(r => r.value === role)?.label || role;
@@ -97,95 +96,86 @@ export default function AdminTeam() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">Team</h1>
-            <p className="text-sm text-muted-foreground">Administrer medarbejdere og adgang</p>
+            <h1 className="font-display text-2xl font-bold text-foreground">{t('adminTeam.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('adminTeam.subtitle')}</p>
           </div>
           <Button size="sm" className="rounded-xl gap-1.5" onClick={() => { setInviteOpen(true); setCreatedCredentials(null); }}>
-            <Plus className="h-3.5 w-3.5" />Tilføj medarbejder
+            <Plus className="h-3.5 w-3.5" />{t('adminTeam.add')}
           </Button>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-4 gap-3">
           <div className="rounded-xl border border-border/40 bg-card/60 p-3 text-center">
             <p className="text-xl font-bold text-foreground">{members.length}</p>
-            <p className="text-[10px] text-muted-foreground">Total</p>
+            <p className="text-[10px] text-muted-foreground">{t('adminTeam.kpi.total')}</p>
           </div>
           <div className="rounded-xl border border-border/40 bg-card/60 p-3 text-center">
             <p className="text-xl font-bold text-emerald-500">{members.filter(m => m.is_active).length}</p>
-            <p className="text-[10px] text-muted-foreground">Aktive</p>
+            <p className="text-[10px] text-muted-foreground">{t('adminTeam.kpi.active')}</p>
           </div>
           <div className="rounded-xl border border-border/40 bg-card/60 p-3 text-center">
             <p className="text-xl font-bold text-blue-500">{members.filter(m => m.team_role === 'udlejningsraadgiver').length}</p>
-            <p className="text-[10px] text-muted-foreground">Rådgivere</p>
+            <p className="text-[10px] text-muted-foreground">{t('adminTeam.kpi.advisors')}</p>
           </div>
           <div className="rounded-xl border border-border/40 bg-card/60 p-3 text-center">
             <p className="text-xl font-bold text-amber-500">{members.filter(m => m.team_role === 'sagsbehandler').length}</p>
-            <p className="text-[10px] text-muted-foreground">Sagsbehandlere</p>
+            <p className="text-[10px] text-muted-foreground">{t('adminTeam.kpi.caseworkers')}</p>
           </div>
         </div>
 
-        {/* Team list */}
         <div className="space-y-3">
-          {loading && <p className="text-sm text-muted-foreground text-center py-12">Indlæser team...</p>}
+          {loading && <p className="text-sm text-muted-foreground text-center py-12">{t('adminTeam.loading')}</p>}
           {members.map(m => (
             <Card key={m.id} className={cn('overflow-hidden transition-all', !m.is_active && 'opacity-50')}>
               <CardContent className="p-4 flex items-center gap-4">
-                {/* Avatar */}
                 <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                   <span className="text-sm font-bold text-primary">
                     {m.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                   </span>
                 </div>
-
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-foreground">{m.full_name}</p>
                     <Badge className={cn('text-[10px] font-medium', roleBadgeColor(m.team_role))}>
                       {roleLabel(m.team_role)}
                     </Badge>
-                    {!m.is_active && <Badge variant="outline" className="text-[10px]">Inaktiv</Badge>}
+                    {!m.is_active && <Badge variant="outline" className="text-[10px]">{t('adminTeam.inactive')}</Badge>}
                   </div>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="flex items-center gap-1 text-xs text-muted-foreground"><Mail className="h-3 w-3" />{m.email}</span>
                     {m.phone && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{m.phone}</span>}
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{m.job_title} · Tilføjet {format(new Date(m.created_at), 'd. MMM yyyy', { locale: da })}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{m.job_title} · {t('adminTeam.addedOn')} {format(new Date(m.created_at), 'd MMM yyyy', { locale: dateLocale })}</p>
                 </div>
-
-                {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <Button size="sm" variant={m.is_active ? 'outline' : 'default'} className="text-xs rounded-lg"
-                    onClick={() => toggleActive(m)}>
-                    {m.is_active ? 'Deaktiver' : 'Aktiver'}
+                  <Button size="sm" variant={m.is_active ? 'outline' : 'default'} className="text-xs rounded-lg" onClick={() => toggleActive(m)}>
+                    {m.is_active ? t('adminTeam.deactivate') : t('adminTeam.activate')}
                   </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
           {!loading && members.length === 0 && (
-            <div className="text-center py-12 text-sm text-muted-foreground">Ingen teammedlemmer endnu</div>
+            <div className="text-center py-12 text-sm text-muted-foreground">{t('adminTeam.empty')}</div>
           )}
         </div>
       </div>
 
-      {/* Invite dialog */}
       <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Tilføj medarbejder</DialogTitle>
+            <DialogTitle>{t('adminTeam.dialog.title')}</DialogTitle>
           </DialogHeader>
 
           {createdCredentials ? (
             <div className="space-y-4">
               <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-4">
-                <p className="text-sm font-medium text-emerald-700 mb-2">✅ Medarbejder oprettet!</p>
-                <p className="text-xs text-muted-foreground">Del login-oplysningerne med medarbejderen:</p>
+                <p className="text-sm font-medium text-emerald-700 mb-2">{t('adminTeam.created.title')}</p>
+                <p className="text-xs text-muted-foreground">{t('adminTeam.created.share')}</p>
               </div>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-xs text-muted-foreground">Email</Label>
+                  <Label className="text-xs text-muted-foreground">{t('adminTeam.field.email')}</Label>
                   <div className="flex gap-2">
                     <Input readOnly value={createdCredentials.email} className="text-sm" />
                     <Button size="icon" variant="outline" onClick={() => copyToClipboard(createdCredentials.email)}>
@@ -194,7 +184,7 @@ export default function AdminTeam() {
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Midlertidigt kodeord</Label>
+                  <Label className="text-xs text-muted-foreground">{t('adminTeam.tempPwd')}</Label>
                   <div className="flex gap-2">
                     <Input readOnly type={showPassword ? 'text' : 'password'} value={createdCredentials.password} className="text-sm" />
                     <Button size="icon" variant="outline" onClick={() => setShowPassword(!showPassword)}>
@@ -206,29 +196,29 @@ export default function AdminTeam() {
                   </div>
                 </div>
               </div>
-              <Button className="w-full rounded-xl" onClick={() => { setInviteOpen(false); setCreatedCredentials(null); }}>Luk</Button>
+              <Button className="w-full rounded-xl" onClick={() => { setInviteOpen(false); setCreatedCredentials(null); }}>{t('adminTeam.close')}</Button>
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <Label className="text-xs">Fulde navn *</Label>
+                <Label className="text-xs">{t('adminTeam.field.fullName')} *</Label>
                 <Input placeholder="Anna Jensen" value={form.full_name} onChange={e => setForm({ ...form, full_name: e.target.value })} />
               </div>
               <div>
-                <Label className="text-xs">Email *</Label>
+                <Label className="text-xs">{t('adminTeam.field.email')} *</Label>
                 <Input type="email" placeholder="anna@sommervibes.dk" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
               </div>
               <div>
-                <Label className="text-xs">Telefon</Label>
+                <Label className="text-xs">{t('adminTeam.field.phone')}</Label>
                 <Input placeholder="+45 12 34 56 78" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs">Jobtitel</Label>
+                  <Label className="text-xs">{t('adminTeam.field.jobTitle')}</Label>
                   <Input value={form.job_title} onChange={e => setForm({ ...form, job_title: e.target.value })} />
                 </div>
                 <div>
-                  <Label className="text-xs">Rolle</Label>
+                  <Label className="text-xs">{t('adminTeam.field.role')}</Label>
                   <Select value={form.team_role} onValueChange={v => setForm({ ...form, team_role: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -238,11 +228,11 @@ export default function AdminTeam() {
                 </div>
               </div>
               <div>
-                <Label className="text-xs">Kodeord (valgfrit — autogenereres)</Label>
-                <Input type="password" placeholder="Lad tom for auto-generering" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+                <Label className="text-xs">{t('adminTeam.field.password')}</Label>
+                <Input type="password" placeholder={t('adminTeam.field.passwordPlaceholder')} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
               </div>
               <Button className="w-full rounded-xl" onClick={handleInvite} disabled={inviting}>
-                {inviting ? 'Opretter...' : 'Opret medarbejder'}
+                {inviting ? t('adminTeam.creating') : t('adminTeam.submit')}
               </Button>
             </div>
           )}

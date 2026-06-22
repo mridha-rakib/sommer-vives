@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n';
 
 /* ── Config ── */
 type DocType = 'formidlingsaftale' | 'owner_upload' | 'invoice' | 'statement' | 'id_personal' | 'internal' | 'other';
@@ -87,6 +88,7 @@ function getMimeColor(mime: string | null) {
 type PageTab = 'documents' | 'templates';
 
 export default function AdminDokumenter() {
+  const { t: tr } = useTranslation();
   const navigate = useNavigate();
   const [documents, setDocuments] = useState<any[]>([]);
   const [agreements, setAgreements] = useState<any[]>([]);
@@ -371,27 +373,28 @@ export default function AdminDokumenter() {
 
       <div className="space-y-6">
         <AdminPageHeader
-          title="Dokumenter"
-          subtitle="Dokumentbibliotek, aftaler og skabeloner"
+          title={tr('dokumenter.title')}
+          subtitle={tr('dokumenter.subtitle')}
           actions={
             <div className="flex items-center gap-2">
               <div className="flex items-center rounded-xl border border-border/40 overflow-hidden">
                 <button onClick={() => setPageTab('documents')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all', pageTab === 'documents' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
-                  <FileText className="h-3.5 w-3.5" />Dokumenter
+                  <FileText className="h-3.5 w-3.5" />{tr('dokumenter.tab.documents')}
                 </button>
                 <button onClick={() => setPageTab('templates')} className={cn('px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all border-l border-border/40', pageTab === 'templates' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground')}>
-                  <Copy className="h-3.5 w-3.5" />Skabeloner
+                  <Copy className="h-3.5 w-3.5" />{tr('dokumenter.tab.templates')}
                 </button>
               </div>
               <Button variant="outline" size="sm" className="gap-1.5 rounded-xl text-xs" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                <Upload className="h-3.5 w-3.5" />{uploading ? 'Uploader...' : 'Upload fil'}
+                <Upload className="h-3.5 w-3.5" />{uploading ? '...' : tr('dokumenter.upload')}
               </Button>
               <Button size="sm" className="gap-1.5 rounded-xl text-xs" onClick={openNewDoc}>
-                <FilePlus className="h-3.5 w-3.5" />Nyt dokument
+                <FilePlus className="h-3.5 w-3.5" />{tr('dokumenter.new')}
               </Button>
             </div>
           }
         />
+
 
         {/* ── Pending agreements alert ── */}
         {pendingAgreements.length > 0 && pageTab === 'documents' && (
@@ -417,10 +420,10 @@ export default function AdminDokumenter() {
         {/* ── KPIs ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {([
-            { label: 'Alle dokumenter', value: counts.total, icon: FolderOpen },
-            { label: 'Aktive / signerede', value: counts.active, icon: FileText },
-            { label: 'Kladder', value: counts.draft, icon: File },
-            { label: 'Dokumenttyper', value: counts.types, icon: Grid3X3 },
+            { label: tr('dokumenter.kpi.all'), value: counts.total, icon: FolderOpen },
+            { label: tr('dokumenter.kpi.active'), value: counts.active, icon: FileText },
+            { label: tr('dokumenter.kpi.drafts'), value: counts.draft, icon: File },
+            { label: tr('dokumenter.kpi.types'), value: counts.types, icon: Grid3X3 },
           ]).map(kpi => (
             <div key={kpi.label} className="rounded-xl border border-border/40 bg-card/60 p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -437,7 +440,7 @@ export default function AdminDokumenter() {
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Søg dokumenter..."
+              placeholder={tr('dokumenter.search')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-9 h-9 bg-muted/20 border-border/40 rounded-xl text-sm"
@@ -446,12 +449,13 @@ export default function AdminDokumenter() {
 
           <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-auto">
             <TabsList className="h-9 bg-muted/20 border border-border/30 rounded-xl p-0.5">
-              <TabsTrigger value="all" className="text-xs rounded-lg px-3 h-7">Alle</TabsTrigger>
-              <TabsTrigger value="active" className="text-xs rounded-lg px-3 h-7">Aktive</TabsTrigger>
-              <TabsTrigger value="draft" className="text-xs rounded-lg px-3 h-7">Kladder</TabsTrigger>
-              <TabsTrigger value="archived" className="text-xs rounded-lg px-3 h-7">Arkiv</TabsTrigger>
+              <TabsTrigger value="all" className="text-xs rounded-lg px-3 h-7">{tr('dokumenter.filter.all')}</TabsTrigger>
+              <TabsTrigger value="active" className="text-xs rounded-lg px-3 h-7">{tr('dokumenter.filter.active')}</TabsTrigger>
+              <TabsTrigger value="draft" className="text-xs rounded-lg px-3 h-7">{tr('dokumenter.filter.drafts')}</TabsTrigger>
+              <TabsTrigger value="archived" className="text-xs rounded-lg px-3 h-7">{tr('dokumenter.filter.file')}</TabsTrigger>
             </TabsList>
           </Tabs>
+
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -504,8 +508,8 @@ export default function AdminDokumenter() {
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-border/40 bg-card/40 p-16 text-center">
             <FolderOpen className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm font-medium text-muted-foreground">Ingen dokumenter fundet</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Tilpas dine filtre eller upload et nyt dokument</p>
+            <p className="text-sm font-medium text-muted-foreground">{tr('dokumenter.empty')}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">{tr('dokumenter.emptySub')}</p>
           </div>
         ) : viewMode === 'grid' ? (
           /* ── Grid view ── */
