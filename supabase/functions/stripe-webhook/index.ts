@@ -82,6 +82,24 @@ Deno.serve(async (req) => {
         }
         break;
       }
+      // PaymentIntent events — fired when using embedded Stripe Elements (the primary booking path).
+      // These are the webhook safety-net: they confirm the booking even if the guest's browser
+      // never reaches the success page after payment.
+      case "payment_intent.succeeded":
+        await handlePaymentIntentSucceeded(supabase, event.data.object as Stripe.PaymentIntent);
+        break;
+      case "payment_intent.payment_failed":
+        await handlePaymentIntentFailed(supabase, event.data.object as Stripe.PaymentIntent);
+        break;
+      case "payment_intent.canceled": {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        const bookingId = pi.metadata?.booking_id;
+        if (bookingId) {
+          await supabase.from("bookings").update({ payment_status: "failed" }).eq("id", bookingId);
+          await supabase.from("availability_holds").update({ released: true }).eq("booking_id", bookingId);
+        }
+        break;
+      }
       default:
         console.log(`[STRIPE-WEBHOOK] Unhandled event: ${event.type}`);
     }
@@ -498,4 +516,143 @@ async function ensurePendingOwnerPayout(
     status: "pending",
     description: `Booking ${booking.case_number || bookingId.slice(0, 8)}`,
   });
+}
+
+async function handlePaymentIntentSucceeded(
+  supabase: SupabaseServiceClient,
+  paymentIntent: Stripe.PaymentIntent,
+) {
+  const bookingId = paymentIntent.metadata?.booking_id;
+  if (!bookingId) {
+    console.log(`[STRIPE-WEBHOOK] payment_intent.succeeded: no booking_id in metadata, PI=${paymentIntent.id}`);
+    return;
+  }
+
+  const { data: booking } = await supabase.from("bookings").select("*").eq("id", bookingId).single();
+  if (!booking) {
+    console.error(`[STRIPE-WEBHOOK] payment_intent.succeeded: booking ${bookingId} not found`);
+    return;
+  }
+
+  // Idempotency guard — skip if already processed from a previous webhook delivery or from verify-payment.
+  const { data: existingPayment } = await supabase
+    .from("payments")
+    .select("id, status")
+    .eq("stripe_payment_intent_id", paymentIntent.id)
+    .maybeSingle();
+  if (existingPayment?.status === "completed" || existingPayment?.status === "refunded") {
+    console.log(`[STRIPE-WEBHOOK] payment_intent.succeeded: already processed for booking ${bookingId}`);
+    return;
+  }
+
+  const amountPaid = paymentIntent.amount_received || paymentIntent.amount;
+  if (amountPaid <= 0) return;
+
+  const totalAmount = Number(booking.total_amount || 0);
+  const previousPaid = Number(booking.amount_paid || 0);
+  const nextPaid = Math.min(totalAmount || previousPaid + amountPaid, previousPaid + amountPaid);
+  const nextRemaining = Math.max(0, totalAmount - nextPaid);
+  const paymentStatus = nextRemaining > 0 ? "partially_paid" : "paid";
+
+  await supabase.from("bookings").update({
+    status: "confirmed",
+    payment_status: paymentStatus,
+    stripe_payment_intent_id: paymentIntent.id,
+    amount_paid: nextPaid,
+    amount_remaining: nextRemaining,
+  }).eq("id", bookingId);
+
+  await supabase.from("availability_holds").update({ released: true }).eq("booking_id", bookingId);
+
+  const paymentPayload = {
+    booking_id: bookingId,
+    owner_id: booking.owner_id,
+    amount: amountPaid,
+    currency: (paymentIntent.currency || "dkk").toUpperCase(),
+    status: "completed",
+    payment_method: "stripe",
+    stripe_payment_intent_id: paymentIntent.id,
+    paid_at: new Date().toISOString(),
+    note: "Stripe PaymentIntent webhook",
+  };
+
+  if (existingPayment?.id) {
+    await supabase.from("payments").update(paymentPayload).eq("id", existingPayment.id);
+  } else {
+    await supabase.from("payments").insert(paymentPayload);
+  }
+
+  // Create listing block to prevent double-booking.
+  const { data: existingBlock } = await supabase
+    .from("listing_blocks")
+    .select("id")
+    .eq("external_uid", `booking-${bookingId}`)
+    .maybeSingle();
+  if (!existingBlock) {
+    await supabase.from("listing_blocks").insert({
+      listing_id: booking.property_id,
+      owner_id: booking.owner_id,
+      start_date: booking.check_in,
+      end_date: booking.check_out,
+      source: "direct_booking",
+      external_uid: `booking-${bookingId}`,
+      summary: "Booking bekræftet",
+    });
+  }
+
+  if (nextRemaining === 0) {
+    await ensurePendingOwnerPayout(
+      supabase,
+      { ...booking, amount_paid: nextPaid, amount_remaining: nextRemaining },
+      bookingId,
+    );
+    await sendBookingConfirmationEmail(supabase, bookingId);
+  }
+
+  const automationPayload = {
+    linked_type: "booking",
+    linked_id: bookingId,
+    booking_id: bookingId,
+    listing_id: booking.property_id,
+    property_id: booking.property_id,
+    owner_id: booking.owner_id,
+    guest_name: booking.guest_name,
+    guest_email: booking.guest_email,
+    guest_phone: booking.guest_phone,
+    check_in: booking.check_in,
+    check_out: booking.check_out,
+    start_date: booking.check_in,
+    end_date: booking.check_out,
+    total_amount: totalAmount,
+    amount_paid: nextPaid,
+    amount_remaining: nextRemaining,
+    payment_status: paymentStatus,
+    stripe_payment_intent_id: paymentIntent.id,
+    link: `/admin/sager/${booking.property_id}`,
+  };
+  await triggerAutomationEvent(
+    "payment_received",
+    `booking_payment:${bookingId}:${paymentIntent.id}`,
+    automationPayload,
+  );
+  await triggerAutomationEvent(
+    "booking_confirmed",
+    `booking_confirmed:${bookingId}`,
+    automationPayload,
+  );
+
+  console.log(`[STRIPE-WEBHOOK] payment_intent.succeeded: booking ${bookingId} confirmed`);
+}
+
+async function handlePaymentIntentFailed(
+  supabase: SupabaseServiceClient,
+  paymentIntent: Stripe.PaymentIntent,
+) {
+  const bookingId = paymentIntent.metadata?.booking_id;
+  if (!bookingId) return;
+
+  await supabase.from("bookings").update({ payment_status: "failed" }).eq("id", bookingId);
+  await supabase.from("availability_holds").update({ released: true }).eq("booking_id", bookingId);
+
+  console.log(`[STRIPE-WEBHOOK] payment_intent.payment_failed: booking ${bookingId} marked failed`);
 }

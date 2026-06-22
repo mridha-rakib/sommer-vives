@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from '@/lib/i18n';
 
 type ReturnKind = 'success' | 'cancelled';
-type VerifyState = 'idle' | 'checking' | 'confirmed' | 'pending' | 'failed';
+type VerifyState = 'idle' | 'checking' | 'confirmed' | 'pending' | 'failed' | 'error';
 
 export default function BookingReturn({ kind }: { kind: ReturnKind }) {
   const [params] = useSearchParams();
@@ -35,11 +35,20 @@ export default function BookingReturn({ kind }: { kind: ReturnKind }) {
 
       if (cancelled) return;
       if (error) {
-        setVerifyState('pending');
+        // Verification call failed (network error or server error).
+        // The webhook will confirm the booking server-side, so guide the guest
+        // to check their email rather than showing a generic failure.
+        setVerifyState('error');
         return;
       }
 
-      setVerifyState(data?.status === 'paid' || data?.status === 'partially_paid' ? 'confirmed' : 'pending');
+      if (data?.status === 'paid' || data?.status === 'partially_paid') {
+        setVerifyState('confirmed');
+      } else if (data?.status === 'failed' || data?.status === 'expired') {
+        setVerifyState('failed');
+      } else {
+        setVerifyState('pending');
+      }
     };
 
     verify();
@@ -63,6 +72,22 @@ export default function BookingReturn({ kind }: { kind: ReturnKind }) {
         icon: <Loader2 className="h-10 w-10 text-accent animate-spin" />,
         title: t('bookingReturn.checking.title'),
         body: t('bookingReturn.checking.body'),
+      };
+    }
+
+    if (verifyState === 'failed') {
+      return {
+        icon: <AlertCircle className="h-10 w-10 text-destructive" />,
+        title: t('bookingReturn.failed.title'),
+        body: t('bookingReturn.failed.body'),
+      };
+    }
+
+    if (verifyState === 'error') {
+      return {
+        icon: <AlertCircle className="h-10 w-10 text-amber-400" />,
+        title: t('bookingReturn.error.title'),
+        body: t('bookingReturn.error.body'),
       };
     }
 

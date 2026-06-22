@@ -462,9 +462,10 @@ Deno.serve(async (req) => {
   try {
     const stripe = new Stripe(stripeKey!, { apiVersion: "2025-08-27.basil" });
     const origin = req.headers.get("origin") || Deno.env.get("SITE_URL") || Deno.env.get("VITE_SITE_URL") || "https://sommervibes.dk";
-    const requestedDeposit = Math.round(Number(deposit_amount || 0));
+    // Always compute deposit server-side; never trust the client-supplied deposit_amount.
+    const serverDepositAmount = Math.round(totalPrice * 0.3);
     const checkoutAmount = payment_option === "deposit"
-      ? Math.min(totalPrice, Math.max(1, requestedDeposit || Math.round(totalPrice * 0.3)))
+      ? Math.min(totalPrice, Math.max(1, serverDepositAmount))
       : totalPrice;
 
     const paymentMeta = {
@@ -485,9 +486,12 @@ Deno.serve(async (req) => {
         receipt_email: guest_email,
         metadata: paymentMeta,
         automatic_payment_methods: { enabled: true },
+      }, {
+        // Idempotency key prevents duplicate charges if the edge function is retried.
+        idempotencyKey: `booking:pi:${booking.id}:${checkoutAmount}`,
       });
 
-      await supabase.from("bookings").update({ stripe_session_id: paymentIntent.id }).eq("id", booking.id);
+      await supabase.from("bookings").update({ stripe_payment_intent_id: paymentIntent.id }).eq("id", booking.id);
       await triggerAutomationEvent("booking_created", `booking_created:${booking.id}`, {
         ...automationPayload,
         stripe_payment_intent_id: paymentIntent.id,
@@ -535,6 +539,8 @@ Deno.serve(async (req) => {
       success_url: `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}&booking_id=${booking.id}`,
       cancel_url: `${origin}/booking-cancelled?booking_id=${booking.id}`,
       metadata: paymentMeta,
+    }, {
+      idempotencyKey: `booking:cs:${booking.id}:${checkoutAmount}`,
     });
 
     if (!session.url) throw new Error("Stripe did not return a checkout URL");

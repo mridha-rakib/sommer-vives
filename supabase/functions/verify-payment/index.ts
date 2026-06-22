@@ -547,7 +547,7 @@ async function verifyBookingPaymentIntent(
   await supabase.from("bookings").update({
     status: "confirmed",
     payment_status: paymentStatus,
-    stripe_session_id: paymentIntentId,
+    stripe_payment_intent_id: paymentIntentId,
     amount_paid: nextPaid,
     amount_remaining: nextRemaining,
   }).eq("id", bookingId);
