@@ -256,6 +256,7 @@ export default function Auth() {
       if (mode === 'signup') {
         const { error } = await signUp(email, password, fullName);
         if (error) throw error;
+        setJustSignedUp(true);
         toast({
           title: copy.signupSuccessTitle,
           description: copy.successDescription,
