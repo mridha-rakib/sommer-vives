@@ -263,6 +263,7 @@ export default function Auth() {
       if (mode === 'signup') {
         const { error } = await signUp(email, password, fullName);
         if (error) throw error;
+        sessionStorage.setItem('owner_just_signed_up', '1');
         setJustSignedUp(true);
         toast({
           title: copy.signupSuccessTitle,
