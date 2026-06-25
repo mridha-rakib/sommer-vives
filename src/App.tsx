@@ -59,7 +59,7 @@ import PriceCalculator from "./pages/PriceCalculator";
 // Team import removed — redirects to /about
 import ReferAHost from "./pages/ReferAHost";
 import GetStarted from "./pages/GetStarted";
-import { OnboardingWizard } from "./components/onboarding/OnboardingWizard";
+
 import BookValuation from "./pages/BookValuation";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
