@@ -241,6 +241,7 @@ const App = () => (
             <Route path="/booking-cancelled" element={<BookingReturn kind="cancelled" />} />
 
             {/* ─── Owner Experience ─── */}
+            <Route path="/onboarding" element={<ProtectedRoute requireOwner><OnboardingWizard /></ProtectedRoute>} />
             <Route path="/owner" element={<ProtectedRoute requireOwner><OwnerDashboard /></ProtectedRoute>} />
             <Route path="/owner/property" element={<ProtectedRoute requireOwner><OwnerProperty /></ProtectedRoute>} />
             <Route path="/owner/bookings" element={<ProtectedRoute requireOwner><OwnerBookings /></ProtectedRoute>} />
