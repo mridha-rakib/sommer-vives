@@ -165,15 +165,20 @@ export default function Auth() {
   const [code, setCode] = useState('');
   const [resetToken, setResetToken] = useState<string | null>(null);
   const [recoveryReady, setRecoveryReady] = useState(!isPasswordRecoveryUrl() || initialRecovery.isExpired);
+  const [justSignedUp, setJustSignedUp] = useState(false);
   const { signUp, signInWithPassword, user, rolesLoaded, isAdmin, isOwner, isGuest } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     if (user && rolesLoaded && mode !== 'updatePassword') {
+      if (justSignedUp && isOwner) {
+        navigate('/onboarding');
+        return;
+      }
       navigate(isAdmin ? '/admin' : isOwner ? '/owner' : isGuest ? '/guest' : '/auth');
     }
-  }, [user, rolesLoaded, isAdmin, isOwner, isGuest, mode, navigate]);
+  }, [user, rolesLoaded, isAdmin, isOwner, isGuest, mode, navigate, justSignedUp]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -251,6 +256,7 @@ export default function Auth() {
       if (mode === 'signup') {
         const { error } = await signUp(email, password, fullName);
         if (error) throw error;
+        setJustSignedUp(true);
         toast({
           title: copy.signupSuccessTitle,
           description: copy.successDescription,
