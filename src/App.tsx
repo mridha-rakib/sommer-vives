@@ -59,7 +59,7 @@ import PriceCalculator from "./pages/PriceCalculator";
 // Team import removed — redirects to /about
 import ReferAHost from "./pages/ReferAHost";
 import GetStarted from "./pages/GetStarted";
-import { OnboardingWizard } from "./components/onboarding/OnboardingWizard";
+
 import BookValuation from "./pages/BookValuation";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
@@ -241,7 +241,7 @@ const App = () => (
             <Route path="/booking-cancelled" element={<BookingReturn kind="cancelled" />} />
 
             {/* ─── Owner Experience ─── */}
-            <Route path="/onboarding" element={<ProtectedRoute requireOwner><OnboardingWizard /></ProtectedRoute>} />
+            
             <Route path="/owner" element={<ProtectedRoute requireOwner><OwnerDashboard /></ProtectedRoute>} />
             <Route path="/owner/property" element={<ProtectedRoute requireOwner><OwnerProperty /></ProtectedRoute>} />
             <Route path="/owner/bookings" element={<ProtectedRoute requireOwner><OwnerBookings /></ProtectedRoute>} />

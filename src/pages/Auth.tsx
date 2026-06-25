@@ -174,12 +174,10 @@ export default function Auth() {
 
   useEffect(() => {
     if (!user || mode === 'updatePassword') return;
-    // For new signups, redirect to onboarding as soon as we have a session,
-    // even before roles propagate (the route is owner-protected and will wait).
     if (justSignedUp) {
       sessionStorage.removeItem('owner_just_signed_up');
       setJustSignedUp(false);
-      navigate('/onboarding');
+      navigate('/kom-i-gang');
       return;
     }
     if (rolesLoaded) {
