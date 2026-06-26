@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { AppPromptSheet } from '@/components/app/AppPromptSheet';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,29 +62,53 @@ const AMENITIES_OPTIONS = [
   'Husdyr tilladt',
 ];
 
+const DEFAULT_DATA: OnboardingData = {
+  title: '',
+  address: '',
+  region: '',
+  capacity: 4,
+  bedrooms: 2,
+  bathrooms: 1,
+  description: '',
+  amenities: [],
+  houseRules: '',
+  cleaningPreference: 'platform',
+  addons: {
+    proPhotos: false,
+    proVideo: false,
+    paymentMethod: null,
+  },
+};
+
 export function OnboardingWizard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const storageKey = useMemo(() => user?.id ? `onboarding_wizard_${user.id}` : null, [user?.id]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [data, setData] = useState<OnboardingData>({
-    title: '',
-    address: '',
-    region: '',
-    capacity: 4,
-    bedrooms: 2,
-    bathrooms: 1,
-    description: '',
-    amenities: [],
-    houseRules: '',
-    cleaningPreference: 'platform',
-    addons: {
-      proPhotos: false,
-      proVideo: false,
-      paymentMethod: null,
-    },
-  });
-  const [showAppPrompt, setShowAppPrompt] = useState(false);
+  const [data, setData] = useState<OnboardingData>(DEFAULT_DATA);
+
+  // Restore saved wizard state (step + form data) from localStorage on first mount
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const { step, formData } = JSON.parse(saved);
+        if (typeof step === 'number' && step >= 1 && step <= 5) setCurrentStep(step);
+        if (formData) setData(prev => ({ ...prev, ...formData }));
+      }
+    } catch {
+      // ignore corrupted data
+    }
+  }, [storageKey]);
+
+  // Persist step + form data on every change
+  useEffect(() => {
+    if (!storageKey) return;
+    localStorage.setItem(storageKey, JSON.stringify({ step: currentStep, formData: data }));
+  }, [currentStep, data, storageKey]);
 
   const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
@@ -129,9 +152,9 @@ export function OnboardingWizard() {
         addons: data.addons,
       });
 
+      if (storageKey) localStorage.removeItem(storageKey);
       toast.success('Dit sommerhus er oprettet!');
-      setShowAppPrompt(true);
-      setTimeout(() => navigate('/owner/properties'), 3000);
+      navigate('/owner/properties');
     } catch (error) {
       console.error('Error creating property:', error);
       toast.error('Der opstod en fejl ved oprettelse');
@@ -506,7 +529,6 @@ export function OnboardingWizard() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <AppPromptSheet open={showAppPrompt} onOpenChange={setShowAppPrompt} context="onboarding-complete" />
       {renderStepIndicator()}
 
       <Card>
