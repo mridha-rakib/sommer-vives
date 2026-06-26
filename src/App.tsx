@@ -87,6 +87,9 @@ import OwnerSettings from "./pages/owner/OwnerSettings";
 import OwnerPackages from "./pages/owner/OwnerPackages";
 import OwnerAgreement from "./pages/owner/OwnerAgreement";
 import OwnerAccount from "./pages/owner/OwnerAccount";
+import CreateProperty from "./pages/owner/CreateProperty";
+import OwnerProperties from "./pages/owner/OwnerProperties";
+import PropertyForm from "./pages/owner/PropertyForm";
 
 // Admin pages
 import AdminAuth from "./pages/admin/AdminAuth";
@@ -260,7 +263,9 @@ const App = () => (
             <Route path="/owner/account" element={<ProtectedRoute requireOwner><OwnerAccount /></ProtectedRoute>} />
             <Route path="/owner/settings" element={<ProtectedRoute requireOwner><OwnerSettings /></ProtectedRoute>} />
             <Route path="/owner/inquiries" element={<ProtectedRoute requireOwner><OwnerInquiries /></ProtectedRoute>} />
-            <Route path="/owner/properties" element={<Navigate to="/owner/property" replace />} />
+            <Route path="/owner/properties" element={<ProtectedRoute><OwnerProperties /></ProtectedRoute>} />
+            <Route path="/owner/properties/new" element={<ProtectedRoute><CreateProperty /></ProtectedRoute>} />
+            <Route path="/owner/properties/:id/edit" element={<ProtectedRoute><PropertyForm /></ProtectedRoute>} />
 
             {/* ─── Guest Experience ─── */}
             <Route path="/guest/auth" element={DEV_BYPASS_AUTH ? <Navigate to="/guest" replace /> : <GuestAuth />} />
