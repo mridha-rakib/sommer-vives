@@ -174,15 +174,34 @@ export default function Auth() {
 
   useEffect(() => {
     if (!user || mode === 'updatePassword') return;
+
+    // Brand-new signup: go straight to the onboarding wizard before roles even load
     if (justSignedUp) {
       sessionStorage.removeItem('owner_just_signed_up');
       setJustSignedUp(false);
-      navigate('/kom-i-gang');
+      navigate('/owner/properties/new');
       return;
     }
-    if (rolesLoaded) {
-      navigate(isAdmin ? '/admin' : isOwner ? '/owner' : isGuest ? '/guest' : '/auth');
+
+    if (!rolesLoaded) return;
+
+    if (isAdmin) { navigate('/admin'); return; }
+    if (isGuest) { navigate('/guest'); return; }
+
+    if (isOwner) {
+      // Returning owner: send to dashboard if they already have a property,
+      // otherwise send back to the wizard so they can finish onboarding.
+      supabase
+        .from('properties')
+        .select('id', { count: 'exact', head: true })
+        .eq('owner_id', user.id)
+        .then(({ count }) => {
+          navigate((count ?? 0) > 0 ? '/owner' : '/owner/properties/new');
+        });
+      return;
     }
+
+    navigate('/auth');
   }, [user, rolesLoaded, isAdmin, isOwner, isGuest, mode, navigate, justSignedUp]);
 
   useEffect(() => {
